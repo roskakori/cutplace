@@ -69,7 +69,14 @@ class DelimiterParserTest(unittest.TestCase):
         
     def testEmptyCsv(self):
         self._assertItemsEqual([], "")
-
+    
+    def testAutoDelimiters(self):
+        lineDelimiter = parsers.CRLF
+        dialect = self._createDefaultDialect()
+        dialect.lineDelimiter = parsers.AUTO
+        dialect.itemDelimiter = parsers.AUTO
+        self._assertItemsEqual([["a", "b"], ["c", "d", "e"]], "a,b" + parsers.CRLF + "c,d,e" + parsers.CRLF, dialect)
+        
     def testEmptyLineWithLfCsv(self):
         self._assertItemsEqual([[""]], parsers.LF)
     

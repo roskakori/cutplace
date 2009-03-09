@@ -61,10 +61,42 @@ class DelimitedParser(object):
         assert dialect.lineDelimiter is not None
         assert dialect.itemDelimiter is not None
 
+        # Automatically set line and item delimiter.
+        # TODO: Use a more intelligent logic. Csv.Sniffer would be nice,
+        # but not all test cases work with it.
+        if (dialect.lineDelimiter == AUTO) or (dialect.itemDelimiter == AUTO):
+            oldPosition = readable.tell()
+            sniffedText = readable.read(16384)
+            readable.seek(oldPosition)
+        if dialect.lineDelimiter == AUTO:
+            crLfCount = sniffedText.count(CRLF)
+            crCount = sniffedText.count(CR) - crLfCount
+            lfCount = sniffedText.count(LF) - crLfCount
+            if (crCount > crLfCount):
+                if (crCount > lfCount):
+                    actualLineDelimiter = CR
+                else:
+                    actualLineDelimiter = CRLF
+            else:
+                if (crLfCount > lfCount):
+                    actualLineDelimiter = CRLF
+                else:
+                    actualLineDelimiter = LF
+        else:
+            actualLineDelimiter = dialect.lineDelimiter
+        if dialect.itemDelimiter == AUTO:
+            commaCount = sniffedText.count(",")
+            semicolonCount = sniffedText.count(";")
+            if commaCount > semicolonCount:
+                actualItemDelimiter = ","
+            else:
+                actualItemDelimiter = ";"
+        else:
+            actualItemDelimiter = dialect.itemDelimiter
+        
         self.readable = readable
-        # FIXME: Detect first line feed in case of AUTO
-        self.lineDelimiter = dialect.lineDelimiter
-        self.itemDelimiter = dialect.itemDelimiter
+        self.lineDelimiter = actualLineDelimiter
+        self.itemDelimiter = actualItemDelimiter
         self.quoteChar = dialect.quoteChar
         self.escapeChar = dialect.escapeChar
         self.blanksAroundItemDelimiter = dialect.blanksAroundItemDelimiter
