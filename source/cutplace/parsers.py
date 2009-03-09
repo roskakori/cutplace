@@ -24,6 +24,22 @@ class DelimitedDialect(object):
 
 class DelimitedSyntaxError(Exception):
     """Error detecting while parsing delimited data."""
+    def __init__(self, message, lineNumber, itemNumberInLine, columnNumberInLine):
+        super(Exception, self).__init__(message)
+        assert lineNumber is not None
+        assert lineNumber >= 0
+        assert itemNumberInLine is not None
+        assert itemNumberInLine >= 0
+        assert columnNumberInLine is not None
+        assert columnNumberInLine >= 0
+        
+        self.message = message
+        self.lineNumber = lineNumber
+        self.itemNumberInLine = itemNumberInLine
+        self.columnNumberInLine = columnNumberInLine
+        
+    def __str__(self):
+        return "%d,%d,%d: %s" % (self.lineNumber, self.itemNumberInLine, self.columnNumberInLine, str(self.message))
             
 class DelimitedParser(object):
     """Parser for data where items are separated by delimiters."""
@@ -34,6 +50,7 @@ class DelimitedParser(object):
         assert dialect.itemDelimiter is not None
 
         self.readable = readable
+        # FIXME: Detect first line feed in case of AUTO
         self.lineDelimiter = dialect.lineDelimiter
         self.itemDelimiter = dialect.itemDelimiter
         self.quoteChar = dialect.quoteChar
@@ -41,22 +58,24 @@ class DelimitedParser(object):
         self.blanksAroundItemDelimiter = dialect.blanksAroundItemDelimiter
 
         self.log = logging.getLogger("cutplace")
-        self.atEndOfLine = False
         self.atEndOfFile = False
         self.item = None
-        self.columnNumber = 0
-        self.lineNumber = 0
         self.unreadChars = ""
+
+        # Reset all attributes related to position.
+        self.atEndOfLine = True
+        self.lineNumber = - 1
+        self._possiblyAdvanceLine()
         
         # Attempt to read the first item.
         self.advance()
-        
+
     def _unread(self, charsToUnread):
         assert charsToUnread is not None
         assert charsToUnread, "characters to unread must be specified"
         self.unreadChars += charsToUnread
         self.columnNumber -= len(charsToUnread)
-        assert self.columnNumber >= 0, "column=%d" %(self.columnNumber)
+        assert self.columnNumber >= 0, "column=%d" % (self.columnNumber)
                 
     def _read(self):
         if self.unreadChars:
@@ -68,10 +87,16 @@ class DelimitedParser(object):
             self.columnNumber += 1
         return result
     
+    def _raiseSyntaxError(self, message):
+        """Raise syntax error at the current position."""
+        raise DelimitedSyntaxError(message, self.lineNumber, self.itemNumber, self.columnNumber)
+
     def _possiblyAdvanceLine(self):
         if self.atEndOfLine:
             self.atEndOfLine = False
             self.lineNumber += 1
+            self.itemNumber = 0
+            self.columnNumber = 0
     
     def _possiblySkipSpace(self):
         if self.blanksAroundItemDelimiter:
@@ -96,24 +121,19 @@ class DelimitedParser(object):
     def advance(self):
         """Advance one item."""
         assert not self.atEndOfFile
+        assert self.lineDelimiter != AUTO
 
         self.item = None
         quoted = False
 
+        self._possiblyAdvanceLine()
         self._possiblySkipSpace()
         
         firstChar = self._read()
-        
-        # Skip blanks before actual item starts.
-        if self.blanksAroundItemDelimiter:
-            while firstChar and (firstChar in self.blanksAroundItemDelimiter):
-                firstChar = self._read()
-
         if not firstChar:
             # End of file reached.
             self.atEndOfFile = True
             self.atEndOfLine = True
-            self.item = None
         else:
             # Check if the item is quoted.
             if firstChar == self.quoteChar:
@@ -135,21 +155,26 @@ class DelimitedParser(object):
                             self._unread(nextChar)
                     else:
                         item += nextChar
+                        if not quoted and item.endswith(self.lineDelimiter):
+                            self.log.debug("detected linefeed")
+                            atEndOfItem = True
                 else:
                     self.atEndOfLine = True
                     atEndOfItem = True
+            # Detect and of line
+            if not quoted and item.endswith(self.lineDelimiter):
+                    self.log.debug("trimmed linefeed from unquoted item, remainder: \"%s\"" % (item))
+                    item = item[: - len(self.lineDelimiter)]
+                    self.atEndOfLine = True
+                    self._unread(self.lineDelimiter)
+
             self.item = item
-            
+            if self.item is not None:
+                self.itemNumber += 1
+                
             self._possiblySkipSpace()
             tail = self._read()
             if not tail or (tail == self.itemDelimiter):
                 pass
             elif tail != self.lineDelimiter:
-                raise DelimitedSyntaxError("data item must be followed by line feed or item delimiter, but found: \"" + tail + "\"")
-            
-            
-        
-        
-        
-    
-     
+                self._raiseSyntaxError("data item must be followed by line feed or item delimiter, but found: \"" + tail + "\"")
