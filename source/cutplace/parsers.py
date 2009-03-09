@@ -125,6 +125,7 @@ class DelimitedParser(object):
 
         self.item = None
         quoted = False
+        stripLineDelimiter = False
 
         self._possiblyAdvanceLine()
         self._possiblySkipSpace()
@@ -156,25 +157,40 @@ class DelimitedParser(object):
                     else:
                         item += nextChar
                         if not quoted and item.endswith(self.lineDelimiter):
-                            self.log.debug("detected linefeed")
+                            self.log.debug("detected line delimiter: " + repr(self.lineDelimiter))
+                            stripLineDelimiter = True
                             atEndOfItem = True
                 else:
+                    if quoted:
+                        # TODO: Use start of item as position to report for error.
+                        self._raiseSyntaxError("item must be terminated with quote (%s) before file ends" % (self.quoteChar))
                     self.atEndOfLine = True
                     atEndOfItem = True
-            # Detect and of line
-            if not quoted and item.endswith(self.lineDelimiter):
-                    self.log.debug("trimmed linefeed from unquoted item, remainder: \"%s\"" % (item))
-                    item = item[: - len(self.lineDelimiter)]
-                    self.atEndOfLine = True
-                    self._unread(self.lineDelimiter)
+                    # Handle empty line with line delimiter at end of file
+                    if item == self.lineDelimiter:
+                        stripLineDelimiter = True
+
+            # Remove line delimiter from unquoted items at end of line.
+            if stripLineDelimiter:
+                self.log.debug("trimmed linefeed from unquoted item, remainder: " + repr(item))
+                item = item[: - len(self.lineDelimiter)]
+                self.atEndOfLine = True
+                # self._unread(self.lineDelimiter)
+
+            # Ensure that item is followed by either an item separator a line separator. 
+            if not self.atEndOfLine:
+                self._possiblySkipSpace()
+                nextChar = self._read()
+                if nextChar != self.itemDelimiter:
+                    tail = nextChar
+                    while nextChar and (tail != self.lineDelimiter) and (self.lineDelimiter.startsWith(tail)):
+                        nextChar = self._read()
+                        tail += nextChar
+                    if tail != self.lineDelimiter:
+                        self._raiseSyntaxError(\
+                               "data item must be followed by item delimiter (%s) or line delimiter (%s), but found: %s" \
+                                % (repr(self.itemDelimiter), repr(self.lineDelimiter), repr(tail)))
 
             self.item = item
             if self.item is not None:
                 self.itemNumber += 1
-                
-            self._possiblySkipSpace()
-            tail = self._read()
-            if not tail or (tail == self.itemDelimiter):
-                pass
-            elif tail != self.lineDelimiter:
-                self._raiseSyntaxError("data item must be followed by line feed or item delimiter, but found: \"" + tail + "\"")

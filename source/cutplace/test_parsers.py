@@ -62,11 +62,15 @@ class DelimiterParserTest(unittest.TestCase):
     def testEmptyLineWithLfCsv(self):
         self._assertItemsEqual([[""]], parsers.LF)
     
-    def _testEmptyLineWithCrCsv(self):
-        self._assertItemsEqual([[""]], parsers.CR)
+    def testEmptyLineWithCrCsv(self):
+        dialect = self._createDefaultDialect()
+        dialect.lineDelimiter = parsers.CR
+        self._assertItemsEqual([[""]], parsers.CR, dialect)
     
-    def _testEmptyLineWithCrLfCsv(self):
-        self._assertItemsEqual([[""]], parsers.CRLF)
+    def testEmptyLineWithCrLfCsv(self):
+        dialect = self._createDefaultDialect()
+        dialect.lineDelimiter = parsers.CRLF
+        self._assertItemsEqual([[""]], parsers.CRLF, dialect)
     
 if __name__ == '__main__':
     logging.basicConfig()
