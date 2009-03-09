@@ -34,7 +34,7 @@ class DelimiterParserTest(unittest.TestCase):
         rows = []
         columns = []
         while not parser.atEndOfFile:
-            _log.debug("eof=" + str(parser.atEndOfFile) + ",eol=" + str(parser.atEndOfLine) + ", item=" + str(parser.item))
+            _log.debug("eof=" + repr(parser.atEndOfFile) + ",eol=" + repr(parser.atEndOfLine) + ", item=" + repr(parser.item))
             if parser.item is not None:
                 columns.append(parser.item)
             if parser.atEndOfLine:
@@ -43,8 +43,16 @@ class DelimiterParserTest(unittest.TestCase):
             parser.advance()
         self.assertEqual(rows, expectedItems)
         
+    # TODO: Add test cases for preservation of blanks between unquoted items.
+       
     def testSingleCharCsv(self):
         self._assertItemsEqual([["x"]], "x")
+
+    def testSingleQuotedCharCsv(self):
+        self._assertItemsEqual([["x"]], "\"x\"")
+
+    def testSingleLineQuotedCsv(self):
+        self._assertItemsEqual([["hugo", "was", "here"]], "\"hugo\",\"was\",\"here\"")
 
     def testSingleLineCsv(self):
         self._assertItemsEqual([["hugo", "was", "here"]], "hugo,was,here")
@@ -52,6 +60,9 @@ class DelimiterParserTest(unittest.TestCase):
     def testTwoLineCsv(self):
         self._assertItemsEqual([["a"], ["b", "c"]], "a" + parsers.LF + "b,c")
         self._assertItemsEqual([["hugo", "was"], ["here", "again"]], "hugo,was" + parsers.LF + "here,again")
+
+    def testTwoLineQuotedCsv(self):
+        self._assertItemsEqual([["hugo", "was"], ["here", "again"]], "\"hugo\",\"was\"" + parsers.LF + "\"here\",\"again\"")
 
     def testMixedQuotedLineCsv(self):
         self._assertItemsEqual([["hugo", "was", "here"]], "hugo,\"was\",here")

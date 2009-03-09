@@ -106,18 +106,6 @@ class DelimitedParser(object):
             if possibleBlank:
                 self._unread(possibleBlank)
             
-    def _matchingEndOfLine(self, text):
-        """Yield in which end of line sequence text ends, or None if no sequence matches."""
-        result = None
-        eolIndex = 0
-        while (result is None) and (eolIndex < len(self.lineDelimiter)):
-            delimiter = self.lineDelimiter(eolIndex)
-            if text.endswith(delimiter):
-                result = delimiter
-            else:
-                eolIndex += 1
-        return result
-             
     def advance(self):
         """Advance one item."""
         assert not self.atEndOfFile
@@ -172,21 +160,24 @@ class DelimitedParser(object):
 
             # Remove line delimiter from unquoted items at end of line.
             if stripLineDelimiter:
-                self.log.debug("trimmed linefeed from unquoted item, remainder: " + repr(item))
+                self.log.debug("stripped linefeed after unquoted item, remainder: " + repr(item))
                 item = item[: - len(self.lineDelimiter)]
                 self.atEndOfLine = True
-                # self._unread(self.lineDelimiter)
 
-            # Ensure that item is followed by either an item separator a line separator. 
+            # Ensure that item is followed by either an item separator, a line separator or the end of data is reached. 
             if not self.atEndOfLine:
                 self._possiblySkipSpace()
                 nextChar = self._read()
-                if nextChar != self.itemDelimiter:
+                if not nextChar:
+                    self.atEndOfLine = True
+                elif nextChar != self.itemDelimiter:
                     tail = nextChar
                     while nextChar and (tail != self.lineDelimiter) and (self.lineDelimiter.startsWith(tail)):
                         nextChar = self._read()
                         tail += nextChar
-                    if tail != self.lineDelimiter:
+                    if tail == self.lineDelimiter:
+                        self.atEndOfLine = True
+                    else:
                         self._raiseSyntaxError(\
                                "data item must be followed by item delimiter (%s) or line delimiter (%s), but found: %s" \
                                 % (repr(self.itemDelimiter), repr(self.lineDelimiter), repr(tail)))
