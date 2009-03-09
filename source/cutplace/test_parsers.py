@@ -82,6 +82,16 @@ class DelimiterParserTest(unittest.TestCase):
         dialect = self._createDefaultDialect()
         dialect.lineDelimiter = parsers.CRLF
         self._assertItemsEqual([[""]], parsers.CRLF, dialect)
+        
+    def testReader(self):
+        dialect = self._createDefaultDialect()
+        dataStream = StringIO.StringIO("hugo,was" + parsers.LF + "here,again")
+        csvReader = parsers.delimitedReader(dataStream, dialect)
+        rowCount = 0
+        for row in csvReader:
+            rowCount += 1
+            self.assertEqual(2, len(row))
+        self.assertEqual(2, rowCount)
     
 if __name__ == '__main__':
     logging.basicConfig()

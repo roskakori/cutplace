@@ -7,7 +7,19 @@ CR = "\r"
 LF = "\n"
 CRLF = CR + LF
 _VALID_LINE_DELIMITERS = [AUTO, CR, CRLF, LF]
-    
+
+def delimitedReader(readable, dialect):
+    """Generator yielding the "readable" line by line using "dialect"."""
+    parser = DelimitedParser(readable, dialect)
+    columns = []
+    while not parser.atEndOfFile:
+        if parser.item is not None:
+            columns.append(parser.item)
+        if parser.atEndOfLine:
+            yield columns
+            columns = []
+        parser.advance()
+
 class DelimitedDialect(object):
     def __init__(self, lineDelimter=AUTO, itemDelimiter=AUTO):
         assert lineDelimter is not None
