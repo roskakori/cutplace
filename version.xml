@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE cutplace-version [<!ELEMENT cutplace-version (version,release,revision,date)>
+<!ELEMENT version (#PCDATA)>
+<!ELEMENT revision (#PCDATA)>
+<!ELEMENT release (#PCDATA)>
+<!ELEMENT date (#PCDATA)>
+]>
+<cutplace-version>
+  <version>0</version>
+  <release>0</release>
+  <revision>2</revision>
+  <date>2009-03-10</date>
+</cutplace-version>

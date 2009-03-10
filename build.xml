@@ -22,6 +22,8 @@
     <delete dir="${dist}"/>
   	<delete dir="${source}" includes="**/*.pyc"/>
   </target>
+	
+  <target description="update version information" name="version">
+    <xslt in="version.xml" out="${source}/cutplace/version.py" style="${source}/xml/version-py.xsl"/>
+  </target>
 </project>
-
-
