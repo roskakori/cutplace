@@ -25,5 +25,6 @@
 	
   <target description="update version information" name="version">
     <xslt in="version.xml" out="${source}/cutplace/version.py" style="${source}/xml/version-py.xsl"/>
+    <xslt in="version.xml" out="setup.py" style="${source}/xml/version-setup-py.xsl"/>
   </target>
 </project>
