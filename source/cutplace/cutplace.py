@@ -5,6 +5,23 @@ import logging
 import sys
 import version
 
+# Constants for options and shortcuts
+_OPTION_HELP = "help"
+_OPTION_HELP_TEXT = "--" + _OPTION_HELP
+_OPTION_LOG = "log"
+_OPTION_LOG_TEXT = "--" + _OPTION_LOG
+_OPTION_VERSION = "version"
+_OPTION_VERSION_TEXT = "--" + _OPTION_VERSION
+_SHORT_HELP = "h"
+_SHORT_HELP_TEXT = "-" + _SHORT_HELP
+        
+# Mapping for value of --log to logging level
+_LOG_LEVEL_MAP = {"debug": logging.DEBUG,
+    "info": logging.INFO,
+    "warning": logging.WARNING,
+    "error": logging.ERROR,
+    "critical": logging.CRITICAL}
+
 class CutPlace(object):
     """Command line interface for CutPlace."""
 
@@ -12,23 +29,6 @@ class CutPlace(object):
         self.log = logging.getLogger("cutplace")
         self.reset()
 
-        # Mapping for value of --log to logging level
-        self.LEVELS = {"debug": logging.DEBUG,
-            "info": logging.INFO,
-            "warning": logging.WARNING,
-            "error": logging.ERROR,
-            "critical": logging.CRITICAL}
-
-        # Options and shortcuts
-        self.OPTION_HELP = "help"
-        self.OPTION_HELP_TEXT = "--" + self.OPTION_HELP
-        self.OPTION_LOG = "log"
-        self.OPTION_LOG_TEXT = "--" + self.OPTION_LOG
-        self.OPTION_VERSION = "version"
-        self.OPTION_VERSION_TEXT = "--" + self.OPTION_VERSION
-        self.SHORT_HELP = "h"
-        self.SHORT_HELP_TEXT = "-" + self.SHORT_HELP
-        
     def reset(self):
         """"Reset all options to their initial state so this CutPlace can be reused for another validation."""
         self.isShowHelp = False
@@ -41,20 +41,20 @@ class CutPlace(object):
         """Reset options and set them again from argument list such as sys.argv[1:]."""
         assert argv is not None
         
-        shortOptions = self.SHORT_HELP
-        longOptions = [self.OPTION_HELP, self.OPTION_LOG + "=", self.OPTION_VERSION]
+        shortOptions = _SHORT_HELP
+        longOptions = [_OPTION_HELP, _OPTION_LOG + "=", _OPTION_VERSION]
         options, others = getopt.getopt(sys.argv[1:], shortOptions, longOptions)
 
         for option, value in options:
-            if option in (self.OPTION_HELP_TEXT, self.SHORT_HELP_TEXT):
+            if option in (_OPTION_HELP_TEXT, _SHORT_HELP_TEXT):
                 self.isShowHelp = True
-            elif option in (self.OPTION_LOG_TEXT):
-                optionLog = self.LEVELS.get(value)
+            elif option in (_OPTION_LOG_TEXT):
+                optionLog = _LOG_LEVEL_MAP.get(value)
                 if optionLog is not None:
                     self.log.setLevel(optionLog)
                 else:
                     raise getopt.GetoptError("value specified for " + option + " must be one of: " + str(sorted(LEVEL.keys)))
-            elif option in (self.OPTION_VERSION_TEXT):
+            elif option in (_OPTION_VERSION_TEXT):
                 self.isShowVersion = True
             else:
                 raise NotImplementedError("option must be implemented: " + option)
@@ -90,14 +90,16 @@ class CutPlace(object):
     def _printUsage(self):
         INDENT = " " * 2
         self._printHeader()
+        print "Copyright (C) Thomas Aglassinger 2009. Distributed under the GNU GPLv3."
+        print
         print "Usage:"
         print INDENT + "cutplace [options] interface-control-document"
         print INDENT + INDENT + "check syntax and semantic of interface control document"
         print INDENT + "cutplace [options] interface-control-document data-file(s)"
         print INDENT + INDENT + "validate that data-file conforms to interface control document"
         print "Options:"
-        print INDENT + self.OPTION_HELP_TEXT + ", " + self.SHORT_HELP_TEXT + ": print usage information and exit"
-        print INDENT + self.OPTION_LOG_TEXT + "={level}: set logging level to debug, info, warning, error or critical"
+        print INDENT + _OPTION_HELP_TEXT + ", " + _SHORT_HELP_TEXT + ": print usage information and exit"
+        print INDENT + _OPTION_LOG_TEXT + "={level}: set logging level to debug, info, warning, error or critical"
     
 if __name__ == '__main__':
     logging.basicConfig()
