@@ -7,7 +7,7 @@ import unittest
 
 _log = logging.getLogger("cutplace.parsers")
 
-class DelimiterParserTest(unittest.TestCase):
+class DelimitedParserTest(unittest.TestCase):
     """TestCase for DelimiterParser."""
     
     def _createDefaultDialect(self):

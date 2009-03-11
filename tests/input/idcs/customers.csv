@@ -4,7 +4,7 @@
 ,,,,,
 "D","Format","CSV",,,
 "D","Line separator","LF",,,
-"D","Item separator",";",,,
+"D","Item separator",",",,,
 "D","Thousands separator",,,,
 "D","Decimal separator",".",,,
 "D","Encoding","ISO-8851-9",,,

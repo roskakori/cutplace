@@ -26,7 +26,7 @@ class CutPlace(object):
     """Command line interface for CutPlace."""
 
     def __init__(self):
-        self.log = logging.getLogger("cutplace")
+        self._log = logging.getLogger("cutplace")
         self.reset()
 
     def reset(self):
@@ -43,7 +43,7 @@ class CutPlace(object):
         
         shortOptions = _SHORT_HELP
         longOptions = [_OPTION_HELP, _OPTION_LOG + "=", _OPTION_VERSION]
-        options, others = getopt.getopt(sys.argv[1:], shortOptions, longOptions)
+        options, others = getopt.getopt(argv, shortOptions, longOptions)
 
         for option, value in options:
             if option in (_OPTION_HELP_TEXT, _SHORT_HELP_TEXT):
@@ -51,7 +51,7 @@ class CutPlace(object):
             elif option in (_OPTION_LOG_TEXT):
                 optionLog = _LOG_LEVEL_MAP.get(value)
                 if optionLog is not None:
-                    self.log.setLevel(optionLog)
+                    self._log.setLevel(optionLog)
                 else:
                     raise getopt.GetoptError("value specified for " + option + " must be one of: " + str(sorted(LEVEL.keys)))
             elif option in (_OPTION_VERSION_TEXT):
@@ -59,9 +59,9 @@ class CutPlace(object):
             else:
                 raise NotImplementedError("option must be implemented: " + option)
 
-        log.debug("cutplace " + version.VERSION_TAG)
-        log.debug("options=" + str(options))
-        log.debug("others=" + str(others))
+        self._log.debug("cutplace " + version.VERSION_TAG)
+        self._log.debug("options=" + str(options))
+        self._log.debug("others=" + str(others))
     
         if not (self.isShowHelp or self.isShowVersion):
             if len(others) >= 2:
@@ -103,8 +103,7 @@ class CutPlace(object):
     
 if __name__ == '__main__':
     logging.basicConfig()
-    log = logging.getLogger("cutplace")
-    log.setLevel(logging.INFO)
+    logging.getLogger("cutplace").setLevel(logging.INFO)
 
     cutPlace = CutPlace()
     cutPlace.setOptions(sys.argv[1:])
