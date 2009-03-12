@@ -152,6 +152,7 @@ class DelimitedParser(object):
             
     def advance(self):
         """Advance one item."""
+        # FIXME: Support escaped quotes.
         assert not self.atEndOfFile
         assert self.lineDelimiter != AUTO
 
