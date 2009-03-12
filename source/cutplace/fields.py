@@ -88,6 +88,7 @@ class RegExFieldFormat(AbstractFieldFormat):
     def __init__(self, fieldName, rule, isAllowedToBeEmpty):
         super(AbstractFieldFormat, self).__init__(rule, isAllowedToBeEmpty)
         self.regex = re.compile(rule, re.IGNORECASE | re.MULTILINE)
+        self.rule = rule
 
     def validate(self, value):
         if not self.regex.match(value):
