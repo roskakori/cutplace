@@ -30,7 +30,7 @@ class DataFormat(object):
         self.VALID_TYPES = [
                             self.TYPE_CSV
                             ]
-        self.log = logging.getLogger("cutplace")
+        self._log = logging.getLogger("cutplace")
         self.reset()
 
     def reset(self):
@@ -58,10 +58,11 @@ class DataFormat(object):
                 if actualKey == self.KEY_FORMAT:
                     if not actualValue.lower() in self.VALID_TYPES:
                         raise LookupError("data format type is \"%s\" but must be one of: %s" % (str(value), str(self.VALID_TYPES)))
-        self.log.debug("set %s to \"%s\"" % (actualKey, str(actualValue)))
+        self._log.debug("set %s to \"%s\"" % (actualKey, str(actualValue)))
         setattr(self, actualKey, value)
         
     def lineSeparatorForDialect(self):
+        # TODO: Unify line separator in IDC DataFormat and parsers.
         lineSeparator = self.lineSeparator.lower()
         if lineSeparator == "cr":
             result = parsers.CR
@@ -82,9 +83,11 @@ class InterfaceDescription(object):
         self.ID_DATA_FORMAT = "d"
         self.ID_FIELD_RULE = "f"
         self.VALID_IDS = [self.ID_CONSTRAINT, self.ID_DATA_FORMAT, self.ID_FIELD_RULE]
-        self.log = logging.getLogger("cutplace")
+        self._log = logging.getLogger("cutplace")
         self.dataFormat = DataFormat()
-        self.log = logging.getLogger("cutplace")
+        self.fieldNames = []
+        self.fieldFormats = []
+        self.fieldNameToFormatMap = {}
     
     def _createFieldFormatClass(self, fieldType):
         assert fieldType is not None
@@ -101,7 +104,7 @@ class InterfaceDescription(object):
             className = fieldType
             module = sys.modules[moduleName]
         className += "FieldFormat"
-        self.log.debug("create from " + str(moduleName) + " class " + className)
+        self._log.debug("create from " + str(moduleName) + " class " + className)
         try:
             result = getattr(module, className)
         except AttributeError:
@@ -129,6 +132,7 @@ class InterfaceDescription(object):
             if not fieldName:
                 raise ValueError("field name must not be empty")
             fieldType = items[1].strip()
+            fieldIsAllowedToBeEmpty = False
             if itemCount >= 3:
                 fieldRule = items[2].strip()
                 if not fieldRule:
@@ -142,8 +146,16 @@ class InterfaceDescription(object):
             else:
                 fieldRule = None
             fieldClass = self._createFieldFormatClass(fieldType);
-            self.log.debug("create field: %s(%s, %s, %s)" % (str(fieldClass), str(fieldName), str(fieldType), str(fieldRule)))
-            fieldFormat = fieldClass.__new__(fieldClass, fieldName, fieldRule, True)
+            self._log.debug("create field: %s(%s, %s, %s)" % (str(fieldClass), str(fieldName), str(fieldType), str(fieldRule)))
+            fieldFormat = fieldClass.__new__(fieldClass, fieldName, fieldRule, fieldIsAllowedToBeEmpty)
+            fieldFormat.__init__(fieldName, fieldRule, fieldIsAllowedToBeEmpty)
+            if not self.fieldNameToFormatMap.has_key(fieldName):
+                self.fieldNames.append(fieldName)
+                self.fieldFormats.append(fieldFormat)
+                self.fieldNameToFormatMap[fieldName] = fieldFormat
+                print fieldName + ": " + repr(fieldFormat)
+            else:
+                raise LookupError("name must be used for only one field: %s" % (fieldName))
         else:
             raise IndexError("field format line (marked with %s) must contain at least 3 columns" % (repr(self.ID_FIELD_RULE)))
         
@@ -156,7 +168,7 @@ class InterfaceDescription(object):
             reader = csv.reader(icdFile, dialect)
             for row in reader:
                 lineNumber = reader.line_num
-                self.log.debug("parse icd line%5d: %s" % (lineNumber, str(row)))
+                self._log.debug("parse icd line%5d: %s" % (lineNumber, str(row)))
                 if len(row) >= 1:
                     rowId = str(row[0]).lower() 
                     if rowId == self.ID_CONSTRAINT:
@@ -173,7 +185,7 @@ class InterfaceDescription(object):
     def validate(self, dataFileToValidatePath):
         """Validate that all lines and items in dataFileToValidatePath conform to this interface."""
         assert dataFileToValidatePath is not None
-        self.log.info("validate \"%s\"" % (dataFileToValidatePath))
+        self._log.info("validate \"%s\"" % (dataFileToValidatePath))
         
         # TODO: Clean up lower(), it should be called at a more appropriate place such as a property setter.
         if self.dataFormat.format.lower() == self.dataFormat.TYPE_CSV:
@@ -182,9 +194,21 @@ class InterfaceDescription(object):
                 dialect = parsers.DelimitedDialect()
                 dialect.lineDelimiter = self.dataFormat.lineSeparatorForDialect()
                 dialect.itemDelimiter = self.dataFormat.itemSeparator
+                # TODO: Obtain quote char from ICD.
+                dialect.quoteChar = "\""
                 reader = parsers.delimitedReader(dataFile, dialect)
                 for row in reader:
-                    print row
+                    try:
+                        itemIndex = 0
+                        while itemIndex < len(row):
+                            item = row[itemIndex]
+                            self.fieldFormats[itemIndex].validate(item)
+                            itemIndex += 1
+                        if itemIndex != len(row):
+                            raise fields.FieldValueError("unexpected data must be removed beginning at item %d" % (itemIndex))
+                        self._log.info("accepted: " + str(row))
+                    except:
+                        self._log.error("rejected: " + str(row), exc_info=1)
             finally:
                 dataFile.close()
         else:
