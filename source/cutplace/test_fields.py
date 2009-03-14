@@ -3,6 +3,26 @@ import fields
 import logging#
 import unittest
 
+class DateTimeFieldFormatTest(unittest.TestCase):
+    """Tests  for DateTimeFieldFormat."""
+    def testValidDates(self):
+        format = fields.DateFieldFormat("x", "YYYY-MM-DD", False)
+        format.validate("2000-01-01")
+        format.validate("2000-02-29")
+        format.validate("1955-02-28")
+        format.validate("2345-12-31")
+        format.validate("0001-01-01")
+        format.validate("9999-12-31")
+
+    def testBrokenDates(self):
+        format = fields.DateFieldFormat("x", "YYYY-MM-DD", False)
+        self.assertRaises(fields.FieldValueError, format.validate, "2000-02-30")
+        self.assertRaises(fields.FieldValueError, format.validate, "0000-01-01")
+        self.assertRaises(fields.FieldValueError, format.validate, "this is a bad day")
+        
+        # FIXME: Raise FieldValueError for the following value due lack of leading zeros.
+        format.validate("2000-1-1")
+
 class IntegerFieldFormatTest(unittest.TestCase):
     """Tests  for IntegerFieldFormat."""
     def testWithinRange(self):

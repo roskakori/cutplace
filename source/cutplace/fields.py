@@ -1,6 +1,8 @@
 """Standard field formats supported by cutplace."""
 import logging
 import re
+import sys
+import  time
 
 _ECLIPSE = "..."
 def _parsedRange(text):
@@ -77,13 +79,25 @@ class IntegerFieldFormat(AbstractFieldFormat):
             raise FieldValueError("value must at most %d but is %d" % (self.upper, longValue))
 
 class DateFieldFormat(AbstractFieldFormat):
+    # We can't use a dictionary here because checks for patterns need to be in order. In
+    # particular, YYYY needs to be checked before YY.
+    _humanReadableToStrptimeMap = ["DD:%d", "MM:%m", "YYYY:%Y", "YY:%y", "hh:%H", "mm:%M", "ss:%S"]
     def __init__(self, fieldName, rule, isAllowedToBeEmpty):
         super(AbstractFieldFormat, self).__init__(rule, isAllowedToBeEmpty)
+        self.humanReadableFormat = rule
+        # Create an actual copy of the string.
+        strptimeFormat = "".join(rule)
+        for patternKeyValue in DateFieldFormat._humanReadableToStrptimeMap:
+            (key, value) = patternKeyValue.split(":")
+            strptimeFormat = strptimeFormat.replace(key, value)
+        self.strptimeFormat = strptimeFormat
    
     def validate(self, value):
-        # TODO: Validate Date
-        pass
-
+        try:
+            time.strptime(value, self.strptimeFormat)
+        except ValueError:
+            raise FieldValueError("date must match format %s (%s) but is: %s (%s)" % (self.humanReadableFormat, self.strptimeFormat, value, sys.exc_value))
+                                  
 class RegExFieldFormat(AbstractFieldFormat):
     def __init__(self, fieldName, rule, isAllowedToBeEmpty):
         super(AbstractFieldFormat, self).__init__(rule, isAllowedToBeEmpty)
