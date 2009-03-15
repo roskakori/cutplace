@@ -60,11 +60,14 @@
 
     <para>With cutplace you can describe these data in a simple and human
     readable spreadsheets using popular applications like
-    <application>Calc</application>(TODO: footnote to OpenOffice.org) or
-    <application>Excel</application>. Unlike a lot of documentation these
-    days, this description does not only describe wishful thinking. It acts as
-    "executable specification" that cutplace can use to validate that data
-    actually conform to it.</para>
+    <application>Calc</application><footnote>
+        <para><application>Calc</application> is part of
+        <application>OpenOffice.org</application>, available from <ulink
+        url="http://www.openoffice.org/">http://www.openoffice.org/</ulink>.</para>
+      </footnote> or <application>Excel</application>. Unlike a lot of
+    documentation these days, this description does not only describe wishful
+    thinking. It acts as "executable specification" that cutplace can use to
+    validate that data actually conform to it.</para>
 
     <para>Benefits of using cutplace are:</para>
 
@@ -104,9 +107,10 @@
     </itemizedlist>
 
     <para>Cutplace cannot validate hierarchically structured formats such as
-    XML, EDIFACT, HL7, IFF and similar. For these other tools exist, for
-    example XML validators where a schema or document type definition (DTD)
-    can describe an interface.</para>
+    XML, EDIFACT, <ulink url="http://www.hl7.org/">HL7</ulink>, <ulink
+    url="http://en.wikipedia.org/wiki/Interchange_File_Format">IFF</ulink> and
+    similar. For these other tools exist, for example XML validators where a
+    schema or document type definition (DTD) can describe an interface.</para>
 
     <para>To find out what is new in this version, see the <link
     linkend="changes">revision history</link>. For updates and support, visit
@@ -120,7 +124,9 @@
     <section id="download">
       <title>Using PyPI</title>
 
-      <para>Cutplace can be downloaded from PyPI. TODO: more info</para>
+      <para>Cutplace can be downloaded from <ulink
+      url="http://pypi.python.org/pypi">PyPI</ulink>, the Python Package
+      Index. TODO: more info</para>
     </section>
 
     <section>
@@ -159,15 +165,16 @@
 
       <para><userinput>ant user-guide</userinput></para>
 
-      <para>The source code for the user guide is written in DocBook XML
-      (TODO: url).</para>
+      <para>The source code for the user guide is written in <ulink
+      url="http://www.docbook.org/">DocBook XML</ulink>.</para>
     </section>
   </chapter>
 
   <chapter>
     <title>Writing an Interface Control Document</title>
 
-    <para>This chapter describes how to ...</para>
+    <para>This chapter describes how to ... TODO: introduction &amp;
+    overview.</para>
 
     <section>
       <title>Parts of an ICD</title>
@@ -222,39 +229,545 @@
       <para>This section describes the different field formats.</para>
 
       <section>
+        <title>Overview</title>
+
+        <para>The field format section of the ICD contains rows wit the
+        following columns:</para>
+
+        <orderedlist>
+          <listitem>
+            <para>The letter "F" to indicate that the remaining columns
+            describe a field format.</para>
+          </listitem>
+
+          <listitem>
+            <para>The name of the field. This must start with an ASCII letter
+            and continue with letters, numbers and undercores (_), for example
+            <varname>customer_id</varname>.</para>
+          </listitem>
+
+          <listitem>
+            <para>The type of the field, for example <type>Text</type>,
+            <type>Integer</type>, <type>DateTime</type> and others. Refer to
+            the sections below for detailed descriptions of these
+            types.</para>
+          </listitem>
+
+          <listitem>
+            <para>A flag that indicates if the field is allowed to be empty.
+            "X" means that the field can be empty, no text means that the
+            field always must contain at least some data.</para>
+          </listitem>
+
+          <listitem>
+            <para>The length of the field in characters.</para>
+
+            <para>For separated formats, this is optional and takes the form
+            <varname>lower_limit</varname> ... <varname>upper_limit</varname>.
+            For example, <userinput>10...20</userinput> means that values in
+            this field must contains at least 10 characters and at most 20. It
+            is also possible to specify only a lower or upper limit, for
+            example <userinput>10...</userinput> means at least 10 characters
+            ans ...20 means at least 20 characters. Furthermore the length can
+            be a single number with any ..., meaning that the length must
+            match this number exactly.</para>
+
+            <para>For fixed formats, this column takes a number that specifies
+            the exact length of the field, for example 50.</para>
+          </listitem>
+
+          <listitem>
+            <para>A rule depending on the type further describing the field.
+            For example, a field of type DateTime requires an exact date or
+            time format such as DD.MM.YYYY.</para>
+          </listitem>
+
+          <listitem>
+            <para>The remaining columns are not parsed by cutplace and can
+            contain any text you like, for example a description of the
+            meaning of the field, details where the data originat from, or
+            example values.</para>
+          </listitem>
+        </orderedlist>
+
+        <table id="examples-for-various-field-formats">
+          <title>Simple examples for various field formats</title>
+
+          <tgroup cols="6">
+            <thead>
+              <row>
+                <entry></entry>
+
+                <entry>Name</entry>
+
+                <entry>Type</entry>
+
+                <entry>Empty</entry>
+
+                <entry>Length</entry>
+
+                <entry>Rule</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry>F</entry>
+
+                <entry>customer_id</entry>
+
+                <entry>Integer</entry>
+
+                <entry></entry>
+
+                <entry></entry>
+
+                <entry>1...999999</entry>
+              </row>
+
+              <row>
+                <entry>F</entry>
+
+                <entry>surname</entry>
+
+                <entry>Text</entry>
+
+                <entry></entry>
+
+                <entry>1...60</entry>
+
+                <entry></entry>
+              </row>
+
+              <row>
+                <entry>F</entry>
+
+                <entry>date_of_birth</entry>
+
+                <entry>DateTime</entry>
+
+                <entry>X</entry>
+
+                <entry></entry>
+
+                <entry>YYYY-MM-DD</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+      </section>
+
+      <section>
         <title>Text</title>
 
-        <para>TODO: describe</para>
+        <para>The Text type describes a field that can contain any letters,
+        digits and other chraracters.</para>
+
+        <table id="examples-for-text-fields">
+          <title>Examples for Text fields</title>
+
+          <tgroup cols="6">
+            <thead>
+              <row>
+                <entry></entry>
+
+                <entry>Name</entry>
+
+                <entry>Type</entry>
+
+                <entry>Empty</entry>
+
+                <entry>Length</entry>
+
+                <entry>Rule</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry>F</entry>
+
+                <entry>surname</entry>
+
+                <entry>Text</entry>
+
+                <entry></entry>
+
+                <entry>1..60</entry>
+
+                <entry></entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
       </section>
 
       <section>
         <title>Integer</title>
 
-        <para>TODO: describe</para>
+        <para>The Integer type describes a field that can contain decimal
+        numbers without any fractional part.</para>
+
+        <table id="examples-for-integer-fields">
+          <title>Examples for Integer fields</title>
+
+          <tgroup cols="6">
+            <thead>
+              <row>
+                <entry></entry>
+
+                <entry>Name</entry>
+
+                <entry>Type</entry>
+
+                <entry>Empty</entry>
+
+                <entry>Length</entry>
+
+                <entry>Rule</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry>F</entry>
+
+                <entry>height</entry>
+
+                <entry>Integer</entry>
+
+                <entry></entry>
+
+                <entry></entry>
+
+                <entry>8848</entry>
+              </row>
+
+              <row>
+                <entry>F</entry>
+
+                <entry>weight</entry>
+
+                <entry>Integer</entry>
+
+                <entry></entry>
+
+                <entry>0...</entry>
+
+                <entry>1382</entry>
+              </row>
+
+              <row>
+                <entry>F</entry>
+
+                <entry>id</entry>
+
+                <entry>Integer</entry>
+
+                <entry></entry>
+
+                <entry>5</entry>
+
+                <entry>1...99999</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
       </section>
 
       <section>
         <title>Choice</title>
 
-        <para>TODO: describe</para>
+        <para>The Choice type describes a field that can contain on value out
+        of a set of possibly values.</para>
+
+        <table id="examples-for-choice-fields">
+          <title>Examples for Choice fields</title>
+
+          <tgroup cols="6">
+            <thead>
+              <row>
+                <entry></entry>
+
+                <entry>Name</entry>
+
+                <entry>Type</entry>
+
+                <entry>Empty</entry>
+
+                <entry>Length</entry>
+
+                <entry>Rule</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry>F</entry>
+
+                <entry>color</entry>
+
+                <entry>Choice</entry>
+
+                <entry></entry>
+
+                <entry></entry>
+
+                <entry>red, green, blue</entry>
+              </row>
+
+              <row>
+                <entry>F</entry>
+
+                <entry>iso_gender</entry>
+
+                <entry>Choice</entry>
+
+                <entry></entry>
+
+                <entry></entry>
+
+                <entry>male, female, unknown, other</entry>
+              </row>
+
+              <row>
+                <entry>F</entry>
+
+                <entry>department</entry>
+
+                <entry>Choice</entry>
+
+                <entry></entry>
+
+                <entry></entry>
+
+                <entry>accounting, development, sales, shipping</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
       </section>
 
       <section>
         <title>DateTime</title>
 
-        <para>TODO: describe</para>
+        <para>The DateTime type describes a field that can contain a date
+        and/or time in a specified format.</para>
+
+        <para>To describe a date, use the following placeolders:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>DD: the day (1...31)</para>
+          </listitem>
+
+          <listitem>
+            <para>MM: the numeric month (1..12)</para>
+          </listitem>
+
+          <listitem>
+            <para>YYYY: the year including the century (1...9999)</para>
+          </listitem>
+
+          <listitem>
+            <para>YY: the year without century</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>To describe a time, use the following placeholders:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>hh: hours (0..23)</para>
+          </listitem>
+
+          <listitem>
+            <para>mm: minutes (0..59)</para>
+          </listitem>
+
+          <listitem>
+            <para>ss: seconds (0..61). Note that 60 and 61 are valid values
+            because of possible leap seconds.</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>Leading zeros are ignored. Any other characters will be
+        interpreted as separators and have to appear in the data as
+        specified.</para>
+
+        <table id="examples-for-datetime-fields">
+          <title>Examples for DateTime fields</title>
+
+          <tgroup cols="6">
+            <thead>
+              <row>
+                <entry></entry>
+
+                <entry>Name</entry>
+
+                <entry>Type</entry>
+
+                <entry>Empty</entry>
+
+                <entry>Length</entry>
+
+                <entry>Rule</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry>F</entry>
+
+                <entry>date_of_birth</entry>
+
+                <entry>DateTime</entry>
+
+                <entry></entry>
+
+                <entry></entry>
+
+                <entry>YYYY-MM-DD</entry>
+              </row>
+
+              <row>
+                <entry>F</entry>
+
+                <entry>time_of_arrival</entry>
+
+                <entry>DateTime</entry>
+
+                <entry></entry>
+
+                <entry></entry>
+
+                <entry>hh:mm</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
       </section>
 
       <section>
         <title>Pattern</title>
 
-        <para>TODO: describe</para>
+        <para>The Pattern type is similar to the Text type but additionally
+        allows to use special characters as placeholders:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>"?" mean "exactly 1 character".</para>
+          </listitem>
+
+          <listitem>
+            <para>"*" means "none or any characters"</para>
+          </listitem>
+        </itemizedlist>
+
+        <table id="examples-for-pattern-fields">
+          <title>Examples for pattern fields</title>
+
+          <tgroup cols="6">
+            <thead>
+              <row>
+                <entry></entry>
+
+                <entry>Name</entry>
+
+                <entry>Type</entry>
+
+                <entry>Empty</entry>
+
+                <entry>Length</entry>
+
+                <entry>Rule</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry>F</entry>
+
+                <entry>dos_filename</entry>
+
+                <entry>Pattern</entry>
+
+                <entry></entry>
+
+                <entry>1...12</entry>
+
+                <entry>?*.*</entry>
+              </row>
+
+              <row>
+                <entry>F</entry>
+
+                <entry>branch_id</entry>
+
+                <entry>Pattern</entry>
+
+                <entry></entry>
+
+                <entry></entry>
+
+                <entry>B???-????-?*</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
       </section>
 
       <section>
         <title>RegEx</title>
 
-        <para>TODO: describe</para>
+        <para>The RegEx type is similar to the Pattern type but allows more
+        sophisticated placeholders by describing a regular expression. The
+        syntax available is described in the chapter on "Regular expression
+        operations" of the Python documentation, available from <ulink
+        url="http://docs.python.org/library/re.html">http://docs.python.org/library/re.html</ulink>.</para>
+
+        <table id="examples-for-regex-fields">
+          <title>Examples for RegEx fields</title>
+
+          <tgroup cols="6">
+            <thead>
+              <row>
+                <entry></entry>
+
+                <entry>Name</entry>
+
+                <entry>Type</entry>
+
+                <entry>Empty</entry>
+
+                <entry>Length</entry>
+
+                <entry>Rule</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry>F</entry>
+
+                <entry>email</entry>
+
+                <entry>RegEx</entry>
+
+                <entry></entry>
+
+                <entry></entry>
+
+                <entry>^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$<footnote>
+                    <para>Validate that field value is an amail address as
+                    described in "<ulink
+                    url="http://www.regular-expressions.info/email.html">how
+                    to find or validate an email address</ulink>".</para>
+                  </footnote></entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
       </section>
     </section>
 
