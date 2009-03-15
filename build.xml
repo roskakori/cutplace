@@ -5,7 +5,16 @@
     <property name="source" location="source" />
     <property name="build" location="build" />
     <property name="dist" location="dist" />
+    <property name="external.dir" location="external" />
+    <property name="site.dir" location="site" />
     <property name="test_all.py" location="${source}/cutplace/test_all.py" />
+
+    <xmlcatalog id="catalogs">
+        <dtd location="dtds/docbook-xml/docbookx.dtd" publicId="-//OASIS//DTD DocBook XML V4.5//EN" />
+        <dtd location="dtds/html4/loose.dtd" publicId="-//W3C//DTD HTML 4.01 Transitional//EN" />
+        <dtd location="dtds/xhtml/xhtml1-strict.dtd" publicId="-//W3C//DTD XHTML 1.0 Strict//EN" />
+        <dtd location="dtds/xhtml/xhtml1-transitional.dtd" publicId="-//W3C//DTD XHTML 1.0 Transitional//EN" />
+    </xmlcatalog>
 
     <target name="bdist" depends="version" description="build binary distribution">
         <tstamp />
@@ -31,5 +40,16 @@
     <target description="update version information" name="version">
         <xslt in="version.xml" out="${source}/cutplace/version.py" style="${source}/xml/version-py.xsl" />
         <xslt in="version.xml" out="setup.py" style="${source}/xml/version-setup-py.xsl" />
+    </target>
+
+    <target name="user-guide">
+        <xslt classpath="${external.dir}/xalan.jar" in="${source}/site/user-guide.xml" out="${site.dir}/index.html" style="docbook-xsl/xhtml/docbook.xsl">
+            <xmlcatalog refid="catalogs" />
+        </xslt>
+    </target>
+    
+    <target name="setup" description="setup project after checking it out">
+        <mkdir dir="docbook-xsl"/>
+        <untar compression="bzip2" src="${external.dir}/docbook-xsl.tar.bz2" dest="." />
     </target>
 </project>

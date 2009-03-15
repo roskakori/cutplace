@@ -1,0 +1,414 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<book id="top-of-user-guide">
+  <bookinfo>
+    <title>Cutplace User Guide</title>
+
+    <keywordset>
+      <keyword>interface</keyword>
+
+      <keyword>validate</keyword>
+
+      <keyword>data</keyword>
+
+      <keyword>csv</keyword>
+
+      <keyword>fixed</keyword>
+
+      <keyword>separated</keyword>
+
+      <keyword>file</keyword>
+    </keywordset>
+
+    <copyright>
+      <year>2009</year>
+
+      <holder>Thomas Aglassinger</holder>
+    </copyright>
+
+    <legalnotice>
+      <para>Permission is granted to copy, distribute and/or modify this
+      document under the terms of the GNU Free Documentation License, Version
+      1.2 or any later version published by the Free Software Foundation; with
+      no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts. A
+      copy of the license is included in the section entitled "GNU Free
+      Documentation License".</para>
+    </legalnotice>
+
+    <releaseinfo>$Revision$</releaseinfo>
+
+    <author>
+      <firstname>Thomas</firstname>
+
+      <surname>Aglassinger</surname>
+    </author>
+  </bookinfo>
+
+  <preface id="introduction">
+    <title>Introduction</title>
+
+    <para>Cutplace is a tool to validate that data conform to an interface
+    control document (IDC).</para>
+
+    <para>Cutplace works with flat data formats using a separator (such as
+    CSV) or a fixed format. Such formats are commonly used to exchange data
+    between different platforms or physically separated systems. Examples are
+    exchanging data between different partner companies, providing data for
+    data warehousing or other data processing involving architecturally very
+    different systems like mainframes.</para>
+
+    <para>With cutplace you can describe these data in a simple and human
+    readable spreadsheets using popular applications like
+    <application>Calc</application>(TODO: footnote to OpenOffice.org) or
+    <application>Excel</application>. Unlike a lot of documentation these
+    days, this description does not only describe wishful thinking. It acts as
+    "executable specification" that cutplace can use to validate that data
+    actually conform to it.</para>
+
+    <para>Benefits of using cutplace are:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>Data related interface specifications and associated software
+        are easy to keep in sync.</para>
+      </listitem>
+
+      <listitem>
+        <para>Consistent, human readable and still executable description of
+        interfaces.</para>
+      </listitem>
+
+      <listitem>
+        <para>Include domain experts with basic technical skills in your
+        interface related requirement engineering. Descriptions for cutplace
+        are fairly legible compared to BNF, awk or perl.</para>
+      </listitem>
+
+      <listitem>
+        <para>Easy integration in automatic regression test suits to quickly
+        detect and fix possible violations, in particular during update
+        cycles.</para>
+      </listitem>
+
+      <listitem>
+        <para>Easy validation of periodically delivered data during
+        production, where experience shows that certain vendors tend to
+        occasionally change formats without notice.</para>
+      </listitem>
+
+      <listitem>
+        <para>Free availability for everyone. Use cutplace together with
+        partner companies and external data vendors.</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>Cutplace cannot validate hierarchically structured formats such as
+    XML, EDIFACT, HL7, IFF and similar. For these other tools exist, for
+    example XML validators where a schema or document type definition (DTD)
+    can describe an interface.</para>
+
+    <para>To find out what is new in this version, see the <link
+    linkend="changes">revision history</link>. For updates and support, visit
+    the cutplace homepage at <ulink
+    url="http://cutplace.sourceforge.net/">http://cutplace.sourceforge.net</ulink>.</para>
+  </preface>
+
+  <chapter id="installation">
+    <title>Installation</title>
+
+    <section id="download">
+      <title>Using PyPI</title>
+
+      <para>Cutplace can be downloaded from PyPI. TODO: more info</para>
+    </section>
+
+    <section>
+      <title>Using the source code repository</title>
+
+      <para>The source code for cutplace is available via a Subversion
+      repository.</para>
+
+      <para>To check out the current version run:</para>
+
+      <para><userinput>svn checkout http://TODO:url
+      cutplace</userinput></para>
+
+      <para>To just build a binary distribution, run:</para>
+
+      <para><userinput>python setup.py bdist</userinput></para>
+
+      <para>More sophisticated things can be done using ant, a Java based
+      build tool popular for Java projects that can be pretty useful for
+      projects in other programming languages too.</para>
+
+      <para>To build a binary distribution just as described above, you can
+      also run:</para>
+
+      <para><userinput>ant bdist</userinput></para>
+
+      <para>To run all test cases:</para>
+
+      <para><userinput>ant test</userinput></para>
+
+      <para>To remove files generated during the build process:</para>
+
+      <para><userinput>ant clean</userinput></para>
+
+      <para>If you also want to build the documentation:</para>
+
+      <para><userinput>ant user-guide</userinput></para>
+
+      <para>The source code for the user guide is written in DocBook XML
+      (TODO: url).</para>
+    </section>
+  </chapter>
+
+  <chapter>
+    <title>Writing an Interface Control Document</title>
+
+    <para>This chapter describes how to ...</para>
+
+    <section>
+      <title>Parts of an ICD</title>
+
+      <para>ICD's for cutplace focus on the data specific parts and hence only
+      describe:</para>
+
+      <orderedlist>
+        <listitem>
+          <para>The Data format: The general format for data files, such as
+          line separator, character encoding, quote character and so on. These
+          properties concern the whole file and each data item in it.</para>
+        </listitem>
+
+        <listitem>
+          <para>Fields:</para>
+        </listitem>
+
+        <listitem>
+          <para>Optional Constraints, which are rules that have to be met
+          across the whole document or several fields. For example, a customer
+          ID is supposed to be unique and therefor must occur only once within
+          a file.</para>
+        </listitem>
+
+        <listitem>
+          <para>Comments are intended for human readers. Cutplace does not
+          process them. Typically they describing the meaning of things or the
+          motivation for certain decisions. Another use is the description the
+          source of certain data items to simplify error analysis.</para>
+        </listitem>
+      </orderedlist>
+
+      <para>This means that for cutplace to be applicable, the data of your
+      interface have to fit in a table with each column always containing the
+      same kind of value.</para>
+
+      <para>xxx</para>
+
+      <para>xxx</para>
+    </section>
+
+    <section>
+      <title>Describing the data format</title>
+
+      <para>xxx</para>
+    </section>
+
+    <section>
+      <title>Describing field formats</title>
+
+      <para>This section describes the different field formats.</para>
+
+      <section>
+        <title>Text</title>
+
+        <para>TODO: describe</para>
+      </section>
+
+      <section>
+        <title>Integer</title>
+
+        <para>TODO: describe</para>
+      </section>
+
+      <section>
+        <title>Choice</title>
+
+        <para>TODO: describe</para>
+      </section>
+
+      <section>
+        <title>DateTime</title>
+
+        <para>TODO: describe</para>
+      </section>
+
+      <section>
+        <title>Pattern</title>
+
+        <para>TODO: describe</para>
+      </section>
+
+      <section>
+        <title>RegEx</title>
+
+        <para>TODO: describe</para>
+      </section>
+    </section>
+
+    <section>
+      <title>Describing constraints</title>
+
+      <para>xxx</para>
+
+      <section>
+        <title>IsUnique</title>
+
+        <para>TODO: describe</para>
+      </section>
+    </section>
+
+    <section>
+      <title>Using comments</title>
+
+      <para>xxx</para>
+    </section>
+  </chapter>
+
+  <chapter id="command-line-usage">
+    <title>Command line usage</title>
+
+    <para>This chapter describes how to use cutplace from the command line. It
+    assumes the user already opened a console window (for example
+    <application>Terminal.app</application> on Mac OS X,
+    <application>xterm</application> on Linux or
+    <application>cmd.exe</application> on Windows) and is ready to enter
+    commands in it.</para>
+
+    <section>
+      <title>Show help and other information</title>
+
+      <para>To read a short description of all options available for cutplace,
+      run:</para>
+
+      <para><userinput>cutplace --help</userinput></para>
+
+      <para>To learn which version of cutplace you are using, run:</para>
+
+      <para><userinput>cutplace --version</userinput></para>
+
+      <para>To obtain information about cutplace's license, run:</para>
+
+      <para><userinput>cutplace --license</userinput></para>
+    </section>
+
+    <section id="command-line-validate">
+      <title>Validate an ICD</title>
+
+      <para>To validate that an ICD is syntactically and semantically correct,
+      simply run cutplace with only the path of the ICD as option. For
+      example, an ICD stored in CSV format and named
+      <filename>customer_icd.csv</filename> can be validated by
+      running:</para>
+
+      <para><userinput>cutplace customer_icd.csv</userinput></para>
+
+      <para>Possible errors show up in the console and result in an exit code
+      of 1.</para>
+
+      <para>In case the ICD is in good shape, no error messages appear and the
+      exit code is 0.</para>
+    </section>
+
+    <section id="command-line-pretty">
+      <title>Validate that a data file conforms to an ICD</title>
+
+      <para>To validate that a data file conforms to an ICD, pass the path of
+      the ICD and the data file. For example using the same ICD as in the
+      previous section to validate a data file containing customers stored in
+      customers.csv, run:</para>
+
+      <para><userinput>cutplace customer_icd.csv
+      customers.csv</userinput></para>
+
+      <para>To validate several data files against the same ICD, simply pass
+      them all. For example:.</para>
+
+      <para><userinput>cutplace customer_icd.csv customers_east.csv
+      customers_north.csv customers_south.csv
+      customers_west.csv</userinput></para>
+
+      <para>In case the data do not conform to the ICD, error messages show up
+      in the console.</para>
+    </section>
+
+    <section id="command-line-html">
+      <title>Dealing with errors</title>
+
+      <para>Roughly speaking cutplace can encounter the following kinds of
+      errors when validating data:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>Errors that prevent cutplace from validating the data at all,
+          such as non existent data files, insufficient file access rights or
+          broken ICD's.</para>
+        </listitem>
+
+        <listitem>
+          <para>Errors in the data format that prevent it from validating the
+          whole file. For example, the ICD might specify a line separator "LF"
+          (linefeed) but the data file uses "CRLF" (carriage return and
+          linefeed). In such a case, cutplace will stop the validation once it
+          encounters the wrong separator.</para>
+        </listitem>
+
+        <listitem>
+          <para>Errors in the data that violate the rules specified in the ICD
+          for fields and constraints. For example, the ICD might specify that
+          a field is an integer number but the data file contains letters in
+          it. In such a case, cutplace will report the specific line and
+          column of the field, and continue with the next one.</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>xxx</para>
+    </section>
+  </chapter>
+
+  <chapter id="acknowledgement">
+    <title>Acknowledgment</title>
+
+    <para>The following resources have been helpful for developing
+    cutplace:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>Python.</para>
+      </listitem>
+
+      <listitem>
+        <para>Lean documentation. TODO: add link</para>
+      </listitem>
+    </itemizedlist>
+  </chapter>
+
+  <chapter id="changes">
+    <title>Revision history</title>
+
+    <para>This chapter describes improvements compared to earlier versions of
+    cutplace.</para>
+
+    <section id="v0.1.0">
+      <title>Version 0.1.x, xx-Mar-2009</title>
+
+      <itemizedlist>
+        <listitem>
+          <para>Initial release.</para>
+        </listitem>
+      </itemizedlist>
+    </section>
+  </chapter>
+</book>
