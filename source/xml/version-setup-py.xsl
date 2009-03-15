@@ -9,12 +9,23 @@ from distutils.core import setup
 setup(
       name="cutplace",
       version="<xsl:value-of select="version" />.<xsl:value-of select="release" />.<xsl:value-of select="revision" />",
-      description="tool to validate data according to an interface control document",
+      description="validate flat data according to an interface control document",
       author="Thomas Aglassinger",
       author_email="roskakori@users.sourceforge.net",
+      url="http://cutplace.sourceforge.net/",
       package_dir={"": "source"},
       packages=["cutplace"],
       license = "GNU GPLv3",
+      long_description=""""Cutplace is a tool to validate that data conform to an interface control document (IDC).
+
+Cutplace works with flat data formats using a separator (such as CSV) or a fixed format. Such formats are commonly
+used to exchange data between different platforms or physically separated systems. Examples are exchanging data
+between different partner companies, providing data for data warehousing or other data processing involving
+architecturally very different systems like mainframes.
+
+With cutplace you can describe these data in a simple and human readable spreadsheets using popular applications
+like Calc or Excel. Unlike a lot of documentation these days, this description does not only describe wishful
+thinking. It acts as "executable specification" that cutplace can use to validate that data actually conform to it.""",
       classifiers = [
           "Development Status :: 3 - Alpha",
           "Environment :: Console",
@@ -30,7 +41,6 @@ setup(
           "Topic :: Software Development :: Quality Assurance",
           "Topic :: Software Development :: Testing"
       ]
-      # TODO: url="http://cutplace.sourceforge.net/",
 )
 </xsl:template>
 </xsl:stylesheet>
