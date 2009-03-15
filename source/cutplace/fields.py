@@ -6,15 +6,20 @@ import  time
 
 _ECLIPSE = "..."
 def _parsedRange(text):
-    """Assume text is of the form "[lower]...[upper]" and return (lower, upper)."""
+    """Assume text is of the form "[lower]...[upper]" or "[value]" and return (lower, upper) respectively (value, value)."""
     assert text is not None
     actualText = text.replace(" ", "")
     if actualText:
         eclipseIndex = actualText.find(_ECLIPSE)
-        if eclipseIndex < 0:
+        try:
+            if eclipseIndex < 0:
+                lower = long(actualText)
+                upper = lower
+            else:
+                lower = actualText[:eclipseIndex]
+                upper = actualText[eclipseIndex + len(_ECLIPSE):]
+        except TypeError:
             raise ValueError("range must be of format \"[lower]...[upper]\" but is: %s" % (repr(text)))
-        lower = actualText[:eclipseIndex]
-        upper = actualText[eclipseIndex + len(_ECLIPSE):]
         result = (lower, upper)
     else:
         result = ("", "")

@@ -30,6 +30,8 @@ class IntegerFieldFormatTest(unittest.TestCase):
         format.validate("1")
         format.validate("7")
         format.validate("10")
+        format = fields.IntegerFieldFormat("x", "123", False)
+        format.validate("123")
 
     def testTooSmall(self):
         format = fields.IntegerFieldFormat("x", "1...10", False)
