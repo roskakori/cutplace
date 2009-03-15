@@ -61,14 +61,12 @@ class AbstractFieldFormat(object):
         assert fieldName is not None
         assert fieldName, "fieldName must not be empty"
         assert isAllowedToBeEmpty is not None
-        assert length is not None
-        assert len(length) == 2, "len(%s) must be 2 but is %d" % (repr(length), len(length))
-        assert rule is not None
+        assert length is None or len(length) == 2, "len(%s) must be 2 but is %d" % (repr(length), len(length))
+        assert rule is not None, "no rule must be expressed as \"\" instead of None" 
 
         self.fieldName = fieldName
         self.isAllowedToBeEmpty = isAllowedToBeEmpty
-        self.lowerLength = length[0]
-        self.upperLength = length[1]
+        self.length = length
         self.rule = rule
     
     def validateEmpty(self, value):
@@ -77,8 +75,18 @@ class AbstractFieldFormat(object):
                 raise FieldValueError("value must not be empty")
     
     def validateLength(self, value):
-        valueLength = len(value)
-        
+        # Do we have some data at all?
+        if not (self.isAllowedToBeEmpty and value == ""):
+            # Do we have a length limit?
+            if self.length is not None:
+                # Actually validate length limit.
+                valueLength = len(value)
+                lowerLengthLimit = self.length[0]
+                upperLengthLimit = self.length[1]
+                if (lowerLengthLimit is not None) and (valueLength < lowerLengthLimit):
+                    raise FieldValueError("item must have at least %d characters but has %d: %s" % (lowerLengthLimit, valueLength, str(value)))
+                if (upperLengthLimit is not None) and (valueLength > upperLengthLimit):
+                    raise FieldValueError("item must have at most %d characters but has %d: %s" % (upperLengthLimit, valueLength, str(value)))
          
     def validate(self, value):
         """Validate that value complies with field description. If not, raise FieldValueError."""

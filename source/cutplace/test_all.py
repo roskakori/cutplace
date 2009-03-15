@@ -11,10 +11,13 @@ if __name__ == '__main__':
     logging.getLogger("cutplace").setLevel(logging.INFO)
     
     loader = unittest.TestLoader()
+    
     # TODO: Automatically discover test cases.
+    # TODO: Call sys-exit(1) in case any test fails.
     for testCaseClass in [
                         test_cutplace.CutplaceTest,
                         test_icd.InterfaceControlDocumentTest,
+                        test_fields.AbstractFieldFormatTest,
                         test_fields.ChoiceFieldFormatTest,
                         test_fields.DateTimeFieldFormatTest,
                         test_fields.IntegerFieldFormatTest,

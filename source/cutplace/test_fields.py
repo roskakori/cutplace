@@ -3,6 +3,27 @@ import fields
 import logging
 import unittest
 
+class AbstractFieldFormatTest(unittest.TestCase):
+    """Test for base validation in AbstractFieldFormatTest. This does not include validate(), which always raises a
+    NotImplementedError."""
+    def testValidateEmpty(self):
+        format = fields.AbstractFieldFormat("x", True, None, "")
+        format.validateEmpty("")
+        format = fields.AbstractFieldFormat("x", False, None, "")
+        self.assertRaises(fields.FieldValueError, format.validateEmpty, "")
+
+    def testValidateLength(self):
+        format = fields.AbstractFieldFormat("x", False, (3, 5), "")
+        format.validateLength("123")
+        format.validateLength("1234")
+        format.validateLength("12345")
+        self.assertRaises(fields.FieldValueError, format.validateLength, "12")
+        self.assertRaises(fields.FieldValueError, format.validateLength, "123456")
+
+    def testEmptyAndLengthLimit(self):
+        format = fields.AbstractFieldFormat("x", True, (3, 5), "")
+        format.validateLength("")
+        
 class DateTimeFieldFormatTest(unittest.TestCase):
     """Tests  for DateTimeFieldFormat."""
     def testValidDates(self):

@@ -156,16 +156,15 @@ class InterfaceDescription(object):
                 self.fieldNames.append(fieldName)
                 self.fieldFormats.append(fieldFormat)
                 self.fieldNameToFormatMap[fieldName] = fieldFormat
-                print fieldName + ": " + repr(fieldFormat)
+                self._log.info("defined field: %s: %s" % (fieldName, repr(fieldFormat)))
             else:
                 raise LookupError("name must be used for only one field: %s" % (fieldName))
         else:
             raise IndexError("field format line (marked with %s) must contain at least 3 columns" % (repr(self.ID_FIELD_RULE)))
         
     def read(self, icdFilePath):
-        # TODO: For CSV use own parser.
         # TODO: Allow to specify encoding.
-        needsOpen = type(icdFilePath) is types.StringTypes
+        needsOpen = isinstance(icdFilePath, types.StringTypes)
         if needsOpen:
             icdFile = open(icdFilePath, "rb")
         else:
@@ -207,7 +206,7 @@ class InterfaceDescription(object):
                 dialect = parsers.DelimitedDialect()
                 dialect.lineDelimiter = self.dataFormat.lineSeparatorForDialect()
                 dialect.itemDelimiter = self.dataFormat.itemSeparator
-                # TODO: Obtain quote char from ICD.
+                # FIXME: Obtain quote char from ICD.
                 dialect.quoteChar = "\""
                 reader = parsers.delimitedReader(dataFile, dialect)
                 for row in reader:
@@ -215,7 +214,10 @@ class InterfaceDescription(object):
                         itemIndex = 0
                         while itemIndex < len(row):
                             item = row[itemIndex]
-                            self.fieldFormats[itemIndex].validate(item)
+                            fieldFormat = self.fieldFormats[itemIndex]
+                            fieldFormat.validateEmpty(item)
+                            fieldFormat.validateLength(item)
+                            fieldFormat.validate(item)
                             itemIndex += 1
                         if itemIndex != len(row):
                             raise fields.FieldValueError("unexpected data must be removed beginning at item %d" % (itemIndex))
