@@ -97,7 +97,7 @@ class DateFieldFormat(AbstractFieldFormat):
             time.strptime(value, self.strptimeFormat)
         except ValueError:
             raise FieldValueError("date must match format %s (%s) but is: %s (%s)" % (self.humanReadableFormat, self.strptimeFormat, value, sys.exc_value))
-                                  
+                
 class RegExFieldFormat(AbstractFieldFormat):
     def __init__(self, fieldName, rule, isAllowedToBeEmpty):
         super(AbstractFieldFormat, self).__init__(rule, isAllowedToBeEmpty)
@@ -108,6 +108,25 @@ class RegExFieldFormat(AbstractFieldFormat):
         if not self.regex.match(value):
             raise FieldValueError("value %s must match regular expression: %s" % (repr(value), repr(self.rule)))
 
+class PatternField(AbstractFieldFormat):        
+    def __init__(self, fieldName, rule, isAllowedToBeEmpty):
+        super(AbstractFieldFormat, self).__init__(rule, isAllowedToBeEmpty)
+        pattern = ""
+        for character in rule:
+            if character == "?":
+                pattern += "."
+            elif character == "*":
+                pattern += ".*"
+            else:
+                pattern += re.escape(character)
+        self.regex = re.compile(pattern, re.IGNORECASE | re.MULTILINE)
+        self.pattern = pattern
+        self.rule = rule
+        
+    def validate(self, value):
+        if not self.regex.match(value):
+            raise FieldValueError("value %s must match pattern: %s (regex %s)" % (repr(value), repr(self.rule), repr(self.pattern)))
+            
 class TextFieldFormat(AbstractFieldFormat):
     def __init__(self, fieldName, rule, isAllowedToBeEmpty):
         super(AbstractFieldFormat, self).__init__(rule, isAllowedToBeEmpty)

@@ -64,7 +64,7 @@ class RegExFieldFormatTest(unittest.TestCase):
             pass
 
 class ChoiceFieldFormatTest(unittest.TestCase):
-    """Tests  for RegExFieldFormat."""
+    """Tests  for ChoiceFieldFormat."""
     def testMatchingChoice(self):
         format = fields.ChoiceFieldFormat("color", "red,grEEn, blue ", False)
         format.validate("red")
@@ -87,8 +87,19 @@ class ChoiceFieldFormatTest(unittest.TestCase):
         # FIXME: Should cause ValueError
         format = fields.ChoiceFieldFormat("color", " ", False)
         format = fields.ChoiceFieldFormat("color", "red, ", False)
-        
 
+class PatternFieldTest(unittest.TestCase):
+    """Tests for PatternFieldFormat."""
+    def testMatch(self):
+        format = fields.PatternField("x", "h*g?", False)
+        format.validate("hgo")
+        format.validate("hugo")
+        format.validate("huuuuga")
+    
+    def testNoMatch(self):
+        format = fields.PatternField("x", "h*g?", False)
+        self.assertRaises(fields.FieldValueError, format.validate, "")
+        self.assertRaises(fields.FieldValueError, format.validate, "hang")
 
 if __name__ == '__main__':
     logging.basicConfig()
