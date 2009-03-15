@@ -1,12 +1,12 @@
 """Tests  for field formats."""
 import fields
-import logging#
+import logging
 import unittest
 
 class DateTimeFieldFormatTest(unittest.TestCase):
     """Tests  for DateTimeFieldFormat."""
     def testValidDates(self):
-        format = fields.DateFieldFormat("x", "YYYY-MM-DD", False)
+        format = fields.DateTimeFieldFormat("x", False, None, "YYYY-MM-DD")
         format.validate("2000-01-01")
         format.validate("2000-02-29")
         format.validate("1955-02-28")
@@ -15,7 +15,7 @@ class DateTimeFieldFormatTest(unittest.TestCase):
         format.validate("9999-12-31")
 
     def testBrokenDates(self):
-        format = fields.DateFieldFormat("x", "YYYY-MM-DD", False)
+        format = fields.DateTimeFieldFormat("x", False, None, "YYYY-MM-DD")
         self.assertRaises(fields.FieldValueError, format.validate, "2000-02-30")
         self.assertRaises(fields.FieldValueError, format.validate, "0000-01-01")
         self.assertRaises(fields.FieldValueError, format.validate, "this is a bad day")
@@ -26,38 +26,38 @@ class DateTimeFieldFormatTest(unittest.TestCase):
 class IntegerFieldFormatTest(unittest.TestCase):
     """Tests  for IntegerFieldFormat."""
     def testWithinRange(self):
-        format = fields.IntegerFieldFormat("x", "1...10", False)
+        format = fields.IntegerFieldFormat("x", False, None, "1...10")
         format.validate("1")
         format.validate("7")
         format.validate("10")
-        format = fields.IntegerFieldFormat("x", "123", False)
+        format = fields.IntegerFieldFormat("x", False, None, "123")
         format.validate("123")
 
     def testTooSmall(self):
-        format = fields.IntegerFieldFormat("x", "1...10", False)
+        format = fields.IntegerFieldFormat("x", False, None, "1...10")
         self.assertRaises(fields.FieldValueError, format.validate, "0")
 
     def testTooBig(self):
-        format = fields.IntegerFieldFormat("x", "1...10", False)
+        format = fields.IntegerFieldFormat("x", False, None, "1...10")
         self.assertRaises(fields.FieldValueError, format.validate, "11")
         
     def testNoNumber(self):
-        format = fields.IntegerFieldFormat("x", "1...10", False)
+        format = fields.IntegerFieldFormat("x", False, None, "1...10")
         self.assertRaises(fields.FieldValueError, format.validate, "abc")
         
 class RegExFieldFormatTest(unittest.TestCase):
     """Tests  for RegExFieldFormat."""
     def testMatch(self):
-        format = fields.RegExFieldFormat("x", r"a.*", False)
+        format = fields.RegExFieldFormat("x", False, None, r"a.*")
         format.validate("abc")
 
     def testNoMatch(self):
-        format = fields.RegExFieldFormat("x", r"a.*", False)
+        format = fields.RegExFieldFormat("x", False, None, r"a.*")
         self.assertRaises(fields.FieldValueError, format.validate, "xyz")
     
     def testBrokenRegEx(self):
         try:
-            format = fields.RegExFieldFormat("x", "*", False)
+            format = fields.RegExFieldFormat("x", False, None, "*")
             self.fail("broken pattern must raise error")
         except:
             # Ignore error caused by broken pattern. It would be better to use assertFails but
@@ -68,7 +68,7 @@ class RegExFieldFormatTest(unittest.TestCase):
 class ChoiceFieldFormatTest(unittest.TestCase):
     """Tests  for ChoiceFieldFormat."""
     def testMatchingChoice(self):
-        format = fields.ChoiceFieldFormat("color", "red,grEEn, blue ", False)
+        format = fields.ChoiceFieldFormat("color", False, None, "red,grEEn, blue ")
         format.validate("red")
         # Value without blanks around it.
         format.validate("grEEn")
@@ -78,28 +78,28 @@ class ChoiceFieldFormatTest(unittest.TestCase):
         format.validate("gReen")
         
     def testImproperChoice(self):
-        format = fields.ChoiceFieldFormat("color", "red,green, blue ", False)
+        format = fields.ChoiceFieldFormat("color", False, None, "red,green, blue ")
         self.assertRaises(fields.FieldValueError, format.validate, "tree")
         
     def testMatchingOnlyChoice(self):
-        format = fields.ChoiceFieldFormat("color", "red", False)
+        format = fields.ChoiceFieldFormat("color", False, None, "red")
         format.validate("red")
 
     def testEmptyChoice(self):
         # FIXME: Should cause ValueError
-        format = fields.ChoiceFieldFormat("color", " ", False)
-        format = fields.ChoiceFieldFormat("color", "red, ", False)
+        format = fields.ChoiceFieldFormat("color", False, None, " ")
+        format = fields.ChoiceFieldFormat("color", False, None, "red, ")
 
 class PatternFieldTest(unittest.TestCase):
     """Tests for PatternFieldFormat."""
     def testMatch(self):
-        format = fields.PatternField("x", "h*g?", False)
+        format = fields.PatternField("x", False, None, "h*g?")
         format.validate("hgo")
         format.validate("hugo")
         format.validate("huuuuga")
     
     def testNoMatch(self):
-        format = fields.PatternField("x", "h*g?", False)
+        format = fields.PatternField("x", False, None, "h*g?")
         self.assertRaises(fields.FieldValueError, format.validate, "")
         self.assertRaises(fields.FieldValueError, format.validate, "hang")
 

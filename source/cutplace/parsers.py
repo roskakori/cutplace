@@ -20,6 +20,19 @@ def delimitedReader(readable, dialect):
             columns = []
         parser.advance()
 
+def parserReader(parser):
+    """Generator yielding the "readable" line by line using "dialect"."""
+    assert parser is not None
+    columns = []
+    while not parser.atEndOfFile:
+        if parser.item is not None:
+            columns.append(parser.item)
+        if parser.atEndOfLine:
+            yield columns
+            columns = []
+        parser.advance()
+
+
 class DelimitedDialect(object):
     def __init__(self, lineDelimter=AUTO, itemDelimiter=AUTO):
         assert lineDelimter is not None
@@ -169,17 +182,22 @@ class DelimitedParser(object):
             self.atEndOfFile = True
             self.atEndOfLine = True
         else:
+            atEndOfItem = False
+
             # Check if the item is quoted.
             if firstChar == self.quoteChar:
                 endOfItemChar = firstChar
                 item = ""
                 quoted = True
+            elif firstChar == self.itemDelimiter:
+                self._unread(firstChar)
+                item = ""
+                atEndOfItem = True
             else:
                 endOfItemChar = self.itemDelimiter
                 item = firstChar
 
             # Read actual item content.
-            atEndOfItem = False
             while not atEndOfItem:
                 nextChar = self._read()
                 if nextChar:
@@ -217,7 +235,7 @@ class DelimitedParser(object):
                     self.atEndOfLine = True
                 elif nextChar != self.itemDelimiter:
                     tail = nextChar
-                    while nextChar and (tail != self.lineDelimiter) and (self.lineDelimiter.startsWith(tail)):
+                    while nextChar and (tail != self.lineDelimiter) and (self.lineDelimiter.startswith(tail)):
                         nextChar = self._read()
                         tail += nextChar
                     if tail == self.lineDelimiter:

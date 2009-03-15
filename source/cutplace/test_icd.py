@@ -1,4 +1,13 @@
-,"Interface: customer",,,,,
+"""Tests  for field formats."""
+import icd
+import logging
+import StringIO
+import unittest
+
+class InterfaceControlDocumentTest(unittest.TestCase):
+    """Tests  for DateTimeFieldFormat."""
+    def testSimpleIcd(self):
+        spec = ""","Interface: customer",,,,,
 ,,,,,,
 ,"Data format",,,,,
 ,,,,,,
@@ -25,3 +34,11 @@
 ,,,,,,
 ,"Description","Type","Rule",,,
 "C","custumer must be unique","IsUnique","branch_id, customer_id",,,
+"""
+        testIcd = icd.InterfaceDescription()
+        testIcd.read(StringIO.StringIO(spec))
+
+if __name__ == '__main__':
+    logging.basicConfig()
+    logging.getLogger("cutplace").setLevel(logging.INFO)
+    unittest.main()

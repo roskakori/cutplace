@@ -1,6 +1,7 @@
 """Test suite for all test cases."""
 import logging
 import test_cutplace
+import test_icd
 import test_fields
 import test_parsers
 import unittest
@@ -13,9 +14,11 @@ if __name__ == '__main__':
     # TODO: Automatically discover test cases.
     for testCaseClass in [
                         test_cutplace.CutplaceTest,
+                        test_icd.InterfaceControlDocumentTest,
                         test_fields.ChoiceFieldFormatTest,
                         test_fields.DateTimeFieldFormatTest,
                         test_fields.IntegerFieldFormatTest,
+                        test_fields.PatternFieldTest,
                         test_fields.RegExFieldFormatTest,
                         test_parsers.DelimitedParserTest]:
         suite = loader.loadTestsFromTestCase(testCaseClass)

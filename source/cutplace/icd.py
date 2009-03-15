@@ -5,6 +5,7 @@ import logging
 import parsers
 import sys
 import tools
+import types
 
 class DataFormat(object):
     """Properties from "Data format" section of ICD."""
@@ -134,21 +135,23 @@ class InterfaceDescription(object):
             fieldType = items[1].strip()
             fieldIsAllowedToBeEmpty = False
             if itemCount >= 3:
-                fieldRule = items[2].strip()
-                if not fieldRule:
-                    fieldRule = None
+                fieldIsAllowedToBeEmptyText = items[2].strip().lower()
+                if fieldIsAllowedToBeEmptyText == self.EMPTY_INDICATOR:
+                    fieldIsAllowedToBeEmpty = True
+                elif fieldIsAllowedToBeEmptyText:
+                    raise ValueError("Mark for empty field is %s but must be %s" % (repr(fieldIsAllowedToBeEmptyText), repr(self.EMPTY_INDICATOR)))
                 if itemCount >= 4:
-                    fieldIsAllowedToBeEmptyText = items[3].strip().lower()
-                    if fieldIsAllowedToBeEmptyText == self.EMPTY_INDICATOR:
-                        fieldIsAllowedToBeEmpty = True
-                    elif fieldIsAllowedToBeEmptyText:
-                        raise ValueError("Mark for empty field is %s but must be %s" % (repr(fieldIsAllowedToBeEmptyText), repr(self.EMPTY_INDICATOR)))
+                    fieldLength = fields.parsedLongRange("length", items[3])
+                    if itemCount >= 5:
+                        fieldRule = items[4].strip()
+                        if not fieldRule:
+                            fieldRule = None
             else:
                 fieldRule = None
             fieldClass = self._createFieldFormatClass(fieldType);
             self._log.debug("create field: %s(%s, %s, %s)" % (str(fieldClass), str(fieldName), str(fieldType), str(fieldRule)))
-            fieldFormat = fieldClass.__new__(fieldClass, fieldName, fieldRule, fieldIsAllowedToBeEmpty)
-            fieldFormat.__init__(fieldName, fieldRule, fieldIsAllowedToBeEmpty)
+            fieldFormat = fieldClass.__new__(fieldClass, fieldName, fieldIsAllowedToBeEmpty, fieldLength, fieldRule)
+            fieldFormat.__init__(fieldName, fieldIsAllowedToBeEmpty, fieldLength, fieldRule)
             if not self.fieldNameToFormatMap.has_key(fieldName):
                 self.fieldNames.append(fieldName)
                 self.fieldFormats.append(fieldFormat)
@@ -161,13 +164,22 @@ class InterfaceDescription(object):
         
     def read(self, icdFilePath):
         # TODO: For CSV use own parser.
-        icdFile = open(icdFilePath, "rb")
+        # TODO: Allow to specify encoding.
+        needsOpen = type(icdFilePath) is types.StringTypes
+        if needsOpen:
+            icdFile = open(icdFilePath, "rb")
+        else:
+            icdFile = icdFilePath
         try:
-            dialect = csv.Sniffer().sniff(icdFile.read(1024))
-            icdFile.seek(0)
-            reader = csv.reader(icdFile, dialect)
+            dialect = parsers.DelimitedDialect()
+            dialect.lineDelimiter = parsers.AUTO
+            dialect.itemDelimiter = parsers.AUTO
+            dialect.quoteChar = "\""
+            dialect.escapeChar = "\""
+            parser = parsers.DelimitedParser(icdFile, dialect)
+            reader = parsers.parserReader(parser)
             for row in reader:
-                lineNumber = reader.line_num
+                lineNumber = parser.lineNumber
                 self._log.debug("parse icd line%5d: %s" % (lineNumber, str(row)))
                 if len(row) >= 1:
                     rowId = str(row[0]).lower() 
@@ -177,10 +189,11 @@ class InterfaceDescription(object):
                         self.addDataFormat(row[1:])
                     elif rowId == self.ID_FIELD_RULE:
                         self.addFieldFormat(row[1:])
-                    elif rowId:
+                    elif rowId.strip():
                         raise ValueError("first row in line %d is %s but must be empty or one of: %s" % (lineNumber, repr(row[0]), str(self.VALID_IDS)))
         finally:
-            icdFile.close()
+            if needsOpen:
+                icdFile.close()
             
     def validate(self, dataFileToValidatePath):
         """Validate that all lines and items in dataFileToValidatePath conform to this interface."""

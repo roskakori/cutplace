@@ -32,21 +32,22 @@ class DelimitedParserTest(unittest.TestCase):
             actualDialect = dialect
         parser = parsers.DelimitedParser(actualReadable, actualDialect)
         rows = []
-        columns = []
-        while not parser.atEndOfFile:
-            _log.debug("eof=" + repr(parser.atEndOfFile) + ",eol=" + repr(parser.atEndOfLine) + ", item=" + repr(parser.item))
-            if parser.item is not None:
-                columns.append(parser.item)
-            if parser.atEndOfLine:
-                rows.append(columns)
-                columns = []
-            parser.advance()
+        for row in parsers.parserReader(parser):
+            rows.append(row)
         self.assertEqual(rows, expectedItems)
         
+    # TODO: Add test cases for linefeeds within quotes.
     # TODO: Add test cases for preservation of blanks between unquoted items.
        
     def testSingleCharCsv(self):
         self._assertItemsEqual([["x"]], "x")
+
+    def testItemDelimiterAtStartCsv(self):
+        self._assertItemsEqual([["", "x"]], ",x")
+
+    def testSingleItemDelimiterCsv(self):
+        # FIXME: self._assertItemsEqual([["", ""]], ",")
+        pass
 
     def testSingleQuotedCharCsv(self):
         self._assertItemsEqual([["x"]], "\"x\"")
