@@ -33,7 +33,7 @@ class InterfaceControlDocumentTest(unittest.TestCase):
 ,"Constraints",,,,,
 ,,,,,,
 ,"Description","Type","Rule",,,
-"C","custumer must be unique","IsUnique","branch_id, customer_id",,,
+"C","customer must be unique","IsUnique","branch_id, customer_id",,,
 """
         testIcd = icd.InterfaceDescription()
         testIcd.read(StringIO.StringIO(spec))
