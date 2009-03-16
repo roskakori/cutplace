@@ -1,13 +1,18 @@
 """Cutplace - Tool to validate data according to an interface control document."""
+import encodings
 import getopt
+import glob
 import icd
 import logging
+import os
 import sys
 import version
 
 # Constants for options and shortcuts
 _OPTION_HELP = "help"
 _OPTION_HELP_TEXT = "--" + _OPTION_HELP
+_OPTION_LIST_ENCODINGS = "listencodings"
+_OPTION_LIST_ENCODINGS_TEXT = "--" + _OPTION_LIST_ENCODINGS
 _OPTION_LOG = "log"
 _OPTION_LOG_TEXT = "--" + _OPTION_LOG
 _OPTION_VERSION = "version"
@@ -31,6 +36,7 @@ class CutPlace(object):
 
     def reset(self):
         """"Reset all options to their initial state so this CutPlace can be reused for another validation."""
+        self.isShowEncodings = False
         self.isShowHelp = False
         self.isShowVersion = False
         self.interfaceSpecificationPath = None
@@ -42,12 +48,14 @@ class CutPlace(object):
         assert argv is not None
         
         shortOptions = _SHORT_HELP
-        longOptions = [_OPTION_HELP, _OPTION_LOG + "=", _OPTION_VERSION]
+        longOptions = [_OPTION_HELP, _OPTION_LIST_ENCODINGS, _OPTION_LOG + "=", _OPTION_VERSION]
         options, others = getopt.getopt(argv, shortOptions, longOptions)
 
         for option, value in options:
             if option in (_OPTION_HELP_TEXT, _SHORT_HELP_TEXT):
                 self.isShowHelp = True
+            elif option in (_OPTION_LIST_ENCODINGS_TEXT):
+                self.isShowEncodings = True
             elif option in (_OPTION_LOG_TEXT):
                 optionLog = _LOG_LEVEL_MAP.get(value)
                 if optionLog is not None:
@@ -63,7 +71,7 @@ class CutPlace(object):
         self._log.debug("options=" + str(options))
         self._log.debug("others=" + str(others))
     
-        if not (self.isShowHelp or self.isShowVersion):
+        if not (self.isShowEncodings or self.isShowHelp or self.isShowVersion):
             if len(others) >= 2:
                 self.setIcdFromFile(others[0])
                 self.dataToValidatePaths = others[1:]
@@ -98,8 +106,22 @@ class CutPlace(object):
         print INDENT + "cutplace [options] interface-control-document data-file(s)"
         print INDENT + INDENT + "validate that data-file conforms to interface control document"
         print "Options:"
+        print INDENT + _OPTION_LIST_ENCODINGS_TEXT + ": print list of available character encodings and exit"
         print INDENT + _OPTION_HELP_TEXT + ", " + _SHORT_HELP_TEXT + ": print usage information and exit"
+        print INDENT + _OPTION_VERSION_TEXT + ": print version information and exit"
         print INDENT + _OPTION_LOG_TEXT + "={level}: set logging level to debug, info, warning, error or critical"
+        
+    def _printAvailableEncodings(self):
+        for encoding in self._encodingsFromModuleNames():
+            if encoding != "__init__":
+                print encoding
+
+    def _encodingsFromModuleNames(self):
+        # Base on sample code by Peter Otten.
+        encodingsModuleFilePath = os.path.dirname(encodings.__file__)
+        for filePath in glob.glob(os.path.join(encodingsModuleFilePath, "*.py")):
+            fileName = os.path.basename(filePath)
+            yield os.path.splitext(fileName)[0]
     
 if __name__ == '__main__':
     logging.basicConfig()
@@ -107,7 +129,9 @@ if __name__ == '__main__':
 
     cutPlace = CutPlace()
     cutPlace.setOptions(sys.argv[1:])
-    if cutPlace.isShowHelp:
+    if cutPlace.isShowEncodings:
+        cutPlace._printAvailableEncodings()
+    elif cutPlace.isShowHelp:
         cutPlace._printUsage()
     elif cutPlace.isShowVersion:
         cutPlace._printHeader()

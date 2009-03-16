@@ -808,6 +808,11 @@
 
       <para><userinput>cutplace --help</userinput></para>
 
+      <para>To find out which characters encodings cutplace supports,
+      run:</para>
+
+      <para><userinput>cutplace --listencodings</userinput></para>
+
       <para>To learn which version of cutplace you are using, run:</para>
 
       <para><userinput>cutplace --version</userinput></para>

@@ -40,6 +40,10 @@ class CutplaceTest(unittest.TestCase):
         cutPlace.setOptions(["--help"])
         cutPlace.setOptions(["-h"])
 
+    def testListEncodings(self):
+        cutPlace = cutplace.CutPlace()
+        cutPlace.setOptions(["--listencodings"])
+
     def testValidCsvs(self):
         VALID_PREFIX = "valid_"
         testsInputFolder = self.getTestFolder("input")
