@@ -49,7 +49,7 @@
     </target>
     
     <target name="setup" description="setup project after checking it out">
-        <mkdir dir="docbook-xsl"/>
+        <untar compression="bzip2" src="${external.dir}/dtds.tar.bz2" dest="." />
         <untar compression="bzip2" src="${external.dir}/docbook-xsl.tar.bz2" dest="." />
     </target>
 </project>
