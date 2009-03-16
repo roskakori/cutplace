@@ -30,10 +30,10 @@
     <legalnotice>
       <para>Permission is granted to copy, distribute and/or modify this
       document under the terms of the GNU Free Documentation License, Version
-      1.2 or any later version published by the Free Software Foundation; with
+      1.3 or any later version published by the Free Software Foundation; with
       no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts. A
-      copy of the license is included in the section entitled "GNU Free
-      Documentation License".</para>
+      copy of the license is available from <ulink
+      url="http://www.gnu.org/copyleft/fdl.html">http://www.gnu.org/</ulink>.</para>
     </legalnotice>
 
     <releaseinfo>$Revision$</releaseinfo>
@@ -51,9 +51,9 @@
     <para>Cutplace is a tool to validate that data conform to an interface
     control document (IDC).</para>
 
-    <para>Cutplace works with flat data formats using a separator (such as
-    CSV) or a fixed format. Such formats are commonly used to exchange data
-    between different platforms or physically separated systems. Examples are
+    <para>Cutplace works with flat data formats using delimiters (such as CSV)
+    or a fixed format. Such formats are commonly used to exchange data between
+    different platforms or physically separated systems. Examples are
     exchanging data between different partner companies, providing data for
     data warehousing or other data processing involving architecturally very
     different systems like mainframes.</para>
@@ -85,7 +85,7 @@
       <listitem>
         <para>Include domain experts with basic technical skills in your
         interface related requirement engineering. Descriptions for cutplace
-        are fairly legible compared to BNF, awk or perl.</para>
+        are fairly legible compared to BNF, awk or Perl.</para>
       </listitem>
 
       <listitem>
@@ -106,11 +106,27 @@
       </listitem>
     </itemizedlist>
 
-    <para>Cutplace cannot validate hierarchically structured formats such as
-    XML, EDIFACT, <ulink url="http://www.hl7.org/">HL7</ulink>, <ulink
-    url="http://en.wikipedia.org/wiki/Interchange_File_Format">IFF</ulink> and
-    similar. For these other tools exist, for example XML validators where a
-    schema or document type definition (DTD) can describe an interface.</para>
+    <para>There are also limitations which might render cutplace unfit for
+    your purposes:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>Cutplace can only validate tabular data. It can not validate
+        hierarchically structured formats such as XML, EDIFACT, <ulink
+        url="http://www.hl7.org/">HL7</ulink>, <ulink
+        url="http://en.wikipedia.org/wiki/Interchange_File_Format">IFF</ulink>
+        and similar. For these other tools exist, for example XML validators
+        where a schema or document type definition (DTD) can describe an
+        interface.</para>
+      </listitem>
+
+      <listitem>
+        <para>Conditional data fields where the field format depends on
+        previous fields are not supported.</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>TODO: elaborate</para>
 
     <para>To find out what is new in this version, see the <link
     linkend="changes">revision history</link>. For updates and support, visit
@@ -121,52 +137,35 @@
   <chapter id="installation">
     <title>Installation</title>
 
+    <section>
+      <title>Requirements</title>
+
+      <para>In order to run cutplace you need Python 2.5 or later, available
+      from <ulink url="http://www.python.org/">http://www.python.org/</ulink>
+      for many platforms. To check if Python is already installed, run:</para>
+
+      <para><userinput>python --version</userinput></para>
+
+      <para>In case Python is installed, you should see an output like the
+      following (the version number may vary):</para>
+
+      <para><computeroutput>Python 2.5.1</computeroutput></para>
+
+      <para>Other than that, there are no special software requirements for
+      cutplace. Hardware wise, any reasonably modern computer should easily
+      meet the demands of cutplace. Memory usage depends on the amount of data
+      you process, 256 MB of memory should easily be enough even for large
+      datasets.</para>
+    </section>
+
     <section id="download">
       <title>Using PyPI</title>
 
       <para>Cutplace can be downloaded from <ulink
       url="http://pypi.python.org/pypi">PyPI</ulink>, the Python Package
-      Index. TODO: more info</para>
-    </section>
+      Index.</para>
 
-    <section>
-      <title>Using the source code repository</title>
-
-      <para>The source code for cutplace is available via a Subversion
-      repository.</para>
-
-      <para>To check out the current version run:</para>
-
-      <para><userinput>svn checkout http://TODO:url
-      cutplace</userinput></para>
-
-      <para>To just build a binary distribution, run:</para>
-
-      <para><userinput>python setup.py bdist</userinput></para>
-
-      <para>More sophisticated things can be done using ant, a Java based
-      build tool popular for Java projects that can be pretty useful for
-      projects in other programming languages too.</para>
-
-      <para>To build a binary distribution just as described above, you can
-      also run:</para>
-
-      <para><userinput>ant bdist</userinput></para>
-
-      <para>To run all test cases:</para>
-
-      <para><userinput>ant test</userinput></para>
-
-      <para>To remove files generated during the build process:</para>
-
-      <para><userinput>ant clean</userinput></para>
-
-      <para>If you also want to build the documentation:</para>
-
-      <para><userinput>ant user-guide</userinput></para>
-
-      <para>The source code for the user guide is written in <ulink
-      url="http://www.docbook.org/">DocBook XML</ulink>.</para>
+      <para>TODO: describe download and installation</para>
     </section>
   </chapter>
 
@@ -212,19 +211,476 @@
       interface have to fit in a table with each column always containing the
       same kind of value.</para>
 
-      <para>xxx</para>
-
-      <para>xxx</para>
+      <para>TODO: elaborate</para>
     </section>
 
     <section>
-      <title>Describing the data format</title>
+      <title>Data formats</title>
 
-      <para>xxx</para>
+      <para>The data format describes general properties of the input. Here is
+      an example:</para>
+
+      <table>
+        <title>Example data format</title>
+
+        <tgroup cols="3">
+          <thead>
+            <row>
+              <entry></entry>
+
+              <entry>Property</entry>
+
+              <entry>Value</entry>
+            </row>
+          </thead>
+
+          <tbody>
+            <row>
+              <entry>F</entry>
+
+              <entry>Format</entry>
+
+              <entry>CSV</entry>
+            </row>
+
+            <row>
+              <entry>F</entry>
+
+              <entry>Encoding</entry>
+
+              <entry>ISO-8859-1</entry>
+            </row>
+
+            <row>
+              <entry>F</entry>
+
+              <entry>Line delimiter</entry>
+
+              <entry>LF</entry>
+            </row>
+
+            <row>
+              <entry>F</entry>
+
+              <entry>Item delimiter</entry>
+
+              <entry>,</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+      <para>This basically says that the data are provided as comma separated
+      values (CSV) and the character encoding is ISO-8859-1 (also known as
+      Latin-1). Rows are separated using linefeed characters (ASCII code 10)
+      and columns are separated using a comma (",").</para>
+
+      <para>The remainder of this section describes the supported formats and
+      available properties for them.</para>
+
+      <para></para>
+
+      <section>
+        <title>Delimited data</title>
+
+        <para>For data, both lines and columns are delimited by certain
+        characters.</para>
+
+        <table>
+          <title>Example for delimited data using visible ASCII characters and
+          Cyrillic (Unicode 0x0400-0x4ff)</title>
+
+          <tgroup cols="3">
+            <thead>
+              <row>
+                <entry></entry>
+
+                <entry>Property</entry>
+
+                <entry>Value</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry>F</entry>
+
+                <entry>Format</entry>
+
+                <entry>Delimited</entry>
+              </row>
+
+              <row>
+                <entry>F</entry>
+
+                <entry>Encoding</entry>
+
+                <entry>UTF-8</entry>
+              </row>
+
+              <row>
+                <entry>F</entry>
+
+                <entry>Line delimiter</entry>
+
+                <entry>CRLF</entry>
+              </row>
+
+              <row>
+                <entry>F</entry>
+
+                <entry>Item delimiter</entry>
+
+                <entry>,</entry>
+              </row>
+
+              <row>
+                <entry>F</entry>
+
+                <entry>Quote character</entry>
+
+                <entry>"</entry>
+              </row>
+
+              <row>
+                <entry>F</entry>
+
+                <entry>Escape character</entry>
+
+                <entry>"</entry>
+              </row>
+
+              <row>
+                <entry>F</entry>
+
+                <entry>Allowed characters</entry>
+
+                <entry>32...128, 1024...1280</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+
+        <para>In case Format is Delimited, the following properties have to be
+        specified:</para>
+
+        <variablelist>
+          <varlistentry>
+            <term>Encoding</term>
+
+            <listitem>
+              <para>The character encoding. The most common values will be
+              ASCII, ISO-8859-1 (for many western countries), UTF-8 (for
+              Unicode), CP-850 (used by MS DOS in many western
+              countries).</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>Line delimiter</term>
+
+            <listitem>
+              <para>Thus describes which character or character sequence is
+              used to mark the end of a line. Possible values are:</para>
+
+              <itemizedlist>
+                <listitem>
+                  <para>CR - "carriage return", ASCII code 13, used by Mac OS
+                  Classic.</para>
+                </listitem>
+
+                <listitem>
+                  <para>LF - "line feed", ASCII code 10, used by Unix based
+                  platforms and others, for example Mac OS X, Linux, Solaris
+                  BSD-variants and Amiga OS.</para>
+                </listitem>
+
+                <listitem>
+                  <para>CRLF - "carriage return linefeed", two characters with
+                  ASCII code 13 and 10, used for example by Windows and MS
+                  DOS.</para>
+                </listitem>
+
+                <listitem>
+                  <para>Any - Do an analysis of the input and automatically
+                  choose the line delimiter from it based on the one used most
+                  often with the first few lines. Note that this still
+                  requires that the line delimiter is used consistently, using
+                  for example CR for some lines and LF for others is not
+                  allowed.</para>
+                </listitem>
+              </itemizedlist>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>Item delimiter</term>
+
+            <listitem>
+              <para>The character used to separated data items from each
+              other, for example: comma (,), semicolon (;), colon (:).</para>
+
+              <para>TODO: How to specify tab?</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>Quote character</term>
+
+            <listitem>
+              <para>The character used to surround items with that contain
+              delimiters or while space, for example double quote (") or
+              single quote (').</para>
+
+              <para>TODO: How to specify "no quoting"?</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>Escape character</term>
+
+            <listitem>
+              <para>The escape character necessary to use the quote character
+              in item values. Possible values are: double quote (").</para>
+
+              <para>TODO: Consider supporting backslash (\) for C-like
+              escapes</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>Allowed characters</term>
+
+            <listitem>
+              <para>This is a comma separated list or characters or character
+              ranges allowed for the item text.</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+
+        <para></para>
+      </section>
+
+      <section>
+        <title>CSV data</title>
+
+        <para>CSV data are delimited data too, but most properties already
+        have default values you do not need to specify unless you want to use
+        other values.</para>
+
+        <table>
+          <title>Minimal example for CSV data</title>
+
+          <tgroup cols="3">
+            <thead>
+              <row>
+                <entry></entry>
+
+                <entry>Property</entry>
+
+                <entry>Value</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry>F</entry>
+
+                <entry>Format</entry>
+
+                <entry>CSV</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+
+        <para>This is the same as:</para>
+
+        <table>
+          <title>Example for CSV data with default values spelled out</title>
+
+          <tgroup cols="3">
+            <thead>
+              <row>
+                <entry></entry>
+
+                <entry>Property</entry>
+
+                <entry>Value</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry>F</entry>
+
+                <entry>Format</entry>
+
+                <entry>CSV</entry>
+              </row>
+
+              <row>
+                <entry>F</entry>
+
+                <entry>Encoding</entry>
+
+                <entry>ASCII</entry>
+              </row>
+
+              <row>
+                <entry>F</entry>
+
+                <entry>Line delimiter</entry>
+
+                <entry>Any</entry>
+              </row>
+
+              <row>
+                <entry>F</entry>
+
+                <entry>Item delimiter</entry>
+
+                <entry>,</entry>
+              </row>
+
+              <row>
+                <entry>F</entry>
+
+                <entry>Quote character</entry>
+
+                <entry>"</entry>
+              </row>
+
+              <row>
+                <entry>F</entry>
+
+                <entry>Escape character</entry>
+
+                <entry>"</entry>
+              </row>
+
+              <row>
+                <entry>F</entry>
+
+                <entry>Allowed characters</entry>
+
+                <entry>0...</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+
+        <para>Many of these values will be fine for all practical purpose.
+        Most frequently "Encoding" and "Item delimiter" might have to be
+        adjusted.</para>
+
+        <table>
+          <title>Example for CSV data common in many European regions</title>
+
+          <tgroup cols="3">
+            <thead>
+              <row>
+                <entry></entry>
+
+                <entry>Property</entry>
+
+                <entry>Value</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry>F</entry>
+
+                <entry>Format</entry>
+
+                <entry>CSV</entry>
+              </row>
+
+              <row>
+                <entry>F</entry>
+
+                <entry>Encoding</entry>
+
+                <entry>ISO-8859-1</entry>
+              </row>
+
+              <row>
+                <entry>F</entry>
+
+                <entry>Item delimiter</entry>
+
+                <entry>;</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+      </section>
+
+      <section>
+        <title>Fixed data</title>
+
+        <para>FIXME: Fixed data are not supported yet.</para>
+
+        <para>Fixed data reserve a certain number of characters per field. No
+        delimiters are necessary.</para>
+
+        <table>
+          <title>Example data format</title>
+
+          <tgroup cols="3">
+            <thead>
+              <row>
+                <entry></entry>
+
+                <entry>Property</entry>
+
+                <entry>Value</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry>F</entry>
+
+                <entry>Format</entry>
+
+                <entry>Fixed</entry>
+              </row>
+
+              <row>
+                <entry>F</entry>
+
+                <entry>Encoding</entry>
+
+                <entry>ISO-8859-1</entry>
+              </row>
+
+              <row>
+                <entry>F</entry>
+
+                <entry>Line delimiter</entry>
+
+                <entry>LF</entry>
+              </row>
+
+              <row>
+                <entry>F</entry>
+
+                <entry>Allowed characters</entry>
+
+                <entry>0...</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+
+        <para></para>
+      </section>
     </section>
 
     <section>
-      <title>Describing field formats</title>
+      <title>Field formats</title>
 
       <para>This section describes the different field formats.</para>
 
@@ -242,8 +698,8 @@
 
           <listitem>
             <para>The name of the field. This must start with an ASCII letter
-            and continue with letters, numbers and undercores (_), for example
-            <varname>customer_id</varname>.</para>
+            and continue with letters, numbers and underscores (_), for
+            example <varname>customer_id</varname>.</para>
           </listitem>
 
           <listitem>
@@ -285,7 +741,7 @@
           <listitem>
             <para>The remaining columns are not parsed by cutplace and can
             contain any text you like, for example a description of the
-            meaning of the field, details where the data originat from, or
+            meaning of the field, details where the data originate from, or
             example values.</para>
           </listitem>
         </orderedlist>
@@ -361,7 +817,7 @@
         <title>Text</title>
 
         <para>The Text type describes a field that can contain any letters,
-        digits and other chraracters.</para>
+        digits and other characters.</para>
 
         <table id="examples-for-text-fields">
           <title>Examples for Text fields</title>
@@ -554,7 +1010,7 @@
         <para>The DateTime type describes a field that can contain a date
         and/or time in a specified format.</para>
 
-        <para>To describe a date, use the following placeolders:</para>
+        <para>To describe a date, use the following place holders:</para>
 
         <itemizedlist>
           <listitem>
@@ -574,7 +1030,7 @@
           </listitem>
         </itemizedlist>
 
-        <para>To describe a time, use the following placeholders:</para>
+        <para>To describe a time, use the following place holders:</para>
 
         <itemizedlist>
           <listitem>
@@ -652,7 +1108,7 @@
         <title>Pattern</title>
 
         <para>The Pattern type is similar to the Text type but additionally
-        allows to use special characters as placeholders:</para>
+        allows to use special characters as place holders:</para>
 
         <itemizedlist>
           <listitem>
@@ -721,7 +1177,7 @@
         <title>RegEx</title>
 
         <para>The RegEx type is similar to the Pattern type but allows more
-        sophisticated placeholders by describing a regular expression. The
+        sophisticated place holders by describing a regular expression. The
         syntax available is described in the chapter on "Regular expression
         operations" of the Python documentation, available from <ulink
         url="http://docs.python.org/library/re.html">http://docs.python.org/library/re.html</ulink>.</para>
@@ -759,7 +1215,7 @@
                 <entry></entry>
 
                 <entry>^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$<footnote>
-                    <para>Validate that field value is an amail address as
+                    <para>Validate that field value is an email address as
                     described in "<ulink
                     url="http://www.regular-expressions.info/email.html">how
                     to find or validate an email address</ulink>".</para>
@@ -772,21 +1228,26 @@
     </section>
 
     <section>
-      <title>Describing constraints</title>
+      <title>Constraints</title>
 
-      <para>xxx</para>
+      <para>Constraints are rules that cannot be expressed easily with the
+      rules available for data formats and field formats. Typically
+      constraints cover need data items or rows to check if they are
+      met.</para>
+
+      <para>TODO: Describe general format.</para>
 
       <section>
         <title>IsUnique</title>
 
-        <para>TODO: describe</para>
+        <para>TODO: Describe.</para>
       </section>
     </section>
 
     <section>
-      <title>Using comments</title>
+      <title>Comments</title>
 
-      <para>xxx</para>
+      <para></para>
     </section>
   </chapter>
 
@@ -896,21 +1357,209 @@
     </section>
   </chapter>
 
-  <chapter id="acknowledgement">
-    <title>Acknowledgment</title>
+  <chapter id="development">
+    <title>Development</title>
 
-    <para>The following resources have been helpful for developing
-    cutplace:</para>
+    <para>Cutplace is open source software, so its source code is available
+    for you to inspect, extend and play around with. This chapter describes
+    where to get it, how to change and test the application, how to write your
+    own field formats and how to contribute to the project.</para>
 
-    <itemizedlist>
-      <listitem>
-        <para>Python.</para>
-      </listitem>
+    <section>
+      <title>Obtaining and building the source code</title>
 
-      <listitem>
-        <para>Lean documentation. TODO: add link</para>
-      </listitem>
-    </itemizedlist>
+      <para>The source code for cutplace is available via a Subversion
+      repository from
+      https://cutplace.svn.sourceforge.net/svnroot/cutplace/trunk. You can
+      browse it at <ulink
+      url="http://cutplace.svn.sourceforge.net/viewvc/cutplace/">http://cutplace.svn.sourceforge.net/viewvc/cutplace/</ulink>.</para>
+
+      <para>The source code consists of:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para><filename>build.xml</filename> is the project file for the
+          build tool <ulink url="http://ant.apache.org/">ant</ulink></para>
+        </listitem>
+
+        <listitem>
+          <para><filename>version.xml</filename> contains basic version
+          information</para>
+        </listitem>
+
+        <listitem>
+          <para><filename>source/cutplace/*.py</filename> are the Python
+          modules for cutplace</para>
+        </listitem>
+
+        <listitem>
+          <para><filename>source/cutplace/test_*.py</filename> are test cases
+          for unittest.</para>
+        </listitem>
+
+        <listitem>
+          <para><filename>source/site</filename> is the source code needed to
+          build the cutplace website</para>
+        </listitem>
+
+        <listitem>
+          <para><filename>source/site/user-guide.xml</filename> is the
+          Documentation written in <ulink
+          url="http://www.docbook.org/">DocBook XML</ulink></para>
+        </listitem>
+
+        <listitem>
+          <para><filename>source/xml/*.xml</filename> are XSL transformations
+          for source code generated from
+          <filename>version.xml</filename></para>
+        </listitem>
+
+        <listitem>
+          <para><filename>tests/*</filename> contains test data; use for
+          example <ulink
+          url="http://www.openoffice.org/">OpenOffice.org</ulink>'s Calc to
+          edit the <filename>*.ods</filename> and <filename>*.csv</filename>
+          files </para>
+        </listitem>
+
+        <listitem>
+          <para><filename>tests/input/*</filename> are test data used by the
+          unittest tests in
+          <filename>source/cutplace/test_*.py</filename></para>
+        </listitem>
+
+        <listitem>
+          <para><filename>.project</filename> and
+          <filename>.pydevproject</filename> for use with <ulink
+          url="http://www.eclipse.org/">Eclipse</ulink> and <ulink
+          url="http://pydev.sourceforge.net/">PyDev</ulink>.</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>Eclipse and PyDev are your developer environment of choice, you
+      can check out the repository directly from Eclipse using <menuchoice>
+          <guimenu>File</guimenu>
+
+          <guisubmenu>New</guisubmenu>
+
+          <guimenuitem>Other...</guimenuitem>
+        </menuchoice> and select <menuchoice>
+          <guimenu>SVN</guimenu>
+
+          <guimenuitem>Checkout projects from SVN</guimenuitem>
+        </menuchoice>. After that, you should open
+      <filename>build.xml</filename> and run the ant target "setup".</para>
+
+      <para>If you prefer the command line, you need and a Subversion client
+      and the build tool ant. Some parts of the code are generated using XSL,
+      so simply using distutils alone won't suffice.</para>
+
+      <para>To check out the current version using the standard Subversion
+      command line client, run:</para>
+
+      <para><userinput>svn checkout
+      https://cutplace.svn.sourceforge.net/svnroot/cutplace/trunk
+      cutplace</userinput></para>
+
+      <para>After the checkout, change to the cutplace folder and execute the
+      ant target "setup":</para>
+
+      <para><literallayout><userinput>cd cutplace
+ant setup</userinput></literallayout></para>
+
+      <para>The output should look something like this (replace "..." with
+      your local project path):</para>
+
+      <para><literallayout><computeroutput>Buildfile: build.xml
+setup:
+    [untar] Expanding: .../cutplace/external/dtds.tar.bz2 into .../cutplace
+    [untar] Expanding: .../cutplace/external/docbook-xsl.tar.bz2 into .../cutplace
+BUILD SUCCESSFUL Total time: 3 seconds </computeroutput></literallayout></para>
+
+      <para>To just build a binary distribution, run:</para>
+
+      <para><userinput>ant bdist</userinput></para>
+
+      <para>The output should look something like this:</para>
+
+      <literallayout><computeroutput>Buildfile: build.xml
+
+version:
+     [xslt] Processing .../cutplace/version.xml to .../cutplace/source/cutplace/version.py
+     [xslt] Loading stylesheet .../cutplace/source/xml/version-py.xsl
+     [xslt] Processing .../cutplace/version.xml to .../cutplace/setup.py
+     [xslt] Loading stylesheet .../cutplace/source/xml/version-setup-py.xsl
+
+user-guide:
+     [xslt] Processing .../cutplace/source/site/user-guide.xml to .../cutplace/site/index.html
+     [xslt] Loading stylesheet .../cutplace/docbook-xsl/xhtml/docbook.xsl
+
+bdist:
+     [exec] running bdist
+     [exec] running bdist_dumb
+     [exec] running build
+     [exec] running build_py
+     [exec] creating build
+     [exec] creating build/lib
+     [exec] creating build/lib/cutplace
+     [exec] ...
+
+BUILD SUCCESSFUL</computeroutput>
+</literallayout>
+
+      <para>To run all test cases:</para>
+
+      <para><userinput>ant test</userinput></para>
+
+      <para>To remove files generated during the build process:</para>
+
+      <para><userinput>ant clean</userinput></para>
+
+      <para></para>
+    </section>
+
+    <section>
+      <title>Writing field formats</title>
+
+      <para>Cutplace already ships with several field formats that should
+      cover most needs. If however you have some very special requirements,
+      you can write your own formats.</para>
+
+      <para>The easiest way to do so is by adding your format to
+      <filename>source/cutplace/fields.py</filename>. Simply inherit from
+      <classname>AbstractFieldFormat</classname> provide a constructor to
+      parse the <parameter>rule</parameter> parameter. Next, implement
+      <methodname>validate(self, item)</methodname> that validates that the
+      text in <parameter>item</parameter> conforms to
+      <parameter>rule</parameter>. If not, raise an
+      <exceptionname>FieldValueError</exceptionname> with a descriptive error
+      message. For examples see any of the <classname>*FieldFormat</classname>
+      classes in <filename>fields.py</filename>.</para>
+
+      <para>The drawback of this approach is that when you install a new
+      version of cutplace, your changes in <filename>fields.py</filename> will
+      be lost.</para>
+
+      <para>TODO: Describe how to write a <filename>myfields.py</filename> and
+      extend the Python path.</para>
+    </section>
+
+    <section>
+      <title>Writing constraints</title>
+
+      <para>TODO: Describe how to write constraints.</para>
+    </section>
+
+    <section>
+      <title>Contributing source code</title>
+
+      <para>In case you fixed any bugs or added improvements to cutplace, feel
+      free to contribute your changes.</para>
+
+      <para>The easiest way to do this is by submitting them to the project's
+      patch tracker at <ulink
+      url="https://sourceforge.net/tracker/?group_id=256054&amp;atid=1126965">https://sourceforge.net/tracker/?group_id=256054&amp;atid=1126965</ulink>.</para>
+    </section>
   </chapter>
 
   <chapter id="changes">
@@ -920,7 +1569,7 @@
     cutplace.</para>
 
     <section id="v0.1.0">
-      <title>Version 0.1.x, xx-Mar-2009</title>
+      <title>Version 0.1.0, 17-Mar-2009</title>
 
       <itemizedlist>
         <listitem>
