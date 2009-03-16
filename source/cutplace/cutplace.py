@@ -4,6 +4,7 @@ import getopt
 import glob
 import icd
 import logging
+import platform
 import os
 import sys
 import version
@@ -92,13 +93,23 @@ class CutPlace(object):
         self.icd = newIcd 
         self.interfaceSpecificationPath = newIcdPath
         
-    def _printHeader(self):
+    def _printCutplaceVersion(self):
         print "cutplace " + version.VERSION_TAG
     
+    def _printVersion(self):
+        self._printCutplaceVersion()
+        pythonVersion = platform.python_version()
+        macVersion = platform.mac_ver()
+        if (macVersion[0]):
+            systemVersion = "Mac OS %s (%s)" % (macVersion[0], macVersion[2])
+        else:
+            systemVersion = platform.platform()
+        print ("Python %s, %s" % (pythonVersion, systemVersion)) 
     def _printUsage(self):
         INDENT = " " * 2
-        self._printHeader()
-        print "Copyright (C) Thomas Aglassinger 2009. Distributed under the GNU GPLv3."
+        self._printCutplaceVersion()
+        print "Copyright (C) Thomas Aglassinger 2009. Distributed under the GNU GPLv3 (or later)."
+        print "For more information visit <http://cutplace.sourceforge.net/>."
         print
         print "Usage:"
         print INDENT + "cutplace [options] interface-control-document"
@@ -134,7 +145,7 @@ if __name__ == '__main__':
     elif cutPlace.isShowHelp:
         cutPlace._printUsage()
     elif cutPlace.isShowVersion:
-        cutPlace._printHeader()
+        cutPlace._printVersion()
     else:
         for path in cutPlace.dataToValidatePaths:
             cutPlace.icd.validate(path)

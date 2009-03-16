@@ -69,6 +69,28 @@
     thinking. It acts as "executable specification" that cutplace can use to
     validate that data actually conform to it.</para>
 
+    <para><xref linkend="figure-dataflow" /> shows how this works in practice:
+    The user authors an interface control documents, which he passes to
+    cutplace together with the input data that should be validated. Cutplace
+    checks the data one line after the other, one column after the other. When
+    done, you end up with data that have been accepted and (hopefully none)
+    that have been rejected.</para>
+
+    <figure id="figure-dataflow">
+      <title>The data flow when using cutplace.</title>
+
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/dataflow.png" />
+        </imageobject>
+
+        <textobject>
+          <phrase>An illustration of the data flow when using
+          cutplace.</phrase>
+        </textobject>
+      </mediaobject>
+    </figure>
+
     <para>Benefits of using cutplace are:</para>
 
     <itemizedlist>
@@ -85,7 +107,8 @@
       <listitem>
         <para>Include domain experts with basic technical skills in your
         interface related requirement engineering. Descriptions for cutplace
-        are fairly legible compared to BNF, awk or Perl.</para>
+        are fairly legible compared to BNF, XML schemes or validation scripts
+        written in awk or Perl.</para>
       </listitem>
 
       <listitem>
@@ -126,11 +149,46 @@
       </listitem>
     </itemizedlist>
 
-    <para>TODO: elaborate</para>
+    <para>The remainder of this user guide is organized as follows:</para>
 
-    <para>To find out what is new in this version, see the <link
-    linkend="changes">revision history</link>. For updates and support, visit
-    the cutplace homepage at <ulink
+    <itemizedlist>
+      <listitem>
+        <para><xref linkend="installation" /> describes the requirements for
+        running cutplace and how to install it.</para>
+      </listitem>
+
+      <listitem>
+        <para><xref lang="" linkend="writing-an-icd" /> explains how to write
+        interface control documents.</para>
+      </listitem>
+
+      <listitem>
+        <para><xref linkend="command-line-usage" /> describes how to use
+        cutplace from the command line, in particular for validating
+        data.</para>
+      </listitem>
+
+      <listitem>
+        <para><xref linkend="development" /> is mostly interesting for people
+        who want to extend cutplace for their own purpose or contribute to it.
+        It explains how to obtain the source code, how work with it and share
+        your results.</para>
+      </listitem>
+
+      <listitem>
+        <para><xref linkend="support" /> gives an overview on the resources
+        available to get support in case you encounter problems or want to
+        share your experience with cutplace.</para>
+      </listitem>
+
+      <listitem>
+        <para><xref linkend="changes" /> describes improvements compared to
+        earlier versions.</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>The most current version of this user guide should always be
+    available from the cutplace homepage at <ulink
     url="http://cutplace.sourceforge.net/">http://cutplace.sourceforge.net</ulink>.</para>
   </preface>
 
@@ -1305,9 +1363,10 @@
 
       <para><userinput>cutplace --version</userinput></para>
 
-      <para>To obtain information about cutplace's license, run:</para>
-
-      <para><userinput>cutplace --license</userinput></para>
+      <para>Note that this also prints the version of Python used and a few
+      details on the platform running on. This is particular useful in case
+      you intend to report bugs as described in <xref
+      linkend="support" />.</para>
     </section>
 
     <section id="command-line-validate-icd">
@@ -1596,8 +1655,7 @@ BUILD SUCCESSFUL</computeroutput>
     <para>In addition to its homepage at <ulink
     url="http://cutplace.sourceforge.net/">http://cutplace.sourceforge.net/</ulink>,
     Cutplace has a project site at <ulink
-    url="http://sourceforge.net/projects/cutplace/">http://sourceforge.net/projects/cutplace/</ulink>.
-    </para>
+    url="http://sourceforge.net/projects/cutplace/">http://sourceforge.net/projects/cutplace/</ulink>.</para>
 
     <para>In case you have a question about cutplace, encounter a bug you
     can't quite pin down yet, or just want to tell others about your
@@ -1612,18 +1670,9 @@ BUILD SUCCESSFUL</computeroutput>
 
     <orderedlist>
       <listitem>
-        <para>The version of cutplace used (<userinput>cutplace
-        --version</userinput>).</para>
-      </listitem>
-
-      <listitem>
-        <para>The Python version used (<userinput>python
-        --version</userinput>)</para>
-      </listitem>
-
-      <listitem>
-        <para>The platform you encountered the problem on (Mac, Windows,
-        Linux, ...)</para>
+        <para>The output of running <userinput>cutplace --version</userinput>,
+        which yields the version of cutplace, Python and the platform
+        used.</para>
       </listitem>
 
       <listitem>
