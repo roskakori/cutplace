@@ -137,6 +137,9 @@
   <chapter id="installation">
     <title>Installation</title>
 
+    <para>This chapter describes how to install the cutplace command line
+    application and what you need to run it.</para>
+
     <section>
       <title>Requirements</title>
 
@@ -154,12 +157,12 @@
       <para>Other than that, there are no special software requirements for
       cutplace. Hardware wise, any reasonably modern computer should easily
       meet the demands of cutplace. Memory usage depends on the amount of data
-      you process, 256 MB of memory should easily be enough even for large
+      you process, 256 MB of memory should be more than enough even for large
       datasets.</para>
     </section>
 
     <section id="download">
-      <title>Using PyPI</title>
+      <title>Install using PyPI</title>
 
       <para>Cutplace can be downloaded from <ulink
       url="http://pypi.python.org/pypi">PyPI</ulink>, the Python Package
@@ -167,9 +170,17 @@
 
       <para>TODO: describe download and installation</para>
     </section>
+
+    <section>
+      <title>Install using the Subversion repository</title>
+
+      <para>In case you prefer to install cutplace directly from the source,
+      you can use its subversion repository as described in <xref
+      linkend="development" />.</para>
+    </section>
   </chapter>
 
-  <chapter>
+  <chapter id="writing-an-icd">
     <title>Writing an Interface Control Document</title>
 
     <para>This chapter describes how to ... TODO: introduction &amp;
@@ -277,8 +288,6 @@
 
       <para>The remainder of this section describes the supported formats and
       available properties for them.</para>
-
-      <para></para>
 
       <section>
         <title>Delimited data</title>
@@ -1247,6 +1256,24 @@
     <section>
       <title>Comments</title>
 
+      <para>Comments can show up in the ICD at any line or column cutplace
+      does not parse. In particular constitutes:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>Lines that have an empty first column. Remember that a D means
+          details about the data format, F about the field format and C
+          describes constraints.</para>
+        </listitem>
+
+        <listitem>
+          <para>Columns that are past the columns needed by cutplace. For
+          example, in a line describing a data format property, cutplace
+          parses only the first three (D, Property name, value). Because of
+          that you can write any text starting with column number 4.</para>
+        </listitem>
+      </itemizedlist>
+
       <para></para>
     </section>
   </chapter>
@@ -1261,7 +1288,7 @@
     <application>cmd.exe</application> on Windows) and is ready to enter
     commands in it.</para>
 
-    <section>
+    <section id="command-line-information">
       <title>Show help and other information</title>
 
       <para>To read a short description of all options available for cutplace,
@@ -1283,7 +1310,7 @@
       <para><userinput>cutplace --license</userinput></para>
     </section>
 
-    <section id="command-line-validate">
+    <section id="command-line-validate-icd">
       <title>Validate an ICD</title>
 
       <para>To validate that an ICD is syntactically and semantically correct,
@@ -1301,7 +1328,7 @@
       exit code is 0.</para>
     </section>
 
-    <section id="command-line-pretty">
+    <section id="command-line-validate-data">
       <title>Validate that a data file conforms to an ICD</title>
 
       <para>To validate that a data file conforms to an ICD, pass the path of
@@ -1323,7 +1350,7 @@
       in the console.</para>
     </section>
 
-    <section id="command-line-html">
+    <section id="command-line-errors">
       <title>Dealing with errors</title>
 
       <para>Roughly speaking cutplace can encounter the following kinds of
@@ -1419,7 +1446,7 @@
           example <ulink
           url="http://www.openoffice.org/">OpenOffice.org</ulink>'s Calc to
           edit the <filename>*.ods</filename> and <filename>*.csv</filename>
-          files </para>
+          files</para>
         </listitem>
 
         <listitem>
@@ -1436,7 +1463,7 @@
         </listitem>
       </itemizedlist>
 
-      <para>Eclipse and PyDev are your developer environment of choice, you
+      <para>If Eclipse and PyDev are your developer environment of choice, you
       can check out the repository directly from Eclipse using <menuchoice>
           <guimenu>File</guimenu>
 
@@ -1450,9 +1477,10 @@
         </menuchoice>. After that, you should open
       <filename>build.xml</filename> and run the ant target "setup".</para>
 
-      <para>If you prefer the command line, you need and a Subversion client
-      and the build tool ant. Some parts of the code are generated using XSL,
-      so simply using distutils alone won't suffice.</para>
+      <para>If you prefer the command line, you need any Subversion client and
+      the build tool ant. Some parts of the code are generated using XSL and
+      ant's <code>&lt;xslt&gt;</code> task, so simply using distutils alone
+      won't suffice.</para>
 
       <para>To check out the current version using the standard Subversion
       command line client, run:</para>
@@ -1560,6 +1588,51 @@ BUILD SUCCESSFUL</computeroutput>
       patch tracker at <ulink
       url="https://sourceforge.net/tracker/?group_id=256054&amp;atid=1126965">https://sourceforge.net/tracker/?group_id=256054&amp;atid=1126965</ulink>.</para>
     </section>
+  </chapter>
+
+  <chapter id="support">
+    <title>Getting support</title>
+
+    <para>In addition to its homepage at <ulink
+    url="http://cutplace.sourceforge.net/">http://cutplace.sourceforge.net/</ulink>,
+    Cutplace has a project site at <ulink
+    url="http://sourceforge.net/projects/cutplace/">http://sourceforge.net/projects/cutplace/</ulink>.
+    </para>
+
+    <para>In case you have a question about cutplace, encounter a bug you
+    can't quite pin down yet, or just want to tell others about your
+    experience with it, feel free to post a message to the cutplace forum at
+    <ulink
+    url="https://sourceforge.net/forum/forum.php?forum_id=928547">https://sourceforge.net/forum/forum.php?forum_id=928547</ulink>.</para>
+
+    <para>In case you have a bug you can reproduce, please post it to the bug
+    tracker at <ulink
+    url="https://sourceforge.net/tracker/?group_id=256054&amp;atid=1126964">https://sourceforge.net/tracker/?group_id=256054&amp;atid=1126964</ulink>.
+    Please include the following information:</para>
+
+    <orderedlist>
+      <listitem>
+        <para>The version of cutplace used (<userinput>cutplace
+        --version</userinput>).</para>
+      </listitem>
+
+      <listitem>
+        <para>The Python version used (<userinput>python
+        --version</userinput>)</para>
+      </listitem>
+
+      <listitem>
+        <para>The platform you encountered the problem on (Mac, Windows,
+        Linux, ...)</para>
+      </listitem>
+
+      <listitem>
+        <para>Necessary steps, data and command line options to reproduce the
+        bug.</para>
+      </listitem>
+    </orderedlist>
+
+    <para>This greatly helps in fixing bugs sooner.</para>
   </chapter>
 
   <chapter id="changes">
