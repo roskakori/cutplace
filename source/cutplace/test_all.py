@@ -1,6 +1,7 @@
 """Test suite for all test cases."""
 import logging
 import test_cutplace
+import test_data
 import test_icd
 import test_fields
 import test_parsers
@@ -17,6 +18,7 @@ if __name__ == '__main__':
     for testCaseClass in [
                         test_cutplace.CutplaceTest,
                         test_icd.InterfaceControlDocumentTest,
+                        test_data.DataFormatTest,
                         test_fields.AbstractFieldFormatTest,
                         test_fields.ChoiceFieldFormatTest,
                         test_fields.DateTimeFieldFormatTest,
