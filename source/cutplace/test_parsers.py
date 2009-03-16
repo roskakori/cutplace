@@ -42,6 +42,9 @@ class DelimitedParserTest(unittest.TestCase):
     def testSingleCharCsv(self):
         self._assertItemsEqual([["x"]], "x")
 
+    def testQuotedCommaCsv(self):
+        self._assertItemsEqual([["x", ",", "y"]], "x,\",\",y")
+
     def testItemDelimiterAtStartCsv(self):
         self._assertItemsEqual([["", "x"]], ",x")
 
