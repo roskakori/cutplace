@@ -16,7 +16,7 @@
         <dtd location="dtds/xhtml/xhtml1-transitional.dtd" publicId="-//W3C//DTD XHTML 1.0 Transitional//EN" />
     </xmlcatalog>
 
-    <target name="bdist" depends="version" description="build binary distribution">
+    <target name="bdist" depends="version, user-guide" description="build binary distribution">
         <tstamp />
         <exec executable="python">
             <arg value="setup.py" />
@@ -42,12 +42,19 @@
         <xslt in="version.xml" out="setup.py" style="${source}/xml/version-setup-py.xsl" />
     </target>
 
+    <target name="site" depends="user-guide" description="build web site">
+        <mkdir dir="${site.dir}/images" />
+        <copy todir="${site.dir}/images">
+            <fileset dir="${source}/site/images" includes="*.png" />
+        </copy>
+    </target>
+
     <target name="user-guide">
         <xslt classpath="${external.dir}/xalan.jar" in="${source}/site/user-guide.xml" out="${site.dir}/index.html" style="docbook-xsl/xhtml/docbook.xsl">
             <xmlcatalog refid="catalogs" />
         </xslt>
     </target>
-    
+
     <target name="setup" description="setup project after checking it out">
         <untar compression="bzip2" src="${external.dir}/dtds.tar.bz2" dest="." />
         <untar compression="bzip2" src="${external.dir}/docbook-xsl.tar.bz2" dest="." />
