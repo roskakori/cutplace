@@ -49,6 +49,9 @@ class DelimitedParserTest(unittest.TestCase):
         # FIXME: self._assertItemsEqual([["", ""]], ",")
         pass
 
+    def testEmptyItemDelimiterBeforeLineDelimiterCsv(self):
+        self._assertItemsEqual([["", ""], ["x"]], "," + parsers.LF + "x")
+
     def testSingleQuotedCharCsv(self):
         self._assertItemsEqual([["x"]], "\"x\"")
 

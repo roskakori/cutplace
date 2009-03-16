@@ -19,7 +19,7 @@ FORMAT_FIXED = "fixed"
 KEY_ALLOWED_CHARACTERS = "allowed characters"
 KEY_ENCODING = "encoding"
 KEY_FORMAT = "format"
-KEY_ITEM_SEPARATOR = "item delimiter"
+KEY_ITEM_DELIMITER = "item delimiter"
 KEY_LINE_DELIMITER = "line delimiter"
 KEY_QUOTE_CHARACTER = "quote character"
 KEY_ESCAPE_CHARACTER = "escape character"
@@ -31,11 +31,11 @@ def createDataFormat(name):
     """Factory function to create the specified data format."""
     assert name is not None
     actualName = name.lower()
-    if name == FORMAT_CSV:
+    if actualName == FORMAT_CSV:
         result = CsvDataFormat()
-    elif name == FORMAT_DELIMITED:
+    elif actualName == FORMAT_DELIMITED:
         result = DelimitedDataFormat()
-    elif name == FORMAT_FIXED:
+    elif actualName == FORMAT_FIXED:
         result = FixedDataFormat()
     else:
         raise LookupError("data format is %s but must be on of: %s" % (repr(name), repr([FORMAT_CSV, FORMAT_DELIMITED, FORMAT_FIXED])))
@@ -82,9 +82,9 @@ class AbstractDataFormat(object):
         assert lineDelimiter is not None
         
         try:
-            lineDelimiterIndex = _VALID_LINE_DELIMITER_TEXTS.index(lineDelimiter)
+            lineDelimiterIndex = _VALID_LINE_DELIMITER_TEXTS.index(lineDelimiter.lower())
         except: # Why ValueError instead of LookupError?
-            raise DataFormatLookupError("%s is %s but must be one of: %s" %(KEY_LINE_DELIMITER, repr(lineDelimiter), str(_VALID_LINE_DELIMITER_TEXTS)))
+            raise DataFormatLookupError("%s is %s but must be one of: %s" % (KEY_LINE_DELIMITER, repr(lineDelimiter), str(_VALID_LINE_DELIMITER_TEXTS)))
         self._lineDelimiter = _VALID_LINE_DELIMITERS[lineDelimiterIndex]
         
     def setAllowedCharacters(self, text):
@@ -114,7 +114,7 @@ class AbstractDataFormat(object):
         elif _isKey(key, KEY_LINE_DELIMITER):
             self.setLineDelimiter(value)
         else:
-            raise LookupError, "unknown data format option: %s" % (repr(key))
+            raise DataFormatLookupError, "unknown data format option: %s" % (repr(key))
     
 class DelimitedDataFormat(AbstractDataFormat):
     """Data format for delimited data such as CSV."""
@@ -165,11 +165,11 @@ class DelimitedDataFormat(AbstractDataFormat):
         assert value is not None
         
         lowerKey = key.lower()
-        if key == KEY_ESCAPE_CHARACTER:
+        if _isKey(key, KEY_ESCAPE_CHARACTER):
             self.setEscapeCharacter(value)
-        elif key == KEY_ITEM_SEPARATOR:
+        elif _isKey(key, KEY_ITEM_DELIMITER):
             self.setItemDelimiter(value)
-        elif key == KEY_QUOTE_CHARACTER:
+        elif _isKey(key, KEY_QUOTE_CHARACTER):
             self.setQuoteCharatcer(value)
         else:
             super(DelimitedDataFormat, self).set(key, value)

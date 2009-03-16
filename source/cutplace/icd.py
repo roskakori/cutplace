@@ -1,5 +1,5 @@
 """Interface control document (IDC) describing all aspects of a data driven interface."""
-import csv
+import data
 import fields
 import logging
 import parsers
@@ -7,85 +7,18 @@ import sys
 import tools
 import types
 
-class DataFormat(object):
-    """Properties from "Data format" section of ICD."""
-    def __init__(self):
-        self.KEY_ALLOWED = "allowed"
-        self.KEY_ENCODING = "encoding"
-        self.KEY_DECIMAL_SEPARATOR = "decimalSeparator"
-        self.KEY_ITEM_SEPARATOR = "itemSeparator"
-        self.KEY_LINE_SEPARATOR = "lineSeparator"
-        self.KEY_DECIMAL_SEPARATOR = "decimalSeparator"
-        self.KEY_THOUSANDS_SEPARATOR = "thousandsSeparator"
-        self.KEY_FORMAT = "format"
-        self.VALID_KEYS = [
-                           self.KEY_ALLOWED,
-                           self.KEY_DECIMAL_SEPARATOR,
-                           self.KEY_ENCODING,
-                           self.KEY_ITEM_SEPARATOR,
-                           self.KEY_LINE_SEPARATOR,
-                           self.KEY_THOUSANDS_SEPARATOR,
-                           self.KEY_FORMAT
-                           ]
-        self.TYPE_CSV = "csv"
-        self.VALID_TYPES = [
-                            self.TYPE_CSV
-                            ]
-        self._log = logging.getLogger("cutplace")
-        self.reset()
-
-    def reset(self):
-        self.allowed = None
-        self.encoding = None
-        self.decimaleSeparator = None
-        self.thousandsSeparator = None
-        self.format = None
-        self.lineSeparator = parsers.AUTO
-        self.itemSeparator = parsers.AUTO
-
-    def set(self, key, value):
-        """Set property key to value."""
-        assert key is not None
-        actualKey = tools.camelized(key, True)
-        if not actualKey in self.VALID_KEYS:
-            raise LookupError("data format key is %s but must be one of: %s" % (repr(actualKey), str(self.VALID_KEYS)))
-        if value is None:
-            actualValue = None
-        else:
-            actualValue = value.strip()
-            if actualValue == "":
-                actualValue = None
-            if actualValue is not None:
-                if actualKey == self.KEY_FORMAT:
-                    if not actualValue.lower() in self.VALID_TYPES:
-                        raise LookupError("data format type is \"%s\" but must be one of: %s" % (str(value), str(self.VALID_TYPES)))
-        self._log.debug("set %s to \"%s\"" % (actualKey, str(actualValue)))
-        setattr(self, actualKey, value)
-        
-    def lineSeparatorForDialect(self):
-        # TODO: Unify line separator in IDC DataFormat and parsers.
-        lineSeparator = self.lineSeparator.lower()
-        if lineSeparator == "cr":
-            result = parsers.CR
-        elif lineSeparator == "crlf":
-            result = parsers.CRLF
-        elif lineSeparator == "lf":
-            result = parsers.LF
-        else:
-            raise ValueError("lineSeparator=" + repr(lineSeparator))
-        return result
-
-
 class InterfaceDescription(object):
     """Model of the data driven parts of an Interface Control Document (ICD)."""
     def __init__(self):
+        # TODO: Move constants to class attributes.
         self.EMPTY_INDICATOR = "x"
         self.ID_CONSTRAINT = "c"
         self.ID_DATA_FORMAT = "d"
         self.ID_FIELD_RULE = "f"
+        # TODO: Move to class attribute and rename to _VALID*
         self.VALID_IDS = [self.ID_CONSTRAINT, self.ID_DATA_FORMAT, self.ID_FIELD_RULE]
         self._log = logging.getLogger("cutplace")
-        self.dataFormat = DataFormat()
+        self.dataFormat = None
         self.fieldNames = []
         self.fieldFormats = []
         self.fieldNameToFormatMap = {}
@@ -117,11 +50,18 @@ class InterfaceDescription(object):
         itemCount = len(items)
         if itemCount >= 1:
             key = items[0]
-            if itemCount >= 3:
+            if itemCount >= 2:
                 value = items[1]
             else:
+                # FIXME: Actually None must not be passed to most DataFormat.setXXX() methods.
                 value = None
-            self.dataFormat.set(key, value)
+            if data.isFormatKey(key):
+                if self.dataFormat is None:
+                    self.dataFormat = data.createDataFormat(value)
+                else:
+                    raise data.DataFormatValueError("data format must be set only once, but has been set already to: %s" % (repr(self.dataFormat.getName())))
+            else:
+                self.dataFormat.set(key, value)
         else:
             raise IndexError("data format line (marked with %s) must contain at least 2 columns" % (repr(self.ID_DATA_FORMAT)))
 
@@ -158,6 +98,7 @@ class InterfaceDescription(object):
                 self.fieldNameToFormatMap[fieldName] = fieldFormat
                 self._log.info("defined field: %s: %s" % (fieldName, repr(fieldFormat)))
             else:
+                # TODO: Use FieldLookupError
                 raise LookupError("name must be used for only one field: %s" % (fieldName))
         else:
             raise IndexError("field format line (marked with %s) must contain at least 3 columns" % (repr(self.ID_FIELD_RULE)))
@@ -193,14 +134,20 @@ class InterfaceDescription(object):
         finally:
             if needsOpen:
                 icdFile.close()
+        if self.dataFormat is None:
+            raise data.DataFormatLookupError("ICD must contain a section describing the data format")
+        if len(self.fieldFormats) == 0:
+            # TODO: Use FieldLookupError
+            raise fields.FieldValueError("ICD must contain a section describing at least one field format")
             
     def validate(self, dataFileToValidatePath):
         """Validate that all lines and items in dataFileToValidatePath conform to this interface."""
+        assert self.dataFormat is not None
         assert dataFileToValidatePath is not None
         self._log.info("validate \"%s\"" % (dataFileToValidatePath))
         
         # TODO: Clean up lower(), it should be called at a more appropriate place such as a property setter.
-        if self.dataFormat.format.lower() == self.dataFormat.TYPE_CSV:
+        if self.dataFormat.getName() == data.FORMAT_CSV:
             dataFile = open(dataFileToValidatePath)
             try:
                 dialect = parsers.DelimitedDialect()
@@ -227,4 +174,4 @@ class InterfaceDescription(object):
             finally:
                 dataFile.close()
         else:
-            raise NotImplementedError("data format:" + str(self.dataFormat.type))
+            raise NotImplementedError("data format:" + str(self.dataFormat.getName()))

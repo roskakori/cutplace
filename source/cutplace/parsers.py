@@ -193,6 +193,11 @@ class DelimitedParser(object):
                 self._unread(firstChar)
                 item = ""
                 atEndOfItem = True
+            elif firstChar == self.lineDelimiter:
+                # Note: CRLF will be detected in the while loop below.
+                item = firstChar
+                atEndOfItem = True
+                stripLineDelimiter = True
             else:
                 endOfItemChar = self.itemDelimiter
                 item = firstChar

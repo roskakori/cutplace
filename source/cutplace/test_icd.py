@@ -1,4 +1,4 @@
-"""Tests  for field formats."""
+"""Tests for interface control documents."""
 import icd
 import logging
 import StringIO
@@ -12,12 +12,10 @@ class InterfaceControlDocumentTest(unittest.TestCase):
 ,"Data format",,,,,
 ,,,,,,
 "D","Format","CSV",,,,
-"D","Line separator","LF",,,,
-"D","Item separator",",",,,,
-"D","Thousands separator",,,,,
-"D","Decimal separator",".",,,,
-"D","Encoding","ISO-8851-9",,,,
-"D","Allowed","32...",,,,
+"D","Line delimiter","LF",,,,
+"D","Item delimiter",",",,,,
+"D","Encoding","ISO-8859-1",,,,
+"D","Allowed characters","32...",,,,
 ,,,,,,
 ,"Fields",,,,,
 ,,,,,,
@@ -37,8 +35,9 @@ class InterfaceControlDocumentTest(unittest.TestCase):
 """
         testIcd = icd.InterfaceDescription()
         testIcd.read(StringIO.StringIO(spec))
+        # TODO: Test with CRLF as line delimiter
 
 if __name__ == '__main__':
     logging.basicConfig()
-    logging.getLogger("cutplace").setLevel(logging.INFO)
+    logging.getLogger("cutplace.test_idc").setLevel(logging.INFO)
     unittest.main()
