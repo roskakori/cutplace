@@ -47,6 +47,11 @@
         <copy todir="${site.dir}/images">
             <fileset dir="${source}/site/images" includes="*.png" />
         </copy>
+        <copy file="tests/input/valid_customers.csv" todir="${site.dir}" />
+        <copy file="tests/input/broken_customers.csv" todir="${site.dir}" />
+        <copy file="tests/input/idcs/customers.csv" tofile="${site.dir}/icd_customers.csv" />
+        <copy file="tests/input/idcs/customers.ods" tofile="${site.dir}/icd_customers.ods" />
+        <copy file="tests/input/idcs/customers.xls" tofile="${site.dir}/icd_customers.xls" />
     </target>
 
     <target name="user-guide">

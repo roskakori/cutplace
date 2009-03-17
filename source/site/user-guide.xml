@@ -69,15 +69,15 @@
     thinking. It acts as "executable specification" that cutplace can use to
     validate that data actually conform to it.</para>
 
-    <para><xref linkend="figure-dataflow" /> shows how this works in practice:
-    The user authors an interface control documents, which he passes to
-    cutplace together with the input data that should be validated. Cutplace
-    checks the data one line after the other, one column after the other. When
-    done, you end up with data that have been accepted and (hopefully none)
-    that have been rejected.</para>
+    <para><xref linkend="figure-dataflow" /> shows how this works: The user
+    authors an interface control documents, which he passes to cutplace
+    together with the input data that should be validated. Cutplace checks the
+    data one line after the other, one column after the other. When done, you
+    end up with data that have been accepted and (hopefully none) that have
+    been rejected.</para>
 
     <figure id="figure-dataflow">
-      <title>The data flow when using cutplace.</title>
+      <title>The data flow when using cutplace</title>
 
       <mediaobject>
         <imageobject>
@@ -86,12 +86,66 @@
 
         <textobject>
           <phrase>An illustration of the data flow when using
-          cutplace.</phrase>
+          cutplace</phrase>
         </textobject>
       </mediaobject>
     </figure>
 
-    <para>Benefits of using cutplace are:</para>
+    <para>To understand how this works in practice consider the following
+    data, which are stored in a CSV file name <ulink
+    url="valid_customers.csv">valid_customers.csv</ulink>:</para>
+
+    <para>TODO: Insert table for customers.csv</para>
+
+    <para>Apparently it contains contains customer data. Column 1 contains an
+    ID for the branch the customers is assigned to, column 2 contains an ID
+    for the customer, columns 3 and 4 constitute the customer name, column 5
+    describes the gender and the last column contains the date of birth using
+    the format DD.MM.YYYY. But instead of such an interface description in
+    prose cutplace needs a more formal one, which can be found in <ulink
+    url="icd_customers.csv">icd_customers.csv</ulink>.</para>
+
+    <para>TODO: insert table for ids_customers.csv</para>
+
+    <para>Actually the description can be written in a spreadsheet application
+    and later on be exported to CSV. This allows to make the specification
+    easier to read by using formatting. See <ulink
+    url="icd_customers.ods">icd_customers.ods</ulink> respectively <ulink
+    url="icd_customers.xls">icd_customers.xls</ulink> for how this might
+    look.</para>
+
+    <para>Now that we both have an IDC and data, cutplace can finally work its
+    magic. Running</para>
+
+    <para><userinput>cutplace icd_customers.csv
+    customders.csv</userinput></para>
+
+    <para>will confirm that all the data are valid.</para>
+
+    <para>But let's try again with some broken data. Consider <ulink
+    url="broken_customers.csv">broken_customers.csv</ulink>:</para>
+
+    <para>TODO: insert table for broken_customers.csv</para>
+
+    <para>Running</para>
+
+    <para><userinput>cutplace icd_customers.csv
+    broken_customders.csv</userinput></para>
+
+    <para>This time the output contains several error messages:</para>
+
+    <literallayout>ERROR:cutplace:rejected: ['12345', '92', 'Bill', 'Carter', 'male', '05.04.1953']
+ERROR:cutplace:  field 'branch_id': value '12345' must match regular expression: '38\\d\\d\\d'
+ERROR:cutplace:rejected: ['38111', 'XX', 'Sue', 'Brown', 'female', '08.02.1962']
+ERROR:cutplace:  field 'customer_id': value must be an integer number: 'XX'
+ERROR:cutplace:rejected: ['38088', '83', 'Rose', 'Baker', 'female', '30.02.1994']
+ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m.%Y) but is: 30.02.1994 (day is out of range for month)
+</literallayout>
+
+    <para>This concludes the little example to demonstrate what cutplace can
+    do.</para>
+
+    <para>To sum it up: benefits of using cutplace are:</para>
 
     <itemizedlist>
       <listitem>
@@ -226,7 +280,8 @@
       url="http://pypi.python.org/pypi">PyPI</ulink>, the Python Package
       Index.</para>
 
-      <para>TODO: describe download and installation</para>
+      <para>TODO: Actually upload to PyPI and describe download and
+      installation</para>
     </section>
 
     <section>
@@ -693,7 +748,7 @@
         delimiters are necessary.</para>
 
         <table>
-          <title>Example data format</title>
+          <title>Example for fixed data format</title>
 
           <tgroup cols="3">
             <thead>
@@ -764,7 +819,7 @@
           </listitem>
 
           <listitem>
-            <para>The name of the field. This must start with an ASCII letter
+            <para>The name of the field. It must start with an ASCII letter
             and continue with letters, numbers and underscores (_), for
             example <varname>customer_id</varname>.</para>
           </listitem>
@@ -1188,7 +1243,7 @@
         </itemizedlist>
 
         <table id="examples-for-pattern-fields">
-          <title>Examples for pattern fields</title>
+          <title>Examples for Pattern fields</title>
 
           <tgroup cols="6">
             <thead>
