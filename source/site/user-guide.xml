@@ -1724,7 +1724,7 @@ BUILD SUCCESSFUL</computeroutput>
       <para><computeroutput>ImportError: No module named
       _md5</computeroutput></para>
 
-      <para>then you need to install py25-hashlib. </para>
+      <para>then you need to install py25-hashlib.</para>
 
       <section>
         <title>Getting setuptools to work</title>
@@ -1746,6 +1746,20 @@ BUILD SUCCESSFUL</computeroutput>
         _md5</computeroutput></para>
 
         <para>then you need to install <package>py25-hashlib</package>.</para>
+      </section>
+
+      <section>
+        <title>Add a release tag</title>
+
+        <para>When publishing a new release, a tag should be added to the
+        repository. This can be done using the following template:</para>
+
+        <para><userinput>svn copy -m "Added tag for version 0.x.x"
+        https://cutplace.svn.sourceforge.net/svnroot/cutplace/trunk
+        https://cutplace.svn.sourceforge.net/svnroot/cutplace/tags/0.x.x</userinput></para>
+
+        <para>Simply replace <userinput>0.x.x</userinput> with the current
+        version number.</para>
       </section>
     </section>
   </chapter>
