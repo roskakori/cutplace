@@ -157,8 +157,8 @@ class InterfaceDescription(object):
                 dialect.quoteChar = "\""
                 reader = parsers.delimitedReader(dataFile, dialect)
                 for row in reader:
+                    itemIndex = 0
                     try:
-                        itemIndex = 0
                         while itemIndex < len(row):
                             item = row[itemIndex]
                             fieldFormat = self.fieldFormats[itemIndex]
@@ -170,7 +170,12 @@ class InterfaceDescription(object):
                             raise fields.FieldValueError("unexpected data must be removed beginning at item %d" % (itemIndex))
                         self._log.info("accepted: " + str(row))
                     except:
-                        self._log.error("rejected: " + str(row), exc_info=1)
+                        if isinstance(sys.exc_info()[1], (fields.FieldValueError)):
+                            fieldName = self.fieldNames[itemIndex]
+                            self._log.error("rejected: " + str(row))
+                            self._log.error("  field %s: %s" % (repr(fieldName), sys.exc_value))
+                        else:
+                            self._log.error("rejected: " + str(row), exc_info=1)
             finally:
                 dataFile.close()
         else:
