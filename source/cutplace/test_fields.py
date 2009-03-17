@@ -111,16 +111,16 @@ class ChoiceFieldFormatTest(unittest.TestCase):
         format = fields.ChoiceFieldFormat("color", False, None, " ")
         format = fields.ChoiceFieldFormat("color", False, None, "red, ")
 
-class PatternFieldTest(unittest.TestCase):
+class PatternFieldFormatTest(unittest.TestCase):
     """Tests for PatternFieldFormat."""
     def testMatch(self):
-        format = fields.PatternField("x", False, None, "h*g?")
+        format = fields.PatternFieldFormat("x", False, None, "h*g?")
         format.validate("hgo")
         format.validate("hugo")
         format.validate("huuuuga")
     
     def testNoMatch(self):
-        format = fields.PatternField("x", False, None, "h*g?")
+        format = fields.PatternFieldFormat("x", False, None, "h*g?")
         self.assertRaises(fields.FieldValueError, format.validate, "")
         self.assertRaises(fields.FieldValueError, format.validate, "hang")
 

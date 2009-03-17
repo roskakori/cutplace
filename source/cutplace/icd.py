@@ -85,9 +85,9 @@ class InterfaceDescription(object):
                     if itemCount >= 5:
                         fieldRule = items[4].strip()
                         if not fieldRule:
-                            fieldRule = None
+                            fieldRule = ""
             else:
-                fieldRule = None
+                fieldRule = ""
             fieldClass = self._createFieldFormatClass(fieldType);
             self._log.debug("create field: %s(%s, %s, %s)" % (str(fieldClass), str(fieldName), str(fieldType), str(fieldRule)))
             fieldFormat = fieldClass.__new__(fieldClass, fieldName, fieldIsAllowedToBeEmpty, fieldLength, fieldRule)
@@ -151,8 +151,8 @@ class InterfaceDescription(object):
             dataFile = open(dataFileToValidatePath)
             try:
                 dialect = parsers.DelimitedDialect()
-                dialect.lineDelimiter = self.dataFormat.lineSeparatorForDialect()
-                dialect.itemDelimiter = self.dataFormat.itemSeparator
+                dialect.lineDelimiter = self.dataFormat.getLineDelimiter()
+                dialect.itemDelimiter = self.dataFormat.getItemDelimiter()
                 # FIXME: Obtain quote char from ICD.
                 dialect.quoteChar = "\""
                 reader = parsers.delimitedReader(dataFile, dialect)

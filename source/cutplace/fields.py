@@ -83,10 +83,10 @@ class AbstractFieldFormat(object):
                 valueLength = len(value)
                 lowerLengthLimit = self.length[0]
                 upperLengthLimit = self.length[1]
-                if (lowerLengthLimit is not None) and (valueLength < lowerLengthLimit):
-                    raise FieldValueError("item must have at least %d characters but has %d: %s" % (lowerLengthLimit, valueLength, str(value)))
-                if (upperLengthLimit is not None) and (valueLength > upperLengthLimit):
-                    raise FieldValueError("item must have at most %d characters but has %d: %s" % (upperLengthLimit, valueLength, str(value)))
+                if (lowerLengthLimit is not None) and (valueLength < long(lowerLengthLimit)):
+                    raise FieldValueError("item must have at least %d characters but has %d: %s" % (long(lowerLengthLimit), valueLength, str(value)))
+                if (upperLengthLimit is not None) and (valueLength > long(upperLengthLimit)):
+                    raise FieldValueError("item must have at most %d characters but has %d: %s" % (long(upperLengthLimit), valueLength, str(value)))
          
     def validate(self, value):
         """Validate that value complies with field description. If not, raise FieldValueError."""
@@ -94,7 +94,7 @@ class AbstractFieldFormat(object):
 
 class ChoiceFieldFormat(AbstractFieldFormat):
     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule):
-        super(AbstractFieldFormat, self).__init__(isAllowedToBeEmpty, length, rule)
+        super(ChoiceFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule)
         self.choices = []
         for choice in rule.lower().split(","):
             self.choices.append(choice.strip())
@@ -107,7 +107,7 @@ class ChoiceFieldFormat(AbstractFieldFormat):
     
 class IntegerFieldFormat(AbstractFieldFormat):
     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule):
-        super(AbstractFieldFormat, self).__init__(isAllowedToBeEmpty, length, rule)
+        super(IntegerFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule)
         # Default limit is 32 bit range. Python's integer scales to any range as long there is
         # enough memory available to represent it. If the user wants a bigger range, he has to
         # specify it.
@@ -137,7 +137,7 @@ class DateTimeFieldFormat(AbstractFieldFormat):
     # FIXME: Add "%:%%" to escape percent sign.
     _humanReadableToStrptimeMap = ["DD:%d", "MM:%m", "YYYY:%Y", "YY:%y", "hh:%H", "mm:%M", "ss:%S"]
     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule):
-        super(AbstractFieldFormat, self).__init__(isAllowedToBeEmpty, length, rule)
+        super(DateTimeFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule)
         self.humanReadableFormat = rule
         # Create an actual copy of the string.
         strptimeFormat = "".join(rule)
@@ -154,7 +154,7 @@ class DateTimeFieldFormat(AbstractFieldFormat):
                 
 class RegExFieldFormat(AbstractFieldFormat):
     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule):
-        super(AbstractFieldFormat, self).__init__(isAllowedToBeEmpty, length, rule)
+        super(RegExFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule)
         self.regex = re.compile(rule, re.IGNORECASE | re.MULTILINE)
         self.rule = rule
 
@@ -162,9 +162,9 @@ class RegExFieldFormat(AbstractFieldFormat):
         if not self.regex.match(value):
             raise FieldValueError("value %s must match regular expression: %s" % (repr(value), repr(self.rule)))
 
-class PatternField(AbstractFieldFormat):        
+class PatternFieldFormat(AbstractFieldFormat):        
     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule):
-        super(AbstractFieldFormat, self).__init__(isAllowedToBeEmpty, length, rule)
+        super(PatternFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule)
         pattern = ""
         for character in rule:
             if character == "?":
@@ -183,7 +183,7 @@ class PatternField(AbstractFieldFormat):
             
 class TextFieldFormat(AbstractFieldFormat):
     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule):
-        super(AbstractFieldFormat, self).__init__(isAllowedToBeEmpty, length, rule)
+        super(TextFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule)
    
     def validate(self, value):
         # TODO: Validate Text with rules like: 32..., a...z and so on.

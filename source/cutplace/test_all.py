@@ -23,7 +23,7 @@ if __name__ == '__main__':
                         test_fields.ChoiceFieldFormatTest,
                         test_fields.DateTimeFieldFormatTest,
                         test_fields.IntegerFieldFormatTest,
-                        test_fields.PatternFieldTest,
+                        test_fields.PatternFieldFormatTest,
                         test_fields.RegExFieldFormatTest,
                         test_parsers.DelimitedParserTest]:
         suite = loader.loadTestsFromTestCase(testCaseClass)

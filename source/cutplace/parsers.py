@@ -1,8 +1,9 @@
 """Parsers for data files."""
+import data
 import logging
 import string
 
-AUTO = "?"
+AUTO = data.ANY
 CR = "\r"
 LF = "\n"
 CRLF = CR + LF
@@ -38,7 +39,7 @@ class DelimitedDialect(object):
         assert lineDelimter is not None
         assert lineDelimter in  _VALID_LINE_DELIMITERS
         assert itemDelimiter is not None
-        assert len(itemDelimiter) == 1
+        # assert len(itemDelimiter) == 1
         
         self.lineDelimiter = itemDelimiter
         self.itemDelimiter = itemDelimiter
