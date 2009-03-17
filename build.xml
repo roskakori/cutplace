@@ -45,6 +45,15 @@
         </exec>
     </target>
 
+    <target name="bdist_egg_upload" depends="version, user-guide" description="build binary distribution and upload it to PyPI">
+        <tstamp />
+        <exec executable="python">
+            <arg value="setup.py" />
+            <arg value="bdist_egg" />
+            <arg value="upload" />
+        </exec>
+    </target>
+
     <target name="test" depends="version" description="run test suite">
         <exec executable="python">
             <arg value="${test_all.py}" />
