@@ -4,7 +4,10 @@
 <xsl:template match="cutplace-version">#!/usr/bin/env python
 """Cutplace setup for distutils."""
 
-from distutils.core import setup
+try:
+	from setuptools import setup
+except ImportError:
+	from distutils.core import setup
 
 setup(
       name="cutplace",
