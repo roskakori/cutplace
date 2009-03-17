@@ -291,8 +291,8 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
 
       <para><userinput>easy_install --upgrade cutplace</userinput></para>
 
-      <para>Alternatively you can do a manually download and install cutplace
-      by visiting <ulink
+      <para>Alternatively you can manually download and install cutplace by
+      visiting <ulink
       url="http://pypi.python.org/pypi/cutplace/">http://pypi.python.org/pypi/cutplace/</ulink>.</para>
 
       <para>When this is finished, run</para>
