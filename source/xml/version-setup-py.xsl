@@ -15,6 +15,7 @@ setup(
       url="http://cutplace.sourceforge.net/",
       package_dir={"": "source"},
       packages=["cutplace"],
+      scripts=["source/scripts/cutplace"],
       license = "GNU GPLv3",
       long_description=""""Cutplace is a tool to validate that data conform to an interface control document (IDC).
 

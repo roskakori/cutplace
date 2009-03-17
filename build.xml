@@ -24,6 +24,27 @@
         </exec>
     </target>
 
+    <target name="sdist" depends="bdist" description="build source distribution">
+        <!-- Delete Mac OS X Finder cache files. -->
+        <delete>
+          <fileset defaultexcludes="false" dir="." includes="**/.DS_Store"/>
+        </delete>
+        <exec executable="python">
+            <arg value="setup.py" />
+            <arg value="sdist" />
+            <arg value="--force-manifest" />
+	    	<arg value="--formats=zip" />
+        </exec>
+    </target>
+
+    <target name="bdist_egg" depends="version, user-guide" description="build binary distribution">
+        <tstamp />
+        <exec executable="python">
+            <arg value="setup.py" />
+            <arg value="bdist_egg" />
+        </exec>
+    </target>
+
     <target name="test" depends="version" description="run test suite">
         <exec executable="python">
             <arg value="${test_all.py}" />
@@ -43,21 +64,29 @@
     </target>
 
     <target name="site" depends="user-guide" description="build web site">
+    </target>
+
+    <target name="sitebase">
         <mkdir dir="${site.dir}/images" />
+        <copy file="${source}/site/style.css" todir="${site.dir}" />
         <copy todir="${site.dir}/images">
             <fileset dir="${source}/site/images" includes="*.png" />
         </copy>
+    </target>
+    
+    <target name="user-guide" depends="sitebase">
+        <xslt classpath="${external.dir}/serializer.jar:${external.dir}/xalan.jar" in="${source}/site/user-guide.xml" out="${site.dir}/index.html" style="docbook-xsl/xhtml/docbook.xsl">
+            <xmlcatalog refid="catalogs" />
+            <!--
+            TODO: Add a working style.
+            <param name="html.stylesheet" expression="style.css"/>
+            -->
+        </xslt>
         <copy file="tests/input/valid_customers.csv" todir="${site.dir}" />
         <copy file="tests/input/broken_customers.csv" todir="${site.dir}" />
         <copy file="tests/input/idcs/customers.csv" tofile="${site.dir}/icd_customers.csv" />
         <copy file="tests/input/idcs/customers.ods" tofile="${site.dir}/icd_customers.ods" />
         <copy file="tests/input/idcs/customers.xls" tofile="${site.dir}/icd_customers.xls" />
-    </target>
-
-    <target name="user-guide">
-        <xslt classpath="${external.dir}/serializer.jar:${external.dir}/xalan.jar" in="${source}/site/user-guide.xml" out="${site.dir}/index.html" style="docbook-xsl/xhtml/docbook.xsl">
-            <xmlcatalog refid="catalogs" />
-        </xslt>
     </target>
 
     <target name="setup" description="setup project after checking it out">

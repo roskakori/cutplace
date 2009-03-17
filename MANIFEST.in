@@ -1,0 +1,3 @@
+include *.xml
+recursive-include source/site/ *.odg *.png *.xml
+recursive-include tests *

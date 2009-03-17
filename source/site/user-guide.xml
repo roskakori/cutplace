@@ -1702,6 +1702,52 @@ BUILD SUCCESSFUL</computeroutput>
       patch tracker at <ulink
       url="https://sourceforge.net/tracker/?group_id=256054&amp;atid=1126965">https://sourceforge.net/tracker/?group_id=256054&amp;atid=1126965</ulink>.</para>
     </section>
+
+    <section>
+      <title>Developer notes</title>
+
+      <para>This section collects a few final notes interesting for
+      developers, especially for release management.</para>
+
+      <para>When using Mac OS X and Python 2.5 from MacPorts, getting
+      setuptools to work is no easy feat. when you try to run</para>
+
+      <para><userinput>sudo setuptools-x.y.z-py2.5.egg</userinput></para>
+
+      <para>and get</para>
+
+      <para><computeroutput>zipimport.ZipImportError: can't decompress data;
+      zlib not available</computeroutput></para>
+
+      <para>then you need to install py25-zlib. In case you get</para>
+
+      <para><computeroutput>ImportError: No module named
+      _md5</computeroutput></para>
+
+      <para>then you need to install py25-hashlib. </para>
+
+      <section>
+        <title>Getting setuptools to work</title>
+
+        <para>When using Mac OS X and Python 2.5 from MacPorts, getting
+        setuptools to work is no easy feat. when you try to run</para>
+
+        <para><userinput>sudo setuptools-x.y.z-py2.5.egg</userinput></para>
+
+        <para>and get</para>
+
+        <para><computeroutput>zipimport.ZipImportError: can't decompress data;
+        zlib not available</computeroutput></para>
+
+        <para>then you need to install <package>py25-zlib</package>. In case
+        you get</para>
+
+        <para><computeroutput>ImportError: No module named
+        _md5</computeroutput></para>
+
+        <para>then you need to install <package>py25-hashlib</package>.</para>
+      </section>
+    </section>
   </chapter>
 
   <chapter id="support">
@@ -1746,7 +1792,7 @@ BUILD SUCCESSFUL</computeroutput>
     cutplace.</para>
 
     <section id="v0.1.0">
-      <title>Version 0.1.0, 17-Mar-2009</title>
+      <title>Version 0.1.1, 17-Mar-2009</title>
 
       <itemizedlist>
         <listitem>

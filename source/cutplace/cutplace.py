@@ -133,8 +133,8 @@ class CutPlace(object):
         for filePath in glob.glob(os.path.join(encodingsModuleFilePath, "*.py")):
             fileName = os.path.basename(filePath)
             yield os.path.splitext(fileName)[0]
-    
-if __name__ == '__main__':
+            
+def main():
     logging.basicConfig()
     logging.getLogger("cutplace").setLevel(logging.INFO)
 
@@ -149,3 +149,6 @@ if __name__ == '__main__':
     else:
         for path in cutPlace.dataToValidatePaths:
             cutPlace.icd.validate(path)
+    
+if __name__ == '__main__':
+    main()
