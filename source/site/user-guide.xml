@@ -97,12 +97,12 @@
 
     <para>TODO: Insert table for customers.csv</para>
 
-    <para>Apparently it contains contains customer data. Column 1 contains an
-    ID for the branch the customers is assigned to, column 2 contains an ID
-    for the customer, columns 3 and 4 constitute the customer name, column 5
-    describes the gender and the last column contains the date of birth using
-    the format DD.MM.YYYY. But instead of such an interface description in
-    prose cutplace needs a more formal one, which can be found in <ulink
+    <para>Apparently it contains customer data. Column 1 contains an ID for
+    the branch the customers is assigned to, column 2 contains an ID for the
+    customer, columns 3 and 4 constitute the customer name, column 5 describes
+    the gender and the last column contains the date of birth using the format
+    DD.MM.YYYY. But instead of such an interface description in prose cutplace
+    needs a more formal one, which can be found in <ulink
     url="icd_customers.csv">icd_customers.csv</ulink>.</para>
 
     <para>TODO: insert table for ids_customers.csv</para>
@@ -118,7 +118,7 @@
     magic. Running</para>
 
     <para><userinput>cutplace icd_customers.csv
-    customders.csv</userinput></para>
+    customers.csv</userinput></para>
 
     <para>will confirm that all the data are valid.</para>
 
@@ -247,7 +247,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
   </preface>
 
   <chapter id="installation">
-    <title>Installation</title>
+    <title>Download and Installation</title>
 
     <para>This chapter describes how to install the cutplace command line
     application and what you need to run it.</para>
@@ -274,18 +274,47 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
     </section>
 
     <section id="download">
-      <title>Install using PyPI</title>
+      <title>Download and install using PyPI</title>
 
       <para>Cutplace can be downloaded from <ulink
       url="http://pypi.python.org/pypi">PyPI</ulink>, the Python Package
       Index.</para>
 
-      <para>TODO: Actually upload to PyPI and describe download and
-      installation</para>
+      <para>If you have <ulink
+      url="http://peak.telecommunity.com/DevCenter/EasyInstall">Easy
+      Install</ulink> installed, simply run</para>
+
+      <para><userinput>easy_install cutplace</userinput></para>
+
+      <para>to download and install the most current version. If you later on
+      want to upgrade to a new version, run</para>
+
+      <para><userinput>easy_install --upgrade cutplace</userinput></para>
+
+      <para>Alternatively you can do a manually download and install cutplace
+      by visiting <ulink
+      url="http://pypi.python.org/pypi/cutplace/">http://pypi.python.org/pypi/cutplace/</ulink>.</para>
+
+      <para>When this is finished, run</para>
+
+      <para><userinput>cutplace --help</userinput></para>
+
+      <para>to get a short overview of the available command line options
+      (they are explained in detail in <xref
+      linkend="command-line-usage" />).</para>
+
+      <para>Currently the launcher script is not executable for Windows, so
+      instead run:</para>
+
+      <para><userinput>&#65279;python C:\Python25\scripts\cutplace
+      --help</userinput></para>
+
+      <para>You might need to adjust the "C:\Python25" part according to your
+      local Python installation.</para>
     </section>
 
     <section>
-      <title>Install using the Subversion repository</title>
+      <title>Download and install using the Subversion repository</title>
 
       <para>In case you prefer to install cutplace directly from the source,
       you can use its subversion repository as described in <xref
@@ -1709,28 +1738,13 @@ BUILD SUCCESSFUL</computeroutput>
       <para>This section collects a few final notes interesting for
       developers, especially for release management.</para>
 
-      <para>When using Mac OS X and Python 2.5 from MacPorts, getting
-      setuptools to work is no easy feat. when you try to run</para>
-
-      <para><userinput>sudo setuptools-x.y.z-py2.5.egg</userinput></para>
-
-      <para>and get</para>
-
-      <para><computeroutput>zipimport.ZipImportError: can't decompress data;
-      zlib not available</computeroutput></para>
-
-      <para>then you need to install py25-zlib. In case you get</para>
-
-      <para><computeroutput>ImportError: No module named
-      _md5</computeroutput></para>
-
-      <para>then you need to install py25-hashlib.</para>
-
       <section>
         <title>Getting setuptools to work</title>
 
-        <para>When using Mac OS X and Python 2.5 from MacPorts, getting
-        setuptools to work is no easy feat. when you try to run</para>
+        <para>When using Mac OS X and Python 2.5 from <ulink
+        url="http://www.macports.org/">MacPorts</ulink>, getting setuptools
+        might prove a challenge. When you try to install them by
+        running</para>
 
         <para><userinput>sudo setuptools-x.y.z-py2.5.egg</userinput></para>
 
