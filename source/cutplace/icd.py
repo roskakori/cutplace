@@ -1,4 +1,5 @@
 """Interface control document (IDC) describing all aspects of a data driven interface."""
+import checks
 import data
 import fields
 import logging
@@ -22,28 +23,37 @@ class InterfaceDescription(object):
         self.fieldNames = []
         self.fieldFormats = []
         self.fieldNameToFormatMap = {}
+        self.checkDescriptions = {}
     
-    def _createFieldFormatClass(self, fieldType):
-        assert fieldType is not None
-        assert fieldType
+    def _createClass(self, defaultModuleName, type, classNameAppendix, typeName):
+        assert defaultModuleName
+        assert type
+        assert classNameAppendix
+        assert typeName
         
-        lastDotIndex = fieldType.rfind(".")
+        lastDotIndex = type.rfind(".")
         if lastDotIndex >= 0:
             # FIXME: Detect and report errors for  cases ".class" and "module.".
-            moduleName = fieldType[0:lastDotIndex]
-            className = fieldType[lastDotIndex + 1:]
+            moduleName = type[0:lastDotIndex]
+            className = type[lastDotIndex + 1:]
             module = __import__(moduleName)
         else:
-            moduleName = "fields"
-            className = fieldType
+            moduleName = defaultModuleName
+            className = type
             module = sys.modules[moduleName]
-        className += "FieldFormat"
+        className += classNameAppendix
         self._log.debug("create from " + str(moduleName) + " class " + className)
         try:
             result = getattr(module, className)
         except AttributeError:
-            raise LookupError("cannot find field format: %s" % (str(fieldType)))
+            raise LookupError("cannot find %s: %s" % (typeName, str(type)))
         return result
+
+    def _createFieldFormatClass(self, fieldType):
+        return self._createClass("fields", fieldType, "FieldFormat", "field format")
+
+    def _createCheckClass(self, checkType):
+        return self._createClass("checks", checkType, "Check", "check")
 
     def addDataFormat(self, items):
         assert items is not None
@@ -79,7 +89,7 @@ class InterfaceDescription(object):
                 if fieldIsAllowedToBeEmptyText == self.EMPTY_INDICATOR:
                     fieldIsAllowedToBeEmpty = True
                 elif fieldIsAllowedToBeEmptyText:
-                    raise ValueError("Mark for empty field is %s but must be %s" % (repr(fieldIsAllowedToBeEmptyText), repr(self.EMPTY_INDICATOR)))
+                    raise ValueError("mark for empty field is %s but must be %s" % (repr(fieldIsAllowedToBeEmptyText), repr(self.EMPTY_INDICATOR)))
                 if itemCount >= 4:
                     fieldLength = fields.parsedLongRange("length", items[3])
                     if itemCount >= 5:
@@ -95,14 +105,36 @@ class InterfaceDescription(object):
             if not self.fieldNameToFormatMap.has_key(fieldName):
                 self.fieldNames.append(fieldName)
                 self.fieldFormats.append(fieldFormat)
+                # TODO: Rememer location where field format was defined to later include it in error message
                 self.fieldNameToFormatMap[fieldName] = fieldFormat
                 self._log.info("defined field: %s: %s" % (fieldName, repr(fieldFormat)))
             else:
-                # TODO: Use FieldLookupError
-                raise LookupError("name must be used for only one field: %s" % (fieldName))
+                raise fields.FieldSyntaxError("field name must be used for only one field: %s" % (fieldName))
         else:
-            raise IndexError("field format line (marked with %s) must contain at least 3 columns" % (repr(self.ID_FIELD_RULE)))
+            raise fields.FieldSyntaxError("field format line (marked with %s) must contain at least 3 columns" % (repr(self.ID_FIELD_RULE)))
         
+    def addCheck(self, items):
+        assert items is not None
+        itemCount = len(items)
+        if itemCount >= 2:
+            checkDescription = items[0]
+            checkType = items[1]
+            if itemCount >= 3:
+                checkRule = items[2]
+            else:
+                checkRule = ""
+            self._log.debug("create check: %s(%r, %r)" % (checkType, checkDescription, checkRule))
+            checkClass = self._createCheckClass(checkType)
+            check = checkClass.__new__(checkClass, checkDescription, checkRule, self.fieldNames)
+            check.__init__(checkDescription, checkRule, self.fieldNames)
+            if not checkDescription in self.checkDescriptions:
+                # TODO: Rememer location where check was defined to later include it in error message
+                self.checkDescriptions[checkDescription] = None
+            else:
+                raise checks.CheckSyntaxError("check description must be used only once: %r" % (checkDescription)) 
+        else:
+            raise checks.CheckSyntaxError("check row (marked with %r) must contain at least 2 columns" % (self.ID_FIELD_RULE))
+
     def read(self, icdFilePath):
         # TODO: Allow to specify encoding.
         needsOpen = isinstance(icdFilePath, types.StringTypes)
@@ -124,7 +156,7 @@ class InterfaceDescription(object):
                 if len(row) >= 1:
                     rowId = str(row[0]).lower() 
                     if rowId == self.ID_CONSTRAINT:
-                        pass
+                        self.addCheck(row[1:])
                     elif rowId == self.ID_DATA_FORMAT:
                         self.addDataFormat(row[1:])
                     elif rowId == self.ID_FIELD_RULE:

@@ -5,6 +5,9 @@ class CheckError(ValueError):
     """Error to be raised when a check fails."""
     pass
 
+class CheckSyntaxError(ValueError):
+    """Error to be raised specification of check in ICD is broken."""
+    
 class AbstractCheck(object):
     """Abstract check to be used as base class for other checks. The constructor should be called by descendants,
      the other methods do nothing an can be left untouched."""
