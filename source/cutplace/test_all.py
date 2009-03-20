@@ -1,5 +1,6 @@
 """Test suite for all test cases."""
 import logging
+import test_checks
 import test_cutplace
 import test_data
 import test_icd
@@ -16,9 +17,10 @@ if __name__ == '__main__':
     # TODO: Automatically discover test cases.
     # TODO: Call sys-exit(1) in case any test fails.
     for testCaseClass in [
+                        test_checks.IsUniqueCheckTest,
                         test_cutplace.CutplaceTest,
-                        test_icd.InterfaceControlDocumentTest,
                         test_data.DataFormatTest,
+                        test_icd.InterfaceControlDocumentTest,
                         test_fields.AbstractFieldFormatTest,
                         test_fields.ChoiceFieldFormatTest,
                         test_fields.DateTimeFieldFormatTest,

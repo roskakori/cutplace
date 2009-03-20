@@ -55,6 +55,12 @@ def parsedLongRange(name, text):
 class FieldValueError(ValueError):
     """Error raised when AbstractFieldFormat.validate detects an error."""
 
+class FieldLookupError(LookupError):
+    """Error raised when a field cannot be found."""
+
+class FieldSyntaxError(LookupError):
+    """Error raised when a field definition in the ICD is broken."""
+
 class AbstractFieldFormat(object):
     """Format description of a field in a data file to validate."""
     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule):
