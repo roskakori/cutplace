@@ -115,7 +115,7 @@ class DelimitedParser(object):
         self.escapeChar = dialect.escapeChar
         self.blanksAroundItemDelimiter = dialect.blanksAroundItemDelimiter
 
-        self.log = logging.getLogger("cutplace")
+        self._log = logging.getLogger("cutplace.parsers")
         self.atEndOfFile = False
         self.item = None
         self.unreadChars = ""
@@ -131,6 +131,8 @@ class DelimitedParser(object):
     def _unread(self, charsToUnread):
         assert charsToUnread is not None
         assert charsToUnread, "characters to unread must be specified"
+        if (self._log.isEnabledFor(logging.DEBUG)):
+            self._log.debug("unread: %r" % charsToUnread)
         self.unreadChars += charsToUnread
         self.columnNumber -= len(charsToUnread)
         assert self.columnNumber >= 0, "column=%d" % (self.columnNumber)
@@ -143,6 +145,8 @@ class DelimitedParser(object):
             result = self.readable.read(1)
         if result:
             self.columnNumber += 1
+        if (self._log.isEnabledFor(logging.DEBUG)):
+            self._log.debug("read: %r" % result)
         return result
     
     def _raiseSyntaxError(self, message):
@@ -214,7 +218,7 @@ class DelimitedParser(object):
                     else:
                         item += nextChar
                         if not quoted and item.endswith(self.lineDelimiter):
-                            self.log.debug("detected line delimiter: " + repr(self.lineDelimiter))
+                            self._log.debug("detected line delimiter: " + repr(self.lineDelimiter))
                             stripLineDelimiter = True
                             atEndOfItem = True
                 else:
@@ -229,7 +233,7 @@ class DelimitedParser(object):
 
             # Remove line delimiter from unquoted items at end of line.
             if stripLineDelimiter:
-                self.log.debug("stripped linefeed after unquoted item, remainder: " + repr(item))
+                self._log.debug("stripped linefeed after unquoted item, remainder: " + repr(item))
                 item = item[: - len(self.lineDelimiter)]
                 self.atEndOfLine = True
 
