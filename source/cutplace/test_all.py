@@ -10,7 +10,7 @@ import unittest
 
 if __name__ == '__main__':
     logging.basicConfig()
-    logging.getLogger("cutplace").setLevel(logging.INFO)
+    logging.getLogger("cutplace").setLevel(logging.WARNING)
     
     loader = unittest.TestLoader()
     
