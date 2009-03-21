@@ -129,7 +129,7 @@ class InterfaceDescription(object):
             check.__init__(checkDescription, checkRule, self.fieldNames)
             if not checkDescription in self.checkDescriptions:
                 # TODO: Rememer location where check was defined to later include it in error message
-                self.checkDescriptions[checkDescription] = None
+                self.checkDescriptions[checkDescription] = check
             else:
                 raise checks.CheckSyntaxError("check description must be used only once: %r" % (checkDescription)) 
         else:
@@ -180,7 +180,11 @@ class InterfaceDescription(object):
         
         # TODO: Clean up lower(), it should be called at a more appropriate place such as a property setter.
         if self.dataFormat.getName() == data.FORMAT_CSV:
-            dataFile = open(dataFileToValidatePath)
+            needsOpen = isinstance(dataFileToValidatePath, types.StringTypes)
+            if needsOpen:
+                dataFile = open(dataFileToValidatePath, "rb")
+            else:
+                dataFile = dataFileToValidatePath
             try:
                 dialect = parsers.DelimitedDialect()
                 dialect.lineDelimiter = self.dataFormat.getLineDelimiter()
@@ -188,18 +192,28 @@ class InterfaceDescription(object):
                 # FIXME: Obtain quote char from ICD.
                 dialect.quoteChar = "\""
                 reader = parsers.delimitedReader(dataFile, dialect)
+                rowNumber = 0
                 for row in reader:
                     itemIndex = 0
+                    rowNumber += 1
+                    rowMap = {}
                     try:
+                        # Validate all columns and collect their values in rowMap.
                         while itemIndex < len(row):
                             item = row[itemIndex]
                             fieldFormat = self.fieldFormats[itemIndex]
                             fieldFormat.validateEmpty(item)
                             fieldFormat.validateLength(item)
-                            fieldFormat.validate(item)
+                            rowMap[fieldFormat.fieldName] = fieldFormat.validate(item) 
                             itemIndex += 1
                         if itemIndex != len(row):
                             raise fields.FieldValueError("unexpected data must be removed beginning at item %d" % (itemIndex))
+                        # Validate row.
+                        for description, check in self.checkDescriptions.items():
+                            try:
+                                check.checkRow(rowNumber, rowMap)
+                            except checks.CheckError, message:
+                                raise checks.CheckError("row check failed: %r: %s" % (check.description, message))
                         self._log.info("accepted: " + str(row))
                     except:
                         if isinstance(sys.exc_info()[1], (fields.FieldValueError)):
@@ -208,7 +222,15 @@ class InterfaceDescription(object):
                             self._log.error("  field %s: %s" % (repr(fieldName), sys.exc_value))
                         else:
                             self._log.error("rejected: " + str(row), exc_info=1)
+                # Validate checks at end of data.
+                for description, check in self.checkDescriptions.items():
+                    try:
+                        self._log.debug("checkAtEnd: %r" % (check))
+                        check.checkAtEnd()
+                    except checks.CheckError, message:
+                        raise CheckError("check at end of data failed: %r: %s" % (check.description, message))
             finally:
-                dataFile.close()
+                if needsOpen:
+                    dataFile.close()
         else:
             raise NotImplementedError("data format:" + str(self.dataFormat.getName()))

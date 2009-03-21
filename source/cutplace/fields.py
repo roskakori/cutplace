@@ -95,9 +95,10 @@ class AbstractFieldFormat(object):
                     raise FieldValueError("item must have at most %d characters but has %d: %s" % (long(upperLengthLimit), valueLength, str(value)))
          
     def validate(self, value):
-        """Validate that value complies with field description. If not, raise FieldValueError."""
+        """Validate that value complies with field description and return the value in its "native" type.
+        If not, raise FieldValueError."""
         raise NotImplementedError
-
+    
 class ChoiceFieldFormat(AbstractFieldFormat):
     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule):
         super(ChoiceFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule)
@@ -110,6 +111,7 @@ class ChoiceFieldFormat(AbstractFieldFormat):
     def validate(self, value):
         if value.lower() not in self.choices:
             raise FieldValueError("value is %s but must be one of: %s" % (repr(value), str(self.choices)))
+        return value
     
 class IntegerFieldFormat(AbstractFieldFormat):
     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule):
@@ -136,7 +138,8 @@ class IntegerFieldFormat(AbstractFieldFormat):
             raise FieldValueError("value must at least %d but is %d" % (self.lower, longValue))
         if longValue > self.upper:
             raise FieldValueError("value must at most %d but is %d" % (self.upper, longValue))
-
+        return longValue
+    
 class DateTimeFieldFormat(AbstractFieldFormat):
     # We can't use a dictionary here because checks for patterns need to be in order. In
     # particular, YYYY needs to be checked before YY.
@@ -154,9 +157,10 @@ class DateTimeFieldFormat(AbstractFieldFormat):
    
     def validate(self, value):
         try:
-            time.strptime(value, self.strptimeFormat)
+            result = time.strptime(value, self.strptimeFormat)
         except ValueError:
             raise FieldValueError("date must match format %s (%s) but is: %s (%s)" % (self.humanReadableFormat, self.strptimeFormat, value, sys.exc_value))
+        return result
                 
 class RegExFieldFormat(AbstractFieldFormat):
     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule):
@@ -167,6 +171,7 @@ class RegExFieldFormat(AbstractFieldFormat):
     def validate(self, value):
         if not self.regex.match(value):
             raise FieldValueError("value %s must match regular expression: %s" % (repr(value), repr(self.rule)))
+        return value
 
 class PatternFieldFormat(AbstractFieldFormat):        
     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule):
@@ -186,6 +191,7 @@ class PatternFieldFormat(AbstractFieldFormat):
     def validate(self, value):
         if not self.regex.match(value):
             raise FieldValueError("value %s must match pattern: %s (regex %s)" % (repr(value), repr(self.rule), repr(self.pattern)))
+        return value
             
 class TextFieldFormat(AbstractFieldFormat):
     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule):
@@ -193,4 +199,4 @@ class TextFieldFormat(AbstractFieldFormat):
    
     def validate(self, value):
         # TODO: Validate Text with rules like: 32..., a...z and so on.
-        pass
+        return value
