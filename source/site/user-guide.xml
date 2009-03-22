@@ -49,7 +49,7 @@
     <title>Introduction</title>
 
     <para>Cutplace is a tool to validate that data conform to an interface
-    control document (IDC).</para>
+    control document (ICD).</para>
 
     <para>Cutplace works with flat data formats using delimiters (such as CSV)
     or a fixed format. Such formats are commonly used to exchange data between
@@ -114,7 +114,7 @@
     url="icd_customers.xls">icd_customers.xls</ulink> for how this might
     look.</para>
 
-    <para>Now that we both have an IDC and data, cutplace can finally work its
+    <para>Now that we both have an ICD and data, cutplace can finally work its
     magic. Running</para>
 
     <para><userinput>cutplace icd_customers.csv
@@ -346,10 +346,10 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
         </listitem>
 
         <listitem>
-          <para>Optional Constraints, which are rules that have to be met
-          across the whole document or several fields. For example, a customer
-          ID is supposed to be unique and therefor must occur only once within
-          a file.</para>
+          <para>Optional Checks, which are rules that have to be met across
+          the whole document or several fields. For example, a customer ID is
+          supposed to be unique and therefor must occur only once within a
+          file.</para>
         </listitem>
 
         <listitem>
@@ -1379,19 +1379,31 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
     </section>
 
     <section>
-      <title>Constraints</title>
+      <title>Checks</title>
 
-      <para>Constraints are rules that cannot be expressed easily with the
-      rules available for data formats and field formats. Typically
-      constraints cover need data items or rows to check if they are
-      met.</para>
+      <para>Checks are rules that cannot be expressed easily with the rules
+      available for data formats and field formats. Typically checks cover
+      need data items or rows to check if they are met.</para>
 
       <para>TODO: Describe general format.</para>
 
       <section>
+        <title>DistinctCount</title>
+
+        <para>Pupose: Validate that the number of different values for a
+        certain field is within expected limits</para>
+
+        <para>TODO: example.</para>
+      </section>
+
+      <section>
         <title>IsUnique</title>
 
-        <para>TODO: Describe.</para>
+        <para>Pupose: Validate that values for a field or a combination of
+        fields occurs only once. This enables to detect duplicate or
+        contradicting data.</para>
+
+        <para>TODO: example.</para>
       </section>
     </section>
 
@@ -1399,13 +1411,13 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
       <title>Comments</title>
 
       <para>Comments can show up in the ICD at any line or column cutplace
-      does not parse. In particular constitutes:</para>
+      does not parse. In particular this constitutes:</para>
 
       <itemizedlist>
         <listitem>
           <para>Lines that have an empty first column. Remember that a D means
           details about the data format, F about the field format and C
-          describes constraints.</para>
+          describes checks.</para>
         </listitem>
 
         <listitem>
@@ -1516,10 +1528,10 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
 
         <listitem>
           <para>Errors in the data that violate the rules specified in the ICD
-          for fields and constraints. For example, the ICD might specify that
-          a field is an integer number but the data file contains letters in
-          it. In such a case, cutplace will report the specific line and
-          column of the field, and continue with the next one.</para>
+          for fields and checks. For example, the ICD might specify that a
+          field is an integer number but the data file contains letters in it.
+          In such a case, cutplace will report the specific line and column of
+          the field, and continue with the next one.</para>
         </listitem>
       </itemizedlist>
 
@@ -1600,7 +1612,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
 
         <listitem>
           <para><filename>.project</filename> and
-          <filename>.pydevproject</filename> for use with <ulink
+          <filename>.pydevproject</filename> are for use with <ulink
           url="http://www.eclipse.org/">Eclipse</ulink> and <ulink
           url="http://pydev.sourceforge.net/">PyDev</ulink>.</para>
         </listitem>
@@ -1685,8 +1697,6 @@ BUILD SUCCESSFUL</computeroutput>
       <para>To remove files generated during the build process:</para>
 
       <para><userinput>ant clean</userinput></para>
-
-      <para></para>
     </section>
 
     <section>
@@ -1698,7 +1708,7 @@ BUILD SUCCESSFUL</computeroutput>
 
       <para>The easiest way to do so is by adding your format to
       <filename>source/cutplace/fields.py</filename>. Simply inherit from
-      <classname>AbstractFieldFormat</classname> provide a constructor to
+      <classname>AbstractFieldFormat</classname> and provide a constructor to
       parse the <parameter>rule</parameter> parameter. Next, implement
       <methodname>validate(self, item)</methodname> that validates that the
       text in <parameter>item</parameter> conforms to
@@ -1716,9 +1726,32 @@ BUILD SUCCESSFUL</computeroutput>
     </section>
 
     <section>
-      <title>Writing constraints</title>
+      <title>Writing checks</title>
 
-      <para>TODO: Describe how to write constraints.</para>
+      <para>Writing checks is quite similar to writing field formats. The
+      standard checks are stored in source/cutplace/fields.py. Inherit from
+      AbstractCheck and provide a constructor. You might want to implement at
+      least one of the following methods:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para><methodname>checkRow</methodname>(self, rowNumber, row):
+          called for each row read from the data. RowNumber is useful to
+          report errors, row is a list where each item contains the value from
+          one column as found in the input data.</para>
+        </listitem>
+
+        <listitem>
+          <para><methodname>checkAtEnd</methodname>(self): called when all
+          rows from the data are processed.</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>In case the check discovers any issues, it should raise a
+      <exceptionname>CheckError</exceptionname>.</para>
+
+      <para>TODO: Describe how to write mychecks.py and extend Python
+      path.</para>
     </section>
 
     <section>
@@ -1768,7 +1801,7 @@ BUILD SUCCESSFUL</computeroutput>
         <para>When publishing a new release, a tag should be added to the
         repository. This can be done using the following template:</para>
 
-        <para><userinput>svn copy -m "Added tag for version 0.x.x"
+        <para><userinput>svn copy -m "Added tag for version 0.x.x."
         https://cutplace.svn.sourceforge.net/svnroot/cutplace/trunk
         https://cutplace.svn.sourceforge.net/svnroot/cutplace/tags/0.x.x</userinput></para>
 
@@ -1818,6 +1851,20 @@ BUILD SUCCESSFUL</computeroutput>
 
     <para>This chapter describes improvements compared to earlier versions of
     cutplace.</para>
+
+    <section id="v0.1.0">
+      <title>Version 0.1.2, xx-Mar-2009</title>
+
+      <itemizedlist>
+        <listitem>
+          <para>Added <code>DistinctCount</code> check.</para>
+        </listitem>
+
+        <listitem>
+          <para>Added <code>IsUnique</code> check.</para>
+        </listitem>
+      </itemizedlist>
+    </section>
 
     <section id="v0.1.0">
       <title>Version 0.1.1, 17-Mar-2009</title>
