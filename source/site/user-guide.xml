@@ -1535,7 +1535,14 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
         </listitem>
       </itemizedlist>
 
-      <para>xxx</para>
+      <para>TODO: elaborate</para>
+
+      <para>The command line option <userinput>--trace</userinput> can be
+      helpful for tracking down bugs in the rules you specified for complex
+      checks like DistinctCount, field formats or checks you developed
+      yourself, or in cutplace itself. When enabled, error messages related to
+      issues in the data include a Python stack trace, which might contain
+      information useful to developers.</para>
     </section>
   </chapter>
 
@@ -1852,8 +1859,8 @@ BUILD SUCCESSFUL</computeroutput>
     <para>This chapter describes improvements compared to earlier versions of
     cutplace.</para>
 
-    <section id="v0.1.0">
-      <title>Version 0.1.2, xx-Mar-2009</title>
+    <section id="v0.1.2">
+      <title>Version 0.1.2, 22-Mar-2009</title>
 
       <itemizedlist>
         <listitem>
@@ -1863,10 +1870,23 @@ BUILD SUCCESSFUL</computeroutput>
         <listitem>
           <para>Added <code>IsUnique</code> check.</para>
         </listitem>
+
+        <listitem>
+          <para>Added command line option --trace.</para>
+        </listitem>
+
+        <listitem>
+          <para>Added support to validate an ICD when no data are specified in
+          the command line.</para>
+        </listitem>
+
+        <listitem>
+          <para>Cleaned up error messages.</para>
+        </listitem>
       </itemizedlist>
     </section>
 
-    <section id="v0.1.0">
+    <section id="v0.1.1">
       <title>Version 0.1.1, 17-Mar-2009</title>
 
       <itemizedlist>

@@ -44,6 +44,8 @@ class CutplaceTest(unittest.TestCase):
         cutPlace = cutplace.CutPlace()
         cutPlace.setOptions(["--listencodings"])
 
+    # TODO: Add tests for broken CSV files.
+    
     def testValidCsvs(self):
         VALID_PREFIX = "valid_"
         testsInputFolder = self.getTestFolder("input")

@@ -10,20 +10,21 @@ import types
 
 class InterfaceDescription(object):
     """Model of the data driven parts of an Interface Control Document (ICD)."""
+    _EMPTY_INDICATOR = "x"
+    _ID_CONSTRAINT = "c"
+    _ID_DATA_FORMAT = "d"
+    _ID_FIELD_RULE = "f"
+    _VALID_IDS = [_ID_CONSTRAINT, _ID_DATA_FORMAT, _ID_FIELD_RULE]
+    
     def __init__(self):
-        # TODO: Move constants to class attributes.
-        self.EMPTY_INDICATOR = "x"
-        self.ID_CONSTRAINT = "c"
-        self.ID_DATA_FORMAT = "d"
-        self.ID_FIELD_RULE = "f"
-        # TODO: Move to class attribute and rename to _VALID*
-        self.VALID_IDS = [self.ID_CONSTRAINT, self.ID_DATA_FORMAT, self.ID_FIELD_RULE]
         self._log = logging.getLogger("cutplace")
         self.dataFormat = None
         self.fieldNames = []
         self.fieldFormats = []
         self.fieldNameToFormatMap = {}
         self.checkDescriptions = {}
+        # TODO: Add logTrace as property and let setter check for True or False.
+        self.logTrace = False
     
     def _createClass(self, defaultModuleName, type, classNameAppendix, typeName):
         assert defaultModuleName
@@ -73,7 +74,7 @@ class InterfaceDescription(object):
             else:
                 self.dataFormat.set(key, value)
         else:
-            raise data.DataFormatSyntaxError("data format line (marked with %r) must contain at least 2 columns" % self.ID_DATA_FORMAT)
+            raise data.DataFormatSyntaxError("data format line (marked with %r) must contain at least 2 columns" % InterfaceDescription._ID_DATA_FORMAT)
 
     def addFieldFormat(self, items):
         assert items is not None
@@ -86,10 +87,10 @@ class InterfaceDescription(object):
             fieldIsAllowedToBeEmpty = False
             if itemCount >= 3:
                 fieldIsAllowedToBeEmptyText = items[2].strip().lower()
-                if fieldIsAllowedToBeEmptyText == self.EMPTY_INDICATOR:
+                if fieldIsAllowedToBeEmptyText == InterfaceDescription._EMPTY_INDICATOR:
                     fieldIsAllowedToBeEmpty = True
                 elif fieldIsAllowedToBeEmptyText:
-                    raise fields.FieldSyntaxError("mark for empty field is %r but must be %r" % (fieldIsAllowedToBeEmptyText, self.EMPTY_INDICATOR))
+                    raise fields.FieldSyntaxError("mark for empty field is %r but must be %r" % (fieldIsAllowedToBeEmptyText, InterfaceDescription._EMPTY_INDICATOR))
                 if itemCount >= 4:
                     fieldLength = fields.parsedLongRange("length", items[3])
                     if itemCount >= 5:
@@ -107,11 +108,11 @@ class InterfaceDescription(object):
                 self.fieldFormats.append(fieldFormat)
                 # TODO: Rememer location where field format was defined to later include it in error message
                 self.fieldNameToFormatMap[fieldName] = fieldFormat
-                self._log.info("defined field: %s: %r" % (fieldName, fieldFormat))
+                self._log.info("defined field: %s" % fieldFormat)
             else:
                 raise fields.FieldSyntaxError("field name must be used for only one field: %s" % fieldName)
         else:
-            raise fields.FieldSyntaxError("field format line (marked with %r) must contain at least 3 columns" % self.ID_FIELD_RULE)
+            raise fields.FieldSyntaxError("field format line (marked with %r) must contain at least 3 columns" % InterfaceDescription._ID_FIELD_RULE)
         
     def addCheck(self, items):
         assert items is not None
@@ -133,7 +134,7 @@ class InterfaceDescription(object):
             else:
                 raise checks.CheckSyntaxError("check description must be used only once: %r" % (checkDescription)) 
         else:
-            raise checks.CheckSyntaxError("check row (marked with %r) must contain at least 2 columns" % (self.ID_FIELD_RULE))
+            raise checks.CheckSyntaxError("check row (marked with %r) must contain at least 2 columns" % InterfaceDescription._ID_FIELD_RULE)
 
     def read(self, icdFilePath):
         # TODO: Allow to specify encoding.
@@ -155,22 +156,21 @@ class InterfaceDescription(object):
                 self._log.debug("parse icd line%5d: %s" % (lineNumber, str(row)))
                 if len(row) >= 1:
                     rowId = str(row[0]).lower() 
-                    if rowId == self.ID_CONSTRAINT:
+                    if rowId == InterfaceDescription._ID_CONSTRAINT:
                         self.addCheck(row[1:])
-                    elif rowId == self.ID_DATA_FORMAT:
+                    elif rowId == InterfaceDescription._ID_DATA_FORMAT:
                         self.addDataFormat(row[1:])
-                    elif rowId == self.ID_FIELD_RULE:
+                    elif rowId == InterfaceDescription._ID_FIELD_RULE:
                         self.addFieldFormat(row[1:])
                     elif rowId.strip():
-                        raise ValueError("first row in line %d is %r but must be empty or one of: %r" % (lineNumber, row[0], self.VALID_IDS))
+                        raise ValueError("first row in line %d is %r but must be empty or one of: %r" % (lineNumber, row[0], InterfaceDescription._VALID_IDS))
         finally:
             if needsOpen:
                 icdFile.close()
         if self.dataFormat is None:
-            raise data.DataFormatLookupError("ICD must contain a section describing the data format")
+            raise data.DataFormatSyntaxError("ICD must contain a section describing the data format")
         if len(self.fieldFormats) == 0:
-            # TODO: Use FieldLookupError
-            raise fields.FieldValueError("ICD must contain a section describing at least one field format")
+            raise fields.FieldSyntaxError("ICD must contain a section describing at least one field format")
             
     def validate(self, dataFileToValidatePath):
         """Validate that all lines and items in dataFileToValidatePath conform to this interface."""
@@ -208,7 +208,7 @@ class InterfaceDescription(object):
                             itemIndex += 1
                         if itemIndex != len(row):
                             raise fields.FieldValueError("unexpected data must be removed beginning at item %d" % (itemIndex))
-                        # Validate row.
+                        # Validate row checks.
                         for description, check in self.checkDescriptions.items():
                             try:
                                 check.checkRow(rowNumber, rowMap)
@@ -216,13 +216,21 @@ class InterfaceDescription(object):
                                 raise checks.CheckError("row check failed: %r: %s" % (check.description, message))
                         self._log.info("accepted: " + str(row))
                     except:
+                        # Handle failed check and other errors.
+                        # FIXME: Handle only errors based on CutplaceError here.
+                        self._log.error("rejected: %s" % row)
                         if isinstance(sys.exc_info()[1], (fields.FieldValueError)):
                             fieldName = self.fieldNames[itemIndex]
-                            self._log.error("rejected: " + str(row))
-                            # TODO: Show stack only if requested by --trace.
-                            self._log.error("  field %r: %s" % (fieldName, sys.exc_value))
+                            basicReason = "  reason: field %r does not match format" % fieldName
+                            if self.logTrace:
+                                self._log.error(basicReason, exc_info=1)
+                            else:
+                                self._log.error("%s: %s" % (basicReason, sys.exc_info()[1]))
+                        elif self.logTrace:
+                            self._log.error("  reason: %r" % row, exc_info=1)
                         else:
-                            self._log.error("rejected: " + str(row), exc_info=1)
+                            self._log.error("  reason: %s" % sys.exc_info()[1])
+                            
                 # Validate checks at end of data.
                 for description, check in self.checkDescriptions.items():
                     try:

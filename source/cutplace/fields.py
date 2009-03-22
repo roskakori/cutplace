@@ -99,6 +99,9 @@ class AbstractFieldFormat(object):
         If not, raise FieldValueError."""
         raise NotImplementedError
     
+    def __str__(self):
+        return "%s(%r, %r, %r, %r)" % (self.__class__.__name__, self.fieldName, self.isAllowedToBeEmpty, self.length, self.rule)
+    
 class ChoiceFieldFormat(AbstractFieldFormat):
     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule):
         super(ChoiceFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule)

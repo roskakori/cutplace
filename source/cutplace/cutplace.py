@@ -16,6 +16,8 @@ _OPTION_LIST_ENCODINGS = "listencodings"
 _OPTION_LIST_ENCODINGS_TEXT = "--" + _OPTION_LIST_ENCODINGS
 _OPTION_LOG = "log"
 _OPTION_LOG_TEXT = "--" + _OPTION_LOG
+_OPTION_TRACE = "trace"
+_OPTION_TRACE_TEXT = "--" + _OPTION_TRACE
 _OPTION_VERSION = "version"
 _OPTION_VERSION_TEXT = "--" + _OPTION_VERSION
 _SHORT_HELP = "h"
@@ -42,6 +44,7 @@ class CutPlace(object):
         self.isShowVersion = False
         self.interfaceSpecificationPath = None
         self.dataToValidatePaths = None
+        self.isLogTrace = False
         self.icd = None
 
     def setOptions(self, argv):
@@ -49,7 +52,8 @@ class CutPlace(object):
         assert argv is not None
         
         shortOptions = _SHORT_HELP
-        longOptions = [_OPTION_HELP, _OPTION_LIST_ENCODINGS, _OPTION_LOG + "=", _OPTION_VERSION]
+        longOptions = [_OPTION_HELP, _OPTION_LIST_ENCODINGS,
+                       _OPTION_LOG + "=", _OPTION_TRACE, _OPTION_VERSION]
         options, others = getopt.getopt(argv, shortOptions, longOptions)
 
         for option, value in options:
@@ -63,6 +67,8 @@ class CutPlace(object):
                     self._log.setLevel(optionLog)
                 else:
                     raise getopt.GetoptError("value specified for " + option + " must be one of: " + str(sorted(LEVEL.keys)))
+            elif option in (_OPTION_TRACE_TEXT):
+                self.isLogTrace = True
             elif option in (_OPTION_VERSION_TEXT):
                 self.isShowVersion = True
             else:
@@ -73,14 +79,13 @@ class CutPlace(object):
         self._log.debug("others=" + str(others))
     
         if not (self.isShowEncodings or self.isShowHelp or self.isShowVersion):
-            if len(others) >= 2:
+            if len(others) >= 1:
                 self.setIcdFromFile(others[0])
-                self.dataToValidatePaths = others[1:]
-            elif len(others) == 1:
-                raise getopt.GetoptError("file(s) containing data to validate must be specified")
+                if len(others) >= 2:
+                    self.dataToValidatePaths = others[1:]
             else:
                 assert len(others) == 0
-                raise getopt.GetoptError("file containing interface specification and file(s) containing data to validate must be specified")
+                raise getopt.GetoptError("file containing ICD  must be specified")
 
     def validate(self):
         for dataFilePath in self.dataToValidatePaths:
@@ -89,6 +94,7 @@ class CutPlace(object):
     def setIcdFromFile(self, newIcdPath):
         assert newIcdPath is not None
         newIcd = icd.InterfaceDescription()
+        newIcd.logTrace = self.isLogTrace
         newIcd.read(newIcdPath)
         self.icd = newIcd 
         self.interfaceSpecificationPath = newIcdPath
@@ -120,6 +126,7 @@ class CutPlace(object):
         print INDENT + _OPTION_LIST_ENCODINGS_TEXT + ": print list of available character encodings and exit"
         print INDENT + _OPTION_HELP_TEXT + ", " + _SHORT_HELP_TEXT + ": print usage information and exit"
         print INDENT + _OPTION_VERSION_TEXT + ": print version information and exit"
+        print INDENT + _OPTION_TRACE_TEXT + ": print version information and exit"
         print INDENT + _OPTION_LOG_TEXT + "={level}: set logging level to debug, info, warning, error or critical"
         
     def _printAvailableEncodings(self):
@@ -146,9 +153,13 @@ def main():
         cutPlace._printUsage()
     elif cutPlace.isShowVersion:
         cutPlace._printVersion()
-    else:
+    elif cutPlace.dataToValidatePaths:
         for path in cutPlace.dataToValidatePaths:
             cutPlace.icd.validate(path)
     
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except getopt.GetoptError, message:
+        sys.__stderr__.write("cannot process command line options: %s%s" % (message, os.linesep))
+        sys.exit(1)
