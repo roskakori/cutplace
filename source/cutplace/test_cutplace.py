@@ -20,7 +20,7 @@ class CutplaceTest(unittest.TestCase):
         
         testFolder = os.path.join(os.getcwd(), "tests")
         if not os.path.exists(testFolder):
-            raise IOError("test must run from project folder in order to find test files; currently attempting to find them in: %s" % (repr(testFolder)))
+            raise IOError("test must run from project folder in order to find test files; currently attempting to find them in: %r" % testFolder)
         result = os.path.join(testFolder, folder)
         return result
         

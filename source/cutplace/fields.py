@@ -67,7 +67,7 @@ class AbstractFieldFormat(object):
         assert fieldName is not None
         assert fieldName, "fieldName must not be empty"
         assert isAllowedToBeEmpty is not None
-        assert length is None or len(length) == 2, "len(%s) must be 2 but is %d" % (repr(length), len(length))
+        assert length is None or len(length) == 2, "len(%r) must be 2 but is %d" % (length, len(length))
         assert rule is not None, "no rule must be expressed as \"\" instead of None" 
 
         self.fieldName = fieldName
@@ -106,11 +106,11 @@ class ChoiceFieldFormat(AbstractFieldFormat):
         for choice in rule.lower().split(","):
             self.choices.append(choice.strip())
         if not self.choices:
-            raise ValueError("at least one choice must be specified for a %s field" % (repr("choice")))
+            raise FieldSyntaxError("at least one choice must be specified for a %r field" % "choice")
     
     def validate(self, value):
         if value.lower() not in self.choices:
-            raise FieldValueError("value is %s but must be one of: %s" % (repr(value), str(self.choices)))
+            raise FieldValueError("value is %r but must be one of: %r" % (value, self.choices))
         return value
     
 class IntegerFieldFormat(AbstractFieldFormat):
@@ -133,7 +133,7 @@ class IntegerFieldFormat(AbstractFieldFormat):
         try:
             longValue = long(value)
         except ValueError:
-            raise FieldValueError("value must be an integer number: %s" % (repr(value)))
+            raise FieldValueError("value must be an integer number: %r" % value)
         if longValue < self.lower:
             raise FieldValueError("value must at least %d but is %d" % (self.lower, longValue))
         if longValue > self.upper:
@@ -170,7 +170,7 @@ class RegExFieldFormat(AbstractFieldFormat):
 
     def validate(self, value):
         if not self.regex.match(value):
-            raise FieldValueError("value %s must match regular expression: %s" % (repr(value), repr(self.rule)))
+            raise FieldValueError("value %r must match regular expression: %r" % (value, self.rule))
         return value
 
 class PatternFieldFormat(AbstractFieldFormat):        
@@ -190,7 +190,7 @@ class PatternFieldFormat(AbstractFieldFormat):
         
     def validate(self, value):
         if not self.regex.match(value):
-            raise FieldValueError("value %s must match pattern: %s (regex %s)" % (repr(value), repr(self.rule), repr(self.pattern)))
+            raise FieldValueError("value %r must match pattern: %r (regex %r)" % (value, self.rule, self.pattern))
         return value
             
 class TextFieldFormat(AbstractFieldFormat):

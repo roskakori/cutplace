@@ -38,7 +38,7 @@ def createDataFormat(name):
     elif actualName == FORMAT_FIXED:
         result = FixedDataFormat()
     else:
-        raise LookupError("data format is %s but must be on of: %s" % (repr(name), repr([FORMAT_CSV, FORMAT_DELIMITED, FORMAT_FIXED])))
+        raise DataFormatSyntaxError("data format is %r but must be on of: %r" % (name, [FORMAT_CSV, FORMAT_DELIMITED, FORMAT_FIXED]))
     return result
 
 def _isKey(possibleKey, keyToCompareWith):
@@ -55,6 +55,9 @@ class DataFormatValueError(ValueError):
     pass
 
 class DataFormatLookupError(LookupError):
+    pass
+
+class DataFormatSyntaxError(SyntaxError):
     pass
 
 class AbstractDataFormat(object):
@@ -84,7 +87,7 @@ class AbstractDataFormat(object):
         try:
             lineDelimiterIndex = _VALID_LINE_DELIMITER_TEXTS.index(lineDelimiter.lower())
         except: # Why ValueError instead of LookupError?
-            raise DataFormatLookupError("%s is %s but must be one of: %s" % (KEY_LINE_DELIMITER, repr(lineDelimiter), str(_VALID_LINE_DELIMITER_TEXTS)))
+            raise DataFormatLookupError("%s is %r but must be one of: %r" % (KEY_LINE_DELIMITER, lineDelimiter, _VALID_LINE_DELIMITER_TEXTS))
         self._lineDelimiter = _VALID_LINE_DELIMITERS[lineDelimiterIndex]
         
     def setAllowedCharacters(self, text):
@@ -114,7 +117,7 @@ class AbstractDataFormat(object):
         elif _isKey(key, KEY_LINE_DELIMITER):
             self.setLineDelimiter(value)
         else:
-            raise DataFormatLookupError, "unknown data format option: %s" % (repr(key))
+            raise DataFormatLookupError("unknown data format option: %r" % key)
     
 class DelimitedDataFormat(AbstractDataFormat):
     """Data format for delimited data such as CSV."""
@@ -148,7 +151,7 @@ class DelimitedDataFormat(AbstractDataFormat):
     def setQuoteCharatcer(self, quoteCharacter):
         assert quoteCharacter is not None
         if not quoteCharacter in _VALID_QUOTE_CHARACTERS:
-            raise ValueError("quote character must be on of: %s" % (repr(_VALID_QUOTE_CHARACTERS)))
+            raise DataFormatValueError("quote character is %r must be on of: %r" % _VALID_QUOTE_CHARACTERS)
         self._quoteCharacter = quoteCharacter
     
     def getEscapeCharacter(self):
@@ -157,7 +160,7 @@ class DelimitedDataFormat(AbstractDataFormat):
     def setEscapeCharacter(self, escapeCharacter):
         assert escapeCharacter is not None
         if not escapeCharacter in _VALID_ESCAPE_CHARACTERS:
-            raise ValueError("escape character must be on of: %s" % (repr(_VALID_ESCAPE_CHARACTERS)))
+            raise DataFormatValueError("escape character is %r but must be on of: %r" % (escapeCharacter, _VALID_ESCAPE_CHARACTERS))
         self._escapeCharacter = escapeCharacter
 
     def set(self, key, value):

@@ -69,11 +69,11 @@ class InterfaceDescription(object):
                 if self.dataFormat is None:
                     self.dataFormat = data.createDataFormat(value)
                 else:
-                    raise data.DataFormatValueError("data format must be set only once, but has been set already to: %s" % (repr(self.dataFormat.getName())))
+                    raise data.DataFormatSyntaxError("data format must be set only once, but has been set already to: %r" % self.dataFormat.getName())
             else:
                 self.dataFormat.set(key, value)
         else:
-            raise IndexError("data format line (marked with %s) must contain at least 2 columns" % (repr(self.ID_DATA_FORMAT)))
+            raise data.DataFormatSyntaxError("data format line (marked with %r) must contain at least 2 columns" % self.ID_DATA_FORMAT)
 
     def addFieldFormat(self, items):
         assert items is not None
@@ -81,7 +81,7 @@ class InterfaceDescription(object):
         if itemCount >= 2:
             fieldName = items[0].strip()
             if not fieldName:
-                raise ValueError("field name must not be empty")
+                raise fields.FieldSyntaxError("field name must not be empty")
             fieldType = items[1].strip()
             fieldIsAllowedToBeEmpty = False
             if itemCount >= 3:
@@ -89,7 +89,7 @@ class InterfaceDescription(object):
                 if fieldIsAllowedToBeEmptyText == self.EMPTY_INDICATOR:
                     fieldIsAllowedToBeEmpty = True
                 elif fieldIsAllowedToBeEmptyText:
-                    raise ValueError("mark for empty field is %s but must be %s" % (repr(fieldIsAllowedToBeEmptyText), repr(self.EMPTY_INDICATOR)))
+                    raise fields.FieldSyntaxError("mark for empty field is %r but must be %r" % (fieldIsAllowedToBeEmptyText, self.EMPTY_INDICATOR))
                 if itemCount >= 4:
                     fieldLength = fields.parsedLongRange("length", items[3])
                     if itemCount >= 5:
@@ -99,7 +99,7 @@ class InterfaceDescription(object):
             else:
                 fieldRule = ""
             fieldClass = self._createFieldFormatClass(fieldType);
-            self._log.debug("create field: %s(%s, %s, %s)" % (str(fieldClass), str(fieldName), str(fieldType), str(fieldRule)))
+            self._log.debug("create field: %s(%r, %r, %r)" % (fieldClass.__name__, fieldName, fieldType, fieldRule))
             fieldFormat = fieldClass.__new__(fieldClass, fieldName, fieldIsAllowedToBeEmpty, fieldLength, fieldRule)
             fieldFormat.__init__(fieldName, fieldIsAllowedToBeEmpty, fieldLength, fieldRule)
             if not self.fieldNameToFormatMap.has_key(fieldName):
@@ -107,11 +107,11 @@ class InterfaceDescription(object):
                 self.fieldFormats.append(fieldFormat)
                 # TODO: Rememer location where field format was defined to later include it in error message
                 self.fieldNameToFormatMap[fieldName] = fieldFormat
-                self._log.info("defined field: %s: %s" % (fieldName, repr(fieldFormat)))
+                self._log.info("defined field: %s: %r" % (fieldName, fieldFormat))
             else:
-                raise fields.FieldSyntaxError("field name must be used for only one field: %s" % (fieldName))
+                raise fields.FieldSyntaxError("field name must be used for only one field: %s" % fieldName)
         else:
-            raise fields.FieldSyntaxError("field format line (marked with %s) must contain at least 3 columns" % (repr(self.ID_FIELD_RULE)))
+            raise fields.FieldSyntaxError("field format line (marked with %r) must contain at least 3 columns" % self.ID_FIELD_RULE)
         
     def addCheck(self, items):
         assert items is not None
@@ -162,7 +162,7 @@ class InterfaceDescription(object):
                     elif rowId == self.ID_FIELD_RULE:
                         self.addFieldFormat(row[1:])
                     elif rowId.strip():
-                        raise ValueError("first row in line %d is %s but must be empty or one of: %s" % (lineNumber, repr(row[0]), str(self.VALID_IDS)))
+                        raise ValueError("first row in line %d is %r but must be empty or one of: %r" % (lineNumber, row[0], self.VALID_IDS))
         finally:
             if needsOpen:
                 icdFile.close()
@@ -219,7 +219,8 @@ class InterfaceDescription(object):
                         if isinstance(sys.exc_info()[1], (fields.FieldValueError)):
                             fieldName = self.fieldNames[itemIndex]
                             self._log.error("rejected: " + str(row))
-                            self._log.error("  field %s: %s" % (repr(fieldName), sys.exc_value))
+                            # TODO: Show stack only if requested by --trace.
+                            self._log.error("  field %r: %s" % (fieldName, sys.exc_value))
                         else:
                             self._log.error("rejected: " + str(row), exc_info=1)
                 # Validate checks at end of data.

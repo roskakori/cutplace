@@ -218,7 +218,7 @@ class DelimitedParser(object):
                     else:
                         item += nextChar
                         if not quoted and item.endswith(self.lineDelimiter):
-                            self._log.debug("detected line delimiter: " + repr(self.lineDelimiter))
+                            self._log.debug("detected line delimiter: %r" % self.lineDelimiter)
                             stripLineDelimiter = True
                             atEndOfItem = True
                 else:
@@ -233,7 +233,7 @@ class DelimitedParser(object):
 
             # Remove line delimiter from unquoted items at end of line.
             if stripLineDelimiter:
-                self._log.debug("stripped linefeed after unquoted item, remainder: " + repr(item))
+                self._log.debug("stripped linefeed after unquoted item, remainder: %r" % item)
                 item = item[: - len(self.lineDelimiter)]
                 self.atEndOfLine = True
 
@@ -252,8 +252,8 @@ class DelimitedParser(object):
                         self.atEndOfLine = True
                     else:
                         self._raiseSyntaxError(\
-                               "data item must be followed by item delimiter (%s) or line delimiter (%s), but found: %s" \
-                                % (repr(self.itemDelimiter), repr(self.lineDelimiter), repr(tail)))
+                               "data item must be followed by item delimiter (%r) or line delimiter (%r), but found: %r" \
+                                % (self.itemDelimiter, self.lineDelimiter, tail))
 
             self.item = item
             if self.item is not None:
