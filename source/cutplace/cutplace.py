@@ -126,7 +126,7 @@ class CutPlace(object):
         print INDENT + _OPTION_LIST_ENCODINGS_TEXT + ": print list of available character encodings and exit"
         print INDENT + _OPTION_HELP_TEXT + ", " + _SHORT_HELP_TEXT + ": print usage information and exit"
         print INDENT + _OPTION_VERSION_TEXT + ": print version information and exit"
-        print INDENT + _OPTION_TRACE_TEXT + ": print version information and exit"
+        print INDENT + _OPTION_TRACE_TEXT + ": include Python stack in error messages related to data"
         print INDENT + _OPTION_LOG_TEXT + "={level}: set logging level to debug, info, warning, error or critical"
         
     def _printAvailableEncodings(self):
