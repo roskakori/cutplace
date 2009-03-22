@@ -6,7 +6,6 @@ import StringIO
 import unittest
 
 def createDefaultTestIcd(lineDelimiter="\n"):
-    # FIXME: Test with different line delimiters.
     spec = ""","Interface: customer",,,,,
 ,,,,,,
 ,"Data format",,,,,
@@ -31,6 +30,7 @@ def createDefaultTestIcd(lineDelimiter="\n"):
 ,,,,,,
 ,"Description","Type","Rule",,,
 "C","customer must be unique","IsUnique","branch_id, customer_id",,,
+"C","number of branches must be in range","DistinctCount","branch_id < 10",,,
 """
     spec = spec.replace("\n", lineDelimiter)
     result = icd.InterfaceDescription()

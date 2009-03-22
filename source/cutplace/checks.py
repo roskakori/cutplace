@@ -1,5 +1,7 @@
 """Check that can cover the whole data set."""
 import fields
+import StringIO
+import tokenize
 
 class CheckError(ValueError):
     """Error to be raised when a check fails."""
@@ -16,8 +18,8 @@ def _getFieldNameIndex(supposedFieldName, availableFieldNames):
     fieldName = supposedFieldName.strip()
     try:
         fieldIndex = availableFieldNames.index(fieldName)
-    except LookupError:
-        raise fields.FieldLookupError("field name %r must be replaced by one of: %r" % (fieldName, fieldNames))
+    except ValueError:
+        raise fields.FieldLookupError("field name %r must be replaced by one of: %r" % (fieldName, availableFieldNames))
     return fieldIndex
     
 class AbstractCheck(object):
@@ -66,4 +68,51 @@ class IsUniqueCheck(AbstractCheck):
             raise CheckError("unique %r has already occurred in row %d: %s" % (self.fieldNamesToCheck, self.uniqueValues[keyText], keyText))
         else:
             self.uniqueValues[keyText] = rowNumber
-                                
+
+class DistinctCountCheck(AbstractCheck):
+    """Check to ensure that the number of different values in a field matches an expression."""
+    _COUNT_NAME = "count"
+    
+    def __init__(self, description, rule, availableFieldNames):
+        super(DistinctCountCheck, self).__init__(description, rule, availableFieldNames)
+        ruleReadLine = StringIO.StringIO(rule).readline
+        tokens = tokenize.generate_tokens(ruleReadLine)
+        firstToken = tokens.next()
+        
+        # Obtain and validate field to count.
+        if firstToken[0] != tokenize.NAME:
+            raise CheckSyntaxError("rule must start with a field name but found: %r" % firstToken[1])
+        self.fieldNameToCount = firstToken[1]
+        _getFieldNameIndex(self.fieldNameToCount, availableFieldNames)
+        lineWhereFieldNameEnds, columnWhereFieldNameEnds = firstToken[3]
+        assert columnWhereFieldNameEnds > 0
+        assert lineWhereFieldNameEnds == 1
+
+        # Build and test Python expression for validation.
+        self.expression = DistinctCountCheck._COUNT_NAME + rule[columnWhereFieldNameEnds:]
+        self.distinctValuesToCountMap = {}
+        self._eval()
+
+    def _distinctCount(self):
+        return len(self.distinctValuesToCountMap)
+    
+    def _eval(self):
+        localVariables = {DistinctCountCheck._COUNT_NAME:self._distinctCount()}
+        try:
+            result = eval(self.expression, {}, localVariables)
+        except Exception, message:
+            raise CheckSyntaxError("cannot evaluate count expression %r: %s" % (self.expression, message))
+        if result not in [True, False]:
+            raise CheckSyntaxError("count expression %r must result in true or false, but test resulted in: %r" % (self.expression, result))
+        return result
+        
+    def checkRow(self, rowNumber, rowMap):
+        value = rowMap[self.fieldNameToCount]
+        try:
+            self.distinctValuesToCountMap[value] += 1
+        except KeyError:
+            self.distinctValuesToCountMap[value] = 1
+
+    def checkAtEnd(self):
+        if not self._eval():
+            raise CheckError("distinct count is %d but check requires: %r" % (self._distinctCount(), self.expression))

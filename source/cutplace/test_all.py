@@ -17,6 +17,7 @@ if __name__ == '__main__':
     # TODO: Automatically discover test cases.
     # TODO: Call sys-exit(1) in case any test fails.
     for testCaseClass in [
+                        test_checks.DistinctCountCheckTest,
                         test_checks.IsUniqueCheckTest,
                         test_cutplace.CutplaceTest,
                         test_data.DataFormatTest,
