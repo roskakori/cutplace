@@ -8,6 +8,24 @@ import sys
 import tools
 import types
 
+class IcdEventListener(object):
+    """Listener to process events detected during parsing."""
+    # FIXME: Add error positions: rowNumber, itemNumber, indexInItem
+    def acceptedRow(self, row):
+        pass
+    
+    def rejectedRow(self, row, errorMessage):
+        pass
+    
+    def checkAtRowFailed(self, row, errorMessage):
+        pass
+    
+    def checkAtEndFailed(self, errorMessage):
+        pass
+    
+    def dataFormatFailed(self, errorMessage):
+        pass
+    
 class InterfaceDescription(object):
     """Model of the data driven parts of an Interface Control Document (ICD)."""
     _EMPTY_INDICATOR = "x"
@@ -23,6 +41,7 @@ class InterfaceDescription(object):
         self.fieldFormats = []
         self.fieldNameToFormatMap = {}
         self.checkDescriptions = {}
+        self.icdEventListeners = []
         # TODO: Add logTrace as property and let setter check for True or False.
         self.logTrace = False
     
@@ -215,21 +234,20 @@ class InterfaceDescription(object):
                             except checks.CheckError, message:
                                 raise checks.CheckError("row check failed: %r: %s" % (check.description, message))
                         self._log.info("accepted: " + str(row))
+                        for listener in self.icdEventListeners:
+                            listener.acceptedRow(row)
                     except:
                         # Handle failed check and other errors.
                         # FIXME: Handle only errors based on CutplaceError here.
-                        self._log.error("rejected: %s" % row)
                         if isinstance(sys.exc_info()[1], (fields.FieldValueError)):
                             fieldName = self.fieldNames[itemIndex]
-                            basicReason = "  reason: field %r does not match format" % fieldName
-                            if self.logTrace:
-                                self._log.error(basicReason, exc_info=1)
-                            else:
-                                self._log.error("%s: %s" % (basicReason, sys.exc_info()[1]))
-                        elif self.logTrace:
-                            self._log.error("  reason: %r" % row, exc_info=1)
+                            reason = "field %r does not match format: %s" % (fieldName, sys.exc_info()[1])
                         else:
-                            self._log.error("  reason: %s" % sys.exc_info()[1])
+                            reason = sys.exc_info()[1]
+                        self._log.error("rejected: %s" % row)
+                        self._log.error(reason, exc_info=self.logTrace)
+                        for listener in self.icdEventListeners:
+                            listener.rejectedRow(row, reason)
                             
                 # Validate checks at end of data.
                 for description, check in self.checkDescriptions.items():
@@ -237,9 +255,23 @@ class InterfaceDescription(object):
                         self._log.debug("checkAtEnd: %r" % (check))
                         check.checkAtEnd()
                     except checks.CheckError, message:
-                        raise CheckError("check at end of data failed: %r: %s" % (check.description, message))
+                        reason = "check at end of data failed: %r: %s" % (check.description, message)
+                        self._log.error(reason)
+                        for listener in self.icdEventListeners:
+                            listener.checkAtEndFailed(reason)
             finally:
                 if needsOpen:
                     dataFile.close()
         else:
             raise NotImplementedError("data format:" + str(self.dataFormat.getName()))
+        
+    def addIcdEventListener(self, listener):
+        assert listener is not None
+        assert listener not in self.icdEventListeners
+        self.icdEventListeners.append(listener)
+        
+    def removeIcdEventListener(self, listener):
+        assert listener is not None
+        assert listener in self.icdEventListeners
+        self.icdEventListeners.remove(listener)
+        
