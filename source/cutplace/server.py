@@ -8,7 +8,7 @@ import StringIO
 import sys
 import version
 
-_SERVER_VERSION = "CutplaceHTTP/%s" % version.VERSION_NUMBER
+_SERVER_VERSION = "cutplace/%s" % version.VERSION_NUMBER
 
 class WfileWritingIcdEventListener(icd.IcdEventListener):
     def __init__(self, wfile, itemCount):
@@ -21,13 +21,14 @@ class WfileWritingIcdEventListener(icd.IcdEventListener):
         self.rejectedCount = 0
 
     def _writeRow(self, row, cssClass):
-        if len(row) == 1:
-            colspanText = " colspan=\"%d\"" % self.itemCount
-        else:
-            colspanText = ""
         self.wfile.write("<tr>\n")
         for item in row:
-            self.wfile.write("<td class=\"%s\"%s>%s</td>\n" % (cssClass, colspanText, cgi.escape(item)))
+            self.wfile.write("<td class=\"%s\">%s</td>\n" % (cssClass, cgi.escape(item)))
+        self.wfile.write("</tr>\n")
+        
+    def _writeTextRow(self, text):
+        self.wfile.write("<tr>\n")
+        self.wfile.write("<td colspan=\"%d\">%s</td>\n" % (self.itemCount, cgi.escape(text)))
         self.wfile.write("</tr>\n")
         
     def acceptedRow(self, row):
@@ -35,16 +36,17 @@ class WfileWritingIcdEventListener(icd.IcdEventListener):
     
     def rejectedRow(self, row, errorMessage):
         self._writeRow(row, "error")
-        self._writeRow([errorMessage], "error")
+        self._writeTextRow(errorMessage)
     
     def checkAtRowFailed(self, row, errorMessage):
         self._writeRow(row, "error")
+        self._writeTextRow(errorMessage)
     
     def checkAtEndFailed(self, errorMessage):
-        self._writeRow(["check at end failed: %s" % errorMessage], "error")
+        self._writeTextRow("check at end failed: %s" % errorMessage)
     
     def dataFormatFailed(self, errorMessage):
-        self._writeRow(["data format is broken: %s" % errorMessage], "error")
+        self._writeTextRow("data format is broken: %s" % errorMessage)
 
 class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
     server_version = _SERVER_VERSION
@@ -56,13 +58,14 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
     }
     td {
       border-color: #e0e0e0;
-      border-style: solid;
-      border-width: 1px;
-      margin: 0;
-      padding: 0;
+      border-width: 0;
+    }
+    tr {
+      border-width: 0;
     }
     th {
       background-color: #e0e0e0;
+      border-width: 0;
     }
     .ok {
       background-color: #e0ffe0;
@@ -71,6 +74,8 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
       background-color: #ffe0e0;
     }
 """
+    _FOOTER = "<hr>cutplace %s" % version.VERSION_NUMBER
+
     _FORM = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <html>
 <head>
@@ -79,7 +84,6 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
   </style>
 </head><body>
 <h1>Cutplace ICD Validator</h1>
-<p>Version %s</p>
 <form action="cutplace" method="post" enctype="multipart/form-data">
 <table border="0">
   <tr>
@@ -95,27 +99,31 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
   </tr>
 </table>
 </form>
+%s
 </body></html>
-""" % (_STYLE, version.VERSION_NUMBER)
+""" % (_STYLE, _FOOTER)
     
     def do_GET(self):
         log = logging.getLogger("cutplace.server")
         log.info("%s %r" % (self.command, self.path))
 
-        self.send_response(200)
-        self.send_header("Content-type", "text/html")
-        self.end_headers()
-        self.wfile.write(Handler._FORM)
-        self.wfile.close()
+        if (self.path == "/"):
+            self.send_response(200)
+            self.send_header("Content-type", "text/html")
+            self.end_headers()
+            self.wfile.write(Handler._FORM)
+            self.wfile.close()
+        else:
+            self.send_error(404)
 
     def do_POST(self):
         log = logging.getLogger("cutplace.server")
         log.info("%s %r" % (self.command, self.path))
 
+        self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.end_headers()
         # FIXME: Send 200 only if everything worked out, otherise 4xx error messages look rather messy.
-        self.send_response(200)
 
         # Parse POST option. Based on code by Pierre Quentel.
         ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
@@ -170,16 +178,17 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
                         dataReadable = StringIO.StringIO(dataContent)
                         i.validate(dataReadable)
                     except:
-                        self.send_error(400, "cannot validate data: %s\n\n%s" % (sys.exc_info()[1], icdContent))
+                        self.send_error(400, "cannot validate data: %s\n\n%s" % (cgi.escape(str(sys.exc_info()[1])), icdContent))
                     finally:
                         self.wfile.write("</table>")
                         i.removeIcdEventListener(wfileListener)
+                        self.wfile.write(Handler._FOOTER)
                 else:
                     log.info("ICD is valid")
                     self.wfile.write("ICD file is valid.")
             except:
                 log.error("cannot parse IDC", exc_info=1)
-                self.send_error(400, "cannot parse ICD: %s\n\n<pre>%s</pre>" % (cgi.escape(sys.exc_info()[1]), cgi.escape(icdContent)))
+                self.send_error(400, "cannot parse ICD: %s\n\n<pre>%s</pre>" % (cgi.escape(str(sys.exc_info()[1])), cgi.escape(icdContent)))
         else:
             errorMessage = "ICD file must be specified"
             log.error(errorMessage)
@@ -191,10 +200,12 @@ if __name__ == '__main__':
     serverLog = logging.getLogger("cutplace.server")
     serverLog.setLevel(logging.INFO)
 
+    # TODO: Make port a
     PORT = 8000
     
     httpd = BaseHTTPServer.HTTPServer(("", PORT), Handler)
-    serverLog.info("%s serving at port %d" % (_SERVER_VERSION, PORT))
+    serverLog.info(_SERVER_VERSION)
+    serverLog.info("Visit <http://localhost:%d/> to connect" % PORT)
     serverLog.info("Press Control-C to exit")
     try:
         httpd.serve_forever()
