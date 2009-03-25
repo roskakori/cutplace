@@ -1544,6 +1544,42 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
       issues in the data include a Python stack trace, which might contain
       information useful to developers.</para>
     </section>
+
+    <section>
+      <title>Launching the web server</title>
+
+      <para>In addition to the command line interface cutplace offers a
+      graphical user interface accessible for web browsers. It does so by
+      launching a little web server that offers a simple page where you can
+      select the files containing the ICD and data. Simply run:</para>
+
+      <para><userinput>cutplace --web</userinput></para>
+
+      <para>This should result in the following output:</para>
+
+      <literallayout><computeroutput>INFO:cutplace.server:cutplace/0.2.0
+INFO:cutplace.server:Visit &lt;<ulink url="http://localhost:8765/">http://localhost:8765/</ulink>&gt; to connect
+INFO:cutplace.server:Press Control-C to shut down
+</computeroutput></literallayout>
+
+      <para>Next open your browser and point it to the address shown in the
+      output. Then select the ICD and data file to validate and click
+      <guibutton>Validate</guibutton>. The resulting pages shows the data,
+      where green rows indicate proper data and red rows point out broken
+      data.</para>
+
+      <para>In case you want to run the server at a different port than 8765,
+      specifiy the <userinput>--port</userinput> option, for example:</para>
+
+      <para><userinput>cutplace --web --port 1234</userinput></para>
+
+      <para>Note that this is a very simple web server, and it will not
+      support hundreds of users attempting to access it at the same time.
+      </para>
+
+      <para>Also be aware that everyone can access it unless your firewall
+      restricts access to it.</para>
+    </section>
   </chapter>
 
   <chapter id="development">
@@ -1858,6 +1894,23 @@ BUILD SUCCESSFUL</computeroutput>
 
     <para>This chapter describes improvements compared to earlier versions of
     cutplace.</para>
+
+    <section>
+      <title>Version 0.2.0, xx-Mar-2009</title>
+
+      <itemizedlist>
+        <listitem>
+          <para>Added option <userinput>--web</userinput> and
+          <userinput>--port</userinput> to launch web server providing a
+          simple graphical user interface for validation.</para>
+        </listitem>
+
+        <listitem>
+          <para>Changed <userinput>--listencodings</userinput> to
+          <userinput>--list-encodings</userinput>.</para>
+        </listitem>
+      </itemizedlist>
+    </section>
 
     <section id="v0.1.2">
       <title>Version 0.1.2, 22-Mar-2009</title>

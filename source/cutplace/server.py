@@ -10,7 +10,7 @@ import version
 
 _SERVER_VERSION = "cutplace/%s" % version.VERSION_NUMBER
 
-class WfileWritingIcdEventListener(icd.IcdEventListener):
+class WfileWritingIcdEventListener(interface.IcdEventListener):
     def __init__(self, wfile, itemCount):
         assert wfile is not None
         assert itemCount is not None
@@ -166,26 +166,26 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
         if icdContent:
             try:
                 icdData = StringIO.StringIO(icdContent)
-                i = interface.InterfaceControlDocument()
-                i.read(icdData)
+                icd = interface.InterfaceControlDocument()
+                icd.read(icdData)
                 if dataContent:
                     self.wfile.write("<table><tr>")
                     # Write table headings.
-                    for title in i.fieldNames:
+                    for title in icd.fieldNames:
                         self.wfile.write("<th>%s</th>" % cgi.escape(title))
                     self.wfile.write("</tr>")
 
                     # Start listening to validation events.
-                    wfileListener = WfileWritingIcdEventListener(self.wfile, len(i.fieldNames))
-                    i.addIcdEventListener(wfileListener)
+                    wfileListener = WfileWritingIcdEventListener(self.wfile, len(icd.fieldNames))
+                    icd.addIcdEventListener(wfileListener)
                     try:
                         dataReadable = StringIO.StringIO(dataContent)
-                        i.validate(dataReadable)
+                        icd.validate(dataReadable)
                     except:
                         self.send_error(400, "cannot validate data: %s\n\n%s" % (cgi.escape(str(sys.exc_info()[1])), cgi.escape(icdContent)))
                     finally:
                         self.wfile.write("</table>")
-                        i.removeIcdEventListener(wfileListener)
+                        icd.removeIcdEventListener(wfileListener)
                         self.wfile.write(Handler._FOOTER)
                 else:
                     log.info("ICD is valid")

@@ -6,6 +6,7 @@ import logging
 import optparse
 import platform
 import os
+import server
 import sys
 import version
 
@@ -66,15 +67,20 @@ class CutPlace(object):
     validate DATA-FILE(S) according to rules specified in ICD-FILE"""
 
         parser = NoExitOptionParser(usage=usage, version="%prog " + version.VERSION_NUMBER)
-        parser.set_defaults(logLevel="info")
+        parser.set_defaults(logLevel="info", port=8765)
         parser.add_option("--list-encodings", action="store_true", dest="isShowEncodings", help="print list of available character encodings and exit")
         parser.add_option("-t", "--trace", action="store_true", dest="isLogTrace", help="include Python stack in error messages related to data")
+        parser.add_option("-w", "--web", action="store_true", dest="isWebServer", help="launch web server")
+        parser.add_option("-p", "--port", metavar="PORT", type="int", dest="port", help="port for web server")
         parser.add_option("--log", metavar="LEVEL", type="choice", choices=CutPlace._LOG_LEVEL_MAP.keys(), dest="logLevel", help="set log level to LEVEL")
         (self.options, others) = parser.parse_args(argv)
 
+        self._log.setLevel(CutPlace._LOG_LEVEL_MAP[self.options.logLevel])
         self.isShowEncodings = self.options.isShowEncodings
+        self.port = self.options.port
+        self.isWebServer = self.options.isWebServer
 
-        if not self.isShowEncodings:
+        if not self.isShowEncodings and not self.isWebServer:
             if len(others) >= 1:
                 self.setIcdFromFile(others[0])
                 if len(others) >= 2:
@@ -82,8 +88,6 @@ class CutPlace(object):
             else:
                 parser.error("file containing ICD  must be specified")
 
-        self._log.setLevel(self.options.logLevel)
-        
         self._log.debug("cutplace " + version.VERSION_TAG)
         self._log.debug("options=" + str(self.options))
         self._log.debug("others=" + str(others))
@@ -123,10 +127,8 @@ def main():
     cutPlace.setOptions(sys.argv[1:])
     if cutPlace.isShowEncodings:
         cutPlace._printAvailableEncodings()
-    elif cutPlace.isShowHelp:
-        cutPlace._printUsage()
-    elif cutPlace.isShowVersion:
-        cutPlace._printVersion()
+    elif cutPlace.isWebServer:
+        server.main(cutPlace.port)
     elif cutPlace.dataToValidatePaths:
         for path in cutPlace.dataToValidatePaths:
             cutPlace.icd.validate(path)
