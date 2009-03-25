@@ -33,16 +33,16 @@ class CutplaceTest(unittest.TestCase):
          
     def testVersion(self):
         cutPlace = cutplace.CutPlace()
-        cutPlace.setOptions(["--version"])
+        self.assertRaises(cutplace.ExitQuietlyOptionError, cutPlace.setOptions, ["--version"])
         
     def testHelp(self):
         cutPlace = cutplace.CutPlace()
-        cutPlace.setOptions(["--help"])
-        cutPlace.setOptions(["-h"])
+        self.assertRaises(cutplace.ExitQuietlyOptionError, cutPlace.setOptions, ["--help"])
+        self.assertRaises(cutplace.ExitQuietlyOptionError, cutPlace.setOptions, ["-h"])
 
     def testListEncodings(self):
         cutPlace = cutplace.CutPlace()
-        cutPlace.setOptions(["--listencodings"])
+        cutPlace.setOptions(["--list-encodings"])
 
     # TODO: Add tests for broken CSV files.
     

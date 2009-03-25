@@ -1,133 +1,107 @@
 """Cutplace - Tool to validate data according to an interface control document."""
 import encodings
-import getopt
 import glob
 import interface
 import logging
+import optparse
 import platform
 import os
 import sys
 import version
 
-# Constants for options and shortcuts
-_OPTION_HELP = "help"
-_OPTION_HELP_TEXT = "--" + _OPTION_HELP
-_OPTION_LIST_ENCODINGS = "listencodings"
-_OPTION_LIST_ENCODINGS_TEXT = "--" + _OPTION_LIST_ENCODINGS
-_OPTION_LOG = "log"
-_OPTION_LOG_TEXT = "--" + _OPTION_LOG
-_OPTION_TRACE = "trace"
-_OPTION_TRACE_TEXT = "--" + _OPTION_TRACE
-_OPTION_VERSION = "version"
-_OPTION_VERSION_TEXT = "--" + _OPTION_VERSION
-_SHORT_HELP = "h"
-_SHORT_HELP_TEXT = "-" + _SHORT_HELP
-        
-# Mapping for value of --log to logging level
-_LOG_LEVEL_MAP = {"debug": logging.DEBUG,
-    "info": logging.INFO,
-    "warning": logging.WARNING,
-    "error": logging.ERROR,
-    "critical": logging.CRITICAL}
+class ExitQuietlyOptionError(optparse.OptionError):
+    """Pseudo error to indicate the program should exit quietly, for example when --help or --verbose was
+    specified."""
+    pass
+
+class NoExitOptionParser(optparse.OptionParser):
+    def exit(self, status=0, msg=None):
+        if status:
+            raise optparse.OptionError(msg, "")
+        else:
+            raise ExitQuietlyOptionError(msg, "")
+
+    def error(self, msg):
+        raise optparse.OptionError(msg, "")
+    
+    def print_version(self, file=None):
+        optparse.OptionParser.print_version(self, file)
+        # FIXME: Use: super(NoExitOptionParser, self).print_version(file)
+        # But for some reason, this gives: TypeError: super() argument 1 must be type, not classobj
+        if self.version:
+            pythonVersion = platform.python_version()
+            macVersion = platform.mac_ver()
+            if (macVersion[0]):
+                systemVersion = "Mac OS %s (%s)" % (macVersion[0], macVersion[2])
+            else:
+                systemVersion = platform.platform()
+            print >> file, "Python %s, %s" % (pythonVersion, systemVersion) 
+
 
 class CutPlace(object):
     """Command line interface for CutPlace."""
 
+    # Mapping for value of --log to logging level
+    _LOG_LEVEL_MAP = {"debug": logging.DEBUG,
+        "info": logging.INFO,
+        "warning": logging.WARNING,
+        "error": logging.ERROR,
+        "critical": logging.CRITICAL}
+
     def __init__(self):
         self._log = logging.getLogger("cutplace")
-        self.reset()
-
-    def reset(self):
-        """"Reset all options to their initial state so this CutPlace can be reused for another validation."""
-        self.isShowEncodings = False
-        self.isShowHelp = False
-        self.isShowVersion = False
-        self.interfaceSpecificationPath = None
-        self.dataToValidatePaths = None
-        self.isLogTrace = False
+        self.options = None
         self.icd = None
+        self.icdPath = None
+        self.dataToValidatePaths = None
 
     def setOptions(self, argv):
         """Reset options and set them again from argument list such as sys.argv[1:]."""
         assert argv is not None
         
-        shortOptions = _SHORT_HELP
-        longOptions = [_OPTION_HELP, _OPTION_LIST_ENCODINGS,
-                       _OPTION_LOG + "=", _OPTION_TRACE, _OPTION_VERSION]
-        options, others = getopt.getopt(argv, shortOptions, longOptions)
+        usage = """
+  %prog [options] ICD-FILE
+    validate interface control document in ICD-FILE
+  %prog [options] ICD-FILE DATA-FILE(S)
+    validate DATA-FILE(S) according to rules specified in ICD-FILE"""
 
-        for option, value in options:
-            if option in (_OPTION_HELP_TEXT, _SHORT_HELP_TEXT):
-                self.isShowHelp = True
-            elif option in (_OPTION_LIST_ENCODINGS_TEXT):
-                self.isShowEncodings = True
-            elif option in (_OPTION_LOG_TEXT):
-                optionLog = _LOG_LEVEL_MAP.get(value)
-                if optionLog is not None:
-                    self._log.setLevel(optionLog)
-                else:
-                    raise getopt.GetoptError("value specified for " + option + " must be one of: " + str(sorted(LEVEL.keys)))
-            elif option in (_OPTION_TRACE_TEXT):
-                self.isLogTrace = True
-            elif option in (_OPTION_VERSION_TEXT):
-                self.isShowVersion = True
-            else:
-                raise NotImplementedError("option must be implemented: " + option)
+        parser = NoExitOptionParser(usage=usage, version="%prog " + version.VERSION_NUMBER)
+        parser.set_defaults(logLevel="info")
+        parser.add_option("--list-encodings", action="store_true", dest="isShowEncodings", help="print list of available character encodings and exit")
+        parser.add_option("-t", "--trace", action="store_true", dest="isLogTrace", help="include Python stack in error messages related to data")
+        parser.add_option("--log", metavar="LEVEL", type="choice", choices=CutPlace._LOG_LEVEL_MAP.keys(), dest="logLevel", help="set log level to LEVEL")
+        (self.options, others) = parser.parse_args(argv)
 
-        self._log.debug("cutplace " + version.VERSION_TAG)
-        self._log.debug("options=" + str(options))
-        self._log.debug("others=" + str(others))
-    
-        if not (self.isShowEncodings or self.isShowHelp or self.isShowVersion):
+        self.isShowEncodings = self.options.isShowEncodings
+
+        if not self.isShowEncodings:
             if len(others) >= 1:
                 self.setIcdFromFile(others[0])
                 if len(others) >= 2:
                     self.dataToValidatePaths = others[1:]
             else:
-                assert len(others) == 0
-                raise getopt.GetoptError("file containing ICD  must be specified")
+                parser.error("file containing ICD  must be specified")
+
+        self._log.setLevel(self.options.logLevel)
+        
+        self._log.debug("cutplace " + version.VERSION_TAG)
+        self._log.debug("options=" + str(self.options))
+        self._log.debug("others=" + str(others))
 
     def validate(self):
+        assert self.icd is not None
+        
         for dataFilePath in self.dataToValidatePaths:
             self.icd.validate(dataFilePath)
             
     def setIcdFromFile(self, newIcdPath):
         assert newIcdPath is not None
         newIcd = interface.InterfaceControlDocument()
-        newIcd.logTrace = self.isLogTrace
+        if self.options is not None:
+            newIcd.logTrace = self.options.isLogTrace
         newIcd.read(newIcdPath)
         self.icd = newIcd 
         self.interfaceSpecificationPath = newIcdPath
-        
-    def _printCutplaceVersion(self):
-        print "cutplace " + version.VERSION_TAG
-    
-    def _printVersion(self):
-        self._printCutplaceVersion()
-        pythonVersion = platform.python_version()
-        macVersion = platform.mac_ver()
-        if (macVersion[0]):
-            systemVersion = "Mac OS %s (%s)" % (macVersion[0], macVersion[2])
-        else:
-            systemVersion = platform.platform()
-        print ("Python %s, %s" % (pythonVersion, systemVersion)) 
-    def _printUsage(self):
-        INDENT = " " * 2
-        self._printCutplaceVersion()
-        print "Copyright (C) Thomas Aglassinger 2009. Distributed under the GNU GPLv3 (or later)."
-        print "For more information visit <http://cutplace.sourceforge.net/>."
-        print
-        print "Usage:"
-        print INDENT + "cutplace [options] interface-control-document"
-        print INDENT + INDENT + "check syntax and semantic of interface control document"
-        print INDENT + "cutplace [options] interface-control-document data-file(s)"
-        print INDENT + INDENT + "validate that data-file conforms to interface control document"
-        print "Options:"
-        print INDENT + _OPTION_LIST_ENCODINGS_TEXT + ": print list of available character encodings and exit"
-        print INDENT + _OPTION_HELP_TEXT + ", " + _SHORT_HELP_TEXT + ": print usage information and exit"
-        print INDENT + _OPTION_VERSION_TEXT + ": print version information and exit"
-        print INDENT + _OPTION_TRACE_TEXT + ": include Python stack in error messages related to data"
-        print INDENT + _OPTION_LOG_TEXT + "={level}: set logging level to debug, info, warning, error or critical"
         
     def _printAvailableEncodings(self):
         for encoding in self._encodingsFromModuleNames():
@@ -160,6 +134,7 @@ def main():
 if __name__ == '__main__':
     try:
         main()
-    except getopt.GetoptError, message:
-        sys.__stderr__.write("cannot process command line options: %s%s" % (message, os.linesep))
-        sys.exit(1)
+    except optparse.OptionError, message:
+        if not isinstance(sys.exc_info()[1], ExitQuietlyOptionError):
+            sys.stderr.write("cannot process command line options: %s%s" % (message, os.linesep))
+            sys.exit(1)
