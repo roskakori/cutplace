@@ -26,7 +26,7 @@ class IcdEventListener(object):
     def dataFormatFailed(self, errorMessage):
         pass
     
-class InterfaceDescription(object):
+class InterfaceControlDocument(object):
     """Model of the data driven parts of an Interface Control Document (ICD)."""
     _EMPTY_INDICATOR = "x"
     _ID_CONSTRAINT = "c"
@@ -93,7 +93,7 @@ class InterfaceDescription(object):
             else:
                 self.dataFormat.set(key, value)
         else:
-            raise data.DataFormatSyntaxError("data format line (marked with %r) must contain at least 2 columns" % InterfaceDescription._ID_DATA_FORMAT)
+            raise data.DataFormatSyntaxError("data format line (marked with %r) must contain at least 2 columns" % InterfaceControlDocument._ID_DATA_FORMAT)
 
     def addFieldFormat(self, items):
         assert items is not None
@@ -106,10 +106,10 @@ class InterfaceDescription(object):
             fieldIsAllowedToBeEmpty = False
             if itemCount >= 3:
                 fieldIsAllowedToBeEmptyText = items[2].strip().lower()
-                if fieldIsAllowedToBeEmptyText == InterfaceDescription._EMPTY_INDICATOR:
+                if fieldIsAllowedToBeEmptyText == InterfaceControlDocument._EMPTY_INDICATOR:
                     fieldIsAllowedToBeEmpty = True
                 elif fieldIsAllowedToBeEmptyText:
-                    raise fields.FieldSyntaxError("mark for empty field is %r but must be %r" % (fieldIsAllowedToBeEmptyText, InterfaceDescription._EMPTY_INDICATOR))
+                    raise fields.FieldSyntaxError("mark for empty field is %r but must be %r" % (fieldIsAllowedToBeEmptyText, InterfaceControlDocument._EMPTY_INDICATOR))
                 if itemCount >= 4:
                     fieldLength = fields.parsedLongRange("length", items[3])
                     if itemCount >= 5:
@@ -131,7 +131,7 @@ class InterfaceDescription(object):
             else:
                 raise fields.FieldSyntaxError("field name must be used for only one field: %s" % fieldName)
         else:
-            raise fields.FieldSyntaxError("field format line (marked with %r) must contain at least 3 columns" % InterfaceDescription._ID_FIELD_RULE)
+            raise fields.FieldSyntaxError("field format line (marked with %r) must contain at least 3 columns" % InterfaceControlDocument._ID_FIELD_RULE)
         
     def addCheck(self, items):
         assert items is not None
@@ -153,7 +153,7 @@ class InterfaceDescription(object):
             else:
                 raise checks.CheckSyntaxError("check description must be used only once: %r" % (checkDescription)) 
         else:
-            raise checks.CheckSyntaxError("check row (marked with %r) must contain at least 2 columns" % InterfaceDescription._ID_FIELD_RULE)
+            raise checks.CheckSyntaxError("check row (marked with %r) must contain at least 2 columns" % InterfaceControlDocument._ID_FIELD_RULE)
 
     def read(self, icdFilePath):
         # TODO: Allow to specify encoding.
@@ -175,14 +175,14 @@ class InterfaceDescription(object):
                 self._log.debug("parse icd line%5d: %s" % (lineNumber, str(row)))
                 if len(row) >= 1:
                     rowId = str(row[0]).lower() 
-                    if rowId == InterfaceDescription._ID_CONSTRAINT:
+                    if rowId == InterfaceControlDocument._ID_CONSTRAINT:
                         self.addCheck(row[1:])
-                    elif rowId == InterfaceDescription._ID_DATA_FORMAT:
+                    elif rowId == InterfaceControlDocument._ID_DATA_FORMAT:
                         self.addDataFormat(row[1:])
-                    elif rowId == InterfaceDescription._ID_FIELD_RULE:
+                    elif rowId == InterfaceControlDocument._ID_FIELD_RULE:
                         self.addFieldFormat(row[1:])
                     elif rowId.strip():
-                        raise ValueError("first row in line %d is %r but must be empty or one of: %r" % (lineNumber, row[0], InterfaceDescription._VALID_IDS))
+                        raise ValueError("first row in line %d is %r but must be empty or one of: %r" % (lineNumber, row[0], InterfaceControlDocument._VALID_IDS))
         finally:
             if needsOpen:
                 icdFile.close()

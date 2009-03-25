@@ -3,7 +3,7 @@ import logging
 import test_checks
 import test_cutplace
 import test_data
-import test_icd
+import test_interface
 import test_fields
 import test_parsers
 import unittest
@@ -21,7 +21,7 @@ if __name__ == '__main__':
                         test_checks.IsUniqueCheckTest,
                         test_cutplace.CutplaceTest,
                         test_data.DataFormatTest,
-                        test_icd.InterfaceControlDocumentTest,
+                        test_interface.InterfaceControlDocumentTest,
                         test_fields.AbstractFieldFormatTest,
                         test_fields.ChoiceFieldFormatTest,
                         test_fields.DateTimeFieldFormatTest,

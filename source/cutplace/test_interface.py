@@ -1,6 +1,6 @@
 """Tests for interface control documents."""
 import checks
-import icd
+import interface
 import logging
 import StringIO
 import unittest
@@ -33,7 +33,7 @@ def createDefaultTestIcd(lineDelimiter="\n"):
 "C","number of branches must be in range","DistinctCount","branch_id < 10",,,
 """
     spec = spec.replace("\n", lineDelimiter)
-    result = icd.InterfaceDescription()
+    result = interface.InterfaceControlDocument()
     result.read(StringIO.StringIO(spec))
     return result
         

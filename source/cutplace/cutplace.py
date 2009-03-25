@@ -2,7 +2,7 @@
 import encodings
 import getopt
 import glob
-import icd
+import interface
 import logging
 import platform
 import os
@@ -93,7 +93,7 @@ class CutPlace(object):
             
     def setIcdFromFile(self, newIcdPath):
         assert newIcdPath is not None
-        newIcd = icd.InterfaceDescription()
+        newIcd = interface.InterfaceControlDocument()
         newIcd.logTrace = self.isLogTrace
         newIcd.read(newIcdPath)
         self.icd = newIcd 

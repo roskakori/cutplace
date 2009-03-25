@@ -1,7 +1,7 @@
 """Webserver to provide a simple GUI for cutplace."""
 import cgi
 import BaseHTTPServer
-import icd
+import interface
 import logging
 import select
 import StringIO
@@ -166,7 +166,7 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
         if icdContent:
             try:
                 icdData = StringIO.StringIO(icdContent)
-                i = icd.InterfaceDescription()
+                i = interface.InterfaceControlDocument()
                 i.read(icdData)
                 if dataContent:
                     self.wfile.write("<table><tr>")
