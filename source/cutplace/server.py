@@ -56,34 +56,38 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
       color: #000000;
       font-family: sans-serif;
     }
+    h1 {
+        background-color: #f9f300;
+        width: 100%;
+    }
     td {
-      border-color: #e0e0e0;
       border-width: 0;
     }
     tr {
       border-width: 0;
     }
     th {
-      background-color: #e0e0e0;
+      background-color: #dddddd;
       border-width: 0;
     }
     .ok {
-      background-color: #e0ffe0;
+      background-color: #ddffdd;
     }
     .error {
-      background-color: #ffe0e0;
+      background-color: #ffdddd;
     }
 """
-    _FOOTER = "<hr>cutplace %s" % version.VERSION_NUMBER
+    _FOOTER = "<hr><a href=\"http://cutplace.sourceforge.net/\">cutplace</a> %s" % version.VERSION_NUMBER
 
     _FORM = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <html>
 <head>
-  <title>Cutplace ICD Validator</title>
+  <title>Cutplace</title>
   <style type="text/css">%s
   </style>
 </head><body>
-<h1>Cutplace ICD Validator</h1>
+<h1>Cutplace</h1>
+<p>Validate data according to an interface control document.</p>
 <form action="cutplace" method="post" enctype="multipart/form-data">
 <table border="0">
   <tr>
@@ -178,7 +182,7 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
                         dataReadable = StringIO.StringIO(dataContent)
                         i.validate(dataReadable)
                     except:
-                        self.send_error(400, "cannot validate data: %s\n\n%s" % (cgi.escape(str(sys.exc_info()[1])), icdContent))
+                        self.send_error(400, "cannot validate data: %s\n\n%s" % (cgi.escape(str(sys.exc_info()[1])), cgi.escape(icdContent)))
                     finally:
                         self.wfile.write("</table>")
                         i.removeIcdEventListener(wfileListener)
@@ -193,22 +197,20 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
             errorMessage = "ICD file must be specified"
             log.error(errorMessage)
             self.send_error(400, "%s." % cgi.escape(errorMessage))
-                             
-if __name__ == '__main__':
-    logging.basicConfig()
-    logging.getLogger("cutplace").setLevel(logging.INFO)
-    serverLog = logging.getLogger("cutplace.server")
-    serverLog.setLevel(logging.INFO)
 
-    # TODO: Make port a
-    PORT = 8000
-    
-    httpd = BaseHTTPServer.HTTPServer(("", PORT), Handler)
-    serverLog.info(_SERVER_VERSION)
-    serverLog.info("Visit <http://localhost:%d/> to connect" % PORT)
-    serverLog.info("Press Control-C to exit")
+def main(port=8765):
+    log = logging.getLogger("cutplace.server")
+
+    httpd = BaseHTTPServer.HTTPServer(("", port), Handler)
+    log.info(_SERVER_VERSION)
+    log.info("Visit <http://localhost:%d/> to connect" % port)
+    log.info("Press Control-C to shut down")
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
-        serverLog.info("exited")
-    
+        log.info("Shut down")
+                                     
+if __name__ == '__main__':
+    logging.basicConfig()
+    logging.getLogger("cutplace").setLevel(logging.INFO)
+    main()
