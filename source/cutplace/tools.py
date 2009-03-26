@@ -12,7 +12,6 @@ def camelized(key, firstIsLower=False):
         result = result[0].lower() + result[1:]
     return result
 
-# TODO: Consolidate with --version code.
 def platformVersion():
     macVersion = platform.mac_ver()
     if (macVersion[0]):
