@@ -9,6 +9,11 @@ import sys
 import tools
 import version
 
+"""Default port the web server will use unless specified otherwise.
+According to <http://www.iana.org/assignments/port-numbers>,
+this number is unassigned."""
+DEFAULT_PORT = 8778
+
 _SERVER_VERSION = "cutplace/%s" % version.VERSION_NUMBER
 
 class WfileWritingIcdEventListener(interface.IcdEventListener):
@@ -221,7 +226,7 @@ Platform: %s</p>
             log.error(errorMessage)
             self.send_error(400, "%s." % cgi.escape(errorMessage))
 
-def main(port=8765):
+def main(port=DEFAULT_PORT):
     log = logging.getLogger("cutplace.server")
 
     httpd = BaseHTTPServer.HTTPServer(("", port), Handler)

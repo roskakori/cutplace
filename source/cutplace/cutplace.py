@@ -60,12 +60,15 @@ class CutPlace(object):
     validate DATA-FILE(S) according to rules specified in ICD-FILE"""
 
         parser = NoExitOptionParser(usage=usage, version="%prog " + version.VERSION_NUMBER)
-        parser.set_defaults(logLevel="info", port=8765)
-        parser.add_option("--list-encodings", action="store_true", dest="isShowEncodings", help="print list of available character encodings and exit")
+        parser.set_defaults(logLevel="info", port=server.DEFAULT_PORT)
+        parser.add_option("--list-encodings", action="store_true", dest="isShowEncodings", help="show list of available character encodings and exit")
         parser.add_option("-t", "--trace", action="store_true", dest="isLogTrace", help="include Python stack in error messages related to data")
-        parser.add_option("-w", "--web", action="store_true", dest="isWebServer", help="launch web server")
-        parser.add_option("-p", "--port", metavar="PORT", type="int", dest="port", help="port for web server")
-        parser.add_option("--log", metavar="LEVEL", type="choice", choices=CutPlace._LOG_LEVEL_MAP.keys(), dest="logLevel", help="set log level to LEVEL")
+        parser.add_option("--log", metavar="LEVEL", type="choice", choices=CutPlace._LOG_LEVEL_MAP.keys(), dest="logLevel", help="set log level to LEVEL (default: %default)")
+        webGroup = optparse.OptionGroup(parser, "Web options", "Provide a  GUI for validation using a simple web server")
+        webGroup.add_option("-w", "--web", action="store_true", dest="isWebServer", help="launch web server")
+        webGroup.add_option("-p", "--port", metavar="PORT", type="int", dest="port", help="port for web server (default: %default)")
+        parser.add_option_group(webGroup)
+        
         (self.options, others) = parser.parse_args(argv)
 
         self._log.setLevel(CutPlace._LOG_LEVEL_MAP[self.options.logLevel])
