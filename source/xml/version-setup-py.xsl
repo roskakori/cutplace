@@ -20,7 +20,7 @@ setup(
       packages=["cutplace"],
       scripts=["source/scripts/cutplace"],
       license = "GNU GPLv3",
-      long_description="""Cutplace is a tool to validate that data conform to an interface control document (IDC).
+      long_description="""Cutplace is a tool to validate that data conform to an interface control document (ICD).
 
 Cutplace works with flat data formats using a separator (such as CSV) or a fixed format. Such formats are commonly
 used to exchange data between different platforms or physically separated systems. Examples are exchanging data
