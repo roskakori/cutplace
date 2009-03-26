@@ -116,6 +116,7 @@ class CutPlace(object):
             yield os.path.splitext(fileName)[0]
             
 def main():
+    """Main routine that might raise errors but won't sys.exit()."""
     logging.basicConfig()
     logging.getLogger("cutplace").setLevel(logging.INFO)
 
@@ -128,11 +129,15 @@ def main():
     elif cutPlace.dataToValidatePaths:
         for path in cutPlace.dataToValidatePaths:
             cutPlace.icd.validate(path)
-    
-if __name__ == '__main__':
+
+def mainForScript():
+    """Main routine that reports errors in options and does sys.exit()."""
     try:
         main()
     except optparse.OptionError, message:
         if not isinstance(sys.exc_info()[1], ExitQuietlyOptionError):
             sys.stderr.write("cannot process command line options: %s%s" % (message, os.linesep))
             sys.exit(1)
+    
+if __name__ == '__main__':
+    mainForScript()
