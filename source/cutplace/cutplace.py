@@ -8,6 +8,7 @@ import platform
 import os
 import server
 import sys
+import tools
 import version
 
 class ExitQuietlyOptionError(optparse.OptionError):
@@ -26,18 +27,10 @@ class NoExitOptionParser(optparse.OptionParser):
         raise optparse.OptionError(msg, "")
     
     def print_version(self, file=None):
+        # No super() due to old style class.
         optparse.OptionParser.print_version(self, file)
-        # FIXME: Use: super(NoExitOptionParser, self).print_version(file)
-        # But for some reason, this gives: TypeError: super() argument 1 must be type, not classobj
         if self.version:
-            pythonVersion = platform.python_version()
-            macVersion = platform.mac_ver()
-            if (macVersion[0]):
-                systemVersion = "Mac OS %s (%s)" % (macVersion[0], macVersion[2])
-            else:
-                systemVersion = platform.platform()
-            print >> file, "Python %s, %s" % (pythonVersion, systemVersion) 
-
+            print >> file, "Python %s, %s" % (tools.pythonVersion(), tools.platformVersion()) 
 
 class CutPlace(object):
     """Command line interface for CutPlace."""

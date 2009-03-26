@@ -6,6 +6,7 @@ import test_data
 import test_interface
 import test_fields
 import test_parsers
+import test_web
 import unittest
 
 if __name__ == '__main__':
@@ -28,6 +29,8 @@ if __name__ == '__main__':
                         test_fields.IntegerFieldFormatTest,
                         test_fields.PatternFieldFormatTest,
                         test_fields.RegExFieldFormatTest,
-                        test_parsers.DelimitedParserTest]:
+                        test_parsers.DelimitedParserTest
+                        # FIXME: Stop server and add: test_web.WebTest
+                        ]:
         suite = loader.loadTestsFromTestCase(testCaseClass)
         unittest.TextTestRunner(verbosity=2).run(suite)

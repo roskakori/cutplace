@@ -6,6 +6,7 @@ import logging
 import select
 import StringIO
 import sys
+import tools
 import version
 
 _SERVER_VERSION = "cutplace/%s" % version.VERSION_NUMBER
@@ -106,6 +107,22 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
 %s
 </body></html>
 """ % (_STYLE, _FOOTER)
+
+    _ABOUT = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+  <title>About cutplace</title>
+  <style type="text/css">%s
+  </style>
+</head><body>
+<h1>About cutplace</h1>
+<p>Cutplace: Version %s<br>
+Python: Version %s<br>
+Platform: %s</p>
+%s
+</body></html>
+""" % (_STYLE, version.VERSION_TAG, cgi.escape(tools.pythonVersion()), cgi.escape(tools.platformVersion()), _FOOTER)
+
     
     def do_GET(self):
         log = logging.getLogger("cutplace.server")
@@ -116,6 +133,12 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_header("Content-type", "text/html")
             self.end_headers()
             self.wfile.write(Handler._FORM)
+            self.wfile.close()
+        elif (self.path == "/about"):
+            self.send_response(200)
+            self.send_header("Content-type", "text/html")
+            self.end_headers()
+            self.wfile.write(Handler._ABOUT)
             self.wfile.close()
         else:
             self.send_error(404)
