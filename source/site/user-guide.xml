@@ -1382,18 +1382,81 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
       <title>Checks</title>
 
       <para>Checks are rules that cannot be expressed easily with the rules
-      available for data formats and field formats. Typically checks cover
-      need data items or rows to check if they are met.</para>
+      available for data formats and field formats. In general checks validate
+      conditions that can be only be met by looking at several fields in a row
+      or the whole document. In the ICD, a row describing the check requires
+      the follwowing columns:</para>
 
-      <para>TODO: Describe general format.</para>
+      <orderedlist>
+        <listitem>
+          <para>A human readable description of the check that will be used in
+          the error message in case the check fails. Most of the time this
+          will be a short sentence of the template "something must/have
+          something". For instance, "<userinput>customer must be
+          unique</userinput>".</para>
+        </listitem>
+
+        <listitem>
+          <para>The type of the check as described in one of the sections
+          below, for example <userinput>DistinctCount</userinput> or
+          <userinput>IsUnique</userinput>.</para>
+        </listitem>
+
+        <listitem>
+          <para>A rule describing the actual check to perform. The contents of
+          this field highly depend on the check type specified in the previous
+          column. For example, the IsUnique check requires the field(s) to be
+          checked for uniquness like "<userinput>branch_id,
+          customer_id</userinput>"</para>
+        </listitem>
+      </orderedlist>
+
+      <para>The remainder of this section describes the available checks in
+      detail and gives specific examples.</para>
 
       <section>
         <title>DistinctCount</title>
 
         <para>Pupose: Validate that the number of different values for a
-        certain field is within expected limits</para>
+        certain field is within expected limits.</para>
 
-        <para>TODO: example.</para>
+        <para>The rule column describes the field to check and the limit is
+        must meet. <xref linkend="example-for-distinct-count" /> shows how to
+        make sure that the data contain at most 5 different branch_ids.</para>
+
+        <table id="example-for-distinct-count">
+          <title>Example check for a limited number of different values within
+          a field</title>
+
+          <tgroup cols="4">
+            <thead>
+              <row>
+                <entry></entry>
+
+                <entry>Description</entry>
+
+                <entry>Type</entry>
+
+                <entry>Rule</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry>C</entry>
+
+                <entry>distinct branches must be within limit</entry>
+
+                <entry>DistinctCount</entry>
+
+                <entry>branch_id &lt;= 5</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+
+        <para>To describe the rule you can use any comparison operator or
+        mathematical expression available to the Python language.</para>
       </section>
 
       <section>
@@ -1403,7 +1466,78 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
         fields occurs only once. This enables to detect duplicate or
         contradicting data.</para>
 
-        <para>TODO: example.</para>
+        <para>The "Rule" column describes the field that must contain only
+        unique values. <xref linkend="example-for-isunique-with-one-field" />
+        shows how to specify that two customers must not have the same ID
+        numbers.</para>
+
+        <table id="example-for-isunique-with-one-field">
+          <title>Example check for unique values within a single field</title>
+
+          <tgroup cols="4">
+            <thead>
+              <row>
+                <entry></entry>
+
+                <entry>Description</entry>
+
+                <entry>Type</entry>
+
+                <entry>Rule</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry>C</entry>
+
+                <entry>customer must be unique</entry>
+
+                <entry>IsUnique</entry>
+
+                <entry>customer_id</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+
+        <para>It could also be possible that customers actually may have the
+        same ID number as long as they are assigned to different branches. In
+        this case, only the combination of branch_id and customer_id must be
+        unqiue. <xref linkend="example-for-isunique-with-several-fields" />
+        shows how to describe a check for this: simply list all the necessary
+        fields, separated by a comma (,) sign.</para>
+
+        <table id="example-for-isunique-with-several-fields">
+          <title>Example check for unique values within a combination of
+          fields</title>
+
+          <tgroup cols="4">
+            <thead>
+              <row>
+                <entry></entry>
+
+                <entry>Description</entry>
+
+                <entry>Type</entry>
+
+                <entry>Rule</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry>C</entry>
+
+                <entry>customer must be unique</entry>
+
+                <entry>IsUnique</entry>
+
+                <entry>branch_id, customer_id</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
       </section>
     </section>
 
@@ -1558,7 +1692,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
       <para>This should result in the following output:</para>
 
       <literallayout><computeroutput>INFO:cutplace.server:cutplace/0.2.0
-INFO:cutplace.server:Visit &lt;<ulink url="http://localhost:8765/">http://localhost:8765/</ulink>&gt; to connect
+INFO:cutplace.server:Visit &lt;<ulink url="http://localhost:8778/">http://localhost:8778/</ulink>&gt; to connect
 INFO:cutplace.server:Press Control-C to shut down
 </computeroutput></literallayout>
 
@@ -1568,14 +1702,14 @@ INFO:cutplace.server:Press Control-C to shut down
       where green rows indicate proper data and red rows point out broken
       data.</para>
 
-      <para>In case you want to run the server at a different port than 8765,
+      <para>In case you want to run the server at a different port than 8778,
       specifiy the <userinput>--port</userinput> option, for example:</para>
 
       <para><userinput>cutplace --web --port 1234</userinput></para>
 
       <para>Note that this is a very simple web server, and it will not
-      support hundreds of users attempting to access it at the same time.
-      </para>
+      support hundreds of users attempting to access it at the same
+      time.</para>
 
       <para>Also be aware that everyone can access it unless your firewall
       restricts access to it.</para>
@@ -1895,7 +2029,7 @@ BUILD SUCCESSFUL</computeroutput>
     <para>This chapter describes improvements compared to earlier versions of
     cutplace.</para>
 
-    <section>
+    <section id="v0.2.0">
       <title>Version 0.2.0, xx-Mar-2009</title>
 
       <itemizedlist>
