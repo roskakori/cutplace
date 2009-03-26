@@ -25,3 +25,4 @@
 ,,,,,,
 ,"Description","Type","Rule",,,
 "C","customer must be unique","IsUnique","branch_id, customer_id",,,
+"C","distinct branches must be within limit","DistinctCount","branch_id <= 3",,,
