@@ -42,17 +42,17 @@ class WfileWritingIcdEventListener(interface.IcdEventListener):
     
     def rejectedRow(self, row, errorMessage):
         self._writeRow(row, "error")
-        self._writeTextRow(errorMessage)
+        self._writeTextRow(str(errorMessage))
     
     def checkAtRowFailed(self, row, errorMessage):
         self._writeRow(row, "error")
-        self._writeTextRow(errorMessage)
+        self._writeTextRow(str(errorMessage))
     
     def checkAtEndFailed(self, errorMessage):
-        self._writeTextRow("check at end failed: %s" % errorMessage)
+        self._writeTextRow("check at end failed: %s" % str(errorMessage))
     
     def dataFormatFailed(self, errorMessage):
-        self._writeTextRow("data format is broken: %s" % errorMessage)
+        self._writeTextRow("data format is broken: %s" % str(errorMessage))
 
 class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
     server_version = _SERVER_VERSION
