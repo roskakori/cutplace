@@ -94,7 +94,7 @@
         </copy>
     </target>
     
-    <target name="user-guide" depends="sitebase">
+    <target name="user-guide" depends="sitebase, testdata">
         <xslt classpath="${external.dir}/serializer.jar:${external.dir}/xalan.jar" in="${source}/site/user-guide.xml" out="${site.dir}/index.html" style="docbook-xsl/xhtml/docbook.xsl">
             <xmlcatalog refid="catalogs" />
             <!--
@@ -102,11 +102,11 @@
             <param name="html.stylesheet" expression="style.css"/>
             -->
         </xslt>
-        <copy file="tests/input/valid_customers.csv" todir="${site.dir}" />
-        <copy file="tests/input/broken_customers.csv" todir="${site.dir}" />
-        <copy file="tests/input/idcs/customers.csv" tofile="${site.dir}/icd_customers.csv" />
-        <copy file="tests/input/idcs/customers.ods" tofile="${site.dir}/icd_customers.ods" />
-        <copy file="tests/input/idcs/customers.xls" tofile="${site.dir}/icd_customers.xls" />
+        <copy file="${tests-input.dir}/valid_customers.csv" todir="${site.dir}" />
+        <copy file="${tests-input.dir}/broken_customers.csv" todir="${site.dir}" />
+        <copy file="${tests-input-icds.dir}/customers.csv" tofile="${site.dir}/icd_customers.csv" />
+        <copy file="${tests-input-icds.dir}/customers.ods" tofile="${site.dir}/icd_customers.ods" />
+        <copy file="${tests-input-icds.dir}/customers.xls" tofile="${site.dir}/icd_customers.xls" />
     </target>
 
     <target name="setup" description="setup project after checking it out">
