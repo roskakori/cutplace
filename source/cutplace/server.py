@@ -167,10 +167,6 @@ Platform: %s</p>
             fileMap = cgi.parse_qs(qs, keep_blank_values=1)
         else:
             fileMap = {} # Unknown content-type
-        # throw away additional data [see bug #427345]
-        while select.select([self.rfile._sock], [], [], 0)[0]:
-            if not self.rfile._sock.recv(1):
-                break
         
         if "icd" in fileMap:
             icdContent = fileMap["icd"][0]
