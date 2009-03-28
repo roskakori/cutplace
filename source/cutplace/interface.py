@@ -3,6 +3,7 @@ import checks
 import data
 import fields
 import logging
+import os
 import parsers
 import sys
 import tools
@@ -160,15 +161,20 @@ class InterfaceControlDocument(object):
         needsOpen = isinstance(icdFilePath, types.StringTypes)
         if needsOpen:
             icdFile = open(icdFilePath, "rb")
+            isOds = (os.path.splitext(icdFilePath)[1].lower() == ".ods")
         else:
             icdFile = icdFilePath
+            isOds = False
         try:
-            dialect = parsers.DelimitedDialect()
-            dialect.lineDelimiter = parsers.AUTO
-            dialect.itemDelimiter = parsers.AUTO
-            dialect.quoteChar = "\""
-            dialect.escapeChar = "\""
-            parser = parsers.DelimitedParser(icdFile, dialect)
+            if isOds:
+                parser = parsers.OdsParser(icdFile)
+            else:
+                dialect = parsers.DelimitedDialect()
+                dialect.lineDelimiter = parsers.AUTO
+                dialect.itemDelimiter = parsers.AUTO
+                dialect.quoteChar = "\""
+                dialect.escapeChar = "\""
+                parser = parsers.DelimitedParser(icdFile, dialect)
             reader = parsers.parserReader(parser)
             for row in reader:
                 lineNumber = parser.lineNumber

@@ -1,7 +1,11 @@
 """Parsers for data files."""
 import data
 import logging
-import string
+import ods
+import os
+import string # TODO: Remove "import string". Why is this here anyway?
+import StringIO
+import tempfile
 
 AUTO = data.ANY
 CR = "\r"
@@ -22,7 +26,7 @@ def delimitedReader(readable, dialect):
         parser.advance()
 
 def parserReader(parser):
-    """Generator yielding the "readable" line by line using "dialect"."""
+    """Generator yielding the "readable" line by line."""
     assert parser is not None
     columns = []
     while not parser.atEndOfFile:
@@ -33,15 +37,14 @@ def parserReader(parser):
             columns = []
         parser.advance()
 
-
 class DelimitedDialect(object):
-    def __init__(self, lineDelimter=AUTO, itemDelimiter=AUTO):
-        assert lineDelimter is not None
-        assert lineDelimter in  _VALID_LINE_DELIMITERS
+    def __init__(self, lineDelimiter=AUTO, itemDelimiter=AUTO):
+        assert lineDelimiter is not None
+        assert lineDelimiter in  _VALID_LINE_DELIMITERS
         assert itemDelimiter is not None
         # assert len(itemDelimiter) == 1
         
-        self.lineDelimiter = itemDelimiter
+        self.lineDelimiter = lineDelimiter
         self.itemDelimiter = itemDelimiter
         self.quoteChar = None
         self.escapeChar = None
@@ -258,3 +261,31 @@ class DelimitedParser(object):
             self.item = item
             if self.item is not None:
                 self.itemNumber += 1
+
+class OdsParser(DelimitedParser):
+    """Parser for Open Document Spreadsheets (ODS)."""
+    def __init__(self, readable):
+        # Convert ODS to CSV.
+        (csvTempFd, self.csvTempFilePath) = tempfile.mkstemp(".csv", "cutplace-")
+        os.close(csvTempFd)
+        ods.toCsv(readable, self.csvTempFilePath)
+        
+        excelDialect = DelimitedDialect(AUTO, ",")
+        excelDialect.quoteChar = "\""
+
+        # Now act as DelimitedParser for the derived CSV.
+        self.csvTempFile = open(self.csvTempFilePath, "rb")
+        super(OdsParser, self).__init__(self.csvTempFile, excelDialect)
+    
+    def _removeCsvTempTargetFile(self):
+        self.csvTempFile.close()
+        os.remove(self.csvTempFilePath)
+
+    def advance(self):
+        try:
+            super(OdsParser, self).advance()
+            if self.atEndOfFile:
+                self._removeCsvTempTargetFile()
+        except:
+            self._removeCsvTempTargetFile
+

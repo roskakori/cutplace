@@ -15,6 +15,7 @@ _VALID_ESCAPE_CHARACTERS = ["\"", "\\"]
 FORMAT_CSV = "csv"
 FORMAT_DELIMITED = "delimited"
 FORMAT_FIXED = "fixed"
+FORMAT_ODS = "ods"
 
 KEY_ALLOWED_CHARACTERS = "allowed characters"
 KEY_ENCODING = "encoding"
@@ -37,6 +38,8 @@ def createDataFormat(name):
         result = DelimitedDataFormat()
     elif actualName == FORMAT_FIXED:
         result = FixedDataFormat()
+    elif actualName == FORMAT_ODS:
+        result = OdsDataFormat()
     else:
         raise DataFormatSyntaxError("data format is %r but must be on of: %r" % (name, [FORMAT_CSV, FORMAT_DELIMITED, FORMAT_FIXED]))
     return result
@@ -178,6 +181,7 @@ class DelimitedDataFormat(AbstractDataFormat):
             super(DelimitedDataFormat, self).set(key, value)
     
 class CsvDataFormat(DelimitedDataFormat):
+    """Data format for comma separated values (CSV)."""
     def __init__(self):
         super(DelimitedDataFormat, self).__init__()
         self.setLineDelimiter(ANY)
@@ -195,3 +199,9 @@ class FixedDataFormat(AbstractDataFormat):
 
     def getName(self):
         return FORMAT_FIXED
+
+class OdsDataFormat(AbstractDataFormat):
+    """Data format for ODS as created by OpenOffice.org's Calc."""
+    # FIXME: Clean up inheritance hierarchy. We get a lot of junk from AbstractDataFormat.
+    def getName(self):
+        return FORMAT_ODS

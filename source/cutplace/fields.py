@@ -33,7 +33,7 @@ def _longOrNone(fieldName, valueName, value):
     if value.strip():
         try:
             result = long(value)
-        except TypeError:
+        except:
             raise ValueError("%s for %s must be an integer value but is: %s" % (valueName, fieldName, value))
     else:
         result = None
