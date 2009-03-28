@@ -45,7 +45,9 @@ thinking. It acts as "executable specification" that cutplace can use to validat
           "License :: OSI Approved :: GNU General Public License (GPL)",
           "Natural Language :: English",
           "Operating System :: OS Independent",
-          "Programming Language :: Python :: 2.5", # TODO: Test with other Python versions
+          # TODO: Test with Python 2.4. Who knows, it might actually work.
+          "Programming Language :: Python :: 2.5",
+          "Programming Language :: Python :: 2.6",
           "Topic :: Documentation",
           "Topic :: Software Development :: Quality Assurance",
           "Topic :: Software Development :: Testing"
