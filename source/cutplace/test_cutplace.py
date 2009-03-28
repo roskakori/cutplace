@@ -58,7 +58,7 @@ class CutplaceTest(unittest.TestCase):
             baseFileNameWithoutValidPrefixAndCsvSuffix = baseFileNameWithoutCsvSuffix[len(VALID_PREFIX):]
             icdBaseName = baseFileNameWithoutValidPrefixAndCsvSuffix.split("_")[0]
             # FIXME: Rename test/input/idcs to icds.
-            icdFolder = os.path.join(testsInputFolder, "idcs")
+            icdFolder = os.path.join(testsInputFolder, "icds")
             icdPath = os.path.join(icdFolder, icdBaseName + ".csv")
             cutPlace = cutplace.CutPlace()
             cutPlace.setOptions([icdPath, dataPath])
