@@ -1,4 +1,4 @@
-<project name="cutplace" default="bdist" basedir=".">
+<project name="cutplace" default="bdist_egg" basedir=".">
     <description>Buildfile for cutplace</description>
 
     <!-- Set global properties for this build. -->
@@ -19,15 +19,15 @@
         <dtd location="dtds/xhtml/xhtml1-transitional.dtd" publicId="-//W3C//DTD XHTML 1.0 Transitional//EN" />
     </xmlcatalog>
 
-    <target name="bdist" depends="version, user-guide" description="build binary distribution">
+    <target name="install" depends="bdist_egg" description="install binary distribution">
         <tstamp />
         <exec executable="python">
             <arg value="setup.py" />
-            <arg value="bdist" />
+            <arg value="install" />
         </exec>
     </target>
 
-    <target name="sdist" depends="bdist" description="build source distribution">
+    <target name="sdist" depends="bdist_egg" description="build source distribution">
         <!-- Delete Mac OS X Finder cache files. -->
         <delete>
           <fileset defaultexcludes="false" dir="." includes="**/.DS_Store"/>

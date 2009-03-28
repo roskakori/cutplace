@@ -21,7 +21,9 @@ setup(
       package_dir={"": "source"},
       # TODO: Include documentation in distribution by copying it to package folder.
       package_data = {"": ["*.html, *.png, *.txt"]},
-      scripts=["source/scripts/cutplace"],
+      entry_points = {
+        "console_scripts": ["cutplace = cutplace.cutplace:mainForScript"]
+      },
       license = "GNU GPLv3",
       long_description="""Cutplace is a tool to validate that data conform to an interface control document (ICD).
 
