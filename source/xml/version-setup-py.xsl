@@ -4,10 +4,11 @@
 <xsl:template match="cutplace-version">#!/usr/bin/env python
 """Cutplace setup for distutils."""
 
-try:
-	from setuptools import setup
-except ImportError:
-	from distutils.core import setup
+# Obtain setuptools if necessary.
+import ez_setup
+ez_setup.use_setuptools()
+
+from setuptools import setup, find_packages
 
 setup(
       name="cutplace",
@@ -16,13 +17,15 @@ setup(
       author="Thomas Aglassinger",
       author_email="roskakori@users.sourceforge.net",
       url="http://cutplace.sourceforge.net/",
+      packages = find_packages("source"),
       package_dir={"": "source"},
-      packages=["cutplace"],
+      # TODO: Include documentation in distribution by copying it to package folder.
+      package_data = {"": ["*.html, *.png, *.txt"]},
       scripts=["source/scripts/cutplace"],
       license = "GNU GPLv3",
       long_description="""Cutplace is a tool to validate that data conform to an interface control document (ICD).
 
-Cutplace works with flat data formats using a separator (such as CSV) or a fixed format. Such formats are commonly
+Cutplace works with flat data formats using a separator (such as CSV) or fixed length fields. Such formats are commonly
 used to exchange data between different platforms or physically separated systems. Examples are exchanging data
 between different partner companies, providing data for data warehousing or other data processing involving
 architecturally very different systems like mainframes.
