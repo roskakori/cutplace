@@ -1,36 +1,13 @@
 """Tests  for cutplace application."""
 import cutplace
-import logging#
+import logging
 import os.path
-import re
-import sys
+import tools
 import unittest
 
 class CutplaceTest(unittest.TestCase):
     """Test cases for cutplace command line interface."""
-    def listdirMatching(self, folder, pattern):
-        """Yield name of entries in folder that match regex pattern."""
-        regex = re.compile(pattern)
-        for entry in os.listdir(folder):
-            if regex.match(entry):
-                yield entry
 
-    def getTestFolder(self, folder):
-        assert folder
-        
-        testFolder = os.path.join(os.getcwd(), "tests")
-        if not os.path.exists(testFolder):
-            raise IOError("test must run from project folder in order to find test files; currently attempting to find them in: %r" % testFolder)
-        result = os.path.join(testFolder, folder)
-        return result
-        
-    def getTestFile(self, folder, fileName):
-        assert folder
-        assert fileName
-        
-        result = os.path.join(getTestFolder(folder), fileName)
-        return result
-         
     def testVersion(self):
         cutPlace = cutplace.CutPlace()
         self.assertRaises(cutplace.ExitQuietlyOptionError, cutPlace.setOptions, ["--version"])
@@ -48,8 +25,8 @@ class CutplaceTest(unittest.TestCase):
     
     def testValidCsvs(self):
         VALID_PREFIX = "valid_"
-        testsInputFolder = self.getTestFolder("input")
-        validCsvFileNames = self.listdirMatching(testsInputFolder, VALID_PREFIX + ".*\\.csv")
+        testsInputFolder = tools.getTestFolder("input")
+        validCsvFileNames = tools.listdirMatching(testsInputFolder, VALID_PREFIX + ".*\\.csv")
         validCsvPaths = list(os.path.join(testsInputFolder, fileName) for fileName in validCsvFileNames)
         for dataPath in validCsvPaths:
             # Get file name without "valid
