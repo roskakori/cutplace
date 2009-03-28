@@ -3,6 +3,9 @@
 
     <!-- Set global properties for this build. -->
     <property name="source" location="source" />
+    <property name="tests.dir" location="tests" />
+    <property name="tests-input.dir" location="${tests.dir}/input" />
+    <property name="tests-input-icds.dir" location="${tests-input.dir}/icds" />
     <property name="build" location="build" />
     <property name="dist" location="dist" />
     <property name="external.dir" location="external" />
@@ -54,7 +57,15 @@
         </exec>
     </target>
 
-    <target name="test" depends="version" description="run test suite">
+	<target name="testdata" description="generate test data">
+        <exec executable="python">
+            <arg value="${source}/cutplace/ods.py" />
+            <arg value="${tests-input-icds.dir}/customers.ods" />
+            <arg value="${tests-input-icds.dir}/customers.csv" />
+        </exec>
+	</target>
+
+    <target name="test" depends="version, testdata" description="run test suite">
         <exec executable="python">
             <arg value="${test_all.py}" />
         </exec>

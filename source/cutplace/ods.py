@@ -74,7 +74,7 @@ def toCsv(odsFilePath, csvTargetPath, dialect="excel"):
  
 if __name__ == '__main__':
     logging.basicConfig()
-    logging.getLogger("cutplace.ods").setLevel(logging.DEBUG)
+    logging.getLogger("cutplace.ods").setLevel(logging.INFO)
     if len(sys.argv) == 3:
         try:
             toCsv(sys.argv[1], sys.argv[2])
