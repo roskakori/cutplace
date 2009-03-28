@@ -3,8 +3,6 @@ import data
 import logging
 import ods
 import os
-import string # TODO: Remove "import string". Why is this here anyway?
-import StringIO
 import tempfile
 
 AUTO = data.ANY
@@ -14,7 +12,7 @@ CRLF = CR + LF
 _VALID_LINE_DELIMITERS = [AUTO, CR, CRLF, LF]
 
 def delimitedReader(readable, dialect):
-    """Generator yielding the "readable" line by line using "dialect"."""
+    """Generator yielding the "readable" row by row using "dialect"."""
     parser = DelimitedParser(readable, dialect)
     columns = []
     while not parser.atEndOfFile:
@@ -26,7 +24,7 @@ def delimitedReader(readable, dialect):
         parser.advance()
 
 def parserReader(parser):
-    """Generator yielding the "readable" line by line."""
+    """Generator yielding the readable of parser row by row."""
     assert parser is not None
     columns = []
     while not parser.atEndOfFile:
