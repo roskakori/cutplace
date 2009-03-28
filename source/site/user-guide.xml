@@ -274,15 +274,15 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
     </section>
 
     <section id="download">
-      <title>Download and install using PyPI</title>
+      <title>Download and install using PyPI and easy_install</title>
 
       <para>Cutplace can be downloaded from <ulink
       url="http://pypi.python.org/pypi">PyPI</ulink>, the Python Package
       Index.</para>
 
       <para>If you have <ulink
-      url="http://peak.telecommunity.com/DevCenter/EasyInstall">Easy
-      Install</ulink> installed, simply run</para>
+      url="http://peak.telecommunity.com/DevCenter/EasyInstall">easy_install</ulink>
+      installed, simply run</para>
 
       <para><userinput>easy_install cutplace</userinput></para>
 
@@ -302,15 +302,31 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
       <para>to get a short overview of the available command line options
       (they are explained in detail in <xref
       linkend="command-line-usage" />).</para>
+    </section>
 
-      <para>Currently the launcher script is not executable for Windows, so
-      instead run:</para>
+    <section>
+      <title>Download and install using PyPi with Mac OS X and
+      MacPorts</title>
 
-      <para><userinput>&#65279;python C:\Python25\scripts\cutplace
-      --help</userinput></para>
+      <para>MacPorts provide a command-line driven software package under a
+      BSD License, and through it easy access to thousands of ports that
+      greatly simplify the task of compiling and installing open-source
+      software on your Mac. To find out more about MacPorts, visit <ulink
+      url="http://www.macports.org/">http://www.macports.org/</ulink>.</para>
 
-      <para>You might need to adjust the "C:\Python25" part according to your
-      local Python installation.</para>
+      <para><application>Easy_install</application> is included with
+      <application>setuptools</application>, which are already available as
+      MacPort package. So in order to install them, simply run:</para>
+
+      <para><userinput>sudo port install py25-setuptools</userinput></para>
+
+      <para>For Python 2.6, use:</para>
+
+      <para><userinput>sudo port install py26-setuptools</userinput></para>
+
+      <para>After that you can proceed as describe above and run:</para>
+
+      <para><userinput>easy_install cutplace</userinput></para>
     </section>
 
     <section>
@@ -1047,7 +1063,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
 
                 <entry></entry>
 
-                <entry>8848</entry>
+                <entry>0...8848</entry>
               </row>
 
               <row>
@@ -1061,7 +1077,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
 
                 <entry>0...</entry>
 
-                <entry>1382</entry>
+                <entry>0...</entry>
               </row>
 
               <row>
@@ -1949,30 +1965,6 @@ BUILD SUCCESSFUL</computeroutput>
       developers, especially for release management.</para>
 
       <section>
-        <title>Getting setuptools to work</title>
-
-        <para>When using Mac OS X and Python 2.5 from <ulink
-        url="http://www.macports.org/">MacPorts</ulink>, getting setuptools
-        might prove a challenge. When you try to install them by
-        running</para>
-
-        <para><userinput>sudo setuptools-x.y.z-py2.5.egg</userinput></para>
-
-        <para>and get</para>
-
-        <para><computeroutput>zipimport.ZipImportError: can't decompress data;
-        zlib not available</computeroutput></para>
-
-        <para>then you need to install <package>py25-zlib</package>. In case
-        you get</para>
-
-        <para><computeroutput>ImportError: No module named
-        _md5</computeroutput></para>
-
-        <para>then you need to install <package>py25-hashlib</package>.</para>
-      </section>
-
-      <section>
         <title>Add a release tag</title>
 
         <para>When publishing a new release, a tag should be added to the
@@ -2028,6 +2020,39 @@ BUILD SUCCESSFUL</computeroutput>
 
     <para>This chapter describes improvements compared to earlier versions of
     cutplace.</para>
+
+    <section id="v0.2.1">
+      <title>Version 0.2.1, 28-Mar-2009</title>
+
+      <itemizedlist>
+        <listitem>
+          <para>Added support for ICDs in ODS format.</para>
+        </listitem>
+
+        <listitem>
+          <para>Added <filename>cutplace.exe</filename> for Windows, which
+          will be generated during installation.</para>
+        </listitem>
+
+        <listitem>
+          <para>Added automatic installation of setuptools when you try to
+          build cutplace using the Subversion repository. This feature is
+          provided by <filename>ez_setup.py</filename>, which is available
+          from the setuptools site.</para>
+        </listitem>
+
+        <listitem>
+          <para>Fixed cutplace script, which did exit with an
+          <exceptionname>ExitQuietlyOptionError</exceptionname> for options
+          that just showed some information and exited (such as
+          <parameter>--help</parameter>).</para>
+        </listitem>
+
+        <listitem>
+          <para></para>
+        </listitem>
+      </itemizedlist>
+    </section>
 
     <section id="v0.2.0">
       <title>Version 0.2.0, 27-Mar-2009</title>
