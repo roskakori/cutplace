@@ -59,9 +59,7 @@
 
 	<target name="testdata" description="generate test data">
         <exec executable="python">
-            <arg value="${source}/cutplace/ods.py" />
-            <arg value="${tests-input-icds.dir}/customers.ods" />
-            <arg value="${tests-input-icds.dir}/customers.csv" />
+            <arg value="${source}/cutplace/dev_test.py" />
         </exec>
 	</target>
 
@@ -120,7 +118,7 @@
 	<target name="reports" depends="sitebase, testdata">
         <exec executable="python" error="build-stderr.txt">
             <!-- FIXME: Use platform independent path. --> 
-            <arg value="source/cutplace/reports.py" />
+            <arg value="source/cutplace/dev_reports.py" />
             <arg value="${reports.dir}" />
         </exec>
 	</target>

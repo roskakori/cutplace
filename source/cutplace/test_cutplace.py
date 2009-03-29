@@ -47,11 +47,11 @@ class LotsOfCustomersTest(unittest.TestCase):
     def testLotsOfCustomersCsv(self):
         icdOdsPath = os.path.join(tools.getTestFolder("input"), "icds", "customers.ods")
         locCsvPath = tools.getTestFile("input", "lots_of_customers.csv")
+        tools.createLotsOfCustomersCsv(locCsvPath)
         cutPlace = cutplace.CutPlace()
         cutPlace.setOptions([icdOdsPath, locCsvPath])
         cutPlace.validate()
         # TODO: Assert number of errors detected in dataPath is 0.
-        
         
 if __name__ == '__main__':
     logging.basicConfig()

@@ -1,12 +1,9 @@
+import dev_test
 import tools
 import unittest
 
 class ToolsTest(unittest.TestCase):
     """TestCase for tools module."""
-
-    def testCreateLotsOfCustomersCsv(self):
-        targetCsvPath = tools.getTestFile("input", "lots_of_customers.csv")
-        tools.createLotsOfCustomersCsv(targetCsvPath)
 
     def testCreateTestDateTime(self):
         for i in range(0, 15):
@@ -21,8 +18,8 @@ class ToolsTest(unittest.TestCase):
             self.assertNotEqual(name, "")
 
     def testCreateTestCustomerRow(self):
-        for i in range(0, 15):
-            row = tools.createTestCustomerRow()
+        for customderId in range(0, 15):
+            row = dev_test.createTestCustomerRow(customderId)
             self.assertTrue(row is not None)
             self.assertEqual(len(row), 6)
 
