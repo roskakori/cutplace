@@ -61,7 +61,14 @@ class InterfaceControlDocument(object):
         else:
             moduleName = defaultModuleName
             className = type
-            module = sys.modules[moduleName]
+            try:
+                module = sys.modules[moduleName]
+            except KeyError:
+                # TODO: Learn Python and remove hack to resolve "fields" vs "cutplace.fields" module names.
+                # HACK: This is a workaround for the fact that during development for example the fields
+                # module is referred to as "fields" while after installation it is "cutplace.fields".
+                moduleName = "cutplace." + defaultModuleName
+                module = sys.modules[moduleName]
         className += classNameAppendix
         self._log.debug("create from " + str(moduleName) + " class " + className)
         try:
