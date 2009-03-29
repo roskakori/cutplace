@@ -305,7 +305,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
     </section>
 
     <section>
-      <title>Download and install using PyPi with Mac OS X and
+      <title>Download and install using PyPI with Mac OS X and
       MacPorts</title>
 
       <para>MacPorts provide a command-line driven software package under a
@@ -316,7 +316,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
 
       <para><application>Easy_install</application> is included with
       <application>setuptools</application>, which are already available as
-      MacPort package. So in order to install them, simply run:</para>
+      MacPorts package. So in order to install them, simply run:</para>
 
       <para><userinput>sudo port install py25-setuptools</userinput></para>
 
@@ -335,6 +335,29 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
       <para>In case you prefer to install cutplace directly from the source,
       you can use its subversion repository as described in <xref
       linkend="development" />.</para>
+    </section>
+
+    <section>
+      <title>Download and run using Jython</title>
+
+      <para>Jython is an implementation of Python written in 100% Pure Java,
+      and seamlessly integrated with the Java platform. It thus allows you to
+      run Python on any Java platform. To find out more, visit <ulink
+      url="http://www.jython.org/">http://www.jython.org/</ulink>.</para>
+
+      <para>At the time of this writing, the most recent stable version of
+      Jython is 2.2.1, which resembles mostly Python 2.2 and therefor is too
+      dated to run cutplace.</para>
+
+      <para>However, there is a 2.5 beta available which seems to work pretty
+      well. It does not integrate with <application>setuptools</application>,
+      so you need to use the Subversion repository and then run it using
+      something like:</para>
+
+      <para><userinput>jython .../path/to/cutplace/source/cutplace/cutplace.py
+      --help</userinput></para>
+
+      <para>This should output the quick help.</para>
     </section>
   </chapter>
 
@@ -1401,7 +1424,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
       available for data formats and field formats. In general checks validate
       conditions that can be only be met by looking at several fields in a row
       or the whole document. In the ICD, a row describing the check requires
-      the follwowing columns:</para>
+      the following columns:</para>
 
       <orderedlist>
         <listitem>
@@ -1422,7 +1445,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
           <para>A rule describing the actual check to perform. The contents of
           this field highly depend on the check type specified in the previous
           column. For example, the IsUnique check requires the field(s) to be
-          checked for uniquness like "<userinput>branch_id,
+          checked for uniqueness like "<userinput>branch_id,
           customer_id</userinput>"</para>
         </listitem>
       </orderedlist>
@@ -1433,7 +1456,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
       <section>
         <title>DistinctCount</title>
 
-        <para>Pupose: Validate that the number of different values for a
+        <para>Purpose: Validate that the number of different values for a
         certain field is within expected limits.</para>
 
         <para>The rule column describes the field to check and the limit is
@@ -1478,7 +1501,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
       <section>
         <title>IsUnique</title>
 
-        <para>Pupose: Validate that values for a field or a combination of
+        <para>Purpose: Validate that values for a field or a combination of
         fields occurs only once. This enables to detect duplicate or
         contradicting data.</para>
 
@@ -1520,7 +1543,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
         <para>It could also be possible that customers actually may have the
         same ID number as long as they are assigned to different branches. In
         this case, only the combination of branch_id and customer_id must be
-        unqiue. <xref linkend="example-for-isunique-with-several-fields" />
+        unique. <xref linkend="example-for-isunique-with-several-fields" />
         shows how to describe a check for this: simply list all the necessary
         fields, separated by a comma (,) sign.</para>
 
@@ -1719,7 +1742,7 @@ INFO:cutplace.server:Press Control-C to shut down
       data.</para>
 
       <para>In case you want to run the server at a different port than 8778,
-      specifiy the <userinput>--port</userinput> option, for example:</para>
+      specify the <userinput>--port</userinput> option, for example:</para>
 
       <para><userinput>cutplace --web --port 1234</userinput></para>
 
@@ -2022,11 +2045,12 @@ BUILD SUCCESSFUL</computeroutput>
     cutplace.</para>
 
     <section id="v0.2.1">
-      <title>Version 0.2.1, 28-Mar-2009</title>
+      <title>Version 0.2.1, 29-Mar-2009</title>
 
       <itemizedlist>
         <listitem>
-          <para>Added support for ICDs in ODS format.</para>
+          <para>Added support for ICDs in ODS format for command line
+          client.</para>
         </listitem>
 
         <listitem>
@@ -2046,10 +2070,6 @@ BUILD SUCCESSFUL</computeroutput>
           <exceptionname>ExitQuietlyOptionError</exceptionname> for options
           that just showed some information and exited (such as
           <parameter>--help</parameter>).</para>
-        </listitem>
-
-        <listitem>
-          <para></para>
         </listitem>
       </itemizedlist>
     </section>
