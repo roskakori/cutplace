@@ -93,9 +93,9 @@
 
     <para>To understand how this works in practice consider the following
     data, which are stored in a CSV file name <ulink
-    url="valid_customers.csv">valid_customers.csv</ulink>:</para>
+    url="broken_customers.csv">broken_customers.csv</ulink>:</para>
 
-    <para>TODO: Insert table for customers.csv</para>
+    <para>TODO: Insert table for broken_customers.csv</para>
 
     <para>Apparently it contains customer data. Column 1 contains an ID for
     the branch the customers is assigned to, column 2 contains an ID for the
@@ -115,24 +115,56 @@
     look.</para>
 
     <para>Now that we both have an ICD and data, cutplace can finally work its
-    magic. Running</para>
+    magic. The easiest way to access cutplace is by means if its internal web
+    server. When launched with the <parameter>--web</parameter> command line
+    option, it will present a simple form to specify the ICD and data file to
+    validate as seen in <xref linkend="figure-validation-form" />.</para>
 
-    <para><userinput>cutplace icd_customers.csv
-    customers.csv</userinput></para>
+    <figure id="figure-validation-form">
+      <title>The validation form of cutplace's internal web server</title>
 
-    <para>will confirm that all the data are valid.</para>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/figure-validation-form.png" />
+        </imageobject>
 
-    <para>But let's try again with some broken data. Consider <ulink
-    url="broken_customers.csv">broken_customers.csv</ulink>:</para>
+        <textobject>
+          <phrase>A screenshot of the validation form of cutplace's internal
+          web server</phrase>
+        </textobject>
+      </mediaobject>
+    </figure>
 
-    <para>TODO: insert table for broken_customers.csv</para>
+    <para>After you choose the respective files, you can click
+    <guibutton>Validate</guibutton> to see if the data conform to the ICD. In
+    this case we have used a data file that deliberately was broken. Cutplace
+    will show proper columns in green, and broken data in red with an error
+    message shown below as seen in <xref
+    linkend="figure-validation-result" />.</para>
 
-    <para>Running</para>
+    <figure id="figure-validation-result">
+      <title>A validation result shown in cutplace's internal web
+      server</title>
+
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/figure-validation-result.png" />
+        </imageobject>
+
+        <textobject>
+          <phrase>A screenshot of a validation result with cutplace's internal
+          web server</phrase>
+        </textobject>
+      </mediaobject>
+    </figure>
+
+    <para>Alternatively cutplace can validate using the command line, for
+    example:</para>
 
     <para><userinput>cutplace icd_customers.csv
     broken_customders.csv</userinput></para>
 
-    <para>This time the output contains several error messages:</para>
+    <para>This time error messages show up in the console:</para>
 
     <literallayout>ERROR:cutplace:rejected: ['12345', '92', 'Bill', 'Carter', 'male', '05.04.1953']
 ERROR:cutplace:  field 'branch_id': value '12345' must match regular expression: '38\\d\\d\\d'
@@ -1877,7 +1909,7 @@ BUILD SUCCESSFUL Total time: 3 seconds </computeroutput></literallayout></para>
 
       <para>To just build a binary distribution, run:</para>
 
-      <para><userinput>ant bdist</userinput></para>
+      <para><userinput>ant bdist_egg</userinput></para>
 
       <para>The output should look something like this:</para>
 
@@ -1909,6 +1941,10 @@ BUILD SUCCESSFUL</computeroutput>
       <para>To run all test cases:</para>
 
       <para><userinput>ant test</userinput></para>
+
+      <para>To build the user guide, developer reports and web site:</para>
+
+      <para><userinput>ant site</userinput></para>
 
       <para>To remove files generated during the build process:</para>
 
