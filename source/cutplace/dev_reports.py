@@ -13,6 +13,7 @@ import sys
 import unittest
 
 def _testLotsOfCustomers():
+    import test_cutplace
     loader = unittest.TestLoader()
     suite = loader.loadTestsFromTestCase(test_cutplace.LotsOfCustomersTest)
     unittest.TextTestRunner(verbosity=2).run(suite)
@@ -51,6 +52,7 @@ def createCoverageReport(targetBasePath):
         modules.append(__import__(moduleName))
     import test_all
     test_all.main()
+    createProfilerReport(baseFolder)
     coverage.stop()
 
     # Create report.
@@ -104,7 +106,6 @@ if __name__ == '__main__':
     options, others = parser.parse_args()
     if len(others) == 1:
         baseFolder = others[0]
-        # createProfilerReport(baseFolder)
         createCoverageReport(baseFolder)
     else:
         sys.stderr.write("%s%s" % ("target folder for reports must be specified", os.linesep))

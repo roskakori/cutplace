@@ -1,37 +1,10 @@
 """Cutplace utility functions."""
-import csv
 import os
 import platform
 import random
 import re
-import sys
 from random import randrange
 from datetime import timedelta, datetime
-
-# FIXME: Remove, this is now in dev_test.
-def getTestFolder(folder):
-    """Path of "folder" in tests folder."""
-    assert folder
-    
-    # Try current folder.
-    testFolder = os.path.join(os.getcwd(), "tests")
-    if not os.path.exists(testFolder) and (len(sys.argv) == 2):
-        # Try the folder specified in the one and only command line option.
-        # TODO: Make the base folder a property setable from outside. 
-        testFolder = os.path.join(sys.argv[1], "tests")
-    if not os.path.exists(testFolder):
-        raise IOError("cannot find test folder: test must run from project folder or project folder must be passed as command line option; currently attempting to find test folder in: %r" % testFolder)
-    result = os.path.join(testFolder, folder)
-    return result
-
-# FIXME: Remove, this is now in dev_test.
-def getTestFile(folder, fileName):
-    """Path of "folder" and "fileName" in tests folder."""
-    assert folder
-    assert fileName
-    
-    result = os.path.join(getTestFolder(folder), fileName)
-    return result
 
 def listdirMatching(folder, pattern):
     """Yield name of entries in folder that match regex pattern."""

@@ -1,5 +1,6 @@
 """Tests  for cutplace application."""
 import cutplace
+import dev_test
 import logging
 import os.path
 import tools
@@ -25,7 +26,7 @@ class CutplaceTest(unittest.TestCase):
     
     def testValidCsvs(self):
         VALID_PREFIX = "valid_"
-        testsInputFolder = tools.getTestFolder("input")
+        testsInputFolder = dev_test.getTestFolder("input")
         validCsvFileNames = tools.listdirMatching(testsInputFolder, VALID_PREFIX + ".*\\.csv")
         validCsvPaths = list(os.path.join(testsInputFolder, fileName) for fileName in validCsvFileNames)
         for dataPath in validCsvPaths:
@@ -45,8 +46,8 @@ class LotsOfCustomersTest(unittest.TestCase):
     """Test case for performance profiling."""
 
     def testLotsOfCustomersCsv(self):
-        icdOdsPath = os.path.join(tools.getTestFolder("input"), "icds", "customers.ods")
-        locCsvPath = tools.getTestFile("input", "lots_of_customers.csv")
+        icdOdsPath = dev_test.getTestIcdPath("customers.ods")
+        locCsvPath = dev_test.getTestFile("input", "lots_of_customers.csv")
         tools.createLotsOfCustomersCsv(locCsvPath)
         cutPlace = cutplace.CutPlace()
         cutPlace.setOptions([icdOdsPath, locCsvPath])
