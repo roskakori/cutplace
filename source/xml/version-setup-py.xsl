@@ -17,6 +17,8 @@ setup(
       author="Thomas Aglassinger",
       author_email="roskakori@users.sourceforge.net",
       url="http://cutplace.sourceforge.net/",
+      # TODO: Actually coverage is only required for the development reports. How to express this here?
+      install_requires = ["coverage"],
       packages = find_packages("source"),
       package_dir={"": "source"},
       # TODO: Include documentation in distribution by copying it to package folder.
