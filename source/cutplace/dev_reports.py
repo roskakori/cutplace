@@ -54,7 +54,7 @@ def createCoverageReport(targetBasePath):
     coverage.stop()
 
     # Create report.
-    coverageHtml = """
+    coverageHtml = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <html>
     <head>
         <title>Cutplace Test Coverage</title>
