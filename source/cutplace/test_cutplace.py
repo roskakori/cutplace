@@ -40,8 +40,20 @@ class CutplaceTest(unittest.TestCase):
             cutPlace = cutplace.CutPlace()
             cutPlace.setOptions([icdPath, dataPath])
             # TODO: Assert number of errors detected in dataPath is 0.
+
+class LotsOfCustomersTest(unittest.TestCase):
+    """Test case for performance profiling."""
+
+    def testLotsOfCustomersCsv(self):
+        icdOdsPath = os.path.join(tools.getTestFolder("input"), "icds", "customers.ods")
+        locCsvPath = tools.getTestFile("input", "lots_of_customers.csv")
+        cutPlace = cutplace.CutPlace()
+        cutPlace.setOptions([icdOdsPath, locCsvPath])
+        cutPlace.validate()
+        # TODO: Assert number of errors detected in dataPath is 0.
+        
         
 if __name__ == '__main__':
     logging.basicConfig()
-    logging.getLogger("cutplace").setLevel(logging.INFO)
+    logging.getLogger("cutplace").setLevel(logging.WARNING)
     unittest.main()

@@ -11,11 +11,12 @@ from datetime import timedelta, datetime
 def getTestFolder(folder):
     """Path of "folder" in tests folder."""
     assert folder
-    if len(sys.argv) == 2:
-        baseFolder = sys.argv[1]
-    else:
-        baseFolder = os.getcwd()
-    testFolder = os.path.join(baseFolder, "tests")
+    
+    # Try current directory.
+    testFolder = os.path.join(os.getcwd(), "tests")
+    if not os.path.exists(testFolder) and (len(sys.argv) == 2):
+        # Try the one and only command line option.
+        testFolder = os.path.join(sys.argv[1], "tests")
     if not os.path.exists(testFolder):
         raise IOError("cannot find test folder: test must run from project folder or project folder must be passed as command line option; currently attempting to find test folder in: %r" % testFolder)
     result = os.path.join(testFolder, folder)

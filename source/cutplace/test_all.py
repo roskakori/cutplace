@@ -10,10 +10,7 @@ import test_tools
 import test_web
 import unittest
 
-if __name__ == '__main__':
-    logging.basicConfig()
-    logging.getLogger("cutplace").setLevel(logging.WARNING)
-    
+def main():
     loader = unittest.TestLoader()
     
     # TODO: Automatically discover test cases.
@@ -36,3 +33,8 @@ if __name__ == '__main__':
                         ]:
         suite = loader.loadTestsFromTestCase(testCaseClass)
         unittest.TextTestRunner(verbosity=2).run(suite)
+    
+if __name__ == '__main__':
+    logging.basicConfig()
+    logging.getLogger("cutplace").setLevel(logging.WARNING)
+    main()
