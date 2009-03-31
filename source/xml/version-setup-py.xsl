@@ -40,9 +40,9 @@ thinking. It acts as "executable specification" that cutplace can use to validat
       classifiers = [
           "Development Status :: 3 - Alpha",
           "Environment :: Console",
+          "Environment :: Web Environment",
           "Intended Audience :: Developers",
           "Intended Audience :: Financial and Insurance Industry",
-          "Intended Audience :: Healthcare Industry",
           "Intended Audience :: Information Technology",
           "License :: OSI Approved :: GNU General Public License (GPL)",
           "Natural Language :: English",
