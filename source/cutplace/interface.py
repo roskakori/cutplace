@@ -177,7 +177,7 @@ class InterfaceControlDocument(object):
             icdFile = icdFilePath
         try:
             icdHeader = icdFile.read(4)
-            print "icdHeader=%r" % icdHeader
+            self._log.debug("icdHeader=%r" % icdHeader)
             icdFile.seek(0)
             isOds = icdHeader == InterfaceControlDocument._ODS_HEADER
             if isOds:
