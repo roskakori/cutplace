@@ -10,7 +10,10 @@ import os
 import pstats
 import StringIO
 import sys
+import tools
 import unittest
+
+_log = logging.getLogger("cutplace.dev_reports")
 
 def _testLotsOfCustomers():
     import test_cutplace
@@ -18,6 +21,18 @@ def _testLotsOfCustomers():
     suite = loader.loadTestsFromTestCase(test_cutplace.LotsOfCustomersTest)
     unittest.TextTestRunner(verbosity=2).run(suite)
 
+def _getSourceFolder():
+    return os.path.join("source", "cutplace")
+
+def _listdirPythonSource():
+    return tools.listdirMatching(_getSourceFolder(), ".*\\.py")
+
+def _addToKeyList(map, key, valueToAdd):
+    if map.has_key(key):
+        map[key].append(valueToAdd)
+    else:
+        map[key] = [valueToAdd]
+        
 def createProfilerReport(targetBasePath):
     assert targetBasePath is not None
     
@@ -32,6 +47,57 @@ def createProfilerReport(targetBasePath):
     finally:
         targetReportFile.close()
 
+def createTaskReport(targetBasePath):
+    assert targetBasePath is not None
+    TASK_IDS = ["FIXME", "TODO", "HACK"]
+    
+    taskHtmlPath = os.path.join(targetBasePath, "tasks.html")
+    _log.info("write %r" % taskHtmlPath)
+
+    modulePaths = [os.path.join(_getSourceFolder(), fileName) for fileName in _listdirPythonSource()]
+    taskTypeToTexts = {}
+    taskTypeCount = {}
+    # Collect tasks in module source codes
+    for modulePath in modulePaths:
+        moduleFile = open(modulePath, "r")
+        try:
+            for line in moduleFile:
+                for taskId in [id + ":" for id in TASK_IDS]:
+                    taskIdIndex = line.find(taskId)
+                    if taskIdIndex >= 0:
+                        taskType = line[taskIdIndex:taskIdIndex + len(taskId) - 1]
+                        taskText = line[taskIdIndex + len(taskId):].strip()
+                        _addToKeyList(taskTypeToTexts, taskType, taskText)
+                        _log.debug("%s::%s" % (taskType, taskText))
+        finally:
+            moduleFile.close()
+    # Render HTML report.
+    taskHtml = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+    <head>
+        <title>Cutplace Tasks</title>
+    </head>
+    <body>
+        <h1>Cutplace Tasks</h1>
+        <table>"""
+    for taskType in TASK_IDS:
+        if taskTypeToTexts.has_key(taskType):
+            taskTexts = taskTypeToTexts[taskType]
+            taskHtml += "            <h2>%s</h2>" % cgi.escape(taskType)
+            taskHtml += "            <table>"
+            for taskText in taskTexts:
+                # TODO: Add source location
+                taskHtml += "            <tr><td>%s</td></tr>" % cgi.escape(taskText)
+            taskHtml += "            </table>"
+    taskHtml += """    </body>
+</html>"""
+    # Write task report.
+    taskHtmlFile = open(taskHtmlPath, "w")
+    try:
+        taskHtmlFile.write(taskHtml)
+    finally:
+        taskHtmlFile.close()
+    
 def createCoverageReport(targetBasePath):
     # Collect coverage data.
     print "collecting coverage data"
@@ -40,7 +106,7 @@ def createCoverageReport(targetBasePath):
     import tools
     modules = []
     # Note: in order for this to work the script must run from project folder.
-    moduleFilesNames = tools.listdirMatching(os.path.join("source", "cutplace"), ".*\\.py")
+    moduleFilesNames = _listdirPythonSource()
     # Strip folder and extension from names
     moduleNames = [os.path.splitext(os.path.split(fileName)[1])[0] for fileName in moduleFilesNames]
     # FIXME: Figure out why we have duplicats and remove the hack below.
@@ -107,6 +173,7 @@ if __name__ == '__main__':
     if len(others) == 1:
         baseFolder = others[0]
         createCoverageReport(baseFolder)
+        createTaskReport(baseFolder)
     else:
         sys.stderr.write("%s%s" % ("target folder for reports must be specified", os.linesep))
         sys.exit(1)
