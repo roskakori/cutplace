@@ -11,8 +11,23 @@ LF = "\n"
 CRLF = CR + LF
 _VALID_LINE_DELIMITERS = [AUTO, CR, CRLF, LF]
 
+def parserReader(parser):
+    """Generator yielding the readable of parser row by row."""
+    assert parser is not None
+    columns = []
+    while not parser.atEndOfFile:
+        if parser.item is not None:
+            columns.append(parser.item)
+        if parser.atEndOfLine:
+            yield columns
+            columns = []
+        parser.advance()
+
 def delimitedReader(readable, dialect):
     """Generator yielding the "readable" row by row using "dialect"."""
+    assert readable is not None
+    assert dialect is not None
+    
     parser = DelimitedParser(readable, dialect)
     columns = []
     while not parser.atEndOfFile:
@@ -23,9 +38,14 @@ def delimitedReader(readable, dialect):
             columns = []
         parser.advance()
 
-def parserReader(parser):
-    """Generator yielding the readable of parser row by row."""
-    assert parser is not None
+def fixedReader(readable, fieldLengths):
+    """Generator yielding the "readable" row by row using "fieldLengths"."""
+    assert readable is not None
+    assert fieldLengths
+    assert len(fieldLengths) > 0
+    
+    parser = FixedParser(readable, fieldLengths)
+    # parserReader(parser)
     columns = []
     while not parser.atEndOfFile:
         if parser.item is not None:
@@ -49,6 +69,7 @@ class DelimitedDialect(object):
         self.blanksAroundItemDelimiter = " \t"
         # FIXME: Add setter for quoteChar to validate that len == 1 and quoteChar != line- or itemDelimiter.
 
+# TODO: Rename to ParserSyntaxError.
 class DelimitedSyntaxError(Exception):
     """Error detecting while parsing delimited data."""
     def __init__(self, message, lineNumber, itemNumberInLine, columnNumberInLine):
@@ -287,3 +308,46 @@ class OdsParser(DelimitedParser):
         except:
             self._removeCsvTempTargetFile
 
+class FixedParser(object):
+    def __init__(self, readable, fieldLengths):
+        assert readable is not None
+        assert fieldLengths is not None
+        assert len(fieldLengths) > 0
+        
+        self.readable = readable
+        self.fieldLengths = fieldLengths
+        self.itemNumberInRow = - 1
+        self.columnNumberInRow = 0
+        self.rowNumber = 0
+        self.atEndOfLine = False
+        self.atEndOfFile = False
+        self.item = 0
+        self.advance()
+        
+    def _raiseSyntaxError(self, message):
+        assert message is not None
+        raise DelimitedSyntaxError(message, self.rowNumber, self.itemNumberInRow, self.columnNumberInRow)
+    
+    def advance(self):
+        assert not self.atEndOfFile
+        
+        if self.atEndOfLine:
+            self.itemNumberInRow = 0
+            self.columnNumberInRow = 0
+            self.rowNumber += 1
+            self.atEndOfLine = False
+        else:
+            self.itemNumberInRow += 1
+        expectedLength = self.fieldLengths[self.itemNumberInRow]
+        self.item = self.readable.read(expectedLength)
+        if (self.item == "") and (self.itemNumberInRow == 0):
+            self.item = None
+            self.atEndOfLine = True
+            self.atEndOfFile = True
+        else: 
+            actualLength = len(self.item)
+            if actualLength != expectedLength:
+                self._raiseSyntaxError("item must have %d characters but data already end after %d yielding: %r" % (expectedLength, actualLength, self.item))
+            self.columnNumberInRow += actualLength
+            if self.itemNumberInRow == len(self.fieldLengths) - 1:
+                self.atEndOfLine = True

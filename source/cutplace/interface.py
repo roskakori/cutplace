@@ -1,5 +1,6 @@
 """Interface control document (IDC) describing all aspects of a data driven interface."""
 import checks
+import codecs
 import data
 import fields
 import logging
@@ -34,7 +35,8 @@ class InterfaceControlDocument(object):
     _ID_DATA_FORMAT = "d"
     _ID_FIELD_RULE = "f"
     _VALID_IDS = [_ID_CONSTRAINT, _ID_DATA_FORMAT, _ID_FIELD_RULE]
-    
+    # Header used byzipped ODS content.
+    _ODS_HEADER = "PK\x03\x04"
     def __init__(self):
         self._log = logging.getLogger("cutplace")
         self.dataFormat = None
@@ -126,6 +128,10 @@ class InterfaceControlDocument(object):
                             fieldRule = ""
             else:
                 fieldRule = ""
+            if self.dataFormat == data.FORMAT_FIXED:
+                if fieldLength is None:
+                    raise fields.FieldSyntaxError("field length must be specified with fixed data format")
+                # FIXME: Validate that field length is fixed size.
             fieldClass = self._createFieldFormatClass(fieldType);
             self._log.debug("create field: %s(%r, %r, %r)" % (fieldClass.__name__, fieldName, fieldType, fieldRule))
             fieldFormat = fieldClass.__new__(fieldClass, fieldName, fieldIsAllowedToBeEmpty, fieldLength, fieldRule)
@@ -163,16 +169,17 @@ class InterfaceControlDocument(object):
         else:
             raise checks.CheckSyntaxError("check row (marked with %r) must contain at least 2 columns" % InterfaceControlDocument._ID_FIELD_RULE)
 
-    def read(self, icdFilePath):
-        # TODO: Allow to specify encoding.
+    def read(self, icdFilePath, encodingName="iso-8859-1"):
         needsOpen = isinstance(icdFilePath, types.StringTypes)
         if needsOpen:
             icdFile = open(icdFilePath, "rb")
-            isOds = (os.path.splitext(icdFilePath)[1].lower() == ".ods")
         else:
             icdFile = icdFilePath
-            isOds = False
         try:
+            icdHeader = icdFile.read(4)
+            print "icdHeader=%r" % icdHeader
+            icdFile.seek(0)
+            isOds = icdHeader == InterfaceControlDocument._ODS_HEADER
             if isOds:
                 parser = parsers.OdsParser(icdFile)
             else:
@@ -185,7 +192,7 @@ class InterfaceControlDocument(object):
             reader = parsers.parserReader(parser)
             for row in reader:
                 lineNumber = parser.lineNumber
-                self._log.debug("parse icd line%5d: %s" % (lineNumber, str(row)))
+                self._log.debug("parse icd line%5d: %r" % (lineNumber, row))
                 if len(row) >= 1:
                     rowId = str(row[0]).lower() 
                     if rowId == InterfaceControlDocument._ID_CONSTRAINT:
@@ -195,7 +202,7 @@ class InterfaceControlDocument(object):
                     elif rowId == InterfaceControlDocument._ID_FIELD_RULE:
                         self.addFieldFormat(row[1:])
                     elif rowId.strip():
-                        raise ValueError("first row in line %d is %r but must be empty or one of: %r" % (lineNumber, row[0], InterfaceControlDocument._VALID_IDS))
+                        raise ValueError("first item in row %d is %r but must be empty or one of: %r" % (lineNumber, row[0], InterfaceControlDocument._VALID_IDS))
         finally:
             if needsOpen:
                 icdFile.close()
@@ -210,73 +217,84 @@ class InterfaceControlDocument(object):
         assert dataFileToValidatePath is not None
         self._log.info("validate \"%s\"" % (dataFileToValidatePath))
         
-        # TODO: Clean up lower(), it should be called at a more appropriate place such as a property setter.
-        if self.dataFormat.getName() == data.FORMAT_CSV:
+        if self.dataFormat.getName() in [data.FORMAT_CSV, data.FORMAT_FIXED]:
             needsOpen = isinstance(dataFileToValidatePath, types.StringTypes)
             if needsOpen:
                 dataFile = open(dataFileToValidatePath, "rb")
             else:
                 dataFile = dataFileToValidatePath
-            try:
+            dataReader = self.dataFormat.getEncoding().streamreader(dataFile)
+        else:
+            raise NotImplementedError("data format: %r" + self.dataFormat.getName())
+
+        try:
+            if self.dataFormat.getName() == data.FORMAT_CSV:
                 dialect = parsers.DelimitedDialect()
                 dialect.lineDelimiter = self.dataFormat.getLineDelimiter()
                 dialect.itemDelimiter = self.dataFormat.getItemDelimiter()
                 # FIXME: Obtain quote char from ICD.
                 dialect.quoteChar = "\""
-                reader = parsers.delimitedReader(dataFile, dialect)
-                rowNumber = 0
-                for row in reader:
-                    itemIndex = 0
-                    rowNumber += 1
-                    rowMap = {}
-                    try:
-                        # Validate all columns and collect their values in rowMap.
-                        while itemIndex < len(row):
-                            item = row[itemIndex]
-                            fieldFormat = self.fieldFormats[itemIndex]
-                            fieldFormat.validateEmpty(item)
-                            fieldFormat.validateLength(item)
-                            rowMap[fieldFormat.fieldName] = fieldFormat.validate(item) 
-                            itemIndex += 1
-                        if itemIndex != len(row):
-                            raise fields.FieldValueError("unexpected data must be removed beginning at item %d" % (itemIndex))
-                        # Validate row checks.
-                        for description, check in self.checkDescriptions.items():
-                            try:
-                                check.checkRow(rowNumber, rowMap)
-                            except checks.CheckError, message:
-                                raise checks.CheckError("row check failed: %r: %s" % (check.description, message))
-                        self._log.info("accepted: " + str(row))
-                        for listener in self.icdEventListeners:
-                            listener.acceptedRow(row)
-                    except:
-                        # Handle failed check and other errors.
-                        # FIXME: Handle only errors based on CutplaceError here.
-                        if isinstance(sys.exc_info()[1], (fields.FieldValueError)):
-                            fieldName = self.fieldNames[itemIndex]
-                            reason = "field %r does not match format: %s" % (fieldName, sys.exc_info()[1])
-                        else:
-                            reason = sys.exc_info()[1]
-                        self._log.error("rejected: %s" % row)
-                        self._log.error(reason, exc_info=self.logTrace)
-                        for listener in self.icdEventListeners:
-                            listener.rejectedRow(row, reason)
-                            
-                # Validate checks at end of data.
-                for description, check in self.checkDescriptions.items():
-                    try:
-                        self._log.debug("checkAtEnd: %r" % (check))
-                        check.checkAtEnd()
-                    except checks.CheckError, message:
-                        reason = "check at end of data failed: %r: %s" % (check.description, message)
-                        self._log.error(reason)
-                        for listener in self.icdEventListeners:
-                            listener.checkAtEndFailed(reason)
-            finally:
-                if needsOpen:
-                    dataFile.close()
-        else:
-            raise NotImplementedError("data format:" + str(self.dataFormat.getName()))
+                reader = parsers.parserReader(parsers.DelimitedParser(dataFile, dialect))
+            elif self.dataFormat.getName() == data.FORMAT_FIXED:
+                fieldLengths = []
+                for fieldFormat in self.fieldFormats:
+                    fieldLengths.append(long(fieldFormat.length[0]))
+                reader = parsers.parserReader(parsers.FixedParser(dataFile, fieldLengths))
+            else:
+                raise NotImplementedError("data format: %r" + self.dataFormat.getName())
+            # TODO: Replace rowNumber by position in parser.
+            rowNumber = 0
+            for row in reader:
+                itemIndex = 0
+                rowNumber += 1
+                rowMap = {}
+                try:
+                    # Validate all columns and collect their values in rowMap.
+                    while itemIndex < len(row):
+                        item = row[itemIndex]
+                        fieldFormat = self.fieldFormats[itemIndex]
+                        fieldFormat.validateEmpty(item)
+                        fieldFormat.validateLength(item)
+                        rowMap[fieldFormat.fieldName] = fieldFormat.validate(item) 
+                        itemIndex += 1
+                    if itemIndex != len(row):
+                        raise fields.FieldValueError("unexpected data must be removed beginning at item %d" % (itemIndex))
+                    # Validate row checks.
+                    for description, check in self.checkDescriptions.items():
+                        try:
+                            check.checkRow(rowNumber, rowMap)
+                        except checks.CheckError, message:
+                            raise checks.CheckError("row check failed: %r: %s" % (check.description, message))
+                    self._log.info("accepted: " + str(row))
+                    for listener in self.icdEventListeners:
+                        listener.acceptedRow(row)
+                except:
+                    # Handle failed check and other errors.
+                    # FIXME: Handle only errors based on CutplaceError here.
+                    if isinstance(sys.exc_info()[1], (fields.FieldValueError)):
+                        fieldName = self.fieldNames[itemIndex]
+                        reason = "field %r does not match format: %s" % (fieldName, sys.exc_info()[1])
+                    else:
+                        reason = sys.exc_info()[1]
+                    self._log.error("rejected: %s" % row)
+                    self._log.error(reason, exc_info=self.logTrace)
+                    for listener in self.icdEventListeners:
+                        listener.rejectedRow(row, reason)
+                        
+        finally:
+            if needsOpen:
+                dataFile.close()
+
+        # Validate checks at end of data.
+        for description, check in self.checkDescriptions.items():
+            try:
+                self._log.debug("checkAtEnd: %r" % (check))
+                check.checkAtEnd()
+            except checks.CheckError, message:
+                reason = "check at end of data failed: %r: %s" % (check.description, message)
+                self._log.error(reason)
+                for listener in self.icdEventListeners:
+                    listener.checkAtEndFailed(reason)
         
     def addIcdEventListener(self, listener):
         assert listener is not None
@@ -287,4 +305,3 @@ class InterfaceControlDocument(object):
         assert listener is not None
         assert listener in self.icdEventListeners
         self.icdEventListeners.remove(listener)
-        

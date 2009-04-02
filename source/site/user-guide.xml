@@ -1762,7 +1762,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
 
       <para>This should result in the following output:</para>
 
-      <literallayout><computeroutput>INFO:cutplace.server:cutplace/0.2.0
+      <literallayout><computeroutput>INFO:cutplace.server:cutplace
 INFO:cutplace.server:Visit &lt;<ulink url="http://localhost:8778/">http://localhost:8778/</ulink>&gt; to connect
 INFO:cutplace.server:Press Control-C to shut down
 </computeroutput></literallayout>
@@ -1823,8 +1823,13 @@ INFO:cutplace.server:Press Control-C to shut down
         </listitem>
 
         <listitem>
+          <para><filename>source/cutplace/dev_*.py</filename> are Python
+          modules useful only during development</para>
+        </listitem>
+
+        <listitem>
           <para><filename>source/cutplace/test_*.py</filename> are test cases
-          for unittest.</para>
+          for unittest</para>
         </listitem>
 
         <listitem>
@@ -2079,6 +2084,34 @@ BUILD SUCCESSFUL</computeroutput>
 
     <para>This chapter describes improvements compared to earlier versions of
     cutplace.</para>
+
+    <section>
+      <title>Version 0.2.2, xx-Apr-2009</title>
+
+      <itemizedlist>
+        <listitem>
+          <para>Added support to use data enodings other than ASCII by
+          specifying them in the data format section of the ICD using the
+          encoding property.</para>
+        </listitem>
+
+        <listitem>
+          <para>Added support for fixed data format.</para>
+        </listitem>
+
+        <listitem>
+          <para>Added command line option <userinput>--browse</userinput> to
+          be used together with <userinput>--web</userinput> in order to open
+          the validation page in the web browser.</para>
+        </listitem>
+
+        <listitem>
+          <para>Added command line option
+          <userinput>--icd-encoding</userinput> to specify the character
+          endcoding to be used with ICDs in CSV format.</para>
+        </listitem>
+      </itemizedlist>
+    </section>
 
     <section id="v0.2.1">
       <title>Version 0.2.1, 29-Mar-2009</title>

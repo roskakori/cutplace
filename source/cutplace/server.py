@@ -1,13 +1,20 @@
 """Webserver to provide a simple GUI for cutplace."""
 import cgi
 import BaseHTTPServer
+import errno
 import interface
 import logging
 import select
 import StringIO
 import sys
+import threading
+import time
 import tools
+import urllib
 import version
+import webbrowser
+
+# TODO: Rename server.py to web.py.
 
 """Default port the web server will use unless specified otherwise.
 According to <http://www.iana.org/assignments/port-numbers>,
@@ -222,12 +229,60 @@ Platform: %s</p>
             log.error(errorMessage)
             self.send_error(400, "%s." % cgi.escape(errorMessage))
 
-def main(port=DEFAULT_PORT):
+class WaitForServerToBeReadyThread(threading.Thread):
+    """Thread to wait for server to be ready."""
+    def __init__(self, group=None, target=None, name=None,
+                 args=(), kwargs=None, verbose=None):
+        super(WaitForServerToBeReadyThread, self).__init__(group, target, name, args, kwargs, verbose)
+        self.site = None
+        self.maxRetries = 100
+        self.delayBetweenRetryInSeconds = 0.2
+        self.siteAvailable = False
+
+    def run(self):
+        assert self.site is not None
+        assert self.maxRetries > 0
+        assert self.delayBetweenRetryInSeconds > 0
+
+        log = logging.getLogger("cutplace.server.wait")
+        self.siteAvailable = False
+        retries = 0
+        log.info("wait for server to be ready")
+        while not self.siteAvailable and (retries < self.maxRetries):
+            try:
+                # Attemp to open the validaton form.
+                # Use no proxies because it is a local-only connecton anyway.
+                urllib.urlopen(self.site, proxies={}).close()
+                self.siteAvailable = True
+            except IOError:
+                log.error("cannot find server yet, retry=%d/%d" % (retries, self.maxRetries), exc_info=1)
+                time.sleep(self.delayBetweenRetryInSeconds)
+                retries += 1
+    
+class OpenBrowserThread(WaitForServerToBeReadyThread):
+    """Thread to open the cutplace's validation form in the web browser."""
+    def run(self):
+        super(OpenBrowserThread, self).run()
+
+        log = logging.getLogger("cutplace.browser")
+        if self.siteAvailable:
+            log.info("open web browser")
+            webbrowser.open(self.site)
+        else:
+            log.warning("cannot find server at <%s>, giving up; try to connect manually" % self.site)
+
+def main(port=DEFAULT_PORT, isOpenBrowser=False):
     log = logging.getLogger("cutplace.server")
 
     httpd = BaseHTTPServer.HTTPServer(("", port), Handler)
+    site = "http://localhost:%d/" % port
     log.info(_SERVER_VERSION)
-    log.info("Visit <http://localhost:%d/> to connect" % port)
+    log.debug("site=%r, isOpenBrowser=%r" % (site, isOpenBrowser))
+    if isOpenBrowser:
+        browserOpener = OpenBrowserThread()
+        browserOpener.site = site
+        browserOpener.start()
+    log.info("Visit <%s> to connect" % site)
     log.info("Press Control-C to shut down")
     try:
         httpd.serve_forever()

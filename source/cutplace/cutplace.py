@@ -74,21 +74,26 @@ class CutPlace(object):
     validate DATA-FILE(S) according to rules specified in ICD-FILE"""
 
         parser = NoExitOptionParser(usage=usage, version="%prog " + version.VERSION_NUMBER)
-        parser.set_defaults(logLevel="info", port=server.DEFAULT_PORT)
+        parser.set_defaults(icdEncoding="iso-8859-1", isLogTrace=False, isOpenBrowser=False, logLevel="info", port=server.DEFAULT_PORT)
         parser.add_option("--list-encodings", action="store_true", dest="isShowEncodings", help="show list of available character encodings and exit")
         parser.add_option("-t", "--trace", action="store_true", dest="isLogTrace", help="include Python stack in error messages related to data")
+        parser.add_option("-e", "--icd-enoding", metavar="ENCODING", dest="icdEncoding", help="character encoding to use when reading the ICD (default: %default)")
         parser.add_option("--log", metavar="LEVEL", type="choice", choices=CutPlace._LOG_LEVEL_MAP.keys(), dest="logLevel", help="set log level to LEVEL (default: %default)")
         webGroup = optparse.OptionGroup(parser, "Web options", "Provide a  GUI for validation using a simple web server")
         webGroup.add_option("-w", "--web", action="store_true", dest="isWebServer", help="launch web server")
         webGroup.add_option("-p", "--port", metavar="PORT", type="int", dest="port", help="port for web server (default: %default)")
+        webGroup.add_option("-b", "--browse", action="store_true", dest="isOpenBrowser", help="open validation page in browser")
         parser.add_option_group(webGroup)
         
         (self.options, others) = parser.parse_args(argv)
 
         self._log.setLevel(CutPlace._LOG_LEVEL_MAP[self.options.logLevel])
+        self.isLogTrace = self.options.isLogTrace
+        self.isOpenBrowser = self.options.isOpenBrowser
         self.isShowEncodings = self.options.isShowEncodings
-        self.port = self.options.port
         self.isWebServer = self.options.isWebServer
+        self.port = self.options.port
+        
 
         if not self.isShowEncodings and not self.isWebServer:
             if len(others) >= 1:
@@ -139,7 +144,7 @@ def main():
     if cutPlace.isShowEncodings:
         cutPlace._printAvailableEncodings()
     elif cutPlace.isWebServer:
-        server.main(cutPlace.port)
+        server.main(cutPlace.port, cutPlace.isOpenBrowser)
     elif cutPlace.dataToValidatePaths:
         for path in cutPlace.dataToValidatePaths:
             cutPlace.icd.validate(path)
