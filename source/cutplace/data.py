@@ -2,6 +2,7 @@
 import codecs
 import logging
 import string
+import tools
 
 ANY = "any"
 CR = "cr"
@@ -54,13 +55,13 @@ def isFormatKey(key):
     """True if key matches KEY_FORMAT."""
     return _isKey(key, KEY_FORMAT)
 
-class DataFormatValueError(ValueError):
+class DataFormatValueError(tools.CutplaceError):
     pass
 
-class DataFormatLookupError(LookupError):
+class DataFormatLookupError(tools.CutplaceError):
     pass
 
-class DataFormatSyntaxError(SyntaxError):
+class DataFormatSyntaxError(tools.CutplaceError):
     pass
 
 class AbstractDataFormat(object):

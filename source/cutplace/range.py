@@ -5,14 +5,15 @@ particular to specify the length limits for field values.
 import StringIO
 import token
 import tokenize
+import tools
 
-class RangeSyntaxError(Exception):
+class RangeSyntaxError(tools.CutplaceError):
     """
     Error in Range declaration.
     """
     pass
 
-class RangeValueError(Exception):
+class RangeValueError(tools.CutplaceError):
     """
     Error raised when Range.validate() detects that a value is outside the expected range.
     """

@@ -2,7 +2,8 @@
 import logging
 import re
 import sys
-import  time
+import time
+import tools
 
 _ELLIPSIS = "..."
 
@@ -52,13 +53,13 @@ def parsedLongRange(name, text):
         result = (lower, upper)
     return result
 
-class FieldValueError(ValueError):
+class FieldValueError(tools.CutplaceError):
     """Error raised when AbstractFieldFormat.validate detects an error."""
 
-class FieldLookupError(LookupError):
+class FieldLookupError(tools.CutplaceError):
     """Error raised when a field cannot be found."""
 
-class FieldSyntaxError(LookupError):
+class FieldSyntaxError(tools.CutplaceError):
     """Error raised when a field definition in the ICD is broken."""
 
 class AbstractFieldFormat(object):

@@ -6,6 +6,12 @@ import re
 from random import randrange
 from datetime import timedelta, datetime
 
+class CutplaceError(Exception):
+    """
+    Error detected by cutplace caused by issues in the ICD or data.
+    """
+    pass
+
 def listdirMatching(folder, pattern):
     """Yield name of entries in folder that match regex pattern."""
     assert folder is not None
