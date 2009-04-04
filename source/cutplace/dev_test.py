@@ -75,7 +75,7 @@ def createLotsOfCustomersCsv(targetCsvPath):
     _log.info("write lots of customers to %r" % targetCsvPath)
     try:
         csvWriter = csv.writer(targetCsvFile)
-        for customerId in range(0, 10000):
+        for customerId in range(0, 1000):
             csvWriter.writerow(createTestCustomerRow(customerId))
     finally:
         targetCsvFile.close()
