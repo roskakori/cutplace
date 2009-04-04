@@ -47,7 +47,7 @@ def createProfilerReport(targetBasePath):
     finally:
         targetReportFile.close()
 
-def createTaskReport(targetBasePath):
+def createTasksReport(targetBasePath):
     assert targetBasePath is not None
     TASK_IDS = ["FIXME", "TODO", "HACK"]
     
@@ -59,15 +59,18 @@ def createTaskReport(targetBasePath):
     taskTypeCount = {}
     # Collect tasks in module source codes
     for modulePath in modulePaths:
+        moduleName = os.path.split(modulePath)[1]
         moduleFile = open(modulePath, "r")
         try:
+            lineNumber = 0
             for line in moduleFile:
+                lineNumber += 1
                 for taskId in [id + ":" for id in TASK_IDS]:
                     taskIdIndex = line.find(taskId)
                     if taskIdIndex >= 0:
                         taskType = line[taskIdIndex:taskIdIndex + len(taskId) - 1]
                         taskText = line[taskIdIndex + len(taskId):].strip()
-                        _addToKeyList(taskTypeToTexts, taskType, taskText)
+                        _addToKeyList(taskTypeToTexts, taskType, (moduleName, lineNumber, taskText))
                         _log.debug("%s::%s" % (taskType, taskText))
         finally:
             moduleFile.close()
@@ -85,9 +88,9 @@ def createTaskReport(targetBasePath):
             taskTexts = taskTypeToTexts[taskType]
             taskHtml += "            <h2>%s</h2>" % cgi.escape(taskType)
             taskHtml += "            <table>"
-            for taskText in taskTexts:
+            for (moduleName, lineNumber, taskText) in taskTexts:
                 # TODO: Add source location
-                taskHtml += "            <tr><td>%s</td></tr>" % cgi.escape(taskText)
+                taskHtml += "            <tr><td>%s</td><td>%s</td><td>%s</td></tr>" % (cgi.escape(moduleName), lineNumber, cgi.escape(taskText))
             taskHtml += "            </table>"
     taskHtml += """    </body>
 </html>"""
@@ -173,7 +176,7 @@ if __name__ == '__main__':
     if len(others) == 1:
         baseFolder = others[0]
         createCoverageReport(baseFolder)
-        createTaskReport(baseFolder)
+        createTasksReport(baseFolder)
     else:
         sys.stderr.write("%s%s" % ("target folder for reports must be specified", os.linesep))
         sys.exit(1)
