@@ -48,7 +48,7 @@ class LotsOfCustomersTest(unittest.TestCase):
     def testLotsOfCustomersCsv(self):
         icdOdsPath = dev_test.getTestIcdPath("customers.ods")
         locCsvPath = dev_test.getTestFile("input", "lots_of_customers.csv")
-        tools.createLotsOfCustomersCsv(locCsvPath)
+        dev_test.createLotsOfCustomersCsv(locCsvPath)
         cutPlace = cutplace.CutPlace()
         cutPlace.setOptions([icdOdsPath, locCsvPath])
         cutPlace.validate()
