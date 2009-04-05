@@ -1,10 +1,12 @@
-"""Cutplace utility functions."""
+"""
+Cutplace utility functions.
+"""
 import os
 import platform
 import random
 import re
-from random import randrange
 from datetime import timedelta, datetime
+from random import randrange
 
 class CutplaceError(Exception):
     """
@@ -12,8 +14,20 @@ class CutplaceError(Exception):
     """
     pass
 
+def valueOr(value, noneValue):
+    """
+    Value or noneValue in case value is None.
+    """
+    if value is None:
+        result = noneValue
+    else:
+        result = value
+    return result
+
 def listdirMatching(folder, pattern):
-    """Yield name of entries in folder that match regex pattern."""
+    """
+    Name of entries in folder that match regex pattern.
+    """
     assert folder is not None
     assert pattern is not None
     
@@ -30,7 +44,9 @@ _SURNAMES = ['Adams', 'Alexander', 'Allen', 'Alvarez', 'Anderson', 'Andrews', 'A
 
 # Based on <http://stackoverflow.com/questions/553303/generate-a-random-date-between-two-other-dates>
 def randomDatetime(startText="1900-01-01 00:00:00", endText="2009-03-15 23:59:59"):
-    """A Random datetime between two datetime objects."""
+    """
+    A Random datetime between two datetime objects.
+    """
     # TODO: Improve default time range: from (now - 120 years) to now.
     timeFormat = "%Y-%m-%d %H:%M:%S"
     start = datetime.strptime(startText, timeFormat)
@@ -62,7 +78,9 @@ def createTestName(isMale=True):
     return result
 
 def camelized(key, firstIsLower=False):
-    """Camelized name of possibly multiple words separated by blanks that can be used for variables."""
+    """
+    Camelized name of possibly multiple words separated by blanks that can be used for variables.
+    """
     assert key is not None
     assert key == key.strip(), "key must be trimmed"
     result = ""

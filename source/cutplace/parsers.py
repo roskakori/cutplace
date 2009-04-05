@@ -4,6 +4,7 @@ import logging
 import ods
 import os
 import tempfile
+import tools
 
 AUTO = data.ANY
 CR = "\r"
@@ -69,10 +70,11 @@ class DelimitedDialect(object):
         self.blanksAroundItemDelimiter = " \t"
         # FIXME: Add setter for quoteChar to validate that len == 1 and quoteChar != line- or itemDelimiter.
 
-# TODO: Rename to ParserSyntaxError.
-class DelimitedSyntaxError(Exception):
-    """Error detecting while parsing delimited data."""
-    def __init__(self, message, lineNumber, itemNumberInLine, columnNumberInLine):
+class ParserSyntaxError(tools.CutplaceError):
+    """
+    Syntax error detected while parsing the data.
+    """
+    def __init__(self, message, lineNumber=None, itemNumberInLine=None, columnNumberInLine=None):
         super(Exception, self).__init__(message)
         assert lineNumber is not None
         assert lineNumber >= 0
@@ -87,7 +89,13 @@ class DelimitedSyntaxError(Exception):
         self.columnNumberInLine = columnNumberInLine
         
     def __str__(self):
-        return "%d,%d,%d: %s" % (self.lineNumber, self.itemNumberInLine, self.columnNumberInLine, str(self.message))
+        result = "(" + tools.valueOr("%d" % (self.lineNumber + 1), "?")
+        if self.columnNumberInLine is not None:
+            result += ";%d" % self.columnNumberInLine
+        if self.itemNumberInLine is not None:
+            result += "@%d" % (self.itemNumberInLine + 1)
+        result += "): %s" % self.message
+        return result
             
 class DelimitedParser(object):
     """Parser for data where items are separated by delimiters."""
@@ -173,7 +181,7 @@ class DelimitedParser(object):
     
     def _raiseSyntaxError(self, message):
         """Raise syntax error at the current position."""
-        raise DelimitedSyntaxError(message, self.lineNumber, self.itemNumber, self.columnNumber)
+        raise ParserSyntaxError(message, self.lineNumber, self.itemNumber, self.columnNumber)
 
     def _possiblyAdvanceLine(self):
         if self.atEndOfLine:
@@ -246,7 +254,7 @@ class DelimitedParser(object):
                 else:
                     if quoted:
                         # TODO: Use start of item as position to report for error.
-                        self._raiseSyntaxError("item must be terminated with quote (%s) before file ends" % (self.quoteChar))
+                        self._raiseSyntaxError("item must be terminated with quote (%s) before data end" % (self.quoteChar))
                     self.atEndOfLine = True
                     atEndOfItem = True
                     # Handle empty line with line delimiter at end of file
@@ -316,6 +324,8 @@ class FixedParser(object):
         
         self.readable = readable
         self.fieldLengths = fieldLengths
+        # TODO: Obtain name of file to parse, if there is one.
+        self.fileName = None
         self.itemNumberInRow = - 1
         self.columnNumberInRow = 0
         self.rowNumber = 0
@@ -326,7 +336,7 @@ class FixedParser(object):
         
     def _raiseSyntaxError(self, message):
         assert message is not None
-        raise DelimitedSyntaxError(message, self.rowNumber, self.itemNumberInRow, self.columnNumberInRow)
+        raise ParserSyntaxError(message, self.rowNumber, self.itemNumberInRow, self.columnNumberInRow)
     
     def advance(self):
         assert not self.atEndOfFile
