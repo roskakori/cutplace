@@ -123,12 +123,14 @@ def _isEmptyRow(row):
             itemIndex += 1
     return result
          
-def toDocBookXml(odsFilePath, xmlTargetPath):
+def toDocBookXml(odsFilePath, xmlTargetPath, id, title):
     """
     Convert ODS file in `odsFilePath` to DocBook XML and store the result in `xmlTargetPath`.
     """
     assert odsFilePath is not None
     assert xmlTargetPath is not None
+    assert id is not None
+    assert title is not None
 
     # Convert ODS to row list.
     zipArchive = zipfile.ZipFile(odsFilePath, "r")
@@ -152,12 +154,14 @@ def toDocBookXml(odsFilePath, xmlTargetPath):
     docType = xml.dom.minidom.getDOMImplementation().createDocumentType("table", "-//OASIS//DTD DocBook XML V4.5//EN", "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd")
     dom.appendChild(docType)
     table = dom.createElement("table")
+    # TODO: Validat that `id` is valid.
+    table.setAttribute("id", id)
     dom.appendChild(table)
-    title = dom.createElement("title")
+    titleElement = dom.createElement("title")
     # TODO: Add option to specify table title.
-    titleText = dom.createTextNode("INSERT TITLE")
-    title.appendChild(titleText)
-    table.appendChild(title)
+    titleText = dom.createTextNode(title)
+    titleElement.appendChild(titleText)
+    table.appendChild(titleElement)
     tbody = dom.createElement("tbody")
     table.appendChild(tbody)
     for row in rows:
@@ -182,9 +186,11 @@ if __name__ == '__main__':
     logging.getLogger("cutplace.ods").setLevel(logging.INFO)
     usage = "usage: %prog [options] ODS-FILE OUTPUT-FILE"
     parser = optparse.OptionParser(usage)
-    parser.set_defaults(format="csv", sheet=1)
+    parser.set_defaults(format="csv", id="insert-id", sheet=1, title="Insert Title")
     parser.add_option("-f", "--format", metavar="FORMAT", type="choice", choices=_FORMATS, dest="format", help="output format: %r (default: %%default)" % _FORMATS)
+    parser.add_option("-i", "--id", metavar="ID", dest="id", help="XML ID table can be referenced with (default: %default)")
     # TODO: Implement: parser.add_option("-s", "--sheet", metavar="SHEET", type="long", dest="sheet", help="sheet to convert (default: %default)")
+    parser.add_option("-t", "--title", metavar="TITLE", dest="title", help="title to be used for XML table (default: %default)")
     options, others = parser.parse_args()
 
     # TODO: If no output file is specified, derive name from input file.
@@ -196,7 +202,7 @@ if __name__ == '__main__':
             if options.format == "csv":
                 toCsv(sourceFilePath, targetFilePath)
             elif options.format == "docbook":
-                toDocBookXml(sourceFilePath, targetFilePath)
+                toDocBookXml(sourceFilePath, targetFilePath, id=options.id, title=options.title)
             else:
                 raise NotImplementedError("format=%r" % (options.format))
         except Exception, error:
