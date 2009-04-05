@@ -12,7 +12,6 @@ class AbstractOdsContentHandler(xml.sax.ContentHandler):
     """
     Sax ContentHandler for content.xml in ODS.
     """
-    # FIXME: Read only first table.
     def __init__(self, tableToRead=1):
         assert tableToRead >= 1 
 
