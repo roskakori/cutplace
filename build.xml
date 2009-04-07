@@ -3,6 +3,7 @@
 
     <!-- Set global properties for this build. -->
     <property name="source" location="source" />
+    <property name="source-site.dir" location="${source}/site" />
     <property name="tests.dir" location="tests" />
     <property name="tests-input.dir" location="${tests.dir}/input" />
     <property name="tests-input-icds.dir" location="${tests-input.dir}/icds" />
@@ -102,6 +103,16 @@
     </target>
     
     <target name="user-guide" depends="sitebase, testdata">
+        <exec executable="python" failonerror="true">
+            <!-- FIXME: Use platform independent paths. --> 
+            <arg value="source/cutplace/ods.py" />
+            <arg value="--format=docbook" />
+            <arg value="--id=idc-csv-customers" />
+            <arg value="--title" />
+            <arg value="Example ICD for CSV data describing customers" />
+            <arg value="${tests-input-icds.dir}/customers.ods" />
+            <arg value="${source-site.dir}/icd-customers.xml" />
+        </exec>
         <xslt classpath="${external.dir}/serializer.jar:${external.dir}/xalan.jar" in="${source}/site/user-guide.xml" out="${site.dir}/index.html" style="docbook-xsl/xhtml/docbook.xsl">
             <xmlcatalog refid="catalogs" />
             <!--
