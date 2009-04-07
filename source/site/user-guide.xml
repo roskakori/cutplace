@@ -1,6 +1,21 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
-"http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+"http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ELEMENT xi:include (xi:fallback?)>
+<!ATTLIST xi:include xmlns:xi CDATA #FIXED "http://www.w3.org/2001/XInclude">
+<!ATTLIST xi:include href CDATA #REQUIRED>
+<!ATTLIST xi:include parse (xml|text) "xml">
+<!ATTLIST xi:include encoding CDATA #IMPLIED>
+<!ELEMENT xi:fallback ANY>
+<!ATTLIST xi:fallback xmlns:xi CDATA #FIXED "http://www.w3.org/2001/XInclude">
+<!-- this three lines defines, where an xi:include element could appear -->
+<!-- inside the book element -->
+<!ENTITY % local.chapter.class "| xi:include">
+<!-- inside para, programlisting, literallayout, etc. -->
+<!ENTITY % local.para.char.mix "| xi:include">
+<!-- inside bookinfo, chapterinfo, etc. -->
+<!ENTITY % local.info.class "| xi:include">
+]>
 <book id="top-of-user-guide">
   <bookinfo>
     <title>Cutplace User Guide</title>
@@ -105,7 +120,413 @@
     needs a more formal one, which can be found in <ulink
     url="icd_customers.csv">icd_customers.csv</ulink>.</para>
 
-    <para>TODO: insert table for ids_customers.csv</para>
+    <table id="idc-csv-customers">
+      <title>Example ICD for CSV data describing customers</title>
+
+      <tgroup cols="7">
+        <tbody>
+          <row>
+            <entry></entry>
+
+            <entry>Interface: customer</entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+          </row>
+
+          <row>
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+          </row>
+
+          <row>
+            <entry></entry>
+
+            <entry>Data format</entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+          </row>
+
+          <row>
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+          </row>
+
+          <row>
+            <entry>D</entry>
+
+            <entry>Format</entry>
+
+            <entry>CSV</entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+          </row>
+
+          <row>
+            <entry>D</entry>
+
+            <entry>Line delimiter</entry>
+
+            <entry>any</entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+          </row>
+
+          <row>
+            <entry>D</entry>
+
+            <entry>Item delimiter</entry>
+
+            <entry>,</entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+          </row>
+
+          <row>
+            <entry>D</entry>
+
+            <entry>Encoding</entry>
+
+            <entry>ISO-8859-1</entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+          </row>
+
+          <row>
+            <entry>D</entry>
+
+            <entry>Allowed characters</entry>
+
+            <entry>32...</entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+          </row>
+
+          <row>
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+          </row>
+
+          <row>
+            <entry></entry>
+
+            <entry>Fields</entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+          </row>
+
+          <row>
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+          </row>
+
+          <row>
+            <entry></entry>
+
+            <entry>Name</entry>
+
+            <entry>Type</entry>
+
+            <entry>Empty</entry>
+
+            <entry>Length</entry>
+
+            <entry>Rule</entry>
+
+            <entry>Example</entry>
+          </row>
+
+          <row>
+            <entry>F</entry>
+
+            <entry>branch_id</entry>
+
+            <entry>RegEx</entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry>38\d\d\d</entry>
+
+            <entry>38123</entry>
+          </row>
+
+          <row>
+            <entry>F</entry>
+
+            <entry>customer_id</entry>
+
+            <entry>Integer</entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry>0...99999</entry>
+
+            <entry>12345</entry>
+          </row>
+
+          <row>
+            <entry>F</entry>
+
+            <entry>first_name</entry>
+
+            <entry>Text</entry>
+
+            <entry>X</entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry>John</entry>
+          </row>
+
+          <row>
+            <entry>F</entry>
+
+            <entry>surname</entry>
+
+            <entry>Text</entry>
+
+            <entry></entry>
+
+            <entry>1...60</entry>
+
+            <entry></entry>
+
+            <entry>Doe</entry>
+          </row>
+
+          <row>
+            <entry>F</entry>
+
+            <entry>gender</entry>
+
+            <entry>Choice</entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry>male, female, unknown</entry>
+
+            <entry>male</entry>
+          </row>
+
+          <row>
+            <entry>F</entry>
+
+            <entry>date_of_birth</entry>
+
+            <entry>DateTime</entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry>DD.MM.YYYY</entry>
+
+            <entry>08.03.1957</entry>
+          </row>
+
+          <row>
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+          </row>
+
+          <row>
+            <entry></entry>
+
+            <entry>Checks</entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+          </row>
+
+          <row>
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+          </row>
+
+          <row>
+            <entry></entry>
+
+            <entry>Description</entry>
+
+            <entry>Type</entry>
+
+            <entry>Rule</entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+          </row>
+
+          <row>
+            <entry>C</entry>
+
+            <entry>customer must be unique</entry>
+
+            <entry>IsUnique</entry>
+
+            <entry>branch_id, customer_id</entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+          </row>
+
+          <row>
+            <entry>C</entry>
+
+            <entry>distinct branches must be within limit</entry>
+
+            <entry>DistinctCount</entry>
+
+            <entry>branch_id &lt;= 3</entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
 
     <para>Actually the description can be written in a spreadsheet application
     and later on be exported to CSV. This allows to make the specification
@@ -2086,7 +2507,7 @@ BUILD SUCCESSFUL</computeroutput>
     cutplace.</para>
 
     <section>
-      <title>Version 0.2.2, xx-Apr-2009</title>
+      <title>Version 0.2.2, 07-Apr-2009</title>
 
       <itemizedlist>
         <listitem>
