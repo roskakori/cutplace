@@ -161,6 +161,7 @@ def toDocBookXml(odsFilePath, xmlTargetPath, id, title):
     titleText = dom.createTextNode(title)
     titleElement.appendChild(titleText)
     table.appendChild(titleElement)
+    # FIXME: Embed <tbody> in <tgroup cols="...">.
     tbody = dom.createElement("tbody")
     table.appendChild(tbody)
     for row in rows:
