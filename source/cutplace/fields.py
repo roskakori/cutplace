@@ -147,8 +147,7 @@ class IntegerFieldFormat(AbstractFieldFormat):
 class DateTimeFieldFormat(AbstractFieldFormat):
     # We can't use a dictionary here because checks for patterns need to be in order. In
     # particular, YYYY needs to be checked before YY.
-    # FIXME: Add "%:%%" to escape percent sign.
-    _humanReadableToStrptimeMap = ["DD:%d", "MM:%m", "YYYY:%Y", "YY:%y", "hh:%H", "mm:%M", "ss:%S"]
+    _humanReadableToStrptimeMap = ["%:%%", "DD:%d", "MM:%m", "YYYY:%Y", "YY:%y", "hh:%H", "mm:%M", "ss:%S"]
     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule):
         super(DateTimeFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule)
         self.humanReadableFormat = rule

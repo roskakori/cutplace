@@ -44,6 +44,11 @@ class DateTimeFieldFormatTest(unittest.TestCase):
         # FIXME: Raise FieldValueError for the following value due lack of leading zeros.
         format.validate("2000-1-1")
 
+    def testPercentSign(self):
+        format = fields.DateTimeFieldFormat("x", False, None, "%YYYY-MM-DD")
+        format.validate("%2000-01-01")
+
+
 class IntegerFieldFormatTest(unittest.TestCase):
     """Tests  for IntegerFieldFormat."""
     def testWithinRange(self):
