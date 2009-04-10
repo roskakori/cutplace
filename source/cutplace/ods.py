@@ -148,6 +148,13 @@ def toDocBookXml(odsFilePath, xmlTargetPath, id, title):
         rowCount -= 1
         del rows[rowCount]
 
+    # Find out the maximum number of columns per row.
+    maxColumnCount = 0
+    for row in rows:
+        columnCount = len(row)
+        if columnCount > maxColumnCount:
+            maxColumnCount = columnCount
+
     # Create DOM.
     dom = xml.dom.minidom.Document()
     docType = xml.dom.minidom.getDOMImplementation().createDocumentType("table", "-//OASIS//DTD DocBook XML V4.5//EN", "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd")
@@ -161,9 +168,11 @@ def toDocBookXml(odsFilePath, xmlTargetPath, id, title):
     titleText = dom.createTextNode(title)
     titleElement.appendChild(titleText)
     table.appendChild(titleElement)
-    # FIXME: Embed <tbody> in <tgroup cols="...">.
+    tgroupElement = dom.createElement("tgroup")
+    tgroupElement.setAttribute("cols", str(maxColumnCount))
+    table.appendChild(tgroupElement)
     tbody = dom.createElement("tbody")
-    table.appendChild(tbody)
+    tgroupElement.appendChild(tbody)
     for row in rows:
         rowElement = dom.createElement("row")
         tbody.appendChild(rowElement)
@@ -207,6 +216,7 @@ if __name__ == '__main__':
                 raise NotImplementedError("format=%r" % (options.format))
         except Exception, error:
             logging.getLogger("cutplace.ods").error("cannot convert ods to csv: %s" % str(error), exc_info=1)
+            sys.exit(1)
     else:
         sys.stderr.write("%s%s" % ("ODS-FILE and OUTPUT-FILE must be specified", os.linesep))
         sys.exit(1)
