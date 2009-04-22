@@ -2,13 +2,212 @@
 Tests for parsers.
 """
 import logging
+import os
 import parsers
 import StringIO
+import tools
 import types
 import unittest
 
 _log = logging.getLogger("cutplace.parsers")
 
+class CsvSyntaxError(tools.CutplaceError):
+    pass
+
+class CsvTokenizer(object):
+    # Token types
+    QUOTE = 1
+    ITEM = 2
+    ITEM_DELIMITER = 3
+    LINE_DELIMITER = 4
+    END_OF_DATA = 0
+    
+    # Tokenizer states.
+    _AFTER_QUOTE_BEFORE_ITEM = 1
+    _AFTER_ITEM = 2
+    _AFTER_ITEM_DELIMITER = 3
+    
+    def __init__(self, readable, dialect):
+        assert readable is not None
+        assert dialect is not None
+        self.readable = readable
+        self.dialect = dialect
+        self.state = CsvTokenizer._AFTER_ITEM_DELIMITER
+        self.itemEndsWithQuote = False
+        self.token = None
+        self.nextToken = None
+        self.lastRead = None
+        self.lineNumber = 1
+        self.columNumber = 1
+        self._log = logging.getLogger("cutplace.parsers.CsvTokenizer")
+        
+        # Read first token
+        self._read()
+        self.advance()
+        
+    def _isAtEndOfLineMark(self, some):
+        assert some is not None
+        return (some == self.dialect.lineDelimiter) or ((self.dialect.lineDelimiter == parsers.AUTO) and some in ["\n", "\r", "\r\n"])
+        
+    def _read(self):
+        self.lastRead = self.readable.read(1)
+        if self.lastRead == "\r":
+            charAfterCr = self.readable.read(1)
+            if charAfterCr == "\n":
+                self.lastRead += charAfterCr
+            elif charAfterCr:
+                self.readable.seek(-1, os.SEEK_CUR)
+        if self._isAtEndOfLineMark(self.lastRead):
+            # Advance line and reset column.
+            self.lineNumber += 1
+            self.columNumber = 1
+        else:
+            # Advance column.
+            self.columNumber += len(self.lastRead)
+        
+    def _skipSpace(self):
+        if self.lastRead and self.lastRead in self.dialect.blanksAroundItemDelimiter:
+            self._log.debug("skip space: %r" % self.lastRead)
+            self._read()
+            
+    def atEndOfData(self):
+        return self.token[0] == CsvTokenizer.END_OF_DATA
+
+    def advance(self):
+        """
+        Advance 1 token and update `token` accordingly.
+        
+        `self.token` is a tuple containing an (ID, data, (start line, start column), (end line, end column), `None`).
+        Possible IDs are: `QUOTE,` `ITEM`, `ITEM_DELIMITER`, `LINE_DELIMITER` and `END_OF_DATA`.
+        
+        If `readable` does not contain any more data, `token` is ``(END_OF_DATA, None)``. Further
+        attempts to call `advance()` will result in an `AssertionError`.
+        """
+        assert self.token == None or (self.token[0] != CsvTokenizer.END_OF_DATA)
+        token = None
+        startLocation = (self.lineNumber, self.columNumber)
+        endLocation = None
+        if self.nextToken is not None:
+            token = self.nextToken
+            self.nextToken = None
+        elif self.lastRead == "":
+            token = (CsvTokenizer.END_OF_DATA, None)
+        elif self.state == CsvTokenizer._AFTER_QUOTE_BEFORE_ITEM:
+            tokenText = ""
+            while self.state == CsvTokenizer._AFTER_QUOTE_BEFORE_ITEM:
+                if self.lastRead == "":
+                    # Item ends because data end.
+                    if self.itemEndsWithQuote:
+                        raise CsvSyntaxError("quoted item must be closed with a quote (%r)" % dialect.quoteChar)
+                    self.state = CsvTokenizer._AFTER_ITEM
+                elif self.itemEndsWithQuote and (self.lastRead == dialect.quoteChar):
+                    # Items ends because of quote.
+                    self.state = CsvTokenizer._AFTER_ITEM
+                    self.itemEndsWithQuote = False
+                    self._read()
+                elif not self.itemEndsWithQuote and (self.lastRead == self.dialect.itemDelimiter):
+                    # Item ends because of delimiter.
+                    self.state = CsvTokenizer._AFTER_ITEM
+                else:
+                    # Continue reading item.
+                    tokenText += self.lastRead
+                    self._read()
+            if token is None:
+                token = (CsvTokenizer.ITEM, tokenText)
+            tokenText = None
+        elif self.state == CsvTokenizer._AFTER_ITEM:
+            self._skipSpace();
+            if self.lastRead == "":
+                token = (CsvTokenizer.END_OF_DATA, None)
+            elif self.lastRead == self.dialect.itemDelimiter:
+                self.state = CsvTokenizer._AFTER_ITEM_DELIMITER
+                token = (CsvTokenizer.ITEM_DELIMITER, self.dialect.itemDelimiter)
+                self._read()
+            else:
+                raise CsvSyntaxError("item delimiter (%r) or end of data expected" % (dialect.itemDelimiter))
+        elif self.state == CsvTokenizer._AFTER_ITEM_DELIMITER:
+            self._skipSpace()
+            if not self.lastRead:
+                token = (CsvTokenizer.END_OF_DATA, None)
+            elif self.lastRead == self.dialect.quoteChar:
+                self.state = CsvTokenizer._AFTER_QUOTE_BEFORE_ITEM
+                token = (CsvTokenizer.QUOTE, self.lastRead)
+                self.itemEndsWithQuote = True
+                self._read()
+            else:
+                self.state = CsvTokenizer._AFTER_QUOTE_BEFORE_ITEM
+                self.advance()
+                token = (self.token[0], self.token[1])
+                startLocation = self.token[2]
+                endLocation = self.token[3]
+        else:
+            raise NotImplementedError("state=%r" % self.state)
+        
+        assert token is not None
+        if endLocation is None:
+            endLocation = (self.lineNumber, self.columNumber)
+        self.token = (token[0], token[1], startLocation, endLocation, None)
+        
+class CsvTokenizerTest(unittest.TestCase):
+    """
+    TestCase for DelimitedParser.
+    """
+    def _createDefaultDialect(self):
+        result = parsers.DelimitedDialect()
+        result.lineDelimiter = parsers.LF
+        result.itemDelimiter = ","
+        result.quoteChar = "\""
+        return result
+    
+    def _getIndexValue(self, index, values, defaults):
+        assert index is not None
+        assert values is not None
+        assert defaults is not None
+        assert index >= 0
+        assert index < len(defaults)
+        assert len(values) <= len(defaults)
+        if index < len(values):
+            result = values[index]
+        else:
+            result = defaults[index]
+        return result
+        
+    def _testTokens(self, expected, data, dialect=None):
+        assert expected is not None
+        assert data is not None
+        if dialect is None:
+            dialect = self._createDefaultDialect()
+        readable = StringIO.StringIO(data)
+        toky = CsvTokenizer(readable, dialect)
+        tokens = []
+        expectedTokens = []
+        expectedIndex = 0
+        while not toky.atEndOfData():
+            self.assertTrue(expectedIndex < len(expected))
+            tokens.append(toky.token)
+            expectedItem = []
+            for partIndex in range(0, len(toky.token)):
+                expectedItem.append(self._getIndexValue(partIndex, expected[expectedIndex], toky.token))
+            expectedIndex += 1
+            expectedTokens.append(tuple(expectedItem))
+            toky.advance()
+        self.assertEqual(tokens, expectedTokens)
+        
+    def testEmpty(self):
+        readable = StringIO.StringIO("")
+        dialect = self._createDefaultDialect()
+        toky = CsvTokenizer(readable, dialect)
+        self.assertEqual((CsvTokenizer.END_OF_DATA, None, (1, 1), (1, 1), None), toky.token)
+
+    def testSingleItem(self):
+        self._testTokens([(CsvTokenizer.ITEM, "x")], "x")
+
+    def testTwoItems(self):
+        self._testTokens([
+                          (CsvTokenizer.ITEM, "x"),
+                          (CsvTokenizer.ITEM_DELIMITER, ","),
+                          (CsvTokenizer.ITEM, "y")], "x,y")
+        
 class AbstractParserTest(unittest.TestCase):
     """
     Abstract TestCase acting as base for the other test cases in this module.
@@ -95,7 +294,6 @@ class DelimitedParserTest(AbstractParserTest):
         
     # TODO: Add test cases for linefeeds within quotes.
     # TODO: Add test cases for preservation of blanks between unquoted items.
-       
        
     def testBrokenMissingQuote(self):
        self._assertRaisesParserSyntaxError("\"")

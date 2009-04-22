@@ -31,6 +31,7 @@ def main():
                         test_fields.IntegerFieldFormatTest,
                         test_fields.PatternFieldFormatTest,
                         test_fields.RegExFieldFormatTest,
+                        test_parsers.CsvTokenizerTest,
                         test_parsers.DelimitedParserTest,
                         test_parsers.FixedParserTest,
                         test_range.RangeTest,
