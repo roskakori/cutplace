@@ -35,7 +35,7 @@ class InterfaceControlDocument(object):
     _ID_DATA_FORMAT = "d"
     _ID_FIELD_RULE = "f"
     _VALID_IDS = [_ID_CONSTRAINT, _ID_DATA_FORMAT, _ID_FIELD_RULE]
-    # Header used byzipped ODS content.
+    # Header used by zipped ODS content.
     _ODS_HEADER = "PK\x03\x04"
     def __init__(self):
         self._log = logging.getLogger("cutplace")
@@ -80,9 +80,11 @@ class InterfaceControlDocument(object):
         return result
 
     def _createFieldFormatClass(self, fieldType):
+        assert fieldType
         return self._createClass("fields", fieldType, "FieldFormat", "field format")
 
     def _createCheckClass(self, checkType):
+        assert checkType
         return self._createClass("checks", checkType, "Check", "check")
 
     def addDataFormat(self, items):
@@ -111,8 +113,12 @@ class InterfaceControlDocument(object):
         if itemCount >= 2:
             fieldName = items[0].strip()
             if not fieldName:
-                raise fields.FieldSyntaxError("field name must not be empty")
+                raise fields.FieldSyntaxError("field name must be specified")
+            # FIXME: Validate that fieldName is a Python name.
             fieldType = items[1].strip()
+            if not fieldType:
+                raise fields.FieldSyntaxError("field type must be specified")
+            # FIXME: Validate that fieldType is a Python name.
             fieldIsAllowedToBeEmpty = False
             if itemCount >= 3:
                 fieldIsAllowedToBeEmptyText = items[2].strip().lower()
@@ -139,7 +145,7 @@ class InterfaceControlDocument(object):
             if not self.fieldNameToFormatMap.has_key(fieldName):
                 self.fieldNames.append(fieldName)
                 self.fieldFormats.append(fieldFormat)
-                # TODO: Rememer location where field format was defined to later include it in error message
+                # TODO: Remember location where field format was defined to later include it in error message
                 self.fieldNameToFormatMap[fieldName] = fieldFormat
                 self._log.info("defined field: %s" % fieldFormat)
             else:
@@ -162,7 +168,7 @@ class InterfaceControlDocument(object):
             check = checkClass.__new__(checkClass, checkDescription, checkRule, self.fieldNames)
             check.__init__(checkDescription, checkRule, self.fieldNames)
             if not checkDescription in self.checkDescriptions:
-                # TODO: Rememer location where check was defined to later include it in error message
+                # TODO: Remember location where check was defined to later include it in error message
                 self.checkDescriptions[checkDescription] = check
             else:
                 raise checks.CheckSyntaxError("check description must be used only once: %r" % (checkDescription)) 

@@ -1,6 +1,7 @@
 # -*- coding: iso-8859-1 -*-
 """Tests for interface control documents."""
 import checks
+import fields
 import interface
 import logging
 import StringIO
@@ -57,7 +58,7 @@ def createDefaultTestIcd(lineDelimiter="\n"):
 "F","gender","Choice",,,"female, male, other, unknown","male"
 "F","date_of_birth","DateTime",,,"DD.MM.YYYY",08.03.1957
 ,,,,,,
-,"Constraints",,,,,
+,"Checks",,,,,
 ,,,,,,
 ,"Description","Type","Rule",,,
 "C","customer must be unique","IsUnique","branch_id, customer_id",,,
@@ -97,6 +98,60 @@ class InterfaceControlDocumentTest(unittest.TestCase):
         data = "3800012345John           Doe            male   08.03.19573800012346Jane           Miller         female 04.10.1946"
         dataReadable = StringIO.StringIO(data)
         icd.validate(dataReadable)
+    
+    def _testBroken(self, spec, expectedError):
+        assert spec is not None
+        assert expectedError is not None
+        icd = interface.InterfaceControlDocument()
+        self.assertRaises(expectedError, icd.read, StringIO.StringIO(spec))
+        
+    def testBrokenFieldNameMissing(self):
+        spec = ""","Broken Interface with missing field name"
+"D","Format","CSV"
+"D","Line delimiter","LF"
+"D","Item delimiter",","
+"D","Encoding","ISO-8859-1"
+,,,,,,
+,"Name","Type","Empty","Length","Rule","Example"
+"F","branch_id","RegEx",,,"38\d\d\d",38123
+"F","","Integer",,,"0...99999",12345
+"""
+        self._testBroken(spec, fields.FieldSyntaxError)
+        spec = ""","Broken Interface with missing field name"
+"D","Format","CSV"
+"D","Line delimiter","LF"
+"D","Item delimiter",","
+"D","Encoding","ISO-8859-1"
+,,,,,,
+,"Name","Type","Empty","Length","Rule","Example"
+"F","branch_id","RegEx",,,"38\d\d\d",38123
+"F","     ","Integer",,,"0...99999",12345
+"""
+        self._testBroken(spec, fields.FieldSyntaxError)
+        
+    def testBrokenFieldTypeMissing(self):
+        spec = ""","Broken Interface with missing field type"
+"D","Format","CSV"
+"D","Line delimiter","LF"
+"D","Item delimiter",","
+"D","Encoding","ISO-8859-1"
+,,,,,,
+,"Name","Type","Empty","Length","Rule","Example"
+"F","branch_id","RegEx",,,"38\d\d\d",38123
+"F","customer_id","",,,"0...99999",12345
+"""
+        self._testBroken(spec, fields.FieldSyntaxError)
+        spec = ""","Broken Interface with missing field type"
+"D","Format","CSV"
+"D","Line delimiter","LF"
+"D","Item delimiter",","
+"D","Encoding","ISO-8859-1"
+,,,,,,
+,"Name","Type","Empty","Length","Rule","Example"
+"F","branch_id","RegEx",,,"38\d\d\d",38123
+"F","customer_id","     ",,,"0...99999",12345
+"""
+        self._testBroken(spec, fields.FieldSyntaxError)
         
 if __name__ == '__main__':
     logging.basicConfig()
