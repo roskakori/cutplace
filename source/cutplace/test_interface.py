@@ -8,22 +8,22 @@ import StringIO
 import unittest
 
 def createDefaultTestFixedIcd():
-    spec = """,Interface: customer,,,,,         System/
-,,,,,,ight-V100/                  Users/
-,Data format,,,,,                 Volumes/
-,,,,,,pple.timemachine.supported  bin/
-D,Format,Fixed,,,,                cores/
-D,Line delimiter,any,,,,          dev/
-D,Encoding,ISO-8859-1,,,,         etc/
-D,Allowed characters,32...,,,,    home/
-,,,,,,/                           mach_kernel
-,Fields,,,,,                      mach_kernel.ctfsys
-,,,,,,p DF                        net/
-,Name,Type,Empty,Length,Rule,Examplet/
-F,branch_id,RegEx,,5,38\d\d\d,38123rivate/
+    spec = """,Interface: customer,,,,,
+,,,,,,
+,Data format,,,,,
+,,,,,,
+D,Format,Fixed,,,,
+D,Line delimiter,any,,,,
+D,Encoding,ISO-8859-1,,,,
+D,Allowed characters,32...,,,,
+,,,,,,
+,Fields,,,,,
+,,,,,,
+,Name,Type,Empty,Length,Rule,Example
+F,branch_id,RegEx,,5,38\d\d\d,38123
 F,customer_id,Integer,,5,0...99999,12345
-F,first_name,Text,X,15,,John      tmp/
-F,surname,Text,,15,,Doe           usr/
+F,first_name,Text,X,15,,John
+F,surname,Text,,15,,Doe
 F,gender,Choice,,7,"male, female, unknown",male
 F,date_of_birth,DateTime,,10,DD.MM.YYYY,08.03.1957
 ,,,,,,
