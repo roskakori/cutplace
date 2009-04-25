@@ -20,11 +20,18 @@ class RangeValueError(tools.CutplaceError):
     pass
 
 class Range(object):
+    """
+    A range that can be used to validate that that a value is within it.
+    """
     def __init__(self, text, default=None):
-        # FIXME: Add proper documentation for Range.
         """
-        Assume text is of the form "lower:upper" or "[value]" and return (lower, upper) respectively (value, value).
-        In case text is empty (""), return None.
+        Setup a range as specified by `text`.
+        
+        `text` must be of the form "lower:upper" or "limit". In case `text` is empty (""), any
+        value will be accepted by `validate()`. For example, "1:40" accepts values between 1 and
+        40.
+        
+        `default`is an alternative text to use in case `text` is `None` or empty.
         """
         assert default is None or default.strip(), "default=%r" % default
 
