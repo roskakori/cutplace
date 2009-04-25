@@ -32,10 +32,10 @@ class IcdEventListener(object):
 class InterfaceControlDocument(object):
     """Model of the data driven parts of an Interface Control Document (ICD)."""
     _EMPTY_INDICATOR = "x"
-    _ID_CONSTRAINT = "c"
+    _ID_CHECK = "c"
     _ID_DATA_FORMAT = "d"
     _ID_FIELD_RULE = "f"
-    _VALID_IDS = [_ID_CONSTRAINT, _ID_DATA_FORMAT, _ID_FIELD_RULE]
+    _VALID_IDS = [_ID_CHECK, _ID_DATA_FORMAT, _ID_FIELD_RULE]
     # Header used by zipped ODS content.
     _ODS_HEADER = "PK\x03\x04"
     def __init__(self):
@@ -202,7 +202,7 @@ class InterfaceControlDocument(object):
                 self._log.debug("parse icd line%5d: %r" % (lineNumber, row))
                 if len(row) >= 1:
                     rowId = str(row[0]).lower() 
-                    if rowId == InterfaceControlDocument._ID_CONSTRAINT:
+                    if rowId == InterfaceControlDocument._ID_CHECK:
                         self.addCheck(row[1:])
                     elif rowId == InterfaceControlDocument._ID_DATA_FORMAT:
                         self.addDataFormat(row[1:])
