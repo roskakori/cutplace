@@ -156,5 +156,5 @@ class InterfaceControlDocumentTest(unittest.TestCase):
 if __name__ == '__main__':
     logging.basicConfig()
     logging.getLogger("cutplace").setLevel(logging.DEBUG)
-    logging.getLogger("cutplace.test_idc").setLevel(logging.INFO)
+    logging.getLogger("cutplace.test_icd").setLevel(logging.INFO)
     unittest.main()

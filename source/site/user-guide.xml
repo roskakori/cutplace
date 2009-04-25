@@ -120,7 +120,7 @@
     needs a more formal one, which can be found in <ulink
     url="icd_customers.csv">icd_customers.csv</ulink>.</para>
 
-    <table id="idc-csv-customers">
+    <table id="icd-csv-customers">
       <title>Example ICD for CSV data describing customers</title>
 
       <tgroup cols="7">

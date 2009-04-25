@@ -1,4 +1,4 @@
-"""Interface control document (IDC) describing all aspects of a data driven interface."""
+"""Interface control document (ICD) describing all aspects of a data driven interface."""
 import checks
 import codecs
 import data

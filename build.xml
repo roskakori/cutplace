@@ -107,7 +107,7 @@
             <!-- FIXME: Use platform independent paths. --> 
             <arg value="source/cutplace/ods.py" />
             <arg value="--format=docbook" />
-            <arg value="--id=idc-csv-customers" />
+            <arg value="--id=icd-csv-customers" />
             <arg value="--title" />
             <arg value="Example ICD for CSV data describing customers" />
             <arg value="${tests-input-icds.dir}/customers.ods" />

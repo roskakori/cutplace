@@ -222,7 +222,7 @@ Platform: %s</p>
                     log.info("ICD is valid")
                     self.wfile.write("ICD file is valid.")
             except:
-                log.error("cannot parse IDC", exc_info=1)
+                log.error("cannot parse ICD", exc_info=1)
                 self.send_error(400, "cannot parse ICD: %s\n\n<pre>%s</pre>" % (cgi.escape(str(sys.exc_info()[1])), cgi.escape(icdContent)))
         else:
             errorMessage = "ICD file must be specified"
