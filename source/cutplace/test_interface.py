@@ -15,13 +15,13 @@ def createDefaultTestFixedIcd():
 D,Format,Fixed,,,,
 D,Line delimiter,any,,,,
 D,Encoding,ISO-8859-1,,,,
-D,Allowed characters,32...,,,,
+D,Allowed characters,32:,,,,
 ,,,,,,
 ,Fields,,,,,
 ,,,,,,
 ,Name,Type,Empty,Length,Rule,Example
 F,branch_id,RegEx,,5,38\d\d\d,38123
-F,customer_id,Integer,,5,0...99999,12345
+F,customer_id,Integer,,5,0:99999,12345
 F,first_name,Text,X,15,,John
 F,surname,Text,,15,,Doe
 F,gender,Choice,,7,"male, female, unknown",male
@@ -46,15 +46,15 @@ def createDefaultTestIcd(lineDelimiter="\n"):
 "D","Line delimiter","LF",,,,
 "D","Item delimiter",",",,,,
 "D","Encoding","ISO-8859-1",,,,
-"D","Allowed characters","32...",,,,
+"D","Allowed characters","32:",,,,
 ,,,,,,
 ,"Fields",,,,,
 ,,,,,,
 ,"Name","Type","Empty","Length","Rule","Example"
 "F","branch_id","RegEx",,,"38\d\d\d",38123
-"F","customer_id","Integer",,,"0...99999",12345
+"F","customer_id","Integer",,,"0:99999",12345
 "F","first_name","Text","X",,,"John"
-"F","surname","Text",,"1...60",,"Doe"
+"F","surname","Text",,"1:60",,"Doe"
 "F","gender","Choice",,,"female, male, other, unknown","male"
 "F","date_of_birth","DateTime",,,"DD.MM.YYYY",08.03.1957
 ,,,,,,
@@ -114,7 +114,7 @@ class InterfaceControlDocumentTest(unittest.TestCase):
 ,,,,,,
 ,"Name","Type","Empty","Length","Rule","Example"
 "F","branch_id","RegEx",,,"38\d\d\d",38123
-"F","","Integer",,,"0...99999",12345
+"F","","Integer",,,"0:99999",12345
 """
         self._testBroken(spec, fields.FieldSyntaxError)
         spec = ""","Broken Interface with missing field name"
@@ -125,7 +125,7 @@ class InterfaceControlDocumentTest(unittest.TestCase):
 ,,,,,,
 ,"Name","Type","Empty","Length","Rule","Example"
 "F","branch_id","RegEx",,,"38\d\d\d",38123
-"F","     ","Integer",,,"0...99999",12345
+"F","     ","Integer",,,"0:99999",12345
 """
         self._testBroken(spec, fields.FieldSyntaxError)
         
@@ -138,7 +138,7 @@ class InterfaceControlDocumentTest(unittest.TestCase):
 ,,,,,,
 ,"Name","Type","Empty","Length","Rule","Example"
 "F","branch_id","RegEx",,,"38\d\d\d",38123
-"F","customer_id","",,,"0...99999",12345
+"F","customer_id","",,,"0:99999",12345
 """
         self._testBroken(spec, fields.FieldSyntaxError)
         spec = ""","Broken Interface with missing field type"
@@ -149,7 +149,7 @@ class InterfaceControlDocumentTest(unittest.TestCase):
 ,,,,,,
 ,"Name","Type","Empty","Length","Rule","Example"
 "F","branch_id","RegEx",,,"38\d\d\d",38123
-"F","customer_id","     ",,,"0...99999",12345
+"F","customer_id","     ",,,"0:99999",12345
 """
         self._testBroken(spec, fields.FieldSyntaxError)
         

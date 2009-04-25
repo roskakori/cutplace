@@ -6,8 +6,8 @@ class RangeTest(unittest.TestCase):
     Test cases for Range.
     """
     def testProperRanges(self):
-        self.assertEquals(range.Range("").items, [])
-        self.assertEquals(range.Range(" ").items, [])
+        self.assertEquals(range.Range("").items, None)
+        self.assertEquals(range.Range(" ").items, None)
         self.assertEquals(range.Range("1").items, [(1, 1)])
         self.assertEquals(range.Range("1:").items, [(1, None)])
         self.assertEquals(range.Range(":1").items, [(None, 1)])
@@ -29,6 +29,19 @@ class RangeTest(unittest.TestCase):
         self.assertRaises(range.RangeSyntaxError, range.Range, "2:-3")
         self.assertRaises(range.RangeSyntaxError, range.Range, "-1:-3")
     
+    
+    def _testNoRange(self, text):
+        noRange = range.Range(text)
+        self.assertEqual(noRange.items, None)
+        noRange.validate("x", 0)
+        noRange.validate("x", 2**32)
+        noRange.validate("x", - (2**32) - 1)
+
+    def testNoRange(self):
+        self._testNoRange(None)
+        self._testNoRange("")
+        self._testNoRange("  ")
+
     def testValidate(self):
         lowerAndUpperRange = range.Range("-1:1")
         lowerAndUpperRange.validate("x", - 1)

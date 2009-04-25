@@ -258,7 +258,7 @@
 
             <entry>Allowed characters</entry>
 
-            <entry>32...</entry>
+            <entry>32:</entry>
 
             <entry></entry>
 
@@ -360,7 +360,7 @@
 
             <entry></entry>
 
-            <entry>0...99999</entry>
+            <entry>0:99999</entry>
 
             <entry>12345</entry>
           </row>
@@ -390,7 +390,7 @@
 
             <entry></entry>
 
-            <entry>1...60</entry>
+            <entry>1:60</entry>
 
             <entry></entry>
 
@@ -998,7 +998,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
 
                 <entry>Allowed characters</entry>
 
-                <entry>32...128, 1024...1280</entry>
+                <entry>32:128, 1024:1280</entry>
               </row>
             </tbody>
           </tgroup>
@@ -1207,7 +1207,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
 
                 <entry>Allowed characters</entry>
 
-                <entry>0...</entry>
+                <entry>0:</entry>
               </row>
             </tbody>
           </tgroup>
@@ -1263,8 +1263,6 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
       <section>
         <title>Fixed data</title>
 
-        <para>FIXME: Fixed data are not supported yet.</para>
-
         <para>Fixed data reserve a certain number of characters per field. No
         delimiters are necessary.</para>
 
@@ -1312,7 +1310,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
 
                 <entry>Allowed characters</entry>
 
-                <entry>0...</entry>
+                <entry>0:</entry>
               </row>
             </tbody>
           </tgroup>
@@ -1362,17 +1360,18 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
             <para>The length of the field in characters.</para>
 
             <para>For separated formats, this is optional and takes the form
-            <varname>lower_limit</varname> ... <varname>upper_limit</varname>.
-            For example, <userinput>10...20</userinput> means that values in
+            <varname>lower_limit</varname> : <varname>upper_limit</varname>.
+            For example, <userinput>10:20</userinput> means that values in
             this field must contains at least 10 characters and at most 20. It
             is also possible to specify only a lower or upper limit, for
-            example <userinput>10...</userinput> means at least 10 characters
-            ans ...20 means at least 20 characters. Furthermore the length can
-            be a single number with any ..., meaning that the length must
-            match this number exactly.</para>
+            example <userinput>10:</userinput> means at least 10 characters
+            ans <userinput>:20</userinput> means at least 20 characters.
+            Furthermore the length can be a single number with any colon (:),
+            meaning that the length must match this number exactly.</para>
 
             <para>For fixed formats, this column takes a number that specifies
-            the exact length of the field, for example 50.</para>
+            the exact length of the field, for example
+            <userinput>50</userinput>.</para>
           </listitem>
 
           <listitem>
@@ -1421,7 +1420,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
 
                 <entry></entry>
 
-                <entry>1...999999</entry>
+                <entry>1:999999</entry>
               </row>
 
               <row>
@@ -1433,7 +1432,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
 
                 <entry></entry>
 
-                <entry>1...60</entry>
+                <entry>1:60</entry>
 
                 <entry></entry>
               </row>
@@ -1539,7 +1538,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
 
                 <entry></entry>
 
-                <entry>0...8848</entry>
+                <entry>0:8848</entry>
               </row>
 
               <row>
@@ -1551,9 +1550,9 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
 
                 <entry></entry>
 
-                <entry>0...</entry>
+                <entry>0:</entry>
 
-                <entry>0...</entry>
+                <entry>0:</entry>
               </row>
 
               <row>
@@ -1567,7 +1566,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
 
                 <entry>5</entry>
 
-                <entry>1...99999</entry>
+                <entry>1:99999</entry>
               </row>
             </tbody>
           </tgroup>
@@ -1657,15 +1656,16 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
 
         <itemizedlist>
           <listitem>
-            <para>DD: the day (1...31)</para>
+            <para>DD: the day (a number between 1 and 31)</para>
           </listitem>
 
           <listitem>
-            <para>MM: the numeric month (1..12)</para>
+            <para>MM: the numeric month (a number between 1 and 12)</para>
           </listitem>
 
           <listitem>
-            <para>YYYY: the year including the century (1...9999)</para>
+            <para>YYYY: the year including the century (a number between 1 and
+            9999)</para>
           </listitem>
 
           <listitem>
@@ -1677,16 +1677,16 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
 
         <itemizedlist>
           <listitem>
-            <para>hh: hours (0..23)</para>
+            <para>hh: hours (a number between 0 and 23)</para>
           </listitem>
 
           <listitem>
-            <para>mm: minutes (0..59)</para>
+            <para>mm: minutes (a number between 0 and 59)</para>
           </listitem>
 
           <listitem>
-            <para>ss: seconds (0..61). Note that 60 and 61 are valid values
-            because of possible leap seconds.</para>
+            <para>ss: seconds, a number between 0 and 61; note that 60 and 61
+            are valid values because of possible leap seconds.</para>
           </listitem>
         </itemizedlist>
 
@@ -2507,11 +2507,46 @@ BUILD SUCCESSFUL</computeroutput>
     cutplace.</para>
 
     <section>
+      <title>Version 0.3.0, xx-Apr-2009</title>
+
+      <itemizedlist>
+        <listitem>
+          <para>Fixed error messages in case field name or type was missing in
+          ICD.</para>
+        </listitem>
+
+        <listitem>
+          <para>Fixed handling of percent sign (%) in <type>DateTime</type>
+          field format.</para>
+        </listitem>
+
+        <listitem>
+          <para>Changed syntax to specify ranges like field lengths or rules
+          for for <type>Integer</type> fields formats. Use ":" instead of
+          "...".</para>
+
+          <para>There are basically two reasons for this change: Firstly, this
+          looks more pythonic and thus more consistent with other parts of the
+          ICD like the "Checks" section which also uses Python syntax in
+          various places. Secondly, this avoids issues with Excel which under
+          certain circumstances changes the 3 characters in "..." to a single
+          character ellipsis. Using ":" still is not without issues though: if
+          you use a spreadsheet application to author ICDs, most of them think
+          of a value like "<userinput>1:60</userinput>" (which could for
+          example specify a field length between 1 and 60 characters) to refer
+          to a time of 1 hour and 60 minutes. To avoid any confusion, disable
+          the cell format auto detection of the spreadsheet application by
+          changing all cells to contain "Text".</para>
+        </listitem>
+      </itemizedlist>
+    </section>
+
+    <section>
       <title>Version 0.2.2, 07-Apr-2009</title>
 
       <itemizedlist>
         <listitem>
-          <para>Added support to use data enodings other than ASCII by
+          <para>Added support to use data encodings other than ASCII by
           specifying them in the data format section of the ICD using the
           encoding property.</para>
         </listitem>

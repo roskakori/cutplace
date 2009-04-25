@@ -13,7 +13,7 @@ class AbstractFieldFormatTest(unittest.TestCase):
         self.assertRaises(fields.FieldValueError, format.validateEmpty, "")
 
     def testValidateLength(self):
-        format = fields.AbstractFieldFormat("x", False, (3, 5), "")
+        format = fields.AbstractFieldFormat("x", False, "3:5", "")
         format.validateLength("123")
         format.validateLength("1234")
         format.validateLength("12345")
@@ -21,7 +21,7 @@ class AbstractFieldFormatTest(unittest.TestCase):
         self.assertRaises(fields.FieldValueError, format.validateLength, "123456")
 
     def testEmptyAndLengthLimit(self):
-        format = fields.AbstractFieldFormat("x", True, (3, 5), "")
+        format = fields.AbstractFieldFormat("x", True, "3:5", "")
         format.validateLength("")
         
 class DateTimeFieldFormatTest(unittest.TestCase):
@@ -52,7 +52,7 @@ class DateTimeFieldFormatTest(unittest.TestCase):
 class IntegerFieldFormatTest(unittest.TestCase):
     """Tests  for IntegerFieldFormat."""
     def testWithinRange(self):
-        format = fields.IntegerFieldFormat("x", False, None, "1...10")
+        format = fields.IntegerFieldFormat("x", False, None, "1:10")
         format.validate("1")
         format.validate("7")
         format.validate("10")
@@ -60,15 +60,15 @@ class IntegerFieldFormatTest(unittest.TestCase):
         format.validate("123")
 
     def testTooSmall(self):
-        format = fields.IntegerFieldFormat("x", False, None, "1...10")
+        format = fields.IntegerFieldFormat("x", False, None, "1:10")
         self.assertRaises(fields.FieldValueError, format.validate, "0")
 
     def testTooBig(self):
-        format = fields.IntegerFieldFormat("x", False, None, "1...10")
+        format = fields.IntegerFieldFormat("x", False, None, "1:10")
         self.assertRaises(fields.FieldValueError, format.validate, "11")
         
     def testNoNumber(self):
-        format = fields.IntegerFieldFormat("x", False, None, "1...10")
+        format = fields.IntegerFieldFormat("x", False, None, "1:10")
         self.assertRaises(fields.FieldValueError, format.validate, "abc")
         
 class RegExFieldFormatTest(unittest.TestCase):

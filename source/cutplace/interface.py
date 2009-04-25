@@ -6,6 +6,7 @@ import fields
 import logging
 import os
 import parsers
+import range
 import sys
 import tools
 import types
@@ -127,7 +128,7 @@ class InterfaceControlDocument(object):
                 elif fieldIsAllowedToBeEmptyText:
                     raise fields.FieldSyntaxError("mark for empty field is %r but must be %r" % (fieldIsAllowedToBeEmptyText, InterfaceControlDocument._EMPTY_INDICATOR))
                 if itemCount >= 4:
-                    fieldLength = fields.parsedLongRange("length", items[3])
+                    fieldLength = items[3]
                     if itemCount >= 5:
                         fieldRule = items[4].strip()
                         if not fieldRule:
@@ -244,7 +245,17 @@ class InterfaceControlDocument(object):
             elif self.dataFormat.getName() == data.FORMAT_FIXED:
                 fieldLengths = []
                 for fieldFormat in self.fieldFormats:
-                    fieldLengths.append(long(fieldFormat.length[0]))
+                    # Obtain the length of a fixed length item. We could easily do this in a
+                    # single line and without assertions, but doing it the way seen below makes
+                    # analyzing possible bugs a lot easier.
+                    fieldLengthItems = fieldFormat.length.items
+                    assert len(fieldLengthItems) == 1
+                    firstLengthItem = fieldLengthItems[0]
+                    assert len(firstLengthItem) == 2
+                    fixedLength = firstLengthItem[0]
+                    assert fixedLength == firstLengthItem[1]
+                    longFixedLength = long(fixedLength)
+                    fieldLengths.append(longFixedLength)
                 reader = parsers.parserReader(parsers.FixedParser(dataFile, fieldLengths))
             else:
                 raise NotImplementedError("data format: %r" + self.dataFormat.getName())
