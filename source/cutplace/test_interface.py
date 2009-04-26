@@ -98,6 +98,44 @@ class InterfaceControlDocumentTest(unittest.TestCase):
         data = "3800012345John           Doe            male   08.03.19573800012346Jane           Miller         female 04.10.1946"
         dataReadable = StringIO.StringIO(data)
         icd.validate(dataReadable)
+
+    def testEmptyChoice(self):
+        spec = ""","Interface with a Choice field (gender) that can be empty"
+"D","Format","CSV"
+"D","Line delimiter","LF"
+"D","Item delimiter",","
+"D","Encoding","ISO-8859-1"
+,,,,,,
+,"Name","Type","Empty","Length","Rule"
+"F","first_name","Text","X",,,"John"
+"F","gender","Choice",X,,"female, male","male"
+"F","date_of_birth","DateTime",,,"DD.MM.YYYY",08.03.1957
+"""
+        icd = interface.InterfaceControlDocument()
+        icd.read(StringIO.StringIO(spec))
+        data = """"John",,"08.03.1957"
+"Jane","female","04.10.1946" """
+        dataReadable = StringIO.StringIO(data)
+        icd.validate(dataReadable)
+    
+    def testEmptyChoiceWithLength(self):
+        spec = ""","Interface with a Choice field (gender) that can be empty and has a field length > 0"
+"D","Format","CSV"
+"D","Line delimiter","LF"
+"D","Item delimiter",","
+"D","Encoding","ISO-8859-1"
+,,,,,,
+,"Name","Type","Empty","Length","Rule"
+"F","first_name","Text","X",,,"John"
+"F","gender","Choice",X,4:6,"female, male","male"
+"F","date_of_birth","DateTime",,,"DD.MM.YYYY",08.03.1957
+"""
+        icd = interface.InterfaceControlDocument()
+        icd.read(StringIO.StringIO(spec))
+        data = """"John",,"08.03.1957"
+"Jane","female","04.10.1946" """
+        dataReadable = StringIO.StringIO(data)
+        icd.validate(dataReadable)
     
     def _testBroken(self, spec, expectedError):
         assert spec is not None
