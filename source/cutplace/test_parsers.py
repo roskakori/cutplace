@@ -100,7 +100,7 @@ class CsvTokenizer(object):
                     if self.itemEndsWithQuote:
                         raise CsvSyntaxError("quoted item must be closed with a quote (%r)" % dialect.quoteChar)
                     self.state = CsvTokenizer._AFTER_ITEM
-                elif self.itemEndsWithQuote and (self.lastRead == dialect.quoteChar):
+                elif self.itemEndsWithQuote and (self.lastRead == self.dialect.quoteChar):
                     # Items ends because of quote.
                     self.state = CsvTokenizer._AFTER_ITEM
                     self.itemEndsWithQuote = False
@@ -183,7 +183,8 @@ class CsvTokenizerTest(unittest.TestCase):
         expectedTokens = []
         expectedIndex = 0
         while not toky.atEndOfData():
-            self.assertTrue(expectedIndex < len(expected))
+            # TODO: Remove: print toky.token
+            self.assertTrue(expectedIndex < len(expected), "token=%r, expectedIndex=%d, len(expected)=%d" %(toky.token, expectedIndex, len(expected)))
             tokens.append(toky.token)
             expectedItem = []
             for partIndex in range(0, len(toky.token)):
@@ -207,6 +208,12 @@ class CsvTokenizerTest(unittest.TestCase):
                           (CsvTokenizer.ITEM, "x"),
                           (CsvTokenizer.ITEM_DELIMITER, ","),
                           (CsvTokenizer.ITEM, "y")], "x,y")
+	# FIXME: testQuotedItem
+    def _testQuotedtem(self):
+        self._testTokens([
+                          (CsvTokenizer.ITEM, "x"),
+                          (CsvTokenizer.ITEM_DELIMITER, ","),
+                          (CsvTokenizer.ITEM, "y")], "\"x\",y")
         
 class AbstractParserTest(unittest.TestCase):
     """
