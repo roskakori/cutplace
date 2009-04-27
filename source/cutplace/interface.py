@@ -280,24 +280,23 @@ class InterfaceControlDocument(object):
                     for description, check in self.checkDescriptions.items():
                         try:
                             check.checkRow(rowNumber, rowMap)
-                        except checks.CheckError, message:
-                            raise checks.CheckError("row check failed: %r: %s" % (check.description, message))
-                    self._log.info("accepted: " + str(row))
+                        except checks.CheckError, error:
+                            raise checks.CheckError("row check failed: %r: %s" % (check.description, str(message)))
+                    self._log.debug("accepted: %s" % row)
                     for listener in self.icdEventListeners:
                         listener.acceptedRow(row)
                 except:
                     # Handle failed check and other errors.
-                    # FIXME: Handle only errors based on CutplaceError here.
+                    # FIXME: Use handlers for "except fields.FieldValueError" and "except CutplaceError".
                     if isinstance(sys.exc_info()[1], (fields.FieldValueError)):
                         fieldName = self.fieldNames[itemIndex]
                         reason = "field %r does not match format: %s" % (fieldName, sys.exc_info()[1])
                     else:
                         reason = sys.exc_info()[1]
-                    self._log.error("rejected: %s" % row)
-                    self._log.error(reason, exc_info=self.logTrace)
+                    self._log.debug("rejected: %s" % row)
+                    self._log.debug(reason, exc_info=self.logTrace)
                     for listener in self.icdEventListeners:
                         listener.rejectedRow(row, reason)
-                        
         finally:
             if needsOpen:
                 dataFile.close()

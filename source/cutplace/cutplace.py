@@ -47,6 +47,61 @@ class NoExitOptionParser(optparse.OptionParser):
         if self.version:
             print >> file, "Python %s, %s" % (tools.pythonVersion(), tools.platformVersion()) 
 
+class CutplaceIcdEventListener(interface.IcdEventListener):
+    """
+    Listener for ICD events that writes accepted and rejected rows to the files specified in the
+    command line options.
+    """
+    def __init__(self, acceptedCsvFile, rejectedTextFile):
+        self.acceptedFile = acceptedCsvFile
+        self.rejectedFile = rejectedTextFile
+        self.log = logging.getLogger("cutplace")
+
+    def acceptedRow(self, row):
+        if self.acceptedFile is None:
+            self.log.info("accepted: %r" % row)
+        else:
+            # Write to a csv.writer.
+            self.acceptedFile.write(row)
+    
+    def rejectedRow(self, row, error):
+        rowText = "items: %r" % row
+        errorText = "field error: %s" % str(error)
+        if self.rejectedFile is None:
+            self.log.error(rowText)
+            self.log.error(errorText)
+        else:
+            # Write to a text file.
+            self.rejectedFile.write("%s%s" % (rowText, os.linesep))
+            self.rejectedFile.write("%s%s" % (errorText, os.linesep))
+    
+    def checkAtRowFailed(self, row, error):
+        rowText = "items: %r" % row
+        errorText = "field error: %s" % str(error)
+        if self.rejectedFile is None:
+            self.log.error(rowText)
+            self.log.error(errorText)
+        else:
+            # Write to a text file.
+            self.rejectedFile.write("%s%s" % (rowText, os.linesep))
+            self.rejectedFile.write("%s%s" % (errorText, os.linesep))
+    
+    def checkAtEndFailed(self, error):
+        errorText = "check at end failed: %s" % str(error)
+        if self.rejectedFile is None:
+            self.log.error(errorText)
+        else:
+            # Write to a text file.
+            self.rejectedFile.write("%s%s" % (errorText, os.linesep))
+    
+    def dataFormatFailed(self, error):
+        errorText = "data format error: %s" % str(error)
+        if self.rejectedFile is None:
+            self.log.error(errorText)
+        else:
+            # Write to a text file.
+            self.rejectedFile.write("%s%s" % (errorText, os.linesep))
+
 class CutPlace(object):
     """Command line interface for CutPlace."""
 
@@ -72,19 +127,27 @@ class CutPlace(object):
   %prog [options] ICD-FILE
     validate interface control document in ICD-FILE
   %prog [options] ICD-FILE DATA-FILE(S)
-    validate DATA-FILE(S) according to rules specified in ICD-FILE"""
+    validate DATA-FILE(S) according to rules specified in ICD-FILE
+  %prog --web [options]
+    launch web server providing a web interface for validation"""
 
         parser = NoExitOptionParser(usage=usage, version="%prog " + version.VERSION_NUMBER)
         parser.set_defaults(icdEncoding="iso-8859-1", isLogTrace=False, isOpenBrowser=False, logLevel="info", port=server.DEFAULT_PORT)
         parser.add_option("--list-encodings", action="store_true", dest="isShowEncodings", help="show list of available character encodings and exit")
-        parser.add_option("-t", "--trace", action="store_true", dest="isLogTrace", help="include Python stack in error messages related to data")
-        parser.add_option("-e", "--icd-enoding", metavar="ENCODING", dest="icdEncoding", help="character encoding to use when reading the ICD (default: %default)")
-        parser.add_option("--log", metavar="LEVEL", type="choice", choices=CutPlace._LOG_LEVEL_MAP.keys(), dest="logLevel", help="set log level to LEVEL (default: %default)")
+        validationGroup = optparse.OptionGroup(parser, "Validation options", "Specify how to validate data and how to report the results")
+        validationGroup.add_option("-e", "--icd-encoding", metavar="ENCODING", dest="icdEncoding", help="character encoding to use when reading the ICD (default: %default)")
+        # TODO: validationGroup.add_option("-a", "--accepted", metavar="FILE", dest="pathForAcceptedRows", help="path for CSV file with accepted rows (default: log.info)")
+        # TODO: validationGroup.add_option("-r", "--rejected", metavar="FILE", dest="pathForRejectedRows", help="path for row text file with rejected rows (default: log.error")
+        parser.add_option_group(validationGroup)
         webGroup = optparse.OptionGroup(parser, "Web options", "Provide a  GUI for validation using a simple web server")
         webGroup.add_option("-w", "--web", action="store_true", dest="isWebServer", help="launch web server")
         webGroup.add_option("-p", "--port", metavar="PORT", type="int", dest="port", help="port for web server (default: %default)")
         webGroup.add_option("-b", "--browse", action="store_true", dest="isOpenBrowser", help="open validation page in browser")
         parser.add_option_group(webGroup)
+        loggingGroup = optparse.OptionGroup(parser, "Logging options", "Modify the logging output")
+        loggingGroup.add_option("--log", metavar="LEVEL", type="choice", choices=CutPlace._LOG_LEVEL_MAP.keys(), dest="logLevel", help="set log level to LEVEL (default: %default)")
+        loggingGroup.add_option("-t", "--trace", action="store_true", dest="isLogTrace", help="include Python stack in error messages related to data")
+        parser.add_option_group(loggingGroup)
         
         (self.options, others) = parser.parse_args(argv)
 
@@ -94,7 +157,8 @@ class CutPlace(object):
         self.isShowEncodings = self.options.isShowEncodings
         self.isWebServer = self.options.isWebServer
         self.port = self.options.port
-        
+        # TODO: self.pathForAcceptedRows = self.options.pathForAcceptedRows
+        # TODO: self.pathForRejectedRows = self.options.pathForRejectedRows
 
         if not self.isShowEncodings and not self.isWebServer:
             if len(others) >= 1:
@@ -112,6 +176,7 @@ class CutPlace(object):
         assert self.icd is not None
         
         for dataFilePath in self.dataToValidatePaths:
+            
             self.icd.validate(dataFilePath)
             
     def setIcdFromFile(self, newIcdPath):
@@ -136,7 +201,9 @@ class CutPlace(object):
             yield os.path.splitext(fileName)[0]
             
 def main():
-    """Main routine that might raise errors but won't sys.exit()."""
+    """
+    Main routine that might raise errors but won't sys.exit().
+    """
     logging.basicConfig()
     logging.getLogger("cutplace").setLevel(logging.INFO)
 
@@ -148,10 +215,18 @@ def main():
         server.main(cutPlace.port, cutPlace.isOpenBrowser)
     elif cutPlace.dataToValidatePaths:
         for path in cutPlace.dataToValidatePaths:
-            cutPlace.icd.validate(path)
+            listener = CutplaceIcdEventListener(None, None)
+            cutPlace.icd.addIcdEventListener(listener)
+            try:
+                cutPlace.icd.validate(path)
+            finally:
+                cutPlace.icd.removeIcdEventListener(listener)
+                
 
 def mainForScript():
-    """Main routine that reports errors in options and does sys.exit()."""
+    """
+    Main routine that reports errors in options and does sys.exit().
+    """
     try:
         main()
     except optparse.OptionError, message:
