@@ -1,4 +1,5 @@
 """Parsers for data files."""
+import csv
 import data
 import logging
 import ods
@@ -70,6 +71,21 @@ class DelimitedDialect(object):
         self.blanksAroundItemDelimiter = " \t"
         # FIXME: Add setter for quoteChar to validate that len == 1 and quoteChar != line- or itemDelimiter.
 
+    def asCsvDialect(self):
+        """
+        Represent dialect as csv.Dialect.
+        """
+        result = csv.Dialect()
+        result.lineterminator = self.lineDelimiter
+        result.delimiter = self.itemDelimiter
+        result.quotechar = self.quoteChar
+        result.doublequote = (self.escapeChar == self.quoteChar)
+        if not result.doublequote:
+            result.escapechar = self.escapeChar
+        result.skipinitialspace = (self.blanksAroundItemDelimiter)
+        
+        return result
+    
 class ParserSyntaxError(tools.CutplaceError):
     """
     Syntax error detected while parsing the data.
@@ -146,149 +162,50 @@ class DelimitedParser(object):
         self.blanksAroundItemDelimiter = dialect.blanksAroundItemDelimiter
 
         self._log = logging.getLogger("cutplace.parsers")
-        self.atEndOfFile = False
         self.item = None
-        self.unreadChars = ""
 
-        # Reset all attributes related to position.
-        self.atEndOfLine = True
-        self.lineNumber = - 1
-        self._possiblyAdvanceLine()
-        
-        # Attempt to read the first item.
-        self.advance()
-
-    def _unread(self, charsToUnread):
-        assert charsToUnread is not None
-        assert charsToUnread, "characters to unread must be specified"
-        if (self._log.isEnabledFor(logging.DEBUG)):
-            self._log.debug("unread: %r" % charsToUnread)
-        self.unreadChars += charsToUnread
-        self.columnNumber -= len(charsToUnread)
-        assert self.columnNumber >= 0, "column=%d" % (self.columnNumber)
-                
-    def _read(self):
-        if self.unreadChars:
-            result = self.unreadChars[0]
-            self.unreadChars = self.unreadChars[1:]
-        else:
-            result = self.readable.read(1)
-        if result:
-            self.columnNumber += 1
-        if (self._log.isEnabledFor(logging.DEBUG)):
-            self._log.debug("read: %r" % result)
-        return result
-    
-    def _raiseSyntaxError(self, message):
-        """Raise syntax error at the current position."""
-        raise ParserSyntaxError(message, self.lineNumber, self.itemNumber, self.columnNumber)
-
-    def _possiblyAdvanceLine(self):
-        if self.atEndOfLine:
+        # FIXME: Read delimited items without holding the whole file into memory.
+        self.rows = []
+        for row in csv.reader(readable):
+            self.rows.append(row)
+        self.rowCount = len(self.rows)
+        self.itemNumber = 0
+        if self.rowCount:
+            self.atEndOfFile = False
             self.atEndOfLine = False
-            self.lineNumber += 1
-            self.itemNumber = 0
-            self.columnNumber = 0
-    
-    def _possiblySkipSpace(self):
-        if self.blanksAroundItemDelimiter:
-            possibleBlank = self._read()
-            while possibleBlank and (possibleBlank in self.blanksAroundItemDelimiter):
-                possibleBlank = self._read()
-            if possibleBlank:
-                self._unread(possibleBlank)
-            
-    def advance(self):
-        """Advance one item."""
-        # FIXME: Support escaped quotes.
-        assert not self.atEndOfFile
-        assert self.lineDelimiter != AUTO
-
-        self.item = None
-        quoted = False
-        stripLineDelimiter = False
-
-        self._possiblyAdvanceLine()
-        self._possiblySkipSpace()
-        
-        firstChar = self._read()
-        if not firstChar:
-            # End of file reached.
+            self.lineNumber = 1
+            # Attempt to read the first item.
+            self.advance()
+        else:
+            # Handle empty `readable`.
             self.atEndOfFile = True
             self.atEndOfLine = True
-        else:
-            atEndOfItem = False
+            self.lineNumber = 0
 
-            # Check if the item is quoted.
-            if firstChar == self.quoteChar:
-                endOfItemChar = firstChar
-                item = ""
-                quoted = True
-            elif firstChar == self.itemDelimiter:
-                self._unread(firstChar)
-                item = ""
-                atEndOfItem = True
-            elif firstChar == self.lineDelimiter:
-                # Note: CRLF will be detected in the while loop below.
-                item = firstChar
-                atEndOfItem = True
-                stripLineDelimiter = True
+    def advance(self):
+        """
+        Advance one item and make it available in `self.item`.
+        """
+        assert not self.atEndOfFile
+
+        self.itemNumber += 1
+        if self.itemNumber - 1 >= len(self.rows[self.lineNumber - 1]):
+             self.itemNumber = 1
+             self.lineNumber += 1
+        if self.lineNumber <= len(self.rows):
+            row = self.rows[self.lineNumber - 1]
+            if len(row):
+                self.item = row[self.itemNumber - 1]
             else:
-                endOfItemChar = self.itemDelimiter
-                item = firstChar
-
-            # Read actual item content.
-            while not atEndOfItem:
-                nextChar = self._read()
-                if nextChar:
-                    if nextChar == endOfItemChar:
-                        atEndOfItem = True
-                        if not quoted:
-                            self._unread(nextChar)
-                    else:
-                        item += nextChar
-                        if not quoted and item.endswith(self.lineDelimiter):
-                            self._log.debug("detected line delimiter: %r" % self.lineDelimiter)
-                            stripLineDelimiter = True
-                            atEndOfItem = True
-                else:
-                    if quoted:
-                        # TODO: Use start of item as position to report for error.
-                        self._raiseSyntaxError("item must be terminated with quote (%s) before data end" % (self.quoteChar))
-                    self.atEndOfLine = True
-                    atEndOfItem = True
-                    # Handle empty line with line delimiter at end of file
-                    if item == self.lineDelimiter:
-                        stripLineDelimiter = True
-
-            # Remove line delimiter from unquoted items at end of line.
-            if stripLineDelimiter:
-                self._log.debug("stripped linefeed after unquoted item, remainder: %r" % item)
-                item = item[: - len(self.lineDelimiter)]
-                self.atEndOfLine = True
-
-            # Ensure that item is followed by either an item separator, a line separator or the end of data is reached. 
-            if not self.atEndOfLine:
-                self._possiblySkipSpace()
-                nextChar = self._read()
-                if not nextChar:
-                    self.atEndOfLine = True
-                elif nextChar != self.itemDelimiter:
-                    tail = nextChar
-                    while nextChar and (tail != self.lineDelimiter) and (self.lineDelimiter.startswith(tail)):
-                        nextChar = self._read()
-                        tail += nextChar
-                    if tail == self.lineDelimiter:
-                        self.atEndOfLine = True
-                    else:
-                        self._raiseSyntaxError(\
-                               "data item must be followed by item delimiter (%r) or line delimiter (%r), but found: %r" \
-                                % (self.itemDelimiter, self.lineDelimiter, tail))
-
-            self.item = item
-            if self.item is not None:
-                self.itemNumber += 1
-
+                # Represent empty line as `None`.
+                self.item = None
+            self.atEndOfLine = (self.itemNumber >= len(row))
+        else:
+            self.item = None
+            self.atEndOfFile = True
+        if self._log.isEnabledFor(logging.DEBUG):
+            self._log("(%d:%d) %r [%d;%d]" % (self.lineNumber, self.itemNumber, self.item, self.atEndOfLine, self.atEndOfFile))
+        
 class OdsParser(DelimitedParser):
     """Parser for Open Document Spreadsheets (ODS)."""
     def __init__(self, readable):

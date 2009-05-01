@@ -2507,6 +2507,48 @@ BUILD SUCCESSFUL</computeroutput>
     cutplace.</para>
 
     <section>
+      <title>Version 0.3.1, xx-May-2009</title>
+
+      <itemizedlist>
+        <listitem>
+          <para>Changed CSV parser to use Python's built in one. This works
+          around the following issues:</para>
+
+          <itemizedlist>
+            <listitem>
+              <para>Improved performance when working with CSV data.</para>
+            </listitem>
+
+            <listitem>
+              <para>Error when reading valid CSV data that contained nothing
+              but a single item separator.</para>
+            </listitem>
+          </itemizedlist>
+
+          <para>However, it also introduces new issues:</para>
+
+          <itemizedlist>
+            <listitem>
+              <para>Increased memory usage when working with CSV data because
+              <function>csv.reader</function> does not fit well with the
+              <classname>AbstractParser</classname> class. Currently the whole
+              file is read into memory.</para>
+            </listitem>
+
+            <listitem>
+              <para>Lack of any error detection in the CSV structure. For
+              example, unclosed quotes at the end or inconsistent line feeds
+              do not raise any errors.</para>
+            </listitem>
+          </itemizedlist>
+
+          <para>On the long run, cutplace will need its own CSV parser. If
+          only it would not be so boring to code...</para>
+        </listitem>
+      </itemizedlist>
+    </section>
+
+    <section>
       <title>Version 0.3.0, 28-Apr-2009</title>
 
       <itemizedlist>
