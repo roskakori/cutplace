@@ -1,14 +1,18 @@
-"""Check that can cover the whole data set."""
+"""Checks that can cover the whole data set."""
 import fields
 import StringIO
 import tokenize
 
 class CheckError(ValueError):
-    """Error to be raised when a check fails."""
+    """
+    Error to be raised when a check fails.
+    """
     pass
 
 class CheckSyntaxError(ValueError):
-    """Error to be raised specification of check in ICD is broken."""
+    """
+    Error to be raised specification of check in ICD is broken.
+    """
     
 def _getFieldNameIndex(supposedFieldName, availableFieldNames):
     assert supposedFieldName is not None
@@ -23,8 +27,10 @@ def _getFieldNameIndex(supposedFieldName, availableFieldNames):
     return fieldIndex
     
 class AbstractCheck(object):
-    """Abstract check to be used as base class for other checks. The constructor should be called by descendants,
-     the other methods do nothing an can be left untouched."""
+    """
+    Abstract check to be used as base class for other checks. The constructor should be called by
+    descendants, the other methods do nothing an can be left untouched.
+    """
     def __init__(self, description, rule, fieldNames):
         assert description
         assert rule is not None
@@ -34,12 +40,16 @@ class AbstractCheck(object):
         self.fieldNames = fieldNames
     
     def checkRow(self, rowNumber, row):
-        """"Check row and in case it is invalid raise CheckError. By default do nothing."""
+        """"
+        Check row and in case it is invalid raise CheckError. By default do nothing.
+        """
         pass
     
     def checkAtEnd(self):
-        """Check at at end of document when all rows have been read and in case something is wrong raise
-        CheckError. By default do nothing."""
+        """
+        Check at at end of document when all rows have been read and in case something is wrong
+        raise CheckError. By default do nothing.
+        """
         pass
     
     def cleanup(self):
@@ -50,7 +60,9 @@ class AbstractCheck(object):
         return "%s(%r, %r, %r)" % (self.__class__.__name__, self.description, self.rule, self.fieldNames)
         
 class IsUniqueCheck(AbstractCheck):
-    """Check to ensure that all rows are unique concerning certain key fields."""
+    """
+    Check to ensure that all rows are unique concerning certain key fields.
+    """
     def __init__(self, description, rule, fieldNames):
         super(IsUniqueCheck, self).__init__(description, rule, fieldNames)
         self.fieldNamesToCheck = [fieldName.strip() for fieldName in rule.split(",")]
@@ -70,7 +82,9 @@ class IsUniqueCheck(AbstractCheck):
             self.uniqueValues[keyText] = rowNumber
 
 class DistinctCountCheck(AbstractCheck):
-    """Check to ensure that the number of different values in a field matches an expression."""
+    """
+    Check to ensure that the number of different values in a field matches an expression.
+    """
     _COUNT_NAME = "count"
     
     def __init__(self, description, rule, availableFieldNames):

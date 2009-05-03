@@ -27,8 +27,10 @@ import tools
 import version
 
 class ExitQuietlyOptionError(optparse.OptionError):
-    """Pseudo error to indicate the program should exit quietly, for example when --help or --verbose was
-    specified."""
+    """
+    Pseudo error to indicate the program should exit quietly, for example when --help or --verbose
+    was specified.
+    """
     pass
 
 class NoExitOptionParser(optparse.OptionParser):
@@ -103,7 +105,9 @@ class CutplaceIcdEventListener(interface.IcdEventListener):
             self.rejectedFile.write("%s%s" % (errorText, os.linesep))
 
 class CutPlace(object):
-    """Command line interface for CutPlace."""
+    """
+    Command line interface for CutPlace.
+    """
 
     # Mapping for value of --log to logging level
     _LOG_LEVEL_MAP = {"debug": logging.DEBUG,

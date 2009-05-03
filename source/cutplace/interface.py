@@ -12,7 +12,9 @@ import tools
 import types
 
 class IcdEventListener(object):
-    """Listener to process events detected during parsing."""
+    """
+    Listener to process events detected during parsing.
+    """
     # FIXME: Add error positions: rowNumber, itemNumber, indexInItem
     def acceptedRow(self, row):
         pass
@@ -30,7 +32,9 @@ class IcdEventListener(object):
         pass
     
 class InterfaceControlDocument(object):
-    """Model of the data driven parts of an Interface Control Document (ICD)."""
+    """
+    Model of the data driven parts of an Interface Control Document (ICD).
+    """
     _EMPTY_INDICATOR = "x"
     _ID_CHECK = "c"
     _ID_DATA_FORMAT = "d"
@@ -219,7 +223,9 @@ class InterfaceControlDocument(object):
             raise fields.FieldSyntaxError("ICD must contain a section describing at least one field format")
             
     def validate(self, dataFileToValidatePath):
-        """Validate that all lines and items in dataFileToValidatePath conform to this interface."""
+        """
+        Validate that all lines and items in dataFileToValidatePath conform to this interface.
+        """
         assert self.dataFormat is not None
         assert dataFileToValidatePath is not None
         self._log.info("validate \"%s\"" % (dataFileToValidatePath))

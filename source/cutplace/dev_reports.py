@@ -112,7 +112,7 @@ def createCoverageReport(targetBasePath):
     moduleFilesNames = _listdirPythonSource()
     # Strip folder and extension from names
     moduleNames = [os.path.splitext(os.path.split(fileName)[1])[0] for fileName in moduleFilesNames]
-    # FIXME: Figure out why we have duplicats and remove the hack below.
+    # FIXME: Figure out why we have duplicates and remove the hack below.
     moduleNames = set(moduleNames)
     # Remove "dev_" modules.
     moduleNames = [moduleName for moduleName in moduleNames if not moduleName.startswith("dev_")]

@@ -30,7 +30,9 @@ KEY_ESCAPE_CHARACTER = "escape character"
 # TODO: Add KEY_THOUSANDS_SEPARATOR = "thousandsSeparator"
 
 def createDataFormat(name):
-    """Factory function to create the specified data format."""
+    """
+    Factory function to create the specified data format.
+    """
     assert name is not None
     actualName = name.lower()
     if actualName == FORMAT_CSV:
@@ -46,13 +48,17 @@ def createDataFormat(name):
     return result
 
 def _isKey(possibleKey, keyToCompareWith):
-    """True if possibleKey and keyToCompareWith match, ignoring case and blanks between words.""" 
+    """
+    True if possibleKey and keyToCompareWith match, ignoring case and blanks between words.
+    """ 
     possibleKeyWords = possibleKey.lower().split()
     keyToCompareWithWords = keyToCompareWith.lower().split()
     return possibleKeyWords == keyToCompareWithWords
 
 def isFormatKey(key):
-    """True if key matches KEY_FORMAT."""
+    """
+    True if key matches KEY_FORMAT.
+    """
     return _isKey(key, KEY_FORMAT)
 
 class DataFormatValueError(tools.CutplaceError):
@@ -65,7 +71,9 @@ class DataFormatSyntaxError(tools.CutplaceError):
     pass
 
 class AbstractDataFormat(object):
-    """Abstract data format acting as base for other data formats."""
+    """
+    Abstract data format acting as base for other data formats.
+    """
     def __init__(self):
         assert type
         self._encoding = None
@@ -102,7 +110,9 @@ class AbstractDataFormat(object):
             pass 
     
     def isAllowedCharacter(self, character):
-        """Return True if character is allowed."""
+        """
+        True if character is allowed.
+        """
         assert character is not None
         assert len(character) == 1
         
@@ -124,7 +134,9 @@ class AbstractDataFormat(object):
             raise DataFormatLookupError("unknown data format option: %r" % key)
     
 class DelimitedDataFormat(AbstractDataFormat):
-    """Data format for delimited data such as CSV."""
+    """
+    Data format for delimited data such as CSV.
+    """
     def __init__(self, lineDelimiter=ANY, itemDelimiter=ANY):
         assert lineDelimiter is not None
         assert lineDelimiter in  _VALID_LINE_DELIMITERS
@@ -182,7 +194,9 @@ class DelimitedDataFormat(AbstractDataFormat):
             super(DelimitedDataFormat, self).set(key, value)
     
 class CsvDataFormat(DelimitedDataFormat):
-    """Data format for comma separated values (CSV)."""
+    """
+    Data format for comma separated values (CSV).
+    """
     def __init__(self):
         super(DelimitedDataFormat, self).__init__()
         self.setLineDelimiter(ANY)
@@ -194,7 +208,9 @@ class CsvDataFormat(DelimitedDataFormat):
         return FORMAT_CSV
     
 class FixedDataFormat(AbstractDataFormat):
-    """Data format for fixed data."""
+    """
+    Data format for fixed data.
+    """
     def __init__(self):
         self.lineDelimiter = None
 
@@ -202,7 +218,9 @@ class FixedDataFormat(AbstractDataFormat):
         return FORMAT_FIXED
 
 class OdsDataFormat(AbstractDataFormat):
-    """Data format for ODS as created by OpenOffice.org's Calc."""
+    """
+    Data format for ODS as created by OpenOffice.org's Calc.
+    """
     # FIXME: Clean up inheritance hierarchy. We get a lot of junk from AbstractDataFormat.
     def getName(self):
         return FORMAT_ODS

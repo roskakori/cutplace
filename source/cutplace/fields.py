@@ -9,8 +9,10 @@ import tools
 _ELLIPSIS = "..."
 
 def parsedRange(text):
-    """Assume text is of the form "lower...upper" or "[value]" and return (lower, upper) respectively (value, value).
-    In case text is empty, return None."""
+    """
+    Assume text is of the form "lower...upper" or "[value]" and return (lower, upper) respectively
+    (value, value). In case text is empty, return None.
+    """
     assert text is not None
     # TODO: Tokenize text properly.
     actualText = text.replace(" ", "")
@@ -28,16 +30,24 @@ def parsedRange(text):
     return result
 
 class FieldValueError(tools.CutplaceError):
-    """Error raised when AbstractFieldFormat.validate detects an error."""
+    """
+    Error raised when AbstractFieldFormat.validate detects an error.
+    """
 
 class FieldLookupError(tools.CutplaceError):
-    """Error raised when a field cannot be found."""
+    """
+    Error raised when a field cannot be found.
+    """
 
 class FieldSyntaxError(tools.CutplaceError):
-    """Error raised when a field definition in the ICD is broken."""
+    """
+    Error raised when a field definition in the ICD is broken.
+    """
 
 class AbstractFieldFormat(object):
-    """Format description of a field in a data file to validate."""
+    """
+    Format description of a field in a data file to validate.
+    """
     def __init__(self, fieldName, isAllowedToBeEmpty, lengthText, rule):
         assert fieldName is not None
         assert fieldName, "fieldName must not be empty"
@@ -63,8 +73,10 @@ class AbstractFieldFormat(object):
                 raise FieldValueError(str(error))
          
     def validate(self, value):
-        """Validate that value complies with field description and return the value in its "native" type.
-        If not, raise FieldValueError."""
+        """
+        Validate that value complies with field description and return the value in its "native"
+        type. If not, raise FieldValueError.
+        """
         raise NotImplementedError
     
     def __str__(self):
