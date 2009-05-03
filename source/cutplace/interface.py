@@ -266,16 +266,15 @@ class InterfaceControlDocument(object):
                         self.addFieldFormat(row[1:])
                     elif rowId.strip():
                         raise IcdSyntaxError("first item in row %d is %r but must be empty or one of: %r" % (lineNumber, row[0], InterfaceControlDocument._VALID_IDS))
-            if not len(self.fieldFormats):
-                raise IcdSyntaxError("interface must include at least one field format (in a row starting with %r)"
-                                      % InterfaceControlDocument._ID_FIELD_RULE)
         finally:
             if needsOpen:
                 icdFile.close()
         if self.dataFormat is None:
-            raise data.DataFormatSyntaxError("ICD must contain a section describing the data format")
-        if len(self.fieldFormats) == 0:
-            raise fields.FieldSyntaxError("ICD must contain a section describing at least one field format")
+            raise IcdSyntaxError("ICD must contain a section describing the data format (rows starting with %r)"
+                                 % InterfaceControlDocument._ID_DATA_FORMAT)
+        if not self.fieldFormats:
+            raise IcdSyntaxError("ICD must contain a section describing at least one field format (rows starting with %r)"
+                                 % InterfaceControlDocument._ID_FIELD_RULE)
             
     def validate(self, dataFileToValidatePath):
         """
