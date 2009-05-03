@@ -76,6 +76,8 @@ class InterfaceControlDocument(object):
                 # module is referred to as "fields" while after installation it is "cutplace.fields".
                 moduleName = "cutplace." + defaultModuleName
                 module = sys.modules[moduleName]
+        assert className
+        assert moduleName
         className += classNameAppendix
         self._log.debug("create from " + str(moduleName) + " class " + className)
         try:
@@ -142,7 +144,14 @@ class InterfaceControlDocument(object):
                 raise fields.FieldSyntaxError(str(error))
             # Obtain field type.
             try:
-                fieldType = tools.validatedPythonName("field type", items[1])
+                fieldType = ""
+                fieldTypeParts = items[1].split(".")
+                for part in fieldTypeParts:
+                    if fieldType:
+                        fieldType += "."
+                    fieldType += tools.validatedPythonName("field type part", part)
+                if not fieldType:
+                    raise fields.FieldSyntaxError("field type must not be empty")
             except NameError, error:
                 raise fields.FieldSyntaxError(str(error))
             # Obtain "empty" flag. 

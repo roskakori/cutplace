@@ -118,6 +118,23 @@ class InterfaceControlDocumentTest(unittest.TestCase):
         dataReadable = StringIO.StringIO(data)
         icd.validate(dataReadable)
     
+    def testFieldTypeWithModule(self):
+        spec = ""","Interface with field using a fully qualified type"
+"D","Format","CSV"
+"D","Line delimiter","LF"
+"D","Item delimiter",","
+"D","Encoding","ISO-8859-1"
+,,,,,,
+,"Name","Type","Empty","Length","Rule"
+"F","first_name","fields.Text","X",,,"John"
+"""
+        icd = interface.InterfaceControlDocument()
+        icd.read(StringIO.StringIO(spec))
+        data = """"John",,"08.03.1957"
+"Jane","female","04.10.1946" """
+        dataReadable = StringIO.StringIO(data)
+        icd.validate(dataReadable)
+    
     def testEmptyChoiceWithLength(self):
         spec = ""","Interface with a Choice field (gender) that can be empty and has a field length > 0"
 "D","Format","CSV"
@@ -188,6 +205,42 @@ class InterfaceControlDocumentTest(unittest.TestCase):
 ,"Name","Type","Empty","Length","Rule","Example"
 "F","branch_id","RegEx",,,"38\d\d\d",38123
 "F","customer_id","     ",,,"0:99999",12345
+"""
+        self._testBroken(spec, fields.FieldSyntaxError)
+
+    def testBrokenFieldTypeWitEmptyModule(self):
+        spec = ""","Broken Interface with missing field type"
+"D","Format","CSV"
+"D","Line delimiter","LF"
+"D","Item delimiter",","
+"D","Encoding","ISO-8859-1"
+,,,,,,
+,"Name","Type","Empty","Length","Rule","Example"
+"F","first_name",".Text","X",,,"John"
+"""
+        self._testBroken(spec, fields.FieldSyntaxError)
+
+    def testBrokenFieldTypeWitEmptyClass(self):
+        spec = ""","Broken Interface with missing field type"
+"D","Format","CSV"
+"D","Line delimiter","LF"
+"D","Item delimiter",","
+"D","Encoding","ISO-8859-1"
+,,,,,,
+,"Name","Type","Empty","Length","Rule","Example"
+"F","first_name","fields.","X",,,"John"
+"""
+        self._testBroken(spec, fields.FieldSyntaxError)
+
+    def testBrokenFieldTypeWitEmtySubModule(self):
+        spec = ""","Broken Interface with missing field type"
+"D","Format","CSV"
+"D","Line delimiter","LF"
+"D","Item delimiter",","
+"D","Encoding","ISO-8859-1"
+,,,,,,
+,"Name","Type","Empty","Length","Rule","Example"
+"F","first_name","fields..Text","X",,,"John"
 """
         self._testBroken(spec, fields.FieldSyntaxError)
 
