@@ -6,29 +6,6 @@ import sys
 import time
 import tools
 
-_ELLIPSIS = "..."
-
-def parsedRange(text):
-    """
-    Assume text is of the form "lower...upper" or "[value]" and return (lower, upper) respectively
-    (value, value). In case text is empty, return None.
-    """
-    assert text is not None
-    # TODO: Tokenize text properly.
-    actualText = text.replace(" ", "")
-    if actualText:
-        eclipseIndex = actualText.find(_ELLIPSIS)
-        if eclipseIndex < 0:
-            lower = actualText
-            upper = lower
-        else:
-            lower = actualText[:eclipseIndex]
-            upper = actualText[eclipseIndex + len(_ELLIPSIS):]
-        result = (lower, upper)
-    else:
-        result = None
-    return result
-
 class FieldValueError(tools.CutplaceError):
     """
     Error raised when AbstractFieldFormat.validate detects an error.
