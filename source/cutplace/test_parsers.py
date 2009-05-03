@@ -168,7 +168,6 @@ class DelimitedParserTest(AbstractParserTest):
         csvReader = parsers.delimitedReader(dataStream, dialect)
         rowCount = 0
         for row in csvReader:
-            print "%r" % row
             rowCount += 1
             self.assertEqual(2, len(row))
         self.assertEqual(2, rowCount)
