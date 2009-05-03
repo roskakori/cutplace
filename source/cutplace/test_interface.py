@@ -190,6 +190,32 @@ class InterfaceControlDocumentTest(unittest.TestCase):
 "F","customer_id","     ",,,"0:99999",12345
 """
         self._testBroken(spec, fields.FieldSyntaxError)
+
+    def testBrokenFieldNameWithInvalidCharacters(self):
+        spec = ""","Broken Interface with field name containing invalid characters"
+"D","Format","CSV"
+"D","Line delimiter","LF"
+"D","Item delimiter",","
+"D","Encoding","ISO-8859-1"
+,,,,,,
+,"Name","Type","Empty","Length","Rule","Example"
+"F","först_name","Text","X",,,"John"
+"F","customer_id","",,,"0:99999",12345
+"""
+        self._testBroken(spec, fields.FieldSyntaxError)
+
+    def testBrokenFieldTypeWithMultipleWord(self):
+        spec = ""","Broken Interface with field name containing invalid characters"
+"D","Format","CSV"
+"D","Line delimiter","LF"
+"D","Item delimiter",","
+"D","Encoding","ISO-8859-1"
+,,,,,,
+,"Name","Type","Empty","Length","Rule","Example"
+"F","first_name","Text and text again","X",,,"John"
+"F","customer_id","",,,"0:99999",12345
+"""
+        self._testBroken(spec, fields.FieldSyntaxError)
         
 if __name__ == '__main__':
     logging.basicConfig()

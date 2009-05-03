@@ -5,6 +5,10 @@ import os
 import platform
 import random
 import re
+import StringIO
+import token
+import tokenize
+
 from datetime import timedelta, datetime
 from random import randrange
 
@@ -67,6 +71,31 @@ def createTestFirstName(isMale=True):
     else:
         firstNameBase = _FEMALE_NAMES;
     result = random.choice(firstNameBase)
+    return result
+
+def validatedPythonName(name, value):
+    """
+    Validated and cleaned up `value` that represents a Python name with any whitespace removed.
+    If validation fails, raise `NameError` with mentioning `name` as the name under which `value`
+    is known to the user.
+    """
+    assert name
+    assert value is not None
+    
+    readable = StringIO.StringIO(value.strip())
+    toky = tokenize.generate_tokens(readable.readline)
+    next = toky.next()
+    nextType = next[0]
+    result = next[1]
+    if tokenize.ISEOF(nextType):
+        raise NameError("%s must not be empty but was: %r" % (name, value))
+    if nextType != token.NAME:
+        raise NameError("%s must contain only ASCII letters, digits and underscore (_) but is: %r"
+                         % (name, value))
+    secondToken = toky.next()
+    secondTokenType = secondToken[0]
+    if not tokenize.ISEOF(secondTokenType):
+        raise NameError("%s must be a single word, but after %r there also is %r" % (name, result, secondToken[1]))
     return result
 
 def createTestSurname():

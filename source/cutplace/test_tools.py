@@ -28,5 +28,13 @@ class ToolsTest(unittest.TestCase):
         tools.platformVersion()
         tools.pythonVersion()
         
+    def testValidatedPythonName(self):
+        self.assertEqual(tools.validatedPythonName("x", "abc_123"), "abc_123")
+        self.assertEqual(tools.validatedPythonName("x", " abc_123 "), "abc_123")
+        self.assertRaises(NameError, tools.validatedPythonName, "x", "1337")
+        self.assertRaises(NameError, tools.validatedPythonName, "x", "")
+        self.assertRaises(NameError, tools.validatedPythonName, "x", " ")
+        self.assertRaises(NameError, tools.validatedPythonName, "x", "a.b")
+        
 if __name__ == "__main__":
     unittest.main()

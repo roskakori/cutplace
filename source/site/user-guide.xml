@@ -2545,6 +2545,11 @@ BUILD SUCCESSFUL</computeroutput>
           <para>On the long run, cutplace will need its own CSV parser. If
           only it would not be so boring to code...</para>
         </listitem>
+
+        <listitem>
+          <para>Improved error messages for broken field names and types in
+          the ICD.</para>
+        </listitem>
       </itemizedlist>
     </section>
 

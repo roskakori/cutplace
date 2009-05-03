@@ -113,24 +113,48 @@ class InterfaceControlDocument(object):
             raise data.DataFormatSyntaxError("data format line (marked with %r) must contain at least 2 columns" % InterfaceControlDocument._ID_DATA_FORMAT)
 
     def addFieldFormat(self, items):
+        """
+        Add field as described by `items`. The meanings of the items are:
+        
+        0) field name
+        1) field type
+        2) optional: empty flag ("X"=field is allowed to be empty)
+        3) optional: length ("lower:upper")
+        4) optional: rule to validate field (depending on type)
+        
+        Further values in `items` are be ignored.
+        
+        Any errors detected result in a `fields.FieldSyntaxError`.
+        """
         assert items is not None
+        
+        # All these must have a value at the end.
+        fieldName = None
+        fieldType = None
+        fieldRule = None
+        
         itemCount = len(items)
         if itemCount >= 2:
-            fieldName = items[0].strip()
-            if not fieldName:
-                raise fields.FieldSyntaxError("field name must be specified")
-            # FIXME: Validate that fieldName is a Python name.
-            fieldType = items[1].strip()
-            if not fieldType:
-                raise fields.FieldSyntaxError("field type must be specified")
-            # FIXME: Validate that fieldType is a Python name.
+            # Obtain field name.
+            try:
+                fieldName = tools.validatedPythonName("field name", items[0])
+            except NameError, error:
+                raise fields.FieldSyntaxError(str(error))
+            # Obtain field type.
+            try:
+                fieldType = tools.validatedPythonName("field type", items[1])
+            except NameError, error:
+                raise fields.FieldSyntaxError(str(error))
+            # Obtain "empty" flag. 
             fieldIsAllowedToBeEmpty = False
             if itemCount >= 3:
                 fieldIsAllowedToBeEmptyText = items[2].strip().lower()
                 if fieldIsAllowedToBeEmptyText == InterfaceControlDocument._EMPTY_INDICATOR:
                     fieldIsAllowedToBeEmpty = True
                 elif fieldIsAllowedToBeEmptyText:
-                    raise fields.FieldSyntaxError("mark for empty field is %r but must be %r" % (fieldIsAllowedToBeEmptyText, InterfaceControlDocument._EMPTY_INDICATOR))
+                    raise fields.FieldSyntaxError("mark for empty field must be %r or empty but is %r" 
+                                                  % (InterfaceControlDocument._EMPTY_INDICATOR,
+                                                     fieldIsAllowedToBeEmptyText))
                 if itemCount >= 4:
                     fieldLength = items[3]
                     if itemCount >= 5:
@@ -139,14 +163,20 @@ class InterfaceControlDocument(object):
                             fieldRule = ""
             else:
                 fieldRule = ""
+
+            # Validate fixed fields.
             if self.dataFormat == data.FORMAT_FIXED:
                 if fieldLength is None:
                     raise fields.FieldSyntaxError("field length must be specified with fixed data format")
                 # FIXME: Validate that field length is fixed size.
+
+            # Obtain class for field type.
             fieldClass = self._createFieldFormatClass(fieldType);
             self._log.debug("create field: %s(%r, %r, %r)" % (fieldClass.__name__, fieldName, fieldType, fieldRule))
             fieldFormat = fieldClass.__new__(fieldClass, fieldName, fieldIsAllowedToBeEmpty, fieldLength, fieldRule)
             fieldFormat.__init__(fieldName, fieldIsAllowedToBeEmpty, fieldLength, fieldRule)
+
+            # Validate that field name is unique.
             if not self.fieldNameToFormatMap.has_key(fieldName):
                 self.fieldNames.append(fieldName)
                 self.fieldFormats.append(fieldFormat)
@@ -157,6 +187,10 @@ class InterfaceControlDocument(object):
                 raise fields.FieldSyntaxError("field name must be used for only one field: %s" % fieldName)
         else:
             raise fields.FieldSyntaxError("field format line (marked with %r) must contain at least 3 columns" % InterfaceControlDocument._ID_FIELD_RULE)
+
+        assert fieldName
+        assert fieldType
+        assert fieldRule is not None
         
     def addCheck(self, items):
         assert items is not None
