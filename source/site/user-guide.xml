@@ -2507,16 +2507,31 @@ BUILD SUCCESSFUL</computeroutput>
     cutplace.</para>
 
     <section>
-      <title>Version 0.3.1, xx-May-2009</title>
+      <title>Version 0.3.1, 03-May-2009</title>
 
       <itemizedlist>
+        <listitem>
+          <para>Added proper error messages for several possible error the
+          user might make when writing an ICD. So far these errors resulted
+          into confusing messages about failed assertions, attempted
+          <type>NoneType</type> accesses and the like.</para>
+        </listitem>
+
+        <listitem>
+          <para>Added requirement that field names in the ICD only use ASCII
+          letters, digits and underscore (_). This is necessary to prevent
+          Python errors in checks that refer to field values using Python
+          variables, such as DistinctCount and IsUnique.</para>
+        </listitem>
+
         <listitem>
           <para>Changed CSV parser to use Python's built in one. This works
           around the following issues:</para>
 
           <itemizedlist>
             <listitem>
-              <para>Improved performance when working with CSV data.</para>
+              <para>Improved performance when working with CSV data (about 4
+              times faster).</para>
             </listitem>
 
             <listitem>
@@ -2543,7 +2558,7 @@ BUILD SUCCESSFUL</computeroutput>
           </itemizedlist>
 
           <para>On the long run, cutplace will need its own CSV parser. If
-          only it would not be so boring to code...</para>
+          only this would not be so boring to code...</para>
         </listitem>
 
         <listitem>
