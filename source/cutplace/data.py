@@ -116,7 +116,7 @@ class AbstractDataFormat(object):
         assert character is not None
         assert len(character) == 1
         
-        # TODO: Check characters ranges.
+        # FIXME: Actually check that character is within range.
         return True
 
     def set(self, key, value):
@@ -131,7 +131,8 @@ class AbstractDataFormat(object):
         elif _isKey(key, KEY_LINE_DELIMITER):
             self.setLineDelimiter(value)
         else:
-            raise DataFormatLookupError("unknown data format option: %r" % key)
+            # TODO: List valid data format properties in error message.
+            raise DataFormatLookupError("unknown data format property: %r" % key)
     
 class DelimitedDataFormat(AbstractDataFormat):
     """
