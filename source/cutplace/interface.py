@@ -30,7 +30,12 @@ class IcdEventListener(object):
     
     def dataFormatFailed(self, errorMessage):
         pass
-    
+
+class IcdSyntaxError(tools.CutplaceError):
+    """
+    General syntax error in specification of the ICD.
+    """
+
 class InterfaceControlDocument(object):
     """
     Model of the data driven parts of an Interface Control Document (ICD).
@@ -102,15 +107,16 @@ class InterfaceControlDocument(object):
             if itemCount >= 2:
                 value = items[1]
             else:
-                # FIXME: Actually None must not be passed to most DataFormat.setXXX() methods.
-                value = None
+                value = ""
             if data.isFormatKey(key):
                 if self.dataFormat is None:
                     self.dataFormat = data.createDataFormat(value)
                 else:
                     raise data.DataFormatSyntaxError("data format must be set only once, but has been set already to: %r" % self.dataFormat.getName())
-            else:
+            elif self.dataFormat is not None: 
                 self.dataFormat.set(key, value)
+            else:
+                raise data.DataFormatSyntaxError("first data format property name is %r but must be %r" % (key, data.KEY_FORMAT))
         else:
             raise data.DataFormatSyntaxError("data format line (marked with %r) must contain at least 2 columns" % InterfaceControlDocument._ID_DATA_FORMAT)
 
@@ -129,7 +135,10 @@ class InterfaceControlDocument(object):
         Any errors detected result in a `fields.FieldSyntaxError`.
         """
         assert items is not None
-        
+
+        if self.dataFormat is None:
+            raise data.DataFormatSyntaxError("data format must be specified before first field")
+
         # All these must have a value at the end.
         fieldName = None
         fieldType = None
@@ -256,7 +265,10 @@ class InterfaceControlDocument(object):
                     elif rowId == InterfaceControlDocument._ID_FIELD_RULE:
                         self.addFieldFormat(row[1:])
                     elif rowId.strip():
-                        raise ValueError("first item in row %d is %r but must be empty or one of: %r" % (lineNumber, row[0], InterfaceControlDocument._VALID_IDS))
+                        raise IcdSyntaxError("first item in row %d is %r but must be empty or one of: %r" % (lineNumber, row[0], InterfaceControlDocument._VALID_IDS))
+            if not len(self.fieldFormats):
+                raise IcdSyntaxError("interface must include at least one field format (in a row starting with %r)"
+                                      % InterfaceControlDocument._ID_FIELD_RULE)
         finally:
             if needsOpen:
                 icdFile.close()

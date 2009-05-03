@@ -1,6 +1,7 @@
 # -*- coding: iso-8859-1 -*-
 """Tests for interface control documents."""
 import checks
+import data
 import fields
 import interface
 import logging
@@ -160,6 +161,25 @@ class InterfaceControlDocumentTest(unittest.TestCase):
         icd = interface.InterfaceControlDocument()
         self.assertRaises(expectedError, icd.read, StringIO.StringIO(spec))
         
+    def testBrokenDataFormatInvalidFormat(self):
+        spec = ""","Broken Interface with invalid data format"
+"D","Format","XYZ"
+"""
+        self._testBroken(spec, data.DataFormatSyntaxError)
+        
+    def testBrokenDataFormatInvalidFormatPropertyName(self):
+        spec = ""","Broken Interface with invalid data format"
+"D","Fromat","XYZ"
+"""
+        self._testBroken(spec, data.DataFormatSyntaxError)
+        
+    def testBrokenDataFormatAfterField(self):
+        spec = ""","Broken Interface with specified after first field"
+"F","branch_id","Text"
+"D","Format","XYZ"
+"""
+        self._testBroken(spec, data.DataFormatSyntaxError)
+        
     def testBrokenFieldNameMissing(self):
         spec = ""","Broken Interface with missing field name"
 "D","Format","CSV"
@@ -270,6 +290,18 @@ class InterfaceControlDocumentTest(unittest.TestCase):
 """
         self._testBroken(spec, fields.FieldSyntaxError)
         
+    def testBrokenInterfaceWithoutFields(self):
+        spec = ""","Broken Interface without fields"
+"D","Format","CSV"
+"D","Line delimiter","LF"
+"D","Item delimiter",","
+"D","Encoding","ISO-8859-1"
+"""
+        self._testBroken(spec, interface.IcdSyntaxError)
+        
+        # Same thing should happen with an empty ICD.
+        self._testBroken("", interface.IcdSyntaxError)
+
 if __name__ == '__main__':
     logging.basicConfig()
     logging.getLogger("cutplace").setLevel(logging.DEBUG)
