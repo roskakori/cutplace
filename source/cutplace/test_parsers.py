@@ -1,6 +1,7 @@
 """
 Tests for parsers.
 """
+import dev_test
 import logging
 import os
 import parsers
@@ -27,6 +28,17 @@ class AbstractParserTest(unittest.TestCase):
         for row in parsers.parserReader(parser):
             rows.append(row)
         self.assertEqual(rows, expectedRows)
+
+class ExcelParserTest(AbstractParserTest):
+    def testIcdCustomersXls(self):
+        icdCustomersIcdXlsPath = dev_test.getTestIcdPath("customers.xls")
+        readable = open(icdCustomersIcdXlsPath, "rb")
+        try:
+            for row in parsers.excelReader(readable):
+                self.assertTrue(row is not None)
+                self.assertTrue(len(row))
+        finally:
+            readable.close()
 
 class FixedParserTest(AbstractParserTest):
     _DEFAULT_FIELD_LENGTHS = [5, 4, 10]

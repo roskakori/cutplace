@@ -57,6 +57,22 @@ def fixedReader(readable, fieldLengths):
             columns = []
         parser.advance()
 
+def excelReader(readable, sheetIndex=0):
+    """Generator yielding the "readable" row by row using "fieldLengths"."""
+    assert readable is not None
+    assert sheetIndex is not None
+    
+    parser = ExcelParser(readable, sheetIndex)
+    # parserReader(parser)
+    columns = []
+    while not parser.atEndOfFile:
+        if parser.item is not None:
+            columns.append(parser.item)
+        if parser.atEndOfLine:
+            yield columns
+            columns = []
+        parser.advance()
+
 class DelimitedDialect(object):
     def __init__(self, lineDelimiter=AUTO, itemDelimiter=AUTO):
         assert lineDelimiter is not None
@@ -204,7 +220,7 @@ class DelimitedParser(object):
             self.item = None
             self.atEndOfFile = True
         if self._log.isEnabledFor(logging.DEBUG):
-            self._log("(%d:%d) %r [%d;%d]" % (self.lineNumber, self.itemNumber, self.item, self.atEndOfLine, self.atEndOfFile))
+            self._log.debug("(%d:%d) %r [%d;%d]" % (self.lineNumber, self.itemNumber, self.item, self.atEndOfLine, self.atEndOfFile))
         
 class OdsParser(DelimitedParser):
     """Parser for Open Document Spreadsheets (ODS)."""
@@ -277,4 +293,52 @@ class FixedParser(object):
                 self._raiseSyntaxError("item must have %d characters but data already end after %d yielding: %r" % (expectedLength, actualLength, self.item))
             self.columnNumberInRow += actualLength
             if self.itemNumberInRow == len(self.fieldLengths) - 1:
+                self.atEndOfLine = True
+
+class ExcelParser(object):
+    def __init__(self, readable, sheetIndex=0):
+        assert readable is not None
+        assert sheetIndex is not None
+        
+        try:
+            import xlrd
+        except ImportError:
+            raise ImportError("to read Excel data the xlrd package must be installed, see <http://www.lexicon.net/sjmachin/xlrd.htm> for more information")
+        
+        contents = readable.read()
+        self.workbook = xlrd.open_workbook(file_contents=contents)
+        self.sheet = self.workbook.sheet_by_index(sheetIndex)
+        # TODO: Obtain name of file to parse, if there is one.
+        self.fileName = None
+        self.itemNumberInRow = - 1
+        self.rowNumber = 0
+        self.atEndOfLine = False
+        self.atEndOfFile = False
+        self.item = None
+        self._log = logging.getLogger("cutplace.parsers")
+
+        self.advance()
+        
+    def advance(self):
+        assert not self.atEndOfFile
+        
+        if self.atEndOfLine:
+            self.itemNumberInRow = 0
+            self.columnNumberInRow = 0
+            self.rowNumber += 1
+            self.atEndOfLine = False
+        else:
+            self.itemNumberInRow += 1
+
+        if self.rowNumber >= self.sheet.nrows:
+            # Last row reached.
+            self.item = None
+            self.atEndOfLine = True
+            self.atEndOfFile = True
+        else:
+            if self._log.isEnabledFor(logging.DEBUG):
+                self._log.debug("parse excel item at (%d:%d) of (%d:%d)"
+                                % (self.rowNumber, self.itemNumberInRow, self.sheet.nrows, self.sheet.ncols))
+            self.item = self.sheet.cell_value(self.rowNumber - 1, self.itemNumberInRow)
+            if self.itemNumberInRow + 1 == self.sheet.ncols:
                 self.atEndOfLine = True

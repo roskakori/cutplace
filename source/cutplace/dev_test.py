@@ -21,6 +21,13 @@ def getTestFolder(folder):
         # TODO: Make the base folder a property setable from outside. 
         testFolder = os.path.join(sys.argv[1], "tests")
     if not os.path.exists(testFolder):
+        basePath = os.getcwd()
+        testFolderfound = False
+        while not testFolderfound and basePath:
+            basePath = os.path.split(basePath)[0]
+            testFolder = os.path.join(basePath, "tests")
+            testFolderfound = os.path.exists(testFolder)
+    if not os.path.exists(testFolder):
         raise IOError("cannot find test folder: test must run from project folder or project folder must be passed as command line option; currently attempting to find test folder in: %r" % testFolder)
     result = os.path.join(testFolder, folder)
     return result

@@ -47,6 +47,9 @@ class InterfaceControlDocument(object):
     _VALID_IDS = [_ID_CHECK, _ID_DATA_FORMAT, _ID_FIELD_RULE]
     # Header used by zipped ODS content.
     _ODS_HEADER = "PK\x03\x04"
+    # Header used by Excel (and other MS Office applications).
+    _EXCEL_HEADER = "\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"
+    
     def __init__(self):
         self._log = logging.getLogger("cutplace")
         self.dataFormat = None
@@ -225,33 +228,58 @@ class InterfaceControlDocument(object):
             check = checkClass.__new__(checkClass, checkDescription, checkRule, self.fieldNames)
             check.__init__(checkDescription, checkRule, self.fieldNames)
             if not checkDescription in self.checkDescriptions:
-                # TODO: Remember location where check was defined to later include it in error message
+                # TODO: Remember location where check was defined to later include it in error message.
                 self.checkDescriptions[checkDescription] = check
             else:
                 raise checks.CheckSyntaxError("check description must be used only once: %r" % (checkDescription)) 
         else:
             raise checks.CheckSyntaxError("check row (marked with %r) must contain at least 2 columns" % InterfaceControlDocument._ID_FIELD_RULE)
 
+    def _fittingParser(self, icdReadable):
+        """
+        A parser fitting the contents of `icdReadable`.
+        """
+        assert icdReadable is not None
+        
+        result = None
+        icdHeader = icdReadable.read(4)
+        self._log.debug("icdHeader=%r" % icdHeader)
+        if icdHeader == InterfaceControlDocument._ODS_HEADER:
+            # Consider ICD to be ODS.
+            icdReadable.seek(0)
+            result = parsers.OdsParser(icdReadable)
+        else:
+            icdHeader += icdReadable.read(4)
+            icdReadable.seek(0)
+            if icdHeader == InterfaceControlDocument._EXCEL_HEADER:
+                # Consider ICD to be Excel.
+                result = parsers.ExcelParser(icdReadable)
+            else:
+                # Consider ICD to be CSV.
+                dialect = parsers.DelimitedDialect()
+                dialect.lineDelimiter = parsers.AUTO
+                dialect.itemDelimiter = parsers.AUTO
+                dialect.quoteChar = "\""
+                dialect.escapeChar = "\""
+                result = parsers.DelimitedParser(icdReadable, dialect)
+        return result
+    
     def read(self, icdFilePath, encodingName="iso-8859-1"):
+        """"
+        Read the ICD as specified in `icdFilePath`.
+        
+        - `icdPath` - either the path of a file or a `StringIO`
+        - `encodingName` - the name of the encoding to use when reading the ICD; depending the the
+        file type this might be ignored 
+        """
         needsOpen = isinstance(icdFilePath, types.StringTypes)
         if needsOpen:
             icdFile = open(icdFilePath, "rb")
         else:
             icdFile = icdFilePath
         try:
-            icdHeader = icdFile.read(4)
-            self._log.debug("icdHeader=%r" % icdHeader)
-            icdFile.seek(0)
-            isOds = icdHeader == InterfaceControlDocument._ODS_HEADER
-            if isOds:
-                parser = parsers.OdsParser(icdFile)
-            else:
-                dialect = parsers.DelimitedDialect()
-                dialect.lineDelimiter = parsers.AUTO
-                dialect.itemDelimiter = parsers.AUTO
-                dialect.quoteChar = "\""
-                dialect.escapeChar = "\""
-                parser = parsers.DelimitedParser(icdFile, dialect)
+            parser = self._fittingParser(icdFile)
+            assert parser is not None
             reader = parsers.parserReader(parser)
             for row in reader:
                 lineNumber = parser.lineNumber

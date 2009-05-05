@@ -18,7 +18,7 @@ setup(
       author_email="roskakori@users.sourceforge.net",
       url="http://cutplace.sourceforge.net/",
       # TODO: Actually coverage is only required for the development reports. How to express this here?
-      install_requires = ["coverage"],
+      install_requires = ["coverage", "xlrd"],
       packages = find_packages("source"),
       package_dir={"": "source"},
       # TODO: Include documentation in distribution by copying it to package folder.
@@ -36,7 +36,7 @@ architecturally very different systems like mainframes.
 
 With cutplace you can describe these data in a simple and human readable spreadsheets using popular applications
 like Calc or Excel. Unlike a lot of documentation these days, this description does not only describe wishful
-thinking. It acts as "executable specification" that cutplace can use to validate that data actually conform to it.""",
+thinking. It acts as "executable specification" which cutplace can use to validate that data actually conform to it.""",
       classifiers = [
           "Development Status :: 3 - Alpha",
           "Environment :: Console",

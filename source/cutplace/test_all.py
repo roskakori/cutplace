@@ -32,6 +32,7 @@ def main():
                         test_fields.PatternFieldFormatTest,
                         test_fields.RegExFieldFormatTest,
                         test_parsers.DelimitedParserTest,
+                        test_parsers.ExcelParserTest,
                         test_parsers.FixedParserTest,
                         test_range.RangeTest,
                         test_tools.ToolsTest
