@@ -1352,7 +1352,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
       <section>
         <title>Overview</title>
 
-        <para>The field format section of the ICD contains rows wit the
+        <para>The field format section of the ICD contains rows with the
         following columns:</para>
 
         <orderedlist>
@@ -1370,8 +1370,9 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
           <listitem>
             <para>An optional example value for the field. This is for
             documentation purpose only and can be omitted for fields where
-            there is no meaningful example, like fields containing an
-            encrypted password.</para>
+            there is no meaningful example (such as a field containing a
+            BLOB). In case a value is specified though, it must be a valid
+            example conforming to all the rules for this field.</para>
           </listitem>
 
           <listitem>
@@ -2288,7 +2289,7 @@ INFO:cutplace.server:Press Control-C to shut down
     <section>
       <title>Obtaining additional tools and Python packages</title>
 
-      <para>To build the source code, you need a few addtional tools and
+      <para>To build the source code, you need a few additional tools and
       Python packages.</para>
 
       <para><ulink url="http://ant.apache.org/">Ant</ulink> is a build tool
@@ -2319,7 +2320,7 @@ sudo apt-get install python-profiler
 sudo easy_install coverage
 </userinput></literallayout>
 
-      <para>sudo apt-get install python-profiler</para>
+      <para></para>
     </section>
 
     <section>
@@ -2711,12 +2712,12 @@ BUILD SUCCESSFUL</computeroutput>
 
         <listitem>
           <para>Changed syntax to specify ranges like field lengths or rules
-          for for <type>Integer</type> fields formats. Use ":" instead of
+          for <type>Integer</type> fields formats. Use ":" instead of
           "...".</para>
 
           <para>There are basically two reasons for this change: Firstly, this
-          looks more pythonic and thus more consistent with other parts of the
-          ICD like the "Checks" section which also uses Python syntax in
+          looks more Python-like and thus more consistent with other parts of
+          the ICD like the "Checks" section which also uses Python syntax in
           various places. Secondly, this avoids issues with Excel which under
           certain circumstances changes the 3 characters in "..." to a single
           character ellipsis. Using ":" still is not without issues though: if
@@ -2753,7 +2754,7 @@ BUILD SUCCESSFUL</computeroutput>
         <listitem>
           <para>Added command line option
           <userinput>--icd-encoding</userinput> to specify the character
-          endcoding to be used with ICDs in CSV format.</para>
+          encoding to be used with ICDs in CSV format.</para>
         </listitem>
       </itemizedlist>
     </section>

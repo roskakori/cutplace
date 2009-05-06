@@ -304,6 +304,20 @@ class InterfaceControlDocumentTest(unittest.TestCase):
         # Same thing should happen with an empty ICD.
         self._testBroken("", interface.IcdSyntaxError)
 
+    def testBrokenInterfaceFieldExample(self):
+        spec = ""","Interface with broken example for the gender field"
+"D","Format","CSV"
+"D","Line delimiter","LF"
+"D","Item delimiter",","
+"D","Encoding","ISO-8859-1"
+,,,,,,
+,"Name","Example","Type","Empty","Length","Rule"
+"F","first_name","John","Text","X"
+"F","gender","spam","Choice",,4:6,"female, male"
+"F","date_of_birth",08.03.1957,"DateTime",,,"DD.MM.YYYY"
+"""
+        self._testBroken(spec, interface.IcdSyntaxError)
+
 if __name__ == '__main__':
     logging.basicConfig()
     logging.getLogger("cutplace").setLevel(logging.INFO)

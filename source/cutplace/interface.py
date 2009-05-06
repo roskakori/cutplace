@@ -1,4 +1,6 @@
-"""Interface control document (ICD) describing all aspects of a data driven interface."""
+"""
+Interface control document (ICD) describing all aspects of a data driven interface.
+"""
 import checks
 import codecs
 import data
@@ -196,6 +198,13 @@ class InterfaceControlDocument(object):
             self._log.debug("create field: %s(%r, %r, %r)" % (fieldClass.__name__, fieldName, fieldType, fieldRule))
             fieldFormat = fieldClass.__new__(fieldClass, fieldName, fieldIsAllowedToBeEmpty, fieldLength, fieldRule)
             fieldFormat.__init__(fieldName, fieldIsAllowedToBeEmpty, fieldLength, fieldRule)
+
+            # Validate example in case there is one.
+            if fieldExample:
+                try:
+                    fieldFormat.validate(fieldExample)
+                except fields.FieldValueError, error:
+                    raise IcdSyntaxError("cannot validate example for field %r: %s" %(fieldName, str(error)))
 
             # Validate that field name is unique.
             if not self.fieldNameToFormatMap.has_key(fieldName):
