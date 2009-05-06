@@ -128,12 +128,13 @@ class InterfaceControlDocument(object):
         Add field as described by `items`. The meanings of the items are:
         
         0) field name
-        1) field type
-        2) optional: empty flag ("X"=field is allowed to be empty)
-        3) optional: length ("lower:upper")
-        4) optional: rule to validate field (depending on type)
+        1) example value (can be empty)
+        2) field type
+        3) optional: empty flag ("X"=field is allowed to be empty)
+        4) optional: length ("lower:upper")
+        5) optional: rule to validate field (depending on type)
         
-        Further values in `items` are be ignored.
+        Further values in `items` are ignored.
         
         Any errors detected result in a `fields.FieldSyntaxError`.
         """
@@ -142,22 +143,25 @@ class InterfaceControlDocument(object):
         if self.dataFormat is None:
             raise data.DataFormatSyntaxError("data format must be specified before first field")
 
-        # All these must have a value at the end.
         fieldName = None
+        fieldExample = None
         fieldType = None
-        fieldRule = None
+        fieldLength = None
+        fieldRule = ""
         
         itemCount = len(items)
-        if itemCount >= 2:
+        if itemCount >= 3:
             # Obtain field name.
             try:
                 fieldName = tools.validatedPythonName("field name", items[0])
             except NameError, error:
                 raise fields.FieldSyntaxError(str(error))
+            # Obtain example.
+            fieldExample = items[1]
             # Obtain field type.
             try:
                 fieldType = ""
-                fieldTypeParts = items[1].split(".")
+                fieldTypeParts = items[2].split(".")
                 for part in fieldTypeParts:
                     if fieldType:
                         fieldType += "."
@@ -168,20 +172,22 @@ class InterfaceControlDocument(object):
                 raise fields.FieldSyntaxError(str(error))
             # Obtain "empty" flag. 
             fieldIsAllowedToBeEmpty = False
-            if itemCount >= 3:
-                fieldIsAllowedToBeEmptyText = items[2].strip().lower()
+            if itemCount >= 4:
+                fieldIsAllowedToBeEmptyText = items[3].strip().lower()
                 if fieldIsAllowedToBeEmptyText == InterfaceControlDocument._EMPTY_INDICATOR:
                     fieldIsAllowedToBeEmpty = True
                 elif fieldIsAllowedToBeEmptyText:
                     raise fields.FieldSyntaxError("mark for empty field must be %r or empty but is %r" 
                                                   % (InterfaceControlDocument._EMPTY_INDICATOR,
                                                      fieldIsAllowedToBeEmptyText))
-                if itemCount >= 4:
-                    fieldLength = items[3]
-                    if itemCount >= 5:
-                        fieldRule = items[4].strip()
+                if itemCount >= 5:
+                    fieldLength = items[4]
+                    if itemCount >= 6:
+                        fieldRule = items[5].strip()
+                        # TODO: Remove redundant code below.
                         if not fieldRule:
                             fieldRule = ""
+            # TODO: Remove redundant code below.
             else:
                 fieldRule = ""
 
@@ -207,9 +213,10 @@ class InterfaceControlDocument(object):
             else:
                 raise fields.FieldSyntaxError("field name must be used for only one field: %s" % fieldName)
         else:
-            raise fields.FieldSyntaxError("field format line (marked with %r) must contain at least 3 columns" % InterfaceControlDocument._ID_FIELD_RULE)
+            raise fields.FieldSyntaxError("field format line (marked with %r) must contain at least 4 columns" % InterfaceControlDocument._ID_FIELD_RULE)
 
         assert fieldName
+        assert fieldExample is not None
         assert fieldType
         assert fieldRule is not None
         

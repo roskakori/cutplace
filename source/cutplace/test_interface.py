@@ -22,13 +22,13 @@ D,Allowed characters,32:,,,,
 ,,,,,,
 ,Fields,,,,,
 ,,,,,,
-,Name,Type,Empty,Length,Rule,Example
-F,branch_id,RegEx,,5,38\d\d\d,38123
-F,customer_id,Integer,,5,0:99999,12345
-F,first_name,Text,X,15,,John
-F,surname,Text,,15,,Doe
-F,gender,Choice,,7,"male, female, unknown",male
-F,date_of_birth,DateTime,,10,DD.MM.YYYY,08.03.1957
+,Name,Type,Example,Empty,Length,Rule
+F,branch_id,38123,RegEx,,5,38\d\d\d
+F,customer_id,12345,Integer,,5,0:99999
+F,first_name,John,Text,X,15
+F,surname,Doe,Text,,15
+F,gender,male,Choice,,7,"male, female, unknown"
+F,date_of_birth,08.03.1957,DateTime,,10,DD.MM.YYYY
 ,,,,,,
 ,Checks,,,,,
 ,,,,,,
@@ -53,13 +53,13 @@ def createDefaultTestIcd(lineDelimiter="\n"):
 ,,,,,,
 ,"Fields",,,,,
 ,,,,,,
-,"Name","Type","Empty","Length","Rule","Example"
-"F","branch_id","RegEx",,,"38\d\d\d",38123
-"F","customer_id","Integer",,,"0:99999",12345
-"F","first_name","Text","X",,,"John"
-"F","surname","Text",,"1:60",,"Doe"
-"F","gender","Choice",,,"female, male, other, unknown","male"
-"F","date_of_birth","DateTime",,,"DD.MM.YYYY",08.03.1957
+,"Name","Example","Type","Empty","Length","Rule"
+"F","branch_id",38123,"RegEx",,,"38\d\d\d"
+"F","customer_id",12345,"Integer",,,"0:99999"
+"F","first_name","John","Text","X"
+"F","surname","Doe","Text",,"1:60"
+"F","gender","male","Choice",,,"female, male, other, unknown"
+"F","date_of_birth",08.03.1957,"DateTime",,,"DD.MM.YYYY"
 ,,,,,,
 ,"Checks",,,,,
 ,,,,,,
@@ -109,10 +109,10 @@ class InterfaceControlDocumentTest(unittest.TestCase):
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
 ,,,,,,
-,"Name","Type","Empty","Length","Rule"
-"F","first_name","Text","X",,,"John"
-"F","gender","Choice",X,,"female, male","male"
-"F","date_of_birth","DateTime",,,"DD.MM.YYYY",08.03.1957
+,"Name","Example","Type","Empty","Length","Rule"
+"F","first_name","John","Text","X"
+"F","gender","male","Choice",X,,"female, male"
+"F","date_of_birth",08.03.1957,"DateTime",,,"DD.MM.YYYY"
 """
         icd = interface.InterfaceControlDocument()
         icd.read(StringIO.StringIO(spec))
@@ -128,8 +128,8 @@ class InterfaceControlDocumentTest(unittest.TestCase):
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
 ,,,,,,
-,"Name","Type","Empty","Length","Rule"
-"F","first_name","fields.Text","X",,,"John"
+,"Name","Example","Type","Empty","Length","Rule"
+"F","first_name","John","fields.Text","X"
 """
         icd = interface.InterfaceControlDocument()
         icd.read(StringIO.StringIO(spec))
@@ -145,10 +145,10 @@ class InterfaceControlDocumentTest(unittest.TestCase):
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
 ,,,,,,
-,"Name","Type","Empty","Length","Rule"
-"F","first_name","Text","X",,,"John"
-"F","gender","Choice",X,4:6,"female, male","male"
-"F","date_of_birth","DateTime",,,"DD.MM.YYYY",08.03.1957
+,"Name","Example","Type","Empty","Length","Rule"
+"F","first_name","John","Text","X"
+"F","gender","male","Choice",X,4:6,"female, male"
+"F","date_of_birth",08.03.1957,"DateTime",,,"DD.MM.YYYY"
 """
         icd = interface.InterfaceControlDocument()
         icd.read(StringIO.StringIO(spec))
@@ -176,8 +176,8 @@ class InterfaceControlDocumentTest(unittest.TestCase):
         self._testBroken(spec, data.DataFormatSyntaxError)
         
     def testBrokenDataFormatAfterField(self):
-        spec = ""","Broken Interface with specified after first field"
-"F","branch_id","Text"
+        spec = ""","Broken Interface with data format specified after first field"
+"F","branch_id",,"Text"
 "D","Format","XYZ"
 """
         self._testBroken(spec, data.DataFormatSyntaxError)
@@ -189,9 +189,9 @@ class InterfaceControlDocumentTest(unittest.TestCase):
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
 ,,,,,,
-,"Name","Type","Empty","Length","Rule","Example"
-"F","branch_id","RegEx",,,"38\d\d\d",38123
-"F","","Integer",,,"0:99999",12345
+,"Name","Example","Type","Empty","Length","Rule","Example"
+"F","branch_id",,"RegEx",,,"38\d\d\d"
+"F","","Integer",,,,"0:99999"
 """
         self._testBroken(spec, fields.FieldSyntaxError)
         spec = ""","Broken Interface with missing field name"
@@ -200,9 +200,9 @@ class InterfaceControlDocumentTest(unittest.TestCase):
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
 ,,,,,,
-,"Name","Type","Empty","Length","Rule","Example"
-"F","branch_id","RegEx",,,"38\d\d\d",38123
-"F","     ","Integer",,,"0:99999",12345
+,"Name","Example","Type","Empty","Length","Rule","Example"
+"F","branch_id",,"RegEx",,,"38\d\d\d"
+"F","     ",,"Integer",,,"0:99999"
 """
         self._testBroken(spec, fields.FieldSyntaxError)
         
@@ -213,9 +213,9 @@ class InterfaceControlDocumentTest(unittest.TestCase):
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
 ,,,,,,
-,"Name","Type","Empty","Length","Rule","Example"
-"F","branch_id","RegEx",,,"38\d\d\d",38123
-"F","customer_id","",,,"0:99999",12345
+,"Name","Example","Type","Empty","Length","Rule","Example"
+"F","branch_id",,"RegEx",,,"38\d\d\d"
+"F","customer_id",,"",,,"0:99999"
 """
         self._testBroken(spec, fields.FieldSyntaxError)
         spec = ""","Broken Interface with missing field type"
@@ -224,9 +224,9 @@ class InterfaceControlDocumentTest(unittest.TestCase):
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
 ,,,,,,
-,"Name","Type","Empty","Length","Rule","Example"
-"F","branch_id","RegEx",,,"38\d\d\d",38123
-"F","customer_id","     ",,,"0:99999",12345
+,"Name","Example","Type","Empty","Length","Rule","Example"
+"F","branch_id",,"RegEx",,,"38\d\d\d"
+"F","customer_id",,"     ",,,"0:99999"
 """
         self._testBroken(spec, fields.FieldSyntaxError)
 
@@ -237,8 +237,8 @@ class InterfaceControlDocumentTest(unittest.TestCase):
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
 ,,,,,,
-,"Name","Type","Empty","Length","Rule","Example"
-"F","first_name",".Text","X",,,"John"
+,"Name","Example","Type","Empty","Length","Rule","Example"
+"F","first_name",,".Text","X",,,"John"
 """
         self._testBroken(spec, fields.FieldSyntaxError)
 
@@ -249,8 +249,8 @@ class InterfaceControlDocumentTest(unittest.TestCase):
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
 ,,,,,,
-,"Name","Type","Empty","Length","Rule","Example"
-"F","first_name","fields.","X",,,"John"
+,"Name","Example","Type","Empty","Length","Rule","Example"
+"F","first_name",,"fields.","X"
 """
         self._testBroken(spec, fields.FieldSyntaxError)
 
@@ -261,8 +261,8 @@ class InterfaceControlDocumentTest(unittest.TestCase):
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
 ,,,,,,
-,"Name","Type","Empty","Length","Rule","Example"
-"F","first_name","fields..Text","X",,,"John"
+,"Name","Example","Type","Empty","Length","Rule","Example"
+"F","first_name",,"fields..Text","X"
 """
         self._testBroken(spec, fields.FieldSyntaxError)
 
@@ -273,22 +273,22 @@ class InterfaceControlDocumentTest(unittest.TestCase):
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
 ,,,,,,
-,"Name","Type","Empty","Length","Rule","Example"
-"F","först_name","Text","X",,,"John"
-"F","customer_id","",,,"0:99999",12345
+,"Name","Example","Type","Empty","Length","Rule","Example"
+"F","först_name",,"Text","X"
+"F","customer_id",,"",,,"0:99999"
 """
         self._testBroken(spec, fields.FieldSyntaxError)
 
     def testBrokenFieldTypeWithMultipleWord(self):
-        spec = ""","Broken Interface with field name containing invalid characters"
+        spec = ""","Broken Interface with field type containing multiple words"
 "D","Format","CSV"
 "D","Line delimiter","LF"
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
 ,,,,,,
-,"Name","Type","Empty","Length","Rule","Example"
-"F","first_name","Text and text again","X",,,"John"
-"F","customer_id","",,,"0:99999",12345
+,"Name","Example","Type","Empty","Length","Rule","Example"
+"F","first_name",,"Text and text again","X"
+"F","customer_id",,"",,,"0:99999"
 """
         self._testBroken(spec, fields.FieldSyntaxError)
         
@@ -306,6 +306,6 @@ class InterfaceControlDocumentTest(unittest.TestCase):
 
 if __name__ == '__main__':
     logging.basicConfig()
-    logging.getLogger("cutplace").setLevel(logging.DEBUG)
-    logging.getLogger("cutplace.test_icd").setLevel(logging.INFO)
+    logging.getLogger("cutplace").setLevel(logging.INFO)
+    logging.getLogger("cutplace.test_interface").setLevel(logging.INFO)
     unittest.main()

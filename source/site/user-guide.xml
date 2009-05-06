@@ -238,6 +238,38 @@
           </row>
 
           <row>
+            <entry></entry>
+
+            <entry>Quote character</entry>
+
+            <entry></entry>
+
+            <entry>TODO: Set to quote and activate using D</entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+          </row>
+
+          <row>
+            <entry></entry>
+
+            <entry>Escape character</entry>
+
+            <entry></entry>
+
+            <entry>TODO: Set to quote and activate using D</entry>
+
+            <entry></entry>
+
+            <entry></entry>
+
+            <entry></entry>
+          </row>
+
+          <row>
             <entry>D</entry>
 
             <entry>Encoding</entry>
@@ -322,6 +354,8 @@
 
             <entry>Name</entry>
 
+            <entry>Example</entry>
+
             <entry>Type</entry>
 
             <entry>Empty</entry>
@@ -329,14 +363,14 @@
             <entry>Length</entry>
 
             <entry>Rule</entry>
-
-            <entry>Example</entry>
           </row>
 
           <row>
             <entry>F</entry>
 
             <entry>branch_id</entry>
+
+            <entry>38123</entry>
 
             <entry>RegEx</entry>
 
@@ -345,14 +379,14 @@
             <entry></entry>
 
             <entry>38\d\d\d</entry>
-
-            <entry>38123</entry>
           </row>
 
           <row>
             <entry>F</entry>
 
             <entry>customer_id</entry>
+
+            <entry>12345</entry>
 
             <entry>Integer</entry>
 
@@ -361,14 +395,14 @@
             <entry></entry>
 
             <entry>0:99999</entry>
-
-            <entry>12345</entry>
           </row>
 
           <row>
             <entry>F</entry>
 
             <entry>first_name</entry>
+
+            <entry>John</entry>
 
             <entry>Text</entry>
 
@@ -377,14 +411,14 @@
             <entry></entry>
 
             <entry></entry>
-
-            <entry>John</entry>
           </row>
 
           <row>
             <entry>F</entry>
 
             <entry>surname</entry>
+
+            <entry>Doe</entry>
 
             <entry>Text</entry>
 
@@ -393,14 +427,14 @@
             <entry>1:60</entry>
 
             <entry></entry>
-
-            <entry>Doe</entry>
           </row>
 
           <row>
             <entry>F</entry>
 
             <entry>gender</entry>
+
+            <entry>male</entry>
 
             <entry>Choice</entry>
 
@@ -409,14 +443,14 @@
             <entry></entry>
 
             <entry>male, female, unknown</entry>
-
-            <entry>male</entry>
           </row>
 
           <row>
             <entry>F</entry>
 
             <entry>date_of_birth</entry>
+
+            <entry>03.11.1969</entry>
 
             <entry>DateTime</entry>
 
@@ -425,8 +459,6 @@
             <entry></entry>
 
             <entry>DD.MM.YYYY</entry>
-
-            <entry>08.03.1957</entry>
           </row>
 
           <row>
@@ -503,10 +535,6 @@
             <entry>branch_id, customer_id</entry>
 
             <entry></entry>
-
-            <entry></entry>
-
-            <entry></entry>
           </row>
 
           <row>
@@ -517,10 +545,6 @@
             <entry>DistinctCount</entry>
 
             <entry>branch_id &lt;= 3</entry>
-
-            <entry></entry>
-
-            <entry></entry>
 
             <entry></entry>
           </row>
@@ -1344,6 +1368,13 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
           </listitem>
 
           <listitem>
+            <para>An optional example value for the field. This is for
+            documentation purpose only and can be omitted for fields where
+            there is no meaningful example, like fields containing an
+            encrypted password.</para>
+          </listitem>
+
+          <listitem>
             <para>The type of the field, for example <type>Text</type>,
             <type>Integer</type>, <type>DateTime</type> and others. Refer to
             the sections below for detailed descriptions of these
@@ -1383,20 +1414,22 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
           <listitem>
             <para>The remaining columns are not parsed by cutplace and can
             contain any text you like, for example a description of the
-            meaning of the field, details where the data originate from, or
-            example values.</para>
+            meaning of the field or details about from where the data
+            originate.</para>
           </listitem>
         </orderedlist>
 
         <table id="examples-for-various-field-formats">
           <title>Simple examples for various field formats</title>
 
-          <tgroup cols="6">
+          <tgroup cols="7">
             <thead>
               <row>
                 <entry></entry>
 
                 <entry>Name</entry>
+
+                <entry>Example</entry>
 
                 <entry>Type</entry>
 
@@ -1414,6 +1447,8 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
 
                 <entry>customer_id</entry>
 
+                <entry>123456</entry>
+
                 <entry>Integer</entry>
 
                 <entry></entry>
@@ -1428,6 +1463,8 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
 
                 <entry>surname</entry>
 
+                <entry>Miller</entry>
+
                 <entry>Text</entry>
 
                 <entry></entry>
@@ -1441,6 +1478,8 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
                 <entry>F</entry>
 
                 <entry>date_of_birth</entry>
+
+                <entry>1969-11-03</entry>
 
                 <entry>DateTime</entry>
 
@@ -1464,12 +1503,14 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
         <table id="examples-for-text-fields">
           <title>Examples for Text fields</title>
 
-          <tgroup cols="6">
+          <tgroup cols="7">
             <thead>
               <row>
                 <entry></entry>
 
                 <entry>Name</entry>
+
+                <entry>Example</entry>
 
                 <entry>Type</entry>
 
@@ -1486,6 +1527,8 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
                 <entry>F</entry>
 
                 <entry>surname</entry>
+
+                <entry>Miller</entry>
 
                 <entry>Text</entry>
 
@@ -1509,12 +1552,14 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
         <table id="examples-for-integer-fields">
           <title>Examples for Integer fields</title>
 
-          <tgroup cols="6">
+          <tgroup cols="7">
             <thead>
               <row>
                 <entry></entry>
 
                 <entry>Name</entry>
+
+                <entry>Example</entry>
 
                 <entry>Type</entry>
 
@@ -1532,6 +1577,8 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
 
                 <entry>height</entry>
 
+                <entry>3798</entry>
+
                 <entry>Integer</entry>
 
                 <entry></entry>
@@ -1546,6 +1593,8 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
 
                 <entry>weight</entry>
 
+                <entry>72</entry>
+
                 <entry>Integer</entry>
 
                 <entry></entry>
@@ -1559,6 +1608,8 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
                 <entry>F</entry>
 
                 <entry>id</entry>
+
+                <entry>1337</entry>
 
                 <entry>Integer</entry>
 
@@ -1582,12 +1633,14 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
         <table id="examples-for-choice-fields">
           <title>Examples for Choice fields</title>
 
-          <tgroup cols="6">
+          <tgroup cols="7">
             <thead>
               <row>
                 <entry></entry>
 
                 <entry>Name</entry>
+
+                <entry>Example</entry>
 
                 <entry>Type</entry>
 
@@ -1605,6 +1658,8 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
 
                 <entry>color</entry>
 
+                <entry>red</entry>
+
                 <entry>Choice</entry>
 
                 <entry></entry>
@@ -1619,6 +1674,8 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
 
                 <entry>iso_gender</entry>
 
+                <entry>male</entry>
+
                 <entry>Choice</entry>
 
                 <entry></entry>
@@ -1632,6 +1689,8 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
                 <entry>F</entry>
 
                 <entry>department</entry>
+
+                <entry>sales</entry>
 
                 <entry>Choice</entry>
 
@@ -1697,12 +1756,14 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
         <table id="examples-for-datetime-fields">
           <title>Examples for DateTime fields</title>
 
-          <tgroup cols="6">
+          <tgroup cols="7">
             <thead>
               <row>
                 <entry></entry>
 
                 <entry>Name</entry>
+
+                <entry>Example</entry>
 
                 <entry>Type</entry>
 
@@ -1720,6 +1781,8 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
 
                 <entry>date_of_birth</entry>
 
+                <entry>1969-11-03</entry>
+
                 <entry>DateTime</entry>
 
                 <entry></entry>
@@ -1733,6 +1796,8 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
                 <entry>F</entry>
 
                 <entry>time_of_arrival</entry>
+
+                <entry>17:23</entry>
 
                 <entry>DateTime</entry>
 
@@ -1828,12 +1893,14 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
         <table id="examples-for-regex-fields">
           <title>Examples for RegEx fields</title>
 
-          <tgroup cols="6">
+          <tgroup cols="7">
             <thead>
               <row>
                 <entry></entry>
 
                 <entry>Name</entry>
+
+                <entry>Example</entry>
 
                 <entry>Type</entry>
 
@@ -1850,6 +1917,8 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
                 <entry>F</entry>
 
                 <entry>email</entry>
+
+                <entry>some@example.com</entry>
 
                 <entry>RegEx</entry>
 
@@ -2217,6 +2286,43 @@ INFO:cutplace.server:Press Control-C to shut down
     own field formats and how to contribute to the project.</para>
 
     <section>
+      <title>Obtaining additional tools and Python packages</title>
+
+      <para>To build the source code, you need a few addtional tools and
+      Python packages.</para>
+
+      <para><ulink url="http://ant.apache.org/">Ant</ulink> is a build tool
+      popular in the Java world. Eventually all the functionality in the build
+      process should be available using <filename>setup.py</filename>, but for
+      the time being ant is more convenient.</para>
+
+      <para>Next there are a couple of Python packages:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>coverage</para>
+        </listitem>
+
+        <listitem>
+          <para>profiler</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>The easiest way to install them is running:</para>
+
+      <para><userinput>easy_install coverage profiler</userinput></para>
+
+      <para>If you are using Ubuntu, you should instead use apt-get:</para>
+
+      <literallayout><userinput>sudo apt-get install python-setuptools
+sudo apt-get install python-profiler
+sudo easy_install coverage
+</userinput></literallayout>
+
+      <para>sudo apt-get install python-profiler</para>
+    </section>
+
+    <section>
       <title>Obtaining and building the source code</title>
 
       <para>The source code for cutplace is available via a Subversion
@@ -2505,6 +2611,27 @@ BUILD SUCCESSFUL</computeroutput>
 
     <para>This chapter describes improvements compared to earlier versions of
     cutplace.</para>
+
+    <section>
+      <title>Version 0.4.0, xx-May-2009</title>
+
+      <itemizedlist>
+        <listitem>
+          <para>Added support for ICDs stored in Excel format. In order for
+          this to work, the xlrd Python package needs to be installed. It is
+          available from <ulink
+          url="http://pypi.python.org/pypi/xlrd">http://pypi.python.org/pypi/xlrd</ulink>.</para>
+        </listitem>
+
+        <listitem>
+          <para>Changed ICD format: Inserted a new column after the field name
+          and before the field type that can contain an optional example
+          value. This enables readers to quickly grasp the meaning of a field
+          by taking a glimpse at the first few columns instead of having to
+          "decipher" the field type and rule.</para>
+        </listitem>
+      </itemizedlist>
+    </section>
 
     <section>
       <title>Version 0.3.1, 03-May-2009</title>
