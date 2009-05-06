@@ -1,4 +1,6 @@
-"""Tests for checks module."""
+"""
+Tests for checks module.
+"""
 import checks
 import fields
 import unittest

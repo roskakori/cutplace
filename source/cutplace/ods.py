@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+"""
+Read and convert ODS files created by OpenOffice.org's Calc.
+"""
 import csv
 import xml.dom.minidom
 import logging

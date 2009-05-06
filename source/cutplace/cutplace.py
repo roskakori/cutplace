@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-"""Cutplace - Validate flat data according to an interface control document."""
+"""
+Cutplace - Validate flat data according to an interface control document.
+"""
 # Copyright (C) 2009 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify

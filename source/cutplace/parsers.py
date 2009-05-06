@@ -1,4 +1,7 @@
-"""Parsers for data files."""
+"""
+Parsers to read tabular data from various input formats and yield each row as a Python array
+containing the columns.
+"""
 import csv
 import data
 import logging

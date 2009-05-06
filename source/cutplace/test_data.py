@@ -1,10 +1,14 @@
-"""Tests for data formats."""
+"""
+Tests for data formats.
+"""
 import data
 import logging
 import unittest
 
 class DataFormatTest(unittest.TestCase):
-    """Tests for CsvDataFormat."""
+    """
+    Tests for CsvDataFormat.
+    """
     _TEST_ENCODING = "ascii"
     
     def testBasics(self):

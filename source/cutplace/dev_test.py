@@ -1,4 +1,6 @@
-"""Devlopment tool to generate testdate for cutplace tests."""
+"""
+Development tool to generate test date for cutplace tests.
+"""
 import csv
 import logging
 import ods

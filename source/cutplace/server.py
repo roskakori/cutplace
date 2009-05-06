@@ -1,4 +1,6 @@
-"""Webserver to provide a simple GUI for cutplace."""
+"""
+Web server to provide a simple GUI for cutplace.
+"""
 import cgi
 import BaseHTTPServer
 import errno

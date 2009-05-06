@@ -2,7 +2,9 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 <xsl:output method="text" />
 <xsl:template match="cutplace-version">#!/usr/bin/env python
-"""Cutplace setup for distutils."""
+"""
+Cutplace setup for setuptools.
+"""
 
 # Obtain setuptools if necessary.
 import ez_setup

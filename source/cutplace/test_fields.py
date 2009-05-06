@@ -1,11 +1,15 @@
-"""Tests  for field formats."""
+"""
+Tests  for field formats.
+"""
 import fields
 import logging
 import unittest
 
 class AbstractFieldFormatTest(unittest.TestCase):
-    """Test for base validation in AbstractFieldFormatTest. This does not include validate(), which always raises a
-    NotImplementedError."""
+    """
+    Test for base validation in `AbstractFieldFormatTest`. This does not include `validate()`, which always raises a
+    `NotImplementedError`.
+    """
     def testValidateEmpty(self):
         format = fields.AbstractFieldFormat("x", True, None, "")
         format.validateEmpty("")
@@ -25,7 +29,9 @@ class AbstractFieldFormatTest(unittest.TestCase):
         format.validateLength("")
         
 class DateTimeFieldFormatTest(unittest.TestCase):
-    """Tests  for DateTimeFieldFormat."""
+    """
+    Tests  for `DateTimeFieldFormat`.
+    """
     def testValidDates(self):
         format = fields.DateTimeFieldFormat("x", False, None, "YYYY-MM-DD")
         format.validate("2000-01-01")
@@ -50,7 +56,9 @@ class DateTimeFieldFormatTest(unittest.TestCase):
 
 
 class IntegerFieldFormatTest(unittest.TestCase):
-    """Tests  for IntegerFieldFormat."""
+    """
+    Tests  for `IntegerFieldFormat`.
+    """
     def testWithinRange(self):
         format = fields.IntegerFieldFormat("x", False, None, "1:10")
         format.validate("1")
@@ -72,7 +80,9 @@ class IntegerFieldFormatTest(unittest.TestCase):
         self.assertRaises(fields.FieldValueError, format.validate, "abc")
         
 class RegExFieldFormatTest(unittest.TestCase):
-    """Tests  for RegExFieldFormat."""
+    """
+    Tests  for `RegExFieldFormat`.
+    """
     def testMatch(self):
         format = fields.RegExFieldFormat("x", False, None, r"a.*")
         format.validate("abc")
@@ -92,7 +102,9 @@ class RegExFieldFormatTest(unittest.TestCase):
             pass
 
 class ChoiceFieldFormatTest(unittest.TestCase):
-    """Tests  for ChoiceFieldFormat."""
+    """
+    Tests  for `ChoiceFieldFormat`.
+    """
     def testMatchingChoice(self):
         format = fields.ChoiceFieldFormat("color", False, None, "red,grEEn, blue ")
         format.validate("red")
@@ -117,7 +129,9 @@ class ChoiceFieldFormatTest(unittest.TestCase):
         format = fields.ChoiceFieldFormat("color", False, None, "red, ")
 
 class PatternFieldFormatTest(unittest.TestCase):
-    """Tests for PatternFieldFormat."""
+    """
+    Tests for `PatternFieldFormat`.
+    """
     def testMatch(self):
         format = fields.PatternFieldFormat("x", False, None, "h*g?")
         format.validate("hgo")

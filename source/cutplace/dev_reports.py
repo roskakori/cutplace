@@ -1,4 +1,6 @@
-"""Development reports for cutplace."""
+"""
+Development reports for cutplace.
+"""
 import cgi
 import coverage
 import cProfile

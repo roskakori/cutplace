@@ -1,5 +1,7 @@
 # -*- coding: iso-8859-1 -*-
-"""Tests for interface control documents."""
+"""
+Tests for interface control documents.
+"""
 import checks
 import data
 import fields

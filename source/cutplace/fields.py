@@ -1,4 +1,6 @@
-"""Standard field formats supported by cutplace."""
+"""
+Standard field formats supported by cutplace.
+"""
 import logging
 import range
 import re

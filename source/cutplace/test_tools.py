@@ -1,3 +1,6 @@
+"""
+Test for `tools` module.
+"""
 import dev_test
 import tools
 import unittest

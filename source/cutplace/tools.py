@@ -1,5 +1,5 @@
 """
-Cutplace utility functions.
+Various utility functions.
 """
 import os
 import platform

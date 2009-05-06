@@ -1,4 +1,6 @@
-"""Tests  for cutplace application."""
+"""
+Tests  for cutplace application.
+"""
 import cutplace
 import dev_test
 import logging

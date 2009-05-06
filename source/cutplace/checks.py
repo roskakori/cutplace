@@ -1,5 +1,5 @@
 """
-Checks that can cover a whole row or data set.
+Standard checks that can cover a whole row or data set.
 """
 import fields
 import StringIO

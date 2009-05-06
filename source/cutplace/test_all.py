@@ -1,4 +1,6 @@
-"""Test suite for all test cases."""
+"""
+Test suite for all test cases.
+"""
 import logging
 import sys
 import test_checks

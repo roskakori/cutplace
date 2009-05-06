@@ -1,4 +1,6 @@
-"""Data formats."""
+"""
+Data formats.
+"""
 import codecs
 import logging
 import string

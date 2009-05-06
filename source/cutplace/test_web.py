@@ -1,3 +1,6 @@
+"""
+Test for web server.
+"""
 import logging
 import server
 import threading
