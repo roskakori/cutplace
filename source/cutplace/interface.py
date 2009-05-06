@@ -184,12 +184,6 @@ class InterfaceControlDocument(object):
                     fieldLength = items[4]
                     if itemCount >= 6:
                         fieldRule = items[5].strip()
-                        # TODO: Remove redundant code below.
-                        if not fieldRule:
-                            fieldRule = ""
-            # TODO: Remove redundant code below.
-            else:
-                fieldRule = ""
 
             # Validate fixed fields.
             if self.dataFormat == data.FORMAT_FIXED:
