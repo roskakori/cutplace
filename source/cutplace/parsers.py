@@ -303,7 +303,7 @@ class ExcelParser(object):
         try:
             import xlrd
         except ImportError:
-            raise ImportError("to read Excel data the xlrd package must be installed, see <http://www.lexicon.net/sjmachin/xlrd.htm> for more information")
+            raise ImportError("to read Excel data the xlrd package must be installed, see <http://pypi.python.org/pypi/xlrd> for more information")
         
         contents = readable.read()
         self.workbook = xlrd.open_workbook(file_contents=contents)

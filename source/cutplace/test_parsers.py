@@ -30,6 +30,7 @@ class AbstractParserTest(unittest.TestCase):
         self.assertEqual(rows, expectedRows)
 
 class ExcelParserTest(AbstractParserTest):
+
     def testIcdCustomersXls(self):
         icdCustomersIcdXlsPath = dev_test.getTestIcdPath("customers.xls")
         readable = open(icdCustomersIcdXlsPath, "rb")
@@ -37,6 +38,8 @@ class ExcelParserTest(AbstractParserTest):
             for row in parsers.excelReader(readable):
                 self.assertTrue(row is not None)
                 self.assertTrue(len(row))
+        except ImportError:
+            _log.warning("ignored ImportError caused by missing xlrd")
         finally:
             readable.close()
 
