@@ -1,20 +1,27 @@
-"""Checks that can cover the whole data set."""
+"""
+Checks that can cover a whole row or data set.
+"""
 import fields
 import StringIO
 import tokenize
+import tools
 
-class CheckError(ValueError):
+class CheckError(tools.CutplaceError):
     """
     Error to be raised when a check fails.
     """
-    pass
 
-class CheckSyntaxError(ValueError):
+class CheckSyntaxError(tools.CutplaceError):
     """
     Error to be raised specification of check in ICD is broken.
     """
     
 def _getFieldNameIndex(supposedFieldName, availableFieldNames):
+    """
+    The index of `supposedFieldName` in `availableFieldNames`.
+    
+    In case it is missing, raise a `fields.FieldLookupError`.
+    """
     assert supposedFieldName is not None
     assert supposedFieldName == supposedFieldName.strip()
     assert availableFieldNames
