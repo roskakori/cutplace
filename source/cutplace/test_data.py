@@ -38,6 +38,13 @@ class DataFormatTest(unittest.TestCase):
         formatWithCr.set(data.KEY_LINE_DELIMITER, data.CR)
         self.assertEqual(formatWithCr.get(data.KEY_LINE_DELIMITER), "\r")
         
+    def testOdsDataFormat(self):
+        format = data.OdsDataFormat()
+        self.assertTrue(format.name)
+        format.validateAllRequiredPropertiesHaveBeenSet()
+        format.set(data.KEY_ALLOWED_CHARACTERS, "32:")
+        self.assertRaises(data.DataFormatSyntaxError, format.set, data.KEY_ENCODING, DataFormatTest._TEST_ENCODING)
+        
     def testBrokenEncoding(self):
         format = data.CsvDataFormat()
         self.assertRaises(data.DataFormatSyntaxError, format.set, data.KEY_ENCODING, "me-no-encoding")

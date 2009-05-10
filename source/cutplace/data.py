@@ -1,5 +1,5 @@
 """
-Data formats.
+Data formats that describe the general structure of an input.
 """
 import codecs
 import logging
@@ -74,7 +74,7 @@ class DataFormatLookupError(tools.CutplaceError):
 class DataFormatSyntaxError(tools.CutplaceError):
     pass
 
-class _BaseDataFormat(object):
+class _AbstractDataFormat(object):
     """
     Abstract data format acting as base for other data formats.
     
@@ -166,72 +166,8 @@ class _BaseDataFormat(object):
         defaultValue = self.optionalKeyValueMap.get(normalizedKey)
         return self.properties.get(normalizedKey, defaultValue)
 
-class AbstractDataFormat(object):
-    # TODO: Consolidate with _BaseDataFormat.
-    """
-    Abstract data format acting as base for other data formats.
-    """
-    def __init__(self):
-        assert type
-        self._encoding = None
-        self._lineDelimiter = None
-        self._allowedCharacters = None
     
-    def getName(self):
-        raise NotImplemented
-    
-    def getEncoding(self):
-        return self._encoding
-    
-    def setEncoding(self, encoding):
-        assert encoding
-        self._encoding = codecs.lookup(encoding)
-        
-    def getLineDelimiter(self):
-        return self._lineDelimiter
-    
-    def setLineDelimiter(self, lineDelimiter):
-        assert lineDelimiter is not None
-        
-        try:
-            lineDelimiterIndex = _VALID_LINE_DELIMITER_TEXTS.index(lineDelimiter.lower())
-        except: # Why ValueError instead of LookupError?
-            raise DataFormatLookupError("%s is %r but must be one of: %r" % (KEY_LINE_DELIMITER, lineDelimiter, _VALID_LINE_DELIMITER_TEXTS))
-        self._lineDelimiter = _VALID_LINE_DELIMITERS[lineDelimiterIndex]
-        
-    def setAllowedCharacters(self, text):
-        assert text
-        ranges = text.split(",")
-        for range in ranges:
-            # TODO: Parse character range.
-            pass 
-    
-    def isAllowedCharacter(self, character):
-        """
-        True if character is allowed.
-        """
-        assert character is not None
-        assert len(character) == 1
-        
-        # FIXME: Actually check that character is within range.
-        return True
-
-    def set(self, key, value):
-        assert key is not None
-        assert value is not None
-        
-        lowerKey = key.lower()
-        if _isKey(key, KEY_ALLOWED_CHARACTERS):
-            self.setAllowedCharacters(value)
-        elif _isKey(key, KEY_ENCODING):
-            self.setEncoding(value)
-        elif _isKey(key, KEY_LINE_DELIMITER):
-            self.setLineDelimiter(value)
-        else:
-            # TODO: List valid data format properties in error message.
-            raise DataFormatLookupError("unknown data format property: %r" % key)
-    
-class DelimitedDataFormat(_BaseDataFormat):
+class DelimitedDataFormat(_AbstractDataFormat):
     """
     Data format for delimited data such as CSV.
     """
@@ -290,7 +226,7 @@ class CsvDataFormat(DelimitedDataFormat):
         self.optionalKeyValueMap[KEY_QUOTE_CHARACTER] = "\""
         self.optionalKeyValueMap[KEY_ESCAPE_CHARACTER] = "\""
 
-class FixedDataFormat(_BaseDataFormat):
+class FixedDataFormat(_AbstractDataFormat):
     """
     Data format for fixed data.
     """
@@ -323,10 +259,24 @@ class FixedDataFormat(_BaseDataFormat):
             raise NotImplementedError("key=%r" % key)
         return result
 
-class OdsDataFormat(AbstractDataFormat):
+class OdsDataFormat(_AbstractDataFormat):
     """
     Data format for ODS as created by OpenOffice.org's Calc.
     """
-    # FIXME: Clean up inheritance hierarchy. We get a lot of junk from AbstractDataFormat.
-    def getName(self):
-        return FORMAT_ODS
+    def __init__(self):
+        super(OdsDataFormat, self).__init__(
+                                              None,
+                                              {KEY_ALLOWED_CHARACTERS: None})
+        self.name = FORMAT_ODS
+
+    def validated(self, key, value):
+        assert key == self._normalizedKey(key)
+        
+        if key == KEY_ALLOWED_CHARACTERS:
+            try:
+                result = range.Range(value)
+            except range.RangeSyntaxError, error:
+                raise DataFormatSyntaxError("value for property %r must be a valid range: %s" % (key, str(error)))
+        else:
+            raise NotImplementedError("key=%r" % key)
+        return result
