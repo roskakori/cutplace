@@ -905,7 +905,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
 
           <tbody>
             <row>
-              <entry>F</entry>
+              <entry>D</entry>
 
               <entry>Format</entry>
 
@@ -913,7 +913,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
             </row>
 
             <row>
-              <entry>F</entry>
+              <entry>D</entry>
 
               <entry>Encoding</entry>
 
@@ -921,7 +921,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
             </row>
 
             <row>
-              <entry>F</entry>
+              <entry>D</entry>
 
               <entry>Line delimiter</entry>
 
@@ -929,7 +929,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
             </row>
 
             <row>
-              <entry>F</entry>
+              <entry>D</entry>
 
               <entry>Item delimiter</entry>
 
@@ -970,7 +970,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
 
             <tbody>
               <row>
-                <entry>F</entry>
+                <entry>D</entry>
 
                 <entry>Format</entry>
 
@@ -978,7 +978,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
               </row>
 
               <row>
-                <entry>F</entry>
+                <entry>D</entry>
 
                 <entry>Encoding</entry>
 
@@ -986,7 +986,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
               </row>
 
               <row>
-                <entry>F</entry>
+                <entry>D</entry>
 
                 <entry>Line delimiter</entry>
 
@@ -994,7 +994,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
               </row>
 
               <row>
-                <entry>F</entry>
+                <entry>D</entry>
 
                 <entry>Item delimiter</entry>
 
@@ -1002,7 +1002,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
               </row>
 
               <row>
-                <entry>F</entry>
+                <entry>D</entry>
 
                 <entry>Quote character</entry>
 
@@ -1010,7 +1010,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
               </row>
 
               <row>
-                <entry>F</entry>
+                <entry>D</entry>
 
                 <entry>Escape character</entry>
 
@@ -1018,7 +1018,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
               </row>
 
               <row>
-                <entry>F</entry>
+                <entry>D</entry>
 
                 <entry>Allowed characters</entry>
 
