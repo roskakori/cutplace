@@ -11,8 +11,8 @@ class DataFormatTest(unittest.TestCase):
     """
     _TEST_ENCODING = "ascii"
 
-    def testBasics(self):
-        for formatName in [data.FORMAT_CSV, data.FORMAT_DELIMITED, data.FORMAT_FIXED]:
+    def testCreateDataFormat(self):
+        for formatName in [data.FORMAT_CSV, data.FORMAT_DELIMITED, data.FORMAT_FIXED, data.FORMAT_ODS]:
             format = data.createDataFormat(formatName)
             self.assertTrue(format)
             
