@@ -31,7 +31,7 @@
 
       <keyword>fixed</keyword>
 
-      <keyword>separated</keyword>
+      <keyword>excel ods separated</keyword>
 
       <keyword>file</keyword>
     </keywordset>
@@ -85,7 +85,7 @@
     validate that data actually conform to it.</para>
 
     <para><xref linkend="figure-dataflow" /> shows how this works: The user
-    authors an interface control documents, which he passes to cutplace
+    writes an interface control documents, which he passes to cutplace
     together with the input data that should be validated. Cutplace checks the
     data one line after the other, one column after the other. When done, you
     end up with data that have been accepted and (hopefully none) that have
@@ -238,13 +238,13 @@
           </row>
 
           <row>
-            <entry></entry>
+            <entry>D</entry>
 
             <entry>Quote character</entry>
 
-            <entry></entry>
+            <entry>"</entry>
 
-            <entry>TODO: Set to quote and activate using D</entry>
+            <entry></entry>
 
             <entry></entry>
 
@@ -254,13 +254,13 @@
           </row>
 
           <row>
-            <entry></entry>
+            <entry>D</entry>
 
             <entry>Escape character</entry>
 
-            <entry></entry>
+            <entry>"</entry>
 
-            <entry>TODO: Set to quote and activate using D</entry>
+            <entry></entry>
 
             <entry></entry>
 
@@ -741,7 +741,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
       <para>In case Python is installed, you should see an output like the
       following (the version number may vary):</para>
 
-      <para><computeroutput>Python 2.5.1</computeroutput></para>
+      <para><computeroutput>Python 2.5.4</computeroutput></para>
 
       <para>Other than that, there are no special software requirements for
       cutplace. Hardware wise, any reasonably modern computer should easily
@@ -1129,7 +1129,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
       </section>
 
       <section>
-        <title>CSV data</title>
+        <title>CSV data (comma separated values)</title>
 
         <para>CSV data are delimited data too, but most properties already
         have default values you do not need to specify unless you want to use
@@ -1285,6 +1285,41 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
       </section>
 
       <section>
+        <title>Excel data</title>
+
+        <para>Excel is a spreadsheet application and part of Microsoft
+        Office.</para>
+
+        <para><table>
+            <title>Minimal example for Excel data</title>
+
+            <tgroup cols="3">
+              <thead>
+                <row>
+                  <entry></entry>
+
+                  <entry>Property</entry>
+
+                  <entry>Value</entry>
+                </row>
+              </thead>
+
+              <tbody>
+                <row>
+                  <entry>F</entry>
+
+                  <entry>Format</entry>
+
+                  <entry>Excel</entry>
+                </row>
+              </tbody>
+            </tgroup>
+          </table>TODO: Read a certain sheet.</para>
+
+        <para>TODO: Skip heading rows.</para>
+      </section>
+
+      <section>
         <title>Fixed data</title>
 
         <para>Fixed data reserve a certain number of characters per field. No
@@ -1341,6 +1376,43 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
         </table>
 
         <para></para>
+
+        <para></para>
+      </section>
+
+      <section>
+        <title>ODS data (open document spreadsheet)</title>
+
+        <para>The Open Document Spreadsheet (ODS) file format is supported by
+        several application, for instance OpenOffice.org's Calc.</para>
+
+        <para><table>
+            <title>Minimal example for ODS data</title>
+
+            <tgroup cols="3">
+              <thead>
+                <row>
+                  <entry></entry>
+
+                  <entry>Property</entry>
+
+                  <entry>Value</entry>
+                </row>
+              </thead>
+
+              <tbody>
+                <row>
+                  <entry>F</entry>
+
+                  <entry>Format</entry>
+
+                  <entry>ODS</entry>
+                </row>
+              </tbody>
+            </tgroup>
+          </table>TODO: Read a certain sheet.</para>
+
+        <para>TODO: Skip heading rows.</para>
       </section>
     </section>
 
@@ -2612,6 +2684,16 @@ BUILD SUCCESSFUL</computeroutput>
 
     <para>This chapter describes improvements compared to earlier versions of
     cutplace.</para>
+
+    <section>
+      <title>Version 0.4.1, 10-May-2009</title>
+
+      <itemizedlist>
+        <listitem>
+          <para>Added support for Excel and ODS data formats.</para>
+        </listitem>
+      </itemizedlist>
+    </section>
 
     <section>
       <title>Version 0.4.0, 06-May-2009</title>
