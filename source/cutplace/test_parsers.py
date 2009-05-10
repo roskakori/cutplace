@@ -10,7 +10,7 @@ import tools
 import types
 import unittest
 
-_log = logging.getLogger("cutplace.parsers")
+_log = logging.getLogger("cutplace.test_parsers")
         
 class AbstractParserTest(unittest.TestCase):
     """
