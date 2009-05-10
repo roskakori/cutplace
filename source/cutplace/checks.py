@@ -13,7 +13,7 @@ class CheckError(tools.CutplaceError):
 
 class CheckSyntaxError(tools.CutplaceError):
     """
-    Error to be raised specification of check in ICD is broken.
+    Error to be raised when the specification of check in the ICD is broken.
     """
     
 def _getFieldNameIndex(supposedFieldName, availableFieldNames):
@@ -36,7 +36,7 @@ def _getFieldNameIndex(supposedFieldName, availableFieldNames):
 class AbstractCheck(object):
     """
     Abstract check to be used as base class for other checks. The constructor should be called by
-    descendants, the other methods do nothing an can be left untouched.
+    descendants, the other methods do nothing and can be left untouched.
     """
     def __init__(self, description, rule, fieldNames):
         assert description
