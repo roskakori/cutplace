@@ -117,7 +117,7 @@ class InterfaceControlDocument(object):
                 if self.dataFormat is None:
                     self.dataFormat = data.createDataFormat(value)
                 else:
-                    raise data.DataFormatSyntaxError("data format must be set only once, but has been set already to: %r" % self.dataFormat.getName())
+                    raise data.DataFormatSyntaxError("data format must be set only once, but has been set already to: %r" % self.dataFormat.name)
             elif self.dataFormat is not None: 
                 self.dataFormat.set(key, value)
             else:
@@ -204,7 +204,7 @@ class InterfaceControlDocument(object):
                 try:
                     fieldFormat.validate(fieldExample)
                 except fields.FieldValueError, error:
-                    raise IcdSyntaxError("cannot validate example for field %r: %s" %(fieldName, str(error)))
+                    raise IcdSyntaxError("cannot validate example for field %r: %s" % (fieldName, str(error)))
 
             # Validate that field name is unique.
             if not self.fieldNameToFormatMap.has_key(fieldName):
@@ -322,25 +322,27 @@ class InterfaceControlDocument(object):
         assert dataFileToValidatePath is not None
         self._log.info("validate \"%s\"" % (dataFileToValidatePath))
         
-        if self.dataFormat.getName() in [data.FORMAT_CSV, data.FORMAT_FIXED]:
+        if self.dataFormat.name in [data.FORMAT_CSV, data.FORMAT_FIXED]:
             needsOpen = isinstance(dataFileToValidatePath, types.StringTypes)
             if needsOpen:
                 dataFile = open(dataFileToValidatePath, "rb")
             else:
                 dataFile = dataFileToValidatePath
-            dataReader = self.dataFormat.getEncoding().streamreader(dataFile)
+            encoding = self.dataFormat.get(data.KEY_ENCODING)
+            assert encoding is not None
+            dataReader = encoding.streamreader(dataFile)
         else:
-            raise NotImplementedError("data format: %r" + self.dataFormat.getName())
+            raise NotImplementedError("data format: %r" + self.dataFormat.name)
 
         try:
-            if self.dataFormat.getName() == data.FORMAT_CSV:
+            if self.dataFormat.name == data.FORMAT_CSV:
                 dialect = parsers.DelimitedDialect()
-                dialect.lineDelimiter = self.dataFormat.getLineDelimiter()
-                dialect.itemDelimiter = self.dataFormat.getItemDelimiter()
+                dialect.lineDelimiter = self.dataFormat.get(data.KEY_LINE_DELIMITER)
+                dialect.itemDelimiter = self.dataFormat.get(data.KEY_ITEM_DELIMITER)
                 # FIXME: Obtain quote char from ICD.
-                dialect.quoteChar = "\""
+                dialect.quoteChar = self.dataFormat.get(data.KEY_QUOTE_CHARACTER)
                 reader = parsers.parserReader(parsers.DelimitedParser(dataFile, dialect))
-            elif self.dataFormat.getName() == data.FORMAT_FIXED:
+            elif self.dataFormat.name == data.FORMAT_FIXED:
                 fieldLengths = []
                 for fieldFormat in self.fieldFormats:
                     # Obtain the length of a fixed length item. We could easily do this in a
@@ -356,7 +358,7 @@ class InterfaceControlDocument(object):
                     fieldLengths.append(longFixedLength)
                 reader = parsers.parserReader(parsers.FixedParser(dataFile, fieldLengths))
             else:
-                raise NotImplementedError("data format: %r" + self.dataFormat.getName())
+                raise NotImplementedError("data format: %r" + self.dataFormat.name)
             # TODO: Replace rowNumber by position in parser.
             rowNumber = 0
             for row in reader:
