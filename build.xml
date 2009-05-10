@@ -58,6 +58,15 @@
         </exec>
     </target>
 
+    <target name="bdist_wininst_upload" depends="version, user-guide" description="build Windows installer and upload it to PyPI">
+        <tstamp />
+        <exec executable="python">
+            <arg value="setup.py" />
+            <arg value="bdist_wininst" />
+            <arg value="upload" />
+        </exec>
+    </target>
+
 	<target name="testdata" description="generate test data">
         <exec executable="python">
             <arg value="${source}/cutplace/dev_test.py" />
