@@ -18,6 +18,7 @@ _VALID_ESCAPE_CHARACTERS = ["\"", "\\"]
 
 FORMAT_CSV = "csv"
 FORMAT_DELIMITED = "delimited"
+FORMAT_EXCEL = "excel"
 FORMAT_FIXED = "fixed"
 FORMAT_ODS = "ods"
 
@@ -30,6 +31,8 @@ KEY_LINE_DELIMITER = "line delimiter"
 KEY_QUOTE_CHARACTER = "quote character"
 KEY_SPACE_AROUND_DELIMITER = "blanks around delimiter"
 
+# TODO: Move validation of KEY_ALLOWED_CHARACTERS to _AbstractDataFormat because all formats support it.
+
 # TODO: Add KEY_DECIMAL_SEPARATOR = "decimalSeparator"
 # TODO: Add KEY_THOUSANDS_SEPARATOR = "thousandsSeparator"
 
@@ -38,17 +41,22 @@ def createDataFormat(name):
     Factory function to create the specified data format.
     """
     assert name is not None
+
+    _NAME_TO_FORMAT_MAP = {
+                            FORMAT_CSV: CsvDataFormat,
+                            FORMAT_DELIMITED: DelimitedDataFormat,
+                            FORMAT_EXCEL: ExcelDataFormat,
+                            FORMAT_FIXED: FixedDataFormat,
+                            FORMAT_ODS: OdsDataFormat
+                           }
+
     actualName = name.lower()
-    if actualName == FORMAT_CSV:
-        result = CsvDataFormat()
-    elif actualName == FORMAT_DELIMITED:
-        result = DelimitedDataFormat()
-    elif actualName == FORMAT_FIXED:
-        result = FixedDataFormat()
-    elif actualName == FORMAT_ODS:
-        result = OdsDataFormat()
-    else:
-        raise DataFormatSyntaxError("data format is %r but must be on of: %r" % (name, [FORMAT_CSV, FORMAT_DELIMITED, FORMAT_FIXED]))
+    formatClass = _NAME_TO_FORMAT_MAP.get(actualName)
+    if formatClass is None:
+        raise DataFormatSyntaxError("data format is %r but must be on of: %r"
+                                    % (name, [FORMAT_CSV, FORMAT_DELIMITED, FORMAT_EXCEL, FORMAT_FIXED]))
+
+    result = formatClass()
     return result
 
 def _isKey(possibleKey, keyToCompareWith):
@@ -269,6 +277,28 @@ class OdsDataFormat(_AbstractDataFormat):
                                               None,
                                               {KEY_ALLOWED_CHARACTERS: None})
         self.name = FORMAT_ODS
+
+    def validated(self, key, value):
+        assert key == self._normalizedKey(key)
+        
+        if key == KEY_ALLOWED_CHARACTERS:
+            try:
+                result = range.Range(value)
+            except range.RangeSyntaxError, error:
+                raise DataFormatSyntaxError("value for property %r must be a valid range: %s" % (key, str(error)))
+        else:
+            raise NotImplementedError("key=%r" % key)
+        return result
+
+class ExcelDataFormat(_AbstractDataFormat):
+    """
+    Data format for Excel spreadsheets.
+    """
+    def __init__(self):
+        super(ExcelDataFormat, self).__init__(
+                                              None,
+                                              {KEY_ALLOWED_CHARACTERS: None})
+        self.name = FORMAT_EXCEL
 
     def validated(self, key, value):
         assert key == self._normalizedKey(key)

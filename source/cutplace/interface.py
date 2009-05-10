@@ -331,8 +331,13 @@ class InterfaceControlDocument(object):
             encoding = self.dataFormat.get(data.KEY_ENCODING)
             assert encoding is not None
             dataReader = encoding.streamreader(dataFile)
+        elif self.dataFormat.name in [data.FORMAT_EXCEL, data.FORMAT_ODS]:
+            needsOpen = True
+            dataFile = open(dataFileToValidatePath, "rb")
+            # TODO: Remove the line below, it should not be needed.
+            dataReader = None
         else:
-            raise NotImplementedError("data format: %r" + self.dataFormat.name)
+            raise NotImplementedError("data format: %r" % self.dataFormat.name)
 
         try:
             if self.dataFormat.name == data.FORMAT_CSV:
@@ -342,6 +347,9 @@ class InterfaceControlDocument(object):
                 # FIXME: Obtain quote char from ICD.
                 dialect.quoteChar = self.dataFormat.get(data.KEY_QUOTE_CHARACTER)
                 reader = parsers.parserReader(parsers.DelimitedParser(dataFile, dialect))
+            elif self.dataFormat.name == data.FORMAT_EXCEL:
+                parser = parsers.ExcelParser(dataFile)
+                reader = parsers.parserReader(parser)
             elif self.dataFormat.name == data.FORMAT_FIXED:
                 fieldLengths = []
                 for fieldFormat in self.fieldFormats:
@@ -357,8 +365,11 @@ class InterfaceControlDocument(object):
                     longFixedLength = long(fixedLength)
                     fieldLengths.append(longFixedLength)
                 reader = parsers.parserReader(parsers.FixedParser(dataFile, fieldLengths))
+            elif self.dataFormat.name == data.FORMAT_ODS:
+                parser = parsers.OdsParser(dataFile)
+                reader = parsers.parserReader(parser)
             else:
-                raise NotImplementedError("data format: %r" + self.dataFormat.name)
+                raise NotImplementedError("data format: %r" % self.dataFormat.name)
             # TODO: Replace rowNumber by position in parser.
             rowNumber = 0
             for row in reader:

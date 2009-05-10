@@ -4,11 +4,14 @@ Tests for interface control documents.
 """
 import checks
 import data
+import dev_test
 import fields
 import interface
 import logging
 import StringIO
 import unittest
+
+_log = logging.getLogger("cutplace.test_interface")
 
 def createDefaultTestFixedIcd():
     spec = """,Interface: customer,,,,,
@@ -40,17 +43,23 @@ C,distinct branches must be within limit,DistinctCount,branch_id <= 3,,,
     result.read(StringIO.StringIO(spec))
     return result
 
-def createDefaultTestIcd(lineDelimiter="\n"):
+def createDefaultTestIcd(format, lineDelimiter="\n"):
+    assert format in [data.FORMAT_CSV, data.FORMAT_EXCEL, data.FORMAT_ODS], "format=%r" % format
+    assert lineDelimiter
+    
     spec = ""","Interface: customer",,,,,
 ,,,,,,
 ,"Data format",,,,,
 ,,,,,,
-"D","Format","CSV",,,,
-"D","Line delimiter","LF",,,,
+"D","Format","%s",,,,
+""" % format
+    if format.lower() == data.FORMAT_CSV:
+        spec += """"D","Line delimiter","LF",,,,
 "D","Item delimiter",",",,,,
 "D","Encoding","ISO-8859-1",,,,
 "D","Allowed characters","32:",,,,
-,,,,,,
+"""
+    spec += """,,,,,,
 ,"Fields",,,,,
 ,,,,,,
 ,"Name","Example","Type","Empty","Length","Rule"
@@ -71,36 +80,51 @@ def createDefaultTestIcd(lineDelimiter="\n"):
     result.read(StringIO.StringIO(spec))
     return result
         
-
 class InterfaceControlDocumentTest(unittest.TestCase):
     """Tests  for InterfaceControlDocument."""
 
     def testSimpleIcd(self):
-        createDefaultTestIcd("\n")
-        createDefaultTestIcd("\r")
-        createDefaultTestIcd("\r\n")
+        createDefaultTestIcd(data.FORMAT_CSV, "\n")
+        createDefaultTestIcd(data.FORMAT_CSV, "\r")
+        createDefaultTestIcd(data.FORMAT_CSV, "\r\n")
         
     def testIsUniqueCheck(self):
-        icd = createDefaultTestIcd()
-        data = """38000,23,"John","Doe","male","08.03.1957"
+        icd = createDefaultTestIcd(data.FORMAT_CSV)
+        dataText = """38000,23,"John","Doe","male","08.03.1957"
 38000,59,"Jane","Miller","female","04.10.1946"
 38000,23,"Mike","Webster","male","23.12.1974" """
-        dataReadable = StringIO.StringIO(data)
+        dataReadable = StringIO.StringIO(dataText)
         icd.validate(dataReadable)
 
     def testLatin1(self):
-        icd = createDefaultTestIcd()
-        data = """38000,23,"John","Doe","male","08.03.1957"
+        icd = createDefaultTestIcd(data.FORMAT_CSV)
+        dataText = """38000,23,"John","Doe","male","08.03.1957"
 38000,59,"Bärbel","Müller","female","04.10.1946"
 38000,23,"Mike","Webster","male","23.12.1974" """
-        dataReadable = StringIO.StringIO(data)
+        dataReadable = StringIO.StringIO(dataText)
         icd.validate(dataReadable)
         
     def testSimpleFixedIcd(self):
         icd = createDefaultTestFixedIcd()
-        data = "3800012345John           Doe            male   08.03.19573800012346Jane           Miller         female 04.10.1946"
-        dataReadable = StringIO.StringIO(data)
+        dataText = "3800012345John           Doe            male   08.03.19573800012346Jane           Miller         female 04.10.1946"
+        dataReadable = StringIO.StringIO(dataText)
         icd.validate(dataReadable)
+
+    def testValidOds(self):
+        icd = createDefaultTestIcd(data.FORMAT_ODS)
+        dataPath = dev_test.getTestInputPath("valid_customers.ods")
+        icd.validate(dataPath)
+        # TODO: Assert number of errors detected in dataPath is 0.
+
+    def testValidExcel(self):
+        icd = createDefaultTestIcd(data.FORMAT_EXCEL)
+        dataPath = dev_test.getTestInputPath("valid_customers.xls")
+        try:
+            icd.validate(dataPath)
+            # TODO: Assert number of errors detected in dataPath is 0.
+        except ImportError:
+            _log.warning("ignored ImportError caused by missing xlrd")
+
 
     def testEmptyChoice(self):
         spec = ""","Interface with a Choice field (gender) that can be empty"
@@ -116,9 +140,9 @@ class InterfaceControlDocumentTest(unittest.TestCase):
 """
         icd = interface.InterfaceControlDocument()
         icd.read(StringIO.StringIO(spec))
-        data = """"John",,"08.03.1957"
+        dataText = """"John",,"08.03.1957"
 "Jane","female","04.10.1946" """
-        dataReadable = StringIO.StringIO(data)
+        dataReadable = StringIO.StringIO(dataText)
         icd.validate(dataReadable)
     
     def testFieldTypeWithModule(self):
@@ -133,9 +157,9 @@ class InterfaceControlDocumentTest(unittest.TestCase):
 """
         icd = interface.InterfaceControlDocument()
         icd.read(StringIO.StringIO(spec))
-        data = """"John",,"08.03.1957"
+        dataText = """"John",,"08.03.1957"
 "Jane","female","04.10.1946" """
-        dataReadable = StringIO.StringIO(data)
+        dataReadable = StringIO.StringIO(dataText)
         icd.validate(dataReadable)
     
     def testEmptyChoiceWithLength(self):
@@ -152,9 +176,9 @@ class InterfaceControlDocumentTest(unittest.TestCase):
 """
         icd = interface.InterfaceControlDocument()
         icd.read(StringIO.StringIO(spec))
-        data = """"John",,"08.03.1957"
+        dataText = """"John",,"08.03.1957"
 "Jane","female","04.10.1946" """
-        dataReadable = StringIO.StringIO(data)
+        dataReadable = StringIO.StringIO(dataText)
         icd.validate(dataReadable)
     
     def _testBroken(self, spec, expectedError):
