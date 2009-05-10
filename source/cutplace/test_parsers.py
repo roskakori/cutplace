@@ -38,7 +38,7 @@ class ExcelParserTest(AbstractParserTest):
             for row in parsers.excelReader(readable):
                 self.assertTrue(row is not None)
                 self.assertTrue(len(row))
-        except ImportError:
+        except parsers.CutplaceXlrdImportError:
             _log.warning("ignored ImportError caused by missing xlrd")
         finally:
             readable.close()

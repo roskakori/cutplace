@@ -16,6 +16,11 @@ LF = "\n"
 CRLF = CR + LF
 _VALID_LINE_DELIMITERS = [AUTO, CR, CRLF, LF]
 
+class CutplaceXlrdImportError(tools.CutplaceError):
+    """
+    Error raised if xlrd package to read Excel can not be imported.
+    """
+    
 def parserReader(parser):
     """Generator yielding the readable of parser row by row."""
     assert parser is not None
@@ -306,7 +311,7 @@ class ExcelParser(object):
         try:
             import xlrd
         except ImportError:
-            raise ImportError("to read Excel data the xlrd package must be installed, see <http://pypi.python.org/pypi/xlrd> for more information")
+            raise CutplaceXlrdImportError("to read Excel data the xlrd package must be installed, see <http://pypi.python.org/pypi/xlrd> for more information")
         
         contents = readable.read()
         self.workbook = xlrd.open_workbook(file_contents=contents)

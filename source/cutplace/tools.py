@@ -16,7 +16,6 @@ class CutplaceError(Exception):
     """
     Error detected by cutplace caused by issues in the ICD or data.
     """
-    pass
 
 def valueOr(value, noneValue):
     """

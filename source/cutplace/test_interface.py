@@ -8,6 +8,7 @@ import dev_test
 import fields
 import interface
 import logging
+import parsers
 import StringIO
 import unittest
 
@@ -122,7 +123,7 @@ class InterfaceControlDocumentTest(unittest.TestCase):
         try:
             icd.validate(dataPath)
             # TODO: Assert number of errors detected in dataPath is 0.
-        except ImportError:
+        except parsers.CutplaceXlrdImportError:
             _log.warning("ignored ImportError caused by missing xlrd")
 
 

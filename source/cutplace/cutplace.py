@@ -200,7 +200,7 @@ class CutPlace(object):
                 print encoding
 
     def _encodingsFromModuleNames(self):
-        # Base on sample code by Peter Otten.
+        # Based on sample code by Peter Otten.
         encodingsModuleFilePath = os.path.dirname(encodings.__file__)
         for filePath in glob.glob(os.path.join(encodingsModuleFilePath, "*.py")):
             fileName = os.path.basename(filePath)
@@ -208,7 +208,7 @@ class CutPlace(object):
             
 def main():
     """
-    Main routine that might raise errors but won't sys.exit().
+    Main routine that might raise errors but won't `sys.exit()`.
     """
     logging.basicConfig()
     logging.getLogger("cutplace").setLevel(logging.INFO)
@@ -231,13 +231,15 @@ def main():
 
 def mainForScript():
     """
-    Main routine that reports errors in options and does sys.exit().
+    Main routine that reports errors in options to `sys.stderr` and does `sys.exit()`.
     """
     try:
         main()
-    except optparse.OptionError, message:
-        if not isinstance(sys.exc_info()[1], ExitQuietlyOptionError):
-            sys.stderr.write("cannot process command line options: %s%s" % (message, os.linesep))
+    except tools.CutplaceError, error:
+        sys.stderr.write("cannot process Excel format: %s%s" % (str(error), os.linesep))
+    except optparse.OptionError, error:
+        if not isinstance(error, ExitQuietlyOptionError):
+            sys.stderr.write("cannot process command line options: %s%s" % (str(error), os.linesep))
             sys.exit(1)
     
 if __name__ == '__main__':
