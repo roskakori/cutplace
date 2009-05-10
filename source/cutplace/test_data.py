@@ -1,6 +1,7 @@
 """
 Tests for data formats.
 """
+import codecs
 import data
 import logging
 import unittest
@@ -9,7 +10,7 @@ class DataFormatTest(unittest.TestCase):
     """
     Tests for data formats.
     """
-    _TEST_ENCODING = "ascii"
+    _TEST_ENCODING = "iso-8859-1"
 
     def testCreateDataFormat(self):
         for formatName in [data.FORMAT_CSV, data.FORMAT_DELIMITED, data.FORMAT_FIXED, data.FORMAT_ODS]:
@@ -19,9 +20,10 @@ class DataFormatTest(unittest.TestCase):
     def testCsvDataFormat(self):
         format = data.CsvDataFormat()
         self.assertTrue(format.name)
+        self.assertEqual(format.get(data.KEY_ENCODING), codecs.lookup("ascii"))
 
         format.set(data.KEY_ENCODING, DataFormatTest._TEST_ENCODING)
-        self.assertEqual(format.get(data.KEY_ENCODING).name.lower() , DataFormatTest._TEST_ENCODING)
+        self.assertEqual(format.get(data.KEY_ENCODING), codecs.lookup(DataFormatTest._TEST_ENCODING))
 
         self.assertEqual(format.get(data.KEY_LINE_DELIMITER), data.ANY)
         self.assertEqual(format.get(data.KEY_ITEM_DELIMITER), data.ANY)

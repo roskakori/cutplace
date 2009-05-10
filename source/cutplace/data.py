@@ -223,6 +223,7 @@ class CsvDataFormat(DelimitedDataFormat):
         assert self.get(KEY_ITEM_DELIMITER) == ANY
 
         self.name = FORMAT_CSV
+        self.optionalKeyValueMap[KEY_ENCODING] = codecs.lookup("ascii")
         self.optionalKeyValueMap[KEY_QUOTE_CHARACTER] = "\""
         self.optionalKeyValueMap[KEY_ESCAPE_CHARACTER] = "\""
 
