@@ -134,8 +134,9 @@ def createCoverageReport(targetBasePath):
     </head>
     <body>
         <h1>Cutplace Test Coverage</h1>
-        <table>"""
-        
+        <table>
+          <tr><th>Module</th><th>Statements</th><th>Covered</th><th>Coverage</th></tr>
+"""
     for module in modules:
         f, s, m, mf = coverage.analysis(module)
         coverageHtmlName = "coverage_" + os.path.basename(f) + ".html"
@@ -145,13 +146,19 @@ def createCoverageReport(targetBasePath):
         try:
             coverage.report(module, file=reportStringIO)
             reportStringIO.seek(0)
-            moduleCoverageReport = reportStringIO.read()
-            coverageHtml += "<td><pre>%s</pre></td></tr>" % cgi.escape(moduleCoverageReport)
+            for coverageLine in reportStringIO:
+                # Just read until last line.
+                pass
+            coverageWords = coverageLine.split()
+            assert len(coverageWords) >= 4
+            for index in range(1,4):
+                coverageHtml += "<td>%s</td>" % cgi.escape(coverageWords[index])
         finally:
             reportStringIO.close() 
+        coverageHtml += "</tr>" + os.linesep
         print "write %r" % targetHtmlPath
         fo = file(targetHtmlPath, "wb")
-        # colorization
+        # Write syntax colored code.
         dev_colorize.colorize_file(f, outstream=fo, not_covered=mf)
         fo.close()
     coverageHtml += """        </table>
