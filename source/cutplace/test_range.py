@@ -17,6 +17,18 @@ class RangeTest(unittest.TestCase):
         self.assertEquals(range.Range("1:2").items, [(1, 2)])
         self.assertEquals(range.Range("-1:2").items, [(-1, 2)])
 
+    def testProperMultiRanges(self):
+        self.assertEquals(range.Range("1, 3").items, [(1, 1), (3, 3)])
+        self.assertEquals(range.Range("1:2, 5:").items, [(1, 2), (5, None)])
+
+    def testBrokenOverlappingMultiRange(self):
+        self.assertRaises(range.RangeSyntaxError, range.Range, "1:5, 2:3")
+        self.assertRaises(range.RangeSyntaxError, range.Range, "1:, 2:3")
+        self.assertRaises(range.RangeSyntaxError, range.Range, ":5, 2:3")
+        self.assertRaises(range.RangeSyntaxError, range.Range, ":5, :3")
+        self.assertRaises(range.RangeSyntaxError, range.Range, ":5, 1:")
+        self.assertRaises(range.RangeSyntaxError, range.Range, ":5, 2")
+        
     def testBrokenRanges(self):
         self.assertRaises(range.RangeSyntaxError, range.Range, "x")
         self.assertRaises(range.RangeSyntaxError, range.Range, ":")
@@ -37,8 +49,8 @@ class RangeTest(unittest.TestCase):
         noRange = range.Range(text)
         self.assertEqual(noRange.items, None)
         noRange.validate("x", 0)
-        noRange.validate("x", 2**32)
-        noRange.validate("x", - (2**32) - 1)
+        noRange.validate("x", 2 ** 32)
+        noRange.validate("x", - (2 ** 32) - 1)
 
     def testNoRange(self):
         self._testNoRange(None)
@@ -61,7 +73,7 @@ class RangeTest(unittest.TestCase):
 
         upperRange = range.Range(":1") 
         upperRange.validate("x", 1)
-        upperRange.validate("x", -2)
+        upperRange.validate("x", - 2)
         upperRange.validate("x", - (2 ** 32) - 1)
         self.assertRaises(range.RangeValueError, upperRange.validate, "x", 2)
 

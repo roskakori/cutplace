@@ -48,71 +48,104 @@ class Range(object):
         else:
             self.description = text
             self.items = []
-            lower = None
-            upper = None
-            colonFound = False
-            afterHyphen = False
             tokens = tokenize.generate_tokens(StringIO.StringIO(text).readline)
-            next = tokens.next()
-            while not tokenize.ISEOF(next[0]):
-                nextType = next[0]
-                nextValue = next[1]
-                if nextType == token.NUMBER:
-                    try:
-                        longValue = long(nextValue)
-                    except ValueError, error:
-                        raise RangeSyntaxError("number must be an integer but is: %r" % nextValue)
-                    if afterHyphen:
-                        longValue = - 1 * longValue
-                        afterHyphen = False
-                    if colonFound:
-                        if upper is None:
-                            upper = longValue
-                        else:
-                            raise RangeSyntaxError("range must have at most lower and upper limit but found another number: %r" % nextValue)
-                    elif lower is None:
-                        lower = longValue
-                    else:
-                        raise RangeSyntaxError("number must be followed by colon (:) but found: %r" % nextValue)
-                elif afterHyphen:
-                    raise RangeSyntaxError("hyphen (-) must be followed by number but found: %r" % nextValue)
-                elif (nextType == token.OP) and (nextValue == "-"):
-                    afterHyphen = True
-                elif (nextType == token.OP) and (nextValue == ":"):
-                    if colonFound:
-                        raise RangeSyntaxError("range item must contain at most one colon (:)")
-                    colonFound = True
-                else:
-                    message = "range must be specified using integer numbers and colon (:) but found: %r" % nextValue
-                    raise RangeSyntaxError("range must be specified using integer numbers and colon (:) but found: %r [token type: %r]" % (nextValue, nextType))
+            endReached = False
+            while not endReached:
+                lower = None
+                upper = None
+                colonFound = False
+                afterHyphen = False
                 next = tokens.next()
-            if afterHyphen:
-                raise RangeSyntaxError("hyphen (-) at end must be followed by number")
-            
-            # Decide upon the result.
-            if (lower is None):
-                if (upper is None):
-                    if colonFound:
-                        # Handle ":".
-                        raise RangeSyntaxError("colon (:) must be preceded and/or succeeded by number")
+                while not tokenize.ISEOF(next[0]) and not self._isCommaToken(next):
+                    nextType = next[0]
+                    nextValue = next[1]
+                    if nextType == token.NUMBER:
+                        try:
+                            longValue = long(nextValue)
+                        except ValueError, error:
+                            raise RangeSyntaxError("number must be an integer but is: %r" % nextValue)
+                        if afterHyphen:
+                            longValue = - 1 * longValue
+                            afterHyphen = False
+                        if colonFound:
+                            if upper is None:
+                                upper = longValue
+                            else:
+                                raise RangeSyntaxError("range must have at most lower and upper limit but found another number: %r" % nextValue)
+                        elif lower is None:
+                            lower = longValue
+                        else:
+                            raise RangeSyntaxError("number must be followed by colon (:) but found: %r" % nextValue)
+                    elif afterHyphen:
+                        raise RangeSyntaxError("hyphen (-) must be followed by number but found: %r" % nextValue)
+                    elif (nextType == token.OP) and (nextValue == "-"):
+                        afterHyphen = True
+                    elif (nextType == token.OP) and (nextValue == ":"):
+                        if colonFound:
+                            raise RangeSyntaxError("range item must contain at most one colon (:)")
+                        colonFound = True
                     else:
-                        # Handle "".
-                        result = None
-                else:
-                    assert colonFound
-                    # Handle ":y".
-                    result = (None, upper)
-            elif colonFound:
-                # Handle "x:" and "x:y".
-                if (upper is not None) and (lower > upper):
-                    raise RangeSyntaxError("lower range %d must be greater or equal to upper range %d" % (lower, upper))
-                result = (lower, upper)
-            else:
-                # Handle "x".
-                result = (lower, lower)
-            if result is not None:
-                self.items.append(result)
+                        message = "range must be specified using integer numbers and colon (:) but found: %r" % nextValue
+                        raise RangeSyntaxError("range must be specified using integer numbers and colon (:) but found: %r [token type: %r]" % (nextValue, nextType))
+                    next = tokens.next()
+                if afterHyphen:
+                    raise RangeSyntaxError("hyphen (-) at end must be followed by number")
                 
+                # Decide upon the result.
+                if (lower is None):
+                    if (upper is None):
+                        if colonFound:
+                            # Handle ":".
+                            # TODO: Handle ":" same as ""?
+                            raise RangeSyntaxError("colon (:) must be preceded and/or succeeded by number")
+                        else:
+                            # Handle "".
+                            result = None
+                    else:
+                        assert colonFound
+                        # Handle ":y".
+                        result = (None, upper)
+                elif colonFound:
+                    # Handle "x:" and "x:y".
+                    if (upper is not None) and (lower > upper):
+                        raise RangeSyntaxError("lower range %d must be greater or equal to upper range %d" % (lower, upper))
+                    result = (lower, upper)
+                else:
+                    # Handle "x".
+                    result = (lower, lower)
+                if result is not None:
+                    for item in self.items:
+                        if self._itemsOverlap(item, result):
+                            # TODO: use _repr_item() or something to display item in error message.
+                            raise RangeSyntaxError("range items must not overlap: %r and %r"
+                                                   % (self._repr_item(item), self._repr_item(result)))
+                    self.items.append(result)
+                if tokenize.ISEOF(next[0]):
+                    endReached = True
+                else:
+                    # TODO: Remove: next = tokens.next()
+                    pass
+
+    def _repr_item(self, item):
+        """
+        Human readable description of a range  item.
+        """
+        if item is not None:
+            result = ""
+            (lower, upper) = item
+            if lower is None:
+                assert upper is not None
+                result += ":%s" % upper
+            elif upper is None:
+                result += "%s:" % lower
+            elif lower == upper:
+                result += "%s" % lower
+            else:
+                result += "%s:%s" % (lower, upper)
+        else:
+            result = str(None)
+        return result
+        
     def __repr__(self):
         """
         Human readable description of the range similar to a Python tuple.
@@ -125,21 +158,45 @@ class Range(object):
                     isFirst = False
                 else:
                     result += ", "
-                (lower, upper) = item
-                if lower is None:
-                    assert upper is not None
-                    result += ":%r" % upper
-                elif upper is None:
-                    result += "%r:" % lower
-                elif lower == upper:
-                    result += "%r" % lower
-                else:
-                    result += "%r:%r" %(lower, upper)
+                result += self._repr_item(item)
             result += ")"
         else:
             result = str(None)
         return result
+    
+    def _isCommaToken(self, toky):
+        assert toky
+        return (toky[0] == token.OP) and (toky[1] == ",")
+
+    def _itemsOverlap(self, some, other):
+        assert some is not None
+        assert other is not None
+        lower = other[0]
+        upper = other[1]
+        result = self._itemContains(some, lower) or self._itemContains(some, upper)
+        return result
         
+    def _itemContains(self, item, value):
+        assert item is not None
+        result = False
+        if value is not None:
+            lower = item[0]
+            upper = item[1]
+            if lower is None:
+                if upper is None:
+                    # Handle ""
+                    result = True
+                else:
+                    # Handle ":y"
+                    result = (value <= upper)
+            elif upper is None:
+                # Handle "x:"
+                result = (value >= lower)
+            else:
+                # Handle "x:y"
+                result = (value >= lower) and (value <= upper)
+        return result
+    
     def validate(self, name, value):
         """
         Validate that value is within the specified range and in case it is not, raise a `RangeValueError`.

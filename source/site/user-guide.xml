@@ -2686,6 +2686,18 @@ BUILD SUCCESSFUL</computeroutput>
     cutplace.</para>
 
     <section>
+      <title>Version 0.4.2, 13-May-2009</title>
+
+      <itemizedlist>
+        <listitem>
+          <para>Added option for complex ranges that consist of several sub
+          ranges, for example: <userinput>10:20, 30:40</userinput> means that
+          a value must be between 10 and 20 or 30 and 40.</para>
+        </listitem>
+      </itemizedlist>
+    </section>
+
+    <section>
       <title>Version 0.4.1, 10-May-2009</title>
 
       <itemizedlist>
