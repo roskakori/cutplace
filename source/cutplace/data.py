@@ -53,8 +53,10 @@ def createDataFormat(name):
     actualName = name.lower()
     formatClass = _NAME_TO_FORMAT_MAP.get(actualName)
     if formatClass is None:
+        dataFormatNames = _NAME_TO_FORMAT_MAP.keys()
+        dataFormatNames.sort()
         raise DataFormatSyntaxError("data format is %r but must be on of: %r"
-                                    % (name, [FORMAT_CSV, FORMAT_DELIMITED, FORMAT_EXCEL, FORMAT_FIXED]))
+                                    % (name, dataFormatNames))
 
     result = formatClass()
     return result
@@ -270,7 +272,7 @@ class FixedDataFormat(_BaseDataFormat):
             try:
                 result = codecs.lookup(value)
             except:
-                raise DataFormatSyntaxError("value for property %r is %r but must be a valid encoding" % (key, value))
+                raise DataFormatSyntaxError("value for data format property %r is %r but must be a valid encoding" % (key, value))
         elif key == KEY_LINE_DELIMITER:
             lowerValue = value.lower()
             self._validatedChoice(key, lowerValue, _VALID_LINE_DELIMITER_TEXTS)
