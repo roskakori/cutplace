@@ -14,6 +14,24 @@ import unittest
 
 _log = logging.getLogger("cutplace.test_interface")
 
+class _SimpleErrorLoggingIcdEventListener(interface.IcdEventListener):
+    def _logError(self, row, errorMessage):
+        _log.warning("error during validation: %s %r" %(str(errorMessage), row))
+        
+    def rejectedRow(self, row, errorMessage):
+        self._logError(row, errorMessage)
+    
+    def checkAtRowFailed(self, row, errorMessage):
+        self._logError(row, errorMessage)
+    
+    def checkAtEndFailed(self, errorMessage):
+        self._logError(None, errorMessage)
+    
+    def dataFormatFailed(self, errorMessage):
+        self._logError(None, errorMessage)
+
+_defaultIcdListener = _SimpleErrorLoggingIcdEventListener()
+
 def createDefaultTestFixedIcd():
     spec = """,Interface: customer,,,,,
 ,,,,,,
@@ -114,18 +132,24 @@ class InterfaceControlDocumentTest(unittest.TestCase):
     def testValidOds(self):
         icd = createDefaultTestIcd(data.FORMAT_ODS)
         dataPath = dev_test.getTestInputPath("valid_customers.ods")
-        icd.validate(dataPath)
-        # TODO: Assert number of errors detected in dataPath is 0.
+        icd.addIcdEventListener(_defaultIcdListener)
+        try:
+            icd.validate(dataPath)
+            self.assertEqual(icd.rejectedCount, 0)
+        finally:
+            icd.removeIcdEventListener(_defaultIcdListener)
 
     def testValidExcel(self):
         icd = createDefaultTestIcd(data.FORMAT_EXCEL)
         dataPath = dev_test.getTestInputPath("valid_customers.xls")
+        icd.addIcdEventListener(_defaultIcdListener)
         try:
             icd.validate(dataPath)
-            # TODO: Assert number of errors detected in dataPath is 0.
+            self.assertEqual(icd.rejectedCount, 0)
         except parsers.CutplaceXlrdImportError:
             _log.warning("ignored ImportError caused by missing xlrd")
-
+        finally:
+            icd.removeIcdEventListener(_defaultIcdListener)
 
     def testEmptyChoice(self):
         spec = ""","Interface with a Choice field (gender) that can be empty"
@@ -158,8 +182,8 @@ class InterfaceControlDocumentTest(unittest.TestCase):
 """
         icd = interface.InterfaceControlDocument()
         icd.read(StringIO.StringIO(spec))
-        dataText = """"John",,"08.03.1957"
-"Jane","female","04.10.1946" """
+        dataText = """"John"
+Jane"""
         dataReadable = StringIO.StringIO(dataText)
         icd.validate(dataReadable)
     
@@ -342,6 +366,23 @@ class InterfaceControlDocumentTest(unittest.TestCase):
 "F","date_of_birth",08.03.1957,"DateTime",,,"DD.MM.YYYY"
 """
         self._testBroken(spec, interface.IcdSyntaxError)
+
+    def testTooManyItems(self):
+        spec = ""","Interface with a single field"
+"D","Format","CSV"
+"D","Line delimiter","LF"
+"D","Item delimiter",","
+"D","Encoding","ISO-8859-1"
+,,,,,,
+,"Name","Example","Type","Empty","Length","Rule"
+"F","first_name","John","fields.Text","X"
+"""
+        icd = interface.InterfaceControlDocument()
+        icd.read(StringIO.StringIO(spec))
+        dataText = "John, Doe"
+        dataReadable = StringIO.StringIO(dataText)
+        icd.validate(dataReadable)
+        self.assertEqual(icd.rejectedCount, 1)
 
 if __name__ == '__main__':
     logging.basicConfig()

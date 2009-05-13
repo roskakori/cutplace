@@ -62,6 +62,8 @@ class InterfaceControlDocument(object):
         self.icdEventListeners = []
         # TODO: Add logTrace as property and let setter check for True or False.
         self.logTrace = False
+        self.acceptedCount = 0
+        self.rejectedCount = 0
     
     def _createClass(self, defaultModuleName, type, classNameAppendix, typeName):
         assert defaultModuleName
@@ -314,14 +316,10 @@ class InterfaceControlDocument(object):
             raise IcdSyntaxError("ICD must contain a section describing at least one field format (rows starting with %r)"
                                  % InterfaceControlDocument._ID_FIELD_RULE)
             
-    def validate(self, dataFileToValidatePath):
-        """
-        Validate that all lines and items in dataFileToValidatePath conform to this interface.
-        """
+    def _obtainReader(self, dataFileToValidatePath):
         assert self.dataFormat is not None
         assert dataFileToValidatePath is not None
-        self._log.info("validate \"%s\"" % (dataFileToValidatePath))
-        
+
         if self.dataFormat.name in [data.FORMAT_CSV, data.FORMAT_FIXED]:
             needsOpen = isinstance(dataFileToValidatePath, types.StringTypes)
             if needsOpen:
@@ -338,7 +336,18 @@ class InterfaceControlDocument(object):
             dataReader = None
         else:
             raise NotImplementedError("data format: %r" % self.dataFormat.name)
+        
+        return (dataFile, needsOpen)
+        
+    def validate(self, dataFileToValidatePath):
+        """
+        Validate that all lines and items in dataFileToValidatePath conform to this interface.
+        """
+        self._log.info("validate \"%s\"" % (dataFileToValidatePath))
+        self.acceptedCount = 0
+        self.rejectedCount = 0
 
+        (dataFile, needsOpen) = self._obtainReader(dataFileToValidatePath)
         try:
             if self.dataFormat.name == data.FORMAT_CSV:
                 dialect = parsers.DelimitedDialect()
@@ -378,15 +387,19 @@ class InterfaceControlDocument(object):
                 rowMap = {}
                 try:
                     # Validate all columns and collect their values in rowMap.
-                    while itemIndex < len(row):
+                    maxItemCount = min(len(row), len(self.fieldFormats))
+                    while itemIndex < maxItemCount:
                         item = row[itemIndex]
+                        print "%d / %d: %r <- %r" % (itemIndex, len(self.fieldFormats), item, row)  
+                        # TODO: Validate characters.
                         fieldFormat = self.fieldFormats[itemIndex]
                         fieldFormat.validateEmpty(item)
                         fieldFormat.validateLength(item)
                         rowMap[fieldFormat.fieldName] = fieldFormat.validate(item) 
                         itemIndex += 1
                     if itemIndex != len(row):
-                        raise fields.FieldValueError("unexpected data must be removed beginning at item %d" % (itemIndex))
+                        itemIndex -= 1
+                        raise checks.CheckError("unexpected data must be removed after item %d" % (itemIndex))
                     # Validate row checks.
                     for description, check in self.checkDescriptions.items():
                         try:
@@ -394,16 +407,18 @@ class InterfaceControlDocument(object):
                         except checks.CheckError, error:
                             raise checks.CheckError("row check failed: %r: %s" % (check.description, str(message)))
                     self._log.debug("accepted: %s" % row)
+                    self.acceptedCount += 1
                     for listener in self.icdEventListeners:
                         listener.acceptedRow(row)
-                except:
+                except tools.CutplaceError, error:
                     # Handle failed check and other errors.
                     # FIXME: Use handlers for "except fields.FieldValueError" and "except CutplaceError".
-                    if isinstance(sys.exc_info()[1], (fields.FieldValueError)):
+                    self.rejectedCount += 1
+                    if isinstance(error, (fields.FieldValueError)):
                         fieldName = self.fieldNames[itemIndex]
-                        reason = "field %r does not match format: %s" % (fieldName, sys.exc_info()[1])
+                        reason = "field %r must match format: %s" % (fieldName, str(error))
                     else:
-                        reason = sys.exc_info()[1]
+                        reason = str(error)
                     self._log.debug("rejected: %s" % row)
                     self._log.debug(reason, exc_info=self.logTrace)
                     for listener in self.icdEventListeners:
