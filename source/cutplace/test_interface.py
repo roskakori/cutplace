@@ -16,7 +16,7 @@ _log = logging.getLogger("cutplace.test_interface")
 
 class _SimpleErrorLoggingIcdEventListener(interface.IcdEventListener):
     def _logError(self, row, errorMessage):
-        _log.warning("error during validation: %s %r" %(str(errorMessage), row))
+        _log.warning("error during validation: %s %r" % (str(errorMessage), row))
         
     def rejectedRow(self, row, errorMessage):
         self._logError(row, errorMessage)
@@ -375,7 +375,7 @@ Jane"""
 "D","Encoding","ISO-8859-1"
 ,,,,,,
 ,"Name","Example","Type","Empty","Length","Rule"
-"F","first_name","John","fields.Text","X"
+"F","first_name","John","Text","X"
 """
         icd = interface.InterfaceControlDocument()
         icd.read(StringIO.StringIO(spec))
@@ -383,6 +383,66 @@ Jane"""
         dataReadable = StringIO.StringIO(dataText)
         icd.validate(dataReadable)
         self.assertEqual(icd.rejectedCount, 1)
+
+    def testLastOptionalField(self):
+        spec = ""","Interface with two fields with the second being optional"
+"D","Format","CSV"
+"D","Line delimiter","LF"
+"D","Item delimiter",","
+"D","Encoding","ISO-8859-1"
+,,,,,,
+,"Name","Example","Type","Empty","Length","Rule"
+"F","customer_id",,Integer,,,0:
+"F","first_name","John","Text","X"
+"""
+        icd = interface.InterfaceControlDocument()
+        icd.read(StringIO.StringIO(spec))
+        dataText = """123,John
+234,
+"""
+        dataReadable = StringIO.StringIO(dataText)
+        icd.addIcdEventListener(_defaultIcdListener)
+        try:
+            icd.validate(dataReadable)
+            self.assertEqual(icd.acceptedCount, 2)
+            self.assertEqual(icd.rejectedCount, 0)
+        finally:
+            icd.removeIcdEventListener(_defaultIcdListener)
+
+    def testTooFewItems(self):
+        spec = ""","Interface with two fields with the second being required"
+"D","Format","CSV"
+"D","Line delimiter","LF"
+"D","Item delimiter",","
+"D","Encoding","ISO-8859-1"
+,,,,,,
+,"Name","Example","Type","Empty","Length","Rule"
+"F","customer_id",,Integer,,,0:
+"F","first_name","John","Text"
+"""
+        # Test that a specifically empty item is rejected.
+        icd = interface.InterfaceControlDocument()
+        icd.read(StringIO.StringIO(spec))
+        dataText = "123,"
+        dataReadable = StringIO.StringIO(dataText)
+        icd.addIcdEventListener(_defaultIcdListener)
+        try:
+            icd.validate(dataReadable)
+            self.assertEqual(icd.acceptedCount, 0)
+            self.assertEqual(icd.rejectedCount, 1)
+        finally:
+            icd.removeIcdEventListener(_defaultIcdListener)
+
+        # Test that a missing item is rejected.
+        dataText = "234"
+        dataReadable = StringIO.StringIO(dataText)
+        icd.addIcdEventListener(_defaultIcdListener)
+        try:
+            icd.validate(dataReadable)
+            self.assertEqual(icd.acceptedCount, 0)
+            self.assertEqual(icd.rejectedCount, 1)
+        finally:
+            icd.removeIcdEventListener(_defaultIcdListener)
 
 if __name__ == '__main__':
     logging.basicConfig()

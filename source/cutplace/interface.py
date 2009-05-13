@@ -385,12 +385,14 @@ class InterfaceControlDocument(object):
                 itemIndex = 0
                 rowNumber += 1
                 rowMap = {}
+                
                 try:
                     # Validate all columns and collect their values in rowMap.
                     maxItemCount = min(len(row), len(self.fieldFormats))
                     while itemIndex < maxItemCount:
                         item = row[itemIndex]
-                        print "%d / %d: %r <- %r" % (itemIndex, len(self.fieldFormats), item, row)  
+                        if __debug__ and self._log.isEnabledFor(logging.DEBUG):
+                            self._log.debug("validate item %d/%d: %r <- %r" % (itemIndex + 1, len(self.fieldFormats), item, row))  
                         # TODO: Validate characters.
                         fieldFormat = self.fieldFormats[itemIndex]
                         fieldFormat.validateEmpty(item)
@@ -400,6 +402,10 @@ class InterfaceControlDocument(object):
                     if itemIndex != len(row):
                         itemIndex -= 1
                         raise checks.CheckError("unexpected data must be removed after item %d" % (itemIndex))
+                    elif len(row) < len(self.fieldFormats):
+                        missingFieldNames = self.fieldNames[(len(row) - 1):]
+                        raise checks.CheckError("row must contain items for the following fields: %r" %missingFieldNames)
+
                     # Validate row checks.
                     for description, check in self.checkDescriptions.items():
                         try:
