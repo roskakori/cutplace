@@ -1,5 +1,5 @@
 """
-Data formats that describe the general structure of an input.
+Data formats that describe the general structure of the data.
 """
 import codecs
 import logging
@@ -33,6 +33,7 @@ KEY_SPACE_AROUND_DELIMITER = "blanks around delimiter"
 
 # TODO: Move validation of KEY_ALLOWED_CHARACTERS to _AbstractDataFormat because all formats support it.
 
+# TODO: Add KEY_HEADER = "header"
 # TODO: Add KEY_DECIMAL_SEPARATOR = "decimalSeparator"
 # TODO: Add KEY_THOUSANDS_SEPARATOR = "thousandsSeparator"
 
@@ -69,18 +70,19 @@ def _isKey(possibleKey, keyToCompareWith):
 
 def isFormatKey(key):
     """
-    True if key matches KEY_FORMAT.
+    True if `key` matches `KEY_FORMAT`.
     """
     return _isKey(key, KEY_FORMAT)
 
 class DataFormatValueError(tools.CutplaceError):
-    pass
-
-class DataFormatLookupError(tools.CutplaceError):
-    pass
+    """
+    Error in data caused by violating the data format.
+    """
 
 class DataFormatSyntaxError(tools.CutplaceError):
-    pass
+    """
+    Error in data format declaration.
+    """
 
 class _AbstractDataFormat(object):
     """
@@ -141,7 +143,7 @@ class _AbstractDataFormat(object):
         """
        `Value` in its native type.
        
-       If `key` can not be handled, raise `DataFormatLookupError`.
+       If `key` can not be handled, raise `DataFormaSyntaxError`.
        
        If `value`does not match expectations, raise `DataFormatValueError`.
        
