@@ -32,6 +32,7 @@ KEY_LINE_DELIMITER = "line delimiter"
 KEY_QUOTE_CHARACTER = "quote character"
 KEY_SPACE_AROUND_DELIMITER = "blanks around delimiter"
 
+# TODO: Add KEY_SHEET and _BaseSpreadsheetDataFormat.
 # TODO: Add KEY_DECIMAL_SEPARATOR = "decimalSeparator"
 # TODO: Add KEY_THOUSANDS_SEPARATOR = "thousandsSeparator"
 
