@@ -26,14 +26,12 @@ KEY_ALLOWED_CHARACTERS = "allowed characters"
 KEY_ENCODING = "encoding"
 KEY_ESCAPE_CHARACTER = "escape character"
 KEY_FORMAT = "format"
+KEY_HEADER = "header"
 KEY_ITEM_DELIMITER = "item delimiter"
 KEY_LINE_DELIMITER = "line delimiter"
 KEY_QUOTE_CHARACTER = "quote character"
 KEY_SPACE_AROUND_DELIMITER = "blanks around delimiter"
 
-# TODO: Move validation of KEY_ALLOWED_CHARACTERS to _AbstractDataFormat because all formats support it.
-
-# TODO: Add KEY_HEADER = "header"
 # TODO: Add KEY_DECIMAL_SEPARATOR = "decimalSeparator"
 # TODO: Add KEY_THOUSANDS_SEPARATOR = "thousandsSeparator"
 
@@ -84,9 +82,9 @@ class DataFormatSyntaxError(tools.CutplaceError):
     Error in data format declaration.
     """
 
-class _AbstractDataFormat(object):
+class _BaseDataFormat(object):
     """
-    Abstract data format acting as base for other data formats.
+    Data format acting as base for other data formats.
     
     The only function you really need to overwrite is `validated()`.
     """
@@ -96,14 +94,12 @@ class _AbstractDataFormat(object):
         `optionalKeyValueMap` being a dictionary where they keys denote property names and the
         values describe default values that should be used in case the property is never set.
         """
-        if requiredKeys is None:
-            self.requiredKeys = []
-        else:
-            self.requiredKeys = requiredKeys
-        if optionalKeyValueMap is None:
-            self.optionalKeyValueMap = {}
-        else:
-            self.optionalKeyValueMap = optionalKeyValueMap
+        self.requiredKeys = []
+        self.optionalKeyValueMap = {KEY_ALLOWED_CHARACTERS:None, KEY_HEADER: 0}
+        if requiredKeys is not None:
+            self.requiredKeys.extend(requiredKeys)
+        if optionalKeyValueMap is not None:
+            self.optionalKeyValueMap.update(optionalKeyValueMap)
         self.properties = {}
         self._allKeys = []
         self._allKeys.extend(self.requiredKeys)
@@ -138,19 +134,44 @@ class _AbstractDataFormat(object):
         if value not in choices:
             raise DataFormatValueError("value for data format property %r is %r but must be one of: %r" % (key, value, choices))
         return value
+    
+    def _validatedLong(self, key, value, lowerLimit=None, upperLimit=None):
+        """
+        Validate that `value`is a long number between `lowerLimit` and `upperLimit` (if specified)
+        and raise `DataFormatSyntaxError` if not.
+        """
+        assert key
+        try:
+            result = long(value)
+        except ValueError, error:
+            raise DataFormatSyntaxError("value for data format property %r is %r but must be an integer number" % (key, value))
+        if lowerLimit is not None:
+            if result < lowerLimit:
+                raise DataFormatSyntaxError("value for data format property %r is %d but must be at least %d" % (key, value, lowerLimit))
+        if upperLimit is not None:
+            if result > upperLimit:
+                raise DataFormatSyntaxError("value for data format property %r is %d but must be at most %d" % (key, value, upperLimit))
             
     def validated(self, key, value):
         """
        `Value` in its native type.
        
-       If `key` can not be handled, raise `DataFormaSyntaxError`.
-       
-       If `value`does not match expectations, raise `DataFormatValueError`.
-       
-       This function needs to be overwritten by ancestors, by default it just raises
-       `NotImplementedError`.
+       If `key` or `value` can not be handled, raise `DataFormaSyntaxError`.
+
+        This function should be overwritten by child classes, bit also be called by them via
+        `super` in case the child cannot handle `key` in order to consistently handle the
+        standard keys.
         """
-        raise NotImplementedError
+        if key == KEY_ALLOWED_CHARACTERS:
+            try:
+                result = range.Range(value)
+            except range.RangeSyntaxError, error:
+                raise DataFormatSyntaxError("value for property %r must be a valid range: %s" % (key, str(error)))
+        elif key == KEY_HEADER:
+            result = self._validatedLong(key, value, 0)
+        else:
+            raise DataFormaSyntaxError("data format property is %r but must be one of: %r" % self._allKeys)
+        return result
 
     def validateAllRequiredPropertiesHaveBeenSet(self):
         """
@@ -176,8 +197,7 @@ class _AbstractDataFormat(object):
         defaultValue = self.optionalKeyValueMap.get(normalizedKey)
         return self.properties.get(normalizedKey, defaultValue)
 
-    
-class DelimitedDataFormat(_AbstractDataFormat):
+class DelimitedDataFormat(_BaseDataFormat):
     """
     Data format for delimited data such as CSV.
     """
@@ -188,8 +208,7 @@ class DelimitedDataFormat(_AbstractDataFormat):
         
         super(DelimitedDataFormat, self).__init__(
                                               [KEY_ENCODING],
-                                              {KEY_ALLOWED_CHARACTERS: None,
-                                               KEY_ESCAPE_CHARACTER: None,
+                                              {KEY_ESCAPE_CHARACTER: None,
                                                KEY_ITEM_DELIMITER: itemDelimiter,
                                                KEY_LINE_DELIMITER: lineDelimiter,
                                                KEY_QUOTE_CHARACTER:None})
@@ -198,12 +217,7 @@ class DelimitedDataFormat(_AbstractDataFormat):
     def validated(self, key, value):
         assert key == self._normalizedKey(key)
         
-        if key == KEY_ALLOWED_CHARACTERS:
-            try:
-                result = range.Range(value)
-            except range.RangeSyntaxError, error:
-                raise DataFormatSyntaxError("value for property %r must be a valid range: %s" % (key, str(error)))
-        elif key == KEY_ENCODING:
+        if key == KEY_ENCODING:
             try:
                 result = codecs.lookup(value)
             except:
@@ -220,7 +234,8 @@ class DelimitedDataFormat(_AbstractDataFormat):
         elif key == KEY_QUOTE_CHARACTER:
             result = self._validatedChoice(key, value, _VALID_QUOTE_CHARACTERS)
         else:
-            raise NotImplementedError("key=%r" % key)
+            result = super(DelimitedDataFormat, self).validated(key, value)
+
         return result
 
 class CsvDataFormat(DelimitedDataFormat):
@@ -237,26 +252,20 @@ class CsvDataFormat(DelimitedDataFormat):
         self.optionalKeyValueMap[KEY_QUOTE_CHARACTER] = "\""
         self.optionalKeyValueMap[KEY_ESCAPE_CHARACTER] = "\""
 
-class FixedDataFormat(_AbstractDataFormat):
+class FixedDataFormat(_BaseDataFormat):
     """
     Data format for fixed data.
     """
     def __init__(self):
         super(FixedDataFormat, self).__init__(
                                               [KEY_ENCODING],
-                                              {KEY_ALLOWED_CHARACTERS: None,
-                                               KEY_LINE_DELIMITER: None})
+                                              {KEY_LINE_DELIMITER: None})
         self.name = FORMAT_FIXED
 
     def validated(self, key, value):
         assert key == self._normalizedKey(key)
         
-        if key == KEY_ALLOWED_CHARACTERS:
-            try:
-                result = range.Range(value)
-            except range.RangeSyntaxError, error:
-                raise DataFormatSyntaxError("value for property %r must be a valid range: %s" % (key, str(error)))
-        elif key == KEY_ENCODING:
+        if key == KEY_ENCODING:
             try:
                 result = codecs.lookup(value)
             except:
@@ -267,49 +276,21 @@ class FixedDataFormat(_AbstractDataFormat):
             lineDelimiterIndex = _VALID_LINE_DELIMITER_TEXTS.index(lowerValue)
             result = _VALID_LINE_DELIMITERS[lineDelimiterIndex]
         else:
-            raise NotImplementedError("key=%r" % key)
+            result = super(FixedDataFormat, self).validated(key, value)
         return result
 
-class OdsDataFormat(_AbstractDataFormat):
+class OdsDataFormat(_BaseDataFormat):
     """
     Data format for ODS as created by OpenOffice.org's Calc.
     """
     def __init__(self):
-        super(OdsDataFormat, self).__init__(
-                                              None,
-                                              {KEY_ALLOWED_CHARACTERS: None})
+        super(OdsDataFormat, self).__init__(None, None)
         self.name = FORMAT_ODS
 
-    def validated(self, key, value):
-        assert key == self._normalizedKey(key)
-        
-        if key == KEY_ALLOWED_CHARACTERS:
-            try:
-                result = range.Range(value)
-            except range.RangeSyntaxError, error:
-                raise DataFormatSyntaxError("value for property %r must be a valid range: %s" % (key, str(error)))
-        else:
-            raise NotImplementedError("key=%r" % key)
-        return result
-
-class ExcelDataFormat(_AbstractDataFormat):
+class ExcelDataFormat(_BaseDataFormat):
     """
     Data format for Excel spreadsheets.
     """
     def __init__(self):
-        super(ExcelDataFormat, self).__init__(
-                                              None,
-                                              {KEY_ALLOWED_CHARACTERS: None})
+        super(ExcelDataFormat, self).__init__(None, None)
         self.name = FORMAT_EXCEL
-
-    def validated(self, key, value):
-        assert key == self._normalizedKey(key)
-        
-        if key == KEY_ALLOWED_CHARACTERS:
-            try:
-                result = range.Range(value)
-            except range.RangeSyntaxError, error:
-                raise DataFormatSyntaxError("value for property %r must be a valid range: %s" % (key, str(error)))
-        else:
-            raise NotImplementedError("key=%r" % key)
-        return result
