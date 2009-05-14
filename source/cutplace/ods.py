@@ -15,11 +15,11 @@ class AbstractOdsContentHandler(xml.sax.ContentHandler):
     """
     Sax ContentHandler for content.xml in ODS.
     """
-    def __init__(self, tableToRead=1):
-        assert tableToRead >= 1 
+    def __init__(self, sheet=1):
+        assert sheet >= 1 
 
         xml.sax.ContentHandler.__init__(self)
-        self.tablesToSkip = tableToRead
+        self.tablesToSkip = sheet
         self._log = logging.getLogger("cutplace.ods")
         
     def startDocument(self):
@@ -70,10 +70,11 @@ class AbstractOdsContentHandler(xml.sax.ContentHandler):
         raise NotImplementedError("rowCompleted must be implemented")
         
 class OdsToCsvContentHandler(AbstractOdsContentHandler):
-    def __init__(self, csvWriter, tableToRead=1):
+    def __init__(self, csvWriter, sheet=1):
         assert csvWriter is not None
+        assert sheet >= 1
 
-        AbstractOdsContentHandler.__init__(self)
+        AbstractOdsContentHandler.__init__(self, sheet)
         self.csvWriter = csvWriter
 
     def rowCompleted(self):
@@ -83,20 +84,21 @@ class RowListContentHandler(AbstractOdsContentHandler):
     """
     ContentHandler to collect all rows in a list which can be accessed using the `rows` attribute.
     """
-    def __init__(self, tableToRead=1):
-        AbstractOdsContentHandler.__init__(self)
+    def __init__(self, sheet=1):
+        AbstractOdsContentHandler.__init__(self, sheet)
         self.rows = []
 
     def rowCompleted(self):
         self.rows.append(self.row)
 
-def toCsv(odsFilePath, csvTargetPath, dialect="excel"):
+def toCsv(odsFilePath, csvTargetPath, dialect="excel", sheet=1):
     """
     Convert ODS file in `odsFilePath` to CSV using `dialect` and store the result in `csvTargetPath`.
     """
     assert odsFilePath is not None
     assert csvTargetPath is not None
     assert dialect is not None
+    assert sheet >= 1
     
     zipArchive = zipfile.ZipFile(odsFilePath, "r")
     try:
@@ -108,7 +110,7 @@ def toCsv(odsFilePath, csvTargetPath, dialect="excel"):
     csvTargetFile = open(csvTargetPath, "w")
     try:
         csvWriter = csv.writer(csvTargetFile, dialect)
-        xml.sax.parseString(xmlData, OdsToCsvContentHandler(csvWriter))
+        xml.sax.parseString(xmlData, OdsToCsvContentHandler(csvWriter, sheet))
     finally:
         csvTargetFile.close()
  
@@ -125,7 +127,7 @@ def _isEmptyRow(row):
             itemIndex += 1
     return result
          
-def toDocBookXml(odsFilePath, xmlTargetPath, id, title):
+def toDocBookXml(odsFilePath, xmlTargetPath, id, title, sheet=1):
     """
     Convert ODS file in `odsFilePath` to DocBook XML and store the result in `xmlTargetPath`.
     """
@@ -141,7 +143,7 @@ def toDocBookXml(odsFilePath, xmlTargetPath, id, title):
         xmlData = zipArchive.read("content.xml")
     finally:
         zipArchive.close()
-    handler = RowListContentHandler()
+    handler = RowListContentHandler(sheet)
     xml.sax.parseString(xmlData, handler)
     
     # Remove trailing empty rows.
@@ -201,20 +203,23 @@ if __name__ == '__main__':
     parser.set_defaults(format="csv", id="insert-id", sheet=1, title="Insert Title")
     parser.add_option("-f", "--format", metavar="FORMAT", type="choice", choices=_FORMATS, dest="format", help="output format: %r (default: %%default)" % _FORMATS)
     parser.add_option("-i", "--id", metavar="ID", dest="id", help="XML ID table can be referenced with (default: %default)")
-    # TODO: Implement: parser.add_option("-s", "--sheet", metavar="SHEET", type="long", dest="sheet", help="sheet to convert (default: %default)")
+    parser.add_option("-s", "--sheet", metavar="SHEET", type="long", dest="sheet", help="sheet to convert (default: %default)")
     parser.add_option("-t", "--title", metavar="TITLE", dest="title", help="title to be used for XML table (default: %default)")
     options, others = parser.parse_args()
 
     # TODO: If no output file is specified, derive name from input file.
-    if len(others) == 2:
+    if options.sheet < 1:
+        logging.getLogger("cutplace.ods").error("option --sheet is %d but must be at least 1" % options.sheet)
+        sys.exit(1)
+    elif len(others) == 2:
         sourceFilePath = others[0]
         targetFilePath = others[1]
         logging.getLogger("cutplace.ods").info("convert %r to %r using format %r" % (sourceFilePath, targetFilePath, options.format))
         try:
             if options.format == "csv":
-                toCsv(sourceFilePath, targetFilePath)
+                toCsv(sourceFilePath, targetFilePath, sheet=options.sheet)
             elif options.format == "docbook":
-                toDocBookXml(sourceFilePath, targetFilePath, id=options.id, title=options.title)
+                toDocBookXml(sourceFilePath, targetFilePath, id=options.id, title=options.title, sheet=options.sheet)
             else:
                 raise NotImplementedError("format=%r" % (options.format))
         except Exception, error:
