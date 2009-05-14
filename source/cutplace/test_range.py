@@ -76,6 +76,18 @@ class RangeTest(unittest.TestCase):
         upperRange.validate("x", - 2)
         upperRange.validate("x", - (2 ** 32) - 1)
         self.assertRaises(range.RangeValueError, upperRange.validate, "x", 2)
+        
+        multiRange = range.Range("1:4, 7:9") 
+        multiRange.validate("x", 1)
+        multiRange.validate("x", 7)
+        multiRange.validate("x", 9)
+        self.assertRaises(range.RangeValueError, multiRange.validate, "x", -3)
+        self.assertRaises(range.RangeValueError, multiRange.validate, "x", 0)
+        self.assertRaises(range.RangeValueError, multiRange.validate, "x", 5)
+        self.assertRaises(range.RangeValueError, multiRange.validate, "x", 6)
+        self.assertRaises(range.RangeValueError, multiRange.validate, "x", 10)
+        self.assertRaises(range.RangeValueError, multiRange.validate, "x", 723)
+        
 
 if __name__ == "__main__":
     unittest.main()

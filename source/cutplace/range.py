@@ -1,6 +1,7 @@
 """
 Range to check if certain values are within it. This is used in several places of the ICD, in 
-particular to specify the length limits for field values.
+particular to specify the length limits for field values and the characters allowed for a data
+format.
 """
 import StringIO
 import token
@@ -122,9 +123,6 @@ class Range(object):
                     self.items.append(result)
                 if tokenize.ISEOF(next[0]):
                     endReached = True
-                else:
-                    # TODO: Remove: next = tokens.next()
-                    pass
 
     def _repr_item(self, item):
         """
