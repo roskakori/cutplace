@@ -150,10 +150,11 @@ class _BaseDataFormat(object):
             raise DataFormatSyntaxError("value for data format property %r is %r but must be an integer number" % (key, value))
         if lowerLimit is not None:
             if result < lowerLimit:
-                raise DataFormatSyntaxError("value for data format property %r is %d but must be at least %d" % (key, value, lowerLimit))
+                raise DataFormatSyntaxError("value for data format property %r is %d but must be at least %d" % (key, result, lowerLimit))
         if upperLimit is not None:
             if result > upperLimit:
-                raise DataFormatSyntaxError("value for data format property %r is %d but must be at most %d" % (key, value, upperLimit))
+                raise DataFormatSyntaxError("value for data format property %r is %d but must be at most %d" % (key, result, upperLimit))
+        return result
             
     def validated(self, key, value):
         """

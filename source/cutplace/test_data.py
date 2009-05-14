@@ -48,6 +48,13 @@ class DataFormatTest(unittest.TestCase):
         format.set(data.KEY_ALLOWED_CHARACTERS, "32:")
         self.assertRaises(data.DataFormatSyntaxError, format.set, data.KEY_ENCODING, DataFormatTest._TEST_ENCODING)
         
+    def testHeader(self):
+        format = data.CsvDataFormat()
+        self.assertEquals(0, format.get(data.KEY_HEADER))
+        format.set(data.KEY_HEADER, 17)
+        newHeader = format.get(data.KEY_HEADER)
+        self.assertEquals(17, newHeader)
+                          
     def testBrokenEncoding(self):
         format = data.CsvDataFormat()
         self.assertRaises(data.DataFormatSyntaxError, format.set, data.KEY_ENCODING, "me-no-encoding")

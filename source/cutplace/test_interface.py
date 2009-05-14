@@ -217,10 +217,24 @@ Jane"""
 "D","Format","XYZ"
 """
         self._testBroken(spec, data.DataFormatSyntaxError)
+
+    def testBrokenDataFormatTooSmallHeader(self):
+        spec = ""","Broken Interface with invalid data format where the header is too small"
+"D","Format","CSV"
+"D","Header","-1"
+"""
+        self._testBroken(spec, data.DataFormatSyntaxError)
+        
+    def testBrokenDataFormatNonNumericHeader(self):
+        spec = ""","Broken Interface with invalid data format where the header is too small"
+"D","Format","CSV"
+"D","Header","eggs"
+"""
+        self._testBroken(spec, data.DataFormatSyntaxError)
         
     def testBrokenDataFormatInvalidFormatPropertyName(self):
-        spec = ""","Broken Interface with invalid data format"
-"D","Fromat","XYZ"
+        spec = ""","Broken Interface with broken name for format property"
+"D","Fromat","CSV"
 """
         self._testBroken(spec, data.DataFormatSyntaxError)
         
@@ -443,6 +457,26 @@ Jane"""
             self.assertEqual(icd.rejectedCount, 1)
         finally:
             icd.removeIcdEventListener(_defaultIcdListener)
+
+    def testSkipHeader(self):
+        spec = ""","Interface for data with header rows"
+"D","Format","CSV"
+"D","Line delimiter","Any"
+"D","Item delimiter",","
+"D","Header","1"
+,,,,,,
+,"Name","Example","Type","Empty","Length","Rule"
+"F","first_name","John","Text","X"
+"F","gender","male","Choice",X,,"female, male"
+"F","date_of_birth",08.03.1957,"DateTime",,,"DD.MM.YYYY"
+"""
+        icd = interface.InterfaceControlDocument()
+        icd.read(StringIO.StringIO(spec))
+        dataText = """First Name,Gender,Date of birth
+John,male,08.03.1957
+Mike,male,23.12.1974"""
+        dataReadable = StringIO.StringIO(dataText)
+        icd.validate(dataReadable)
 
 if __name__ == '__main__':
     logging.basicConfig()

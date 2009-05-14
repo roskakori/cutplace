@@ -343,6 +343,7 @@ class InterfaceControlDocument(object):
         """
         Validate that all lines and items in dataFileToValidatePath conform to this interface.
         """
+        # FIXME: Split up `validate()` in several smaller methods.
         self._log.info("validate \"%s\"" % (dataFileToValidatePath))
         self.acceptedCount = 0
         self.rejectedCount = 0
@@ -353,8 +354,8 @@ class InterfaceControlDocument(object):
                 dialect = parsers.DelimitedDialect()
                 dialect.lineDelimiter = self.dataFormat.get(data.KEY_LINE_DELIMITER)
                 dialect.itemDelimiter = self.dataFormat.get(data.KEY_ITEM_DELIMITER)
-                # FIXME: Obtain quote char from ICD.
                 dialect.quoteChar = self.dataFormat.get(data.KEY_QUOTE_CHARACTER)
+                # FIXME: Set escape char according to ICD.
                 reader = parsers.parserReader(parsers.DelimitedParser(dataFile, dialect))
             elif self.dataFormat.name == data.FORMAT_EXCEL:
                 parser = parsers.ExcelParser(dataFile)
@@ -380,55 +381,73 @@ class InterfaceControlDocument(object):
             else:
                 raise NotImplementedError("data format: %r" % self.dataFormat.name)
             # TODO: Replace rowNumber by position in parser.
+            
+            # Obtain various values from the data format that will be used to various checks.
+            firstRowToValidateFieldsIn = self.dataFormat.get(data.KEY_HEADER)
+            assert firstRowToValidateFieldsIn is not None
+            assert firstRowToValidateFieldsIn >= 0
+            validCharacterRange = self.dataFormat.get(data.KEY_ALLOWED_CHARACTERS)
+
+            # Validate data row by row.
             rowNumber = 0
             for row in reader:
                 itemIndex = 0
                 rowNumber += 1
-                rowMap = {}
                 
-                try:
-                    # Validate all columns and collect their values in rowMap.
-                    maxItemCount = min(len(row), len(self.fieldFormats))
-                    while itemIndex < maxItemCount:
-                        item = row[itemIndex]
-                        if __debug__ and self._log.isEnabledFor(logging.DEBUG):
-                            self._log.debug("validate item %d/%d: %r <- %r" % (itemIndex + 1, len(self.fieldFormats), item, row))  
-                        # TODO: Validate characters.
-                        fieldFormat = self.fieldFormats[itemIndex]
-                        fieldFormat.validateEmpty(item)
-                        fieldFormat.validateLength(item)
-                        rowMap[fieldFormat.fieldName] = fieldFormat.validate(item) 
-                        itemIndex += 1
-                    if itemIndex != len(row):
-                        itemIndex -= 1
-                        raise checks.CheckError("unexpected data must be removed after item %d" % (itemIndex))
-                    elif len(row) < len(self.fieldFormats):
-                        missingFieldNames = self.fieldNames[(len(row) - 1):]
-                        raise checks.CheckError("row must contain items for the following fields: %r" %missingFieldNames)
-
-                    # Validate row checks.
-                    for description, check in self.checkDescriptions.items():
-                        try:
-                            check.checkRow(rowNumber, rowMap)
-                        except checks.CheckError, error:
-                            raise checks.CheckError("row check failed: %r: %s" % (check.description, str(message)))
-                    self._log.debug("accepted: %s" % row)
-                    self.acceptedCount += 1
-                    for listener in self.icdEventListeners:
-                        listener.acceptedRow(row)
-                except tools.CutplaceError, error:
-                    # Handle failed check and other errors.
-                    # FIXME: Use handlers for "except fields.FieldValueError" and "except CutplaceError".
-                    self.rejectedCount += 1
-                    if isinstance(error, (fields.FieldValueError)):
-                        fieldName = self.fieldNames[itemIndex]
-                        reason = "field %r must match format: %s" % (fieldName, str(error))
-                    else:
-                        reason = str(error)
-                    self._log.debug("rejected: %s" % row)
-                    self._log.debug(reason, exc_info=self.logTrace)
-                    for listener in self.icdEventListeners:
-                        listener.rejectedRow(row, reason)
+                if rowNumber > firstRowToValidateFieldsIn:
+                    try:
+                        # Validate all items of the current row and collect their values in `rowMap`.
+                        maxItemCount = min(len(row), len(self.fieldFormats))
+                        rowMap = {}
+                        while itemIndex < maxItemCount:
+                            item = row[itemIndex]
+                            if __debug__ and self._log.isEnabledFor(logging.DEBUG):
+                                self._log.debug("validate item %d/%d: %r <- %r" % (itemIndex + 1, len(self.fieldFormats), item, row))  
+                            fieldFormat = self.fieldFormats[itemIndex]
+                            # Validate characters.
+                            if validCharacterRange is not None:
+                                for character in item:
+                                    try:
+                                        validCharacterRange.validate("character", character)
+                                    except range.RangeValueError, error:
+                                        raise fields.FieldValueError("value for fields %r must contain only valid characters: %s"
+                                                                     %(fieldFormat.fieldName, character, str(error)))
+                                    
+                            # Validate field format
+                            fieldFormat.validateEmpty(item)
+                            fieldFormat.validateLength(item)
+                            rowMap[fieldFormat.fieldName] = fieldFormat.validate(item) 
+                            itemIndex += 1
+                        if itemIndex != len(row):
+                            itemIndex -= 1
+                            raise checks.CheckError("unexpected data must be removed after item %d" % (itemIndex))
+                        elif len(row) < len(self.fieldFormats):
+                            missingFieldNames = self.fieldNames[(len(row) - 1):]
+                            raise checks.CheckError("row must contain items for the following fields: %r" %missingFieldNames)
+    
+                        # Validate row checks.
+                        for description, check in self.checkDescriptions.items():
+                            try:
+                                check.checkRow(rowNumber, rowMap)
+                            except checks.CheckError, error:
+                                raise checks.CheckError("row check failed: %r: %s" % (check.description, str(message)))
+                        self._log.debug("accepted: %s" % row)
+                        self.acceptedCount += 1
+                        for listener in self.icdEventListeners:
+                            listener.acceptedRow(row)
+                    except tools.CutplaceError, error:
+                        # Handle failed check and other errors.
+                        # FIXME: Use handlers for "except fields.FieldValueError" and "except CutplaceError".
+                        self.rejectedCount += 1
+                        if isinstance(error, (fields.FieldValueError)):
+                            fieldName = self.fieldNames[itemIndex]
+                            reason = "field %r must match format: %s" % (fieldName, str(error))
+                        else:
+                            reason = str(error)
+                        self._log.debug("rejected: %s" % row)
+                        self._log.debug(reason, exc_info=self.logTrace)
+                        for listener in self.icdEventListeners:
+                            listener.rejectedRow(row, reason)
         finally:
             if needsOpen:
                 dataFile.close()

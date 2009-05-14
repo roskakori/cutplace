@@ -2686,13 +2686,34 @@ BUILD SUCCESSFUL</computeroutput>
     cutplace.</para>
 
     <section>
-      <title>Version 0.4.2, 13-May-2009</title>
+      <title>Version 0.4.2, 14-May-2009</title>
 
       <itemizedlist>
         <listitem>
           <para>Added option for complex ranges that consist of several sub
-          ranges, for example: <userinput>10:20, 30:40</userinput> means that
-          a value must be between 10 and 20 or 30 and 40.</para>
+          ranges separated by a comma (,). For example: <userinput>10:20,
+          30:40</userinput> means that a value must be between 10 and 20 or 30
+          and 40.</para>
+        </listitem>
+
+        <listitem>
+          <para>Added validation for data format property "Allowed
+          characters", which can be used with all data formats.</para>
+        </listitem>
+
+        <listitem>
+          <para>Added data format property "Header" to soecify the number of
+          header rows that should be skipped without validation. This can be
+          used with all data formats.</para>
+        </listitem>
+
+        <listitem>
+          <para>Fixed handling of data rows with too few or too many
+          items.</para>
+        </listitem>
+
+        <listitem>
+          <para>Cleaned up error handling and error messages.</para>
         </listitem>
       </itemizedlist>
     </section>
