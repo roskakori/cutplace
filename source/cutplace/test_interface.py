@@ -139,6 +139,17 @@ class InterfaceControlDocumentTest(unittest.TestCase):
         finally:
             icd.removeIcdEventListener(_defaultIcdListener)
 
+        # TODO: Remove the line below once icd.validate() calls reset().
+        icd = createDefaultTestIcd(data.FORMAT_ODS)
+        icd.dataFormat.set(data.KEY_SHEET, 2)
+        icd.addIcdEventListener(_defaultIcdListener)
+        try:
+            icd.validate(dataPath)
+            self.assertEqual(icd.acceptedCount, 4)
+            self.assertEqual(icd.rejectedCount, 0)
+        finally:
+            icd.removeIcdEventListener(_defaultIcdListener)
+
     def testValidExcel(self):
         icd = createDefaultTestIcd(data.FORMAT_EXCEL)
         dataPath = dev_test.getTestInputPath("valid_customers.xls")

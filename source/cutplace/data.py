@@ -30,9 +30,9 @@ KEY_HEADER = "header"
 KEY_ITEM_DELIMITER = "item delimiter"
 KEY_LINE_DELIMITER = "line delimiter"
 KEY_QUOTE_CHARACTER = "quote character"
+KEY_SHEET = "sheet"
 KEY_SPACE_AROUND_DELIMITER = "blanks around delimiter"
 
-# TODO: Add KEY_SHEET and _BaseSpreadsheetDataFormat.
 # TODO: Add KEY_DECIMAL_SEPARATOR = "decimalSeparator"
 # TODO: Add KEY_THOUSANDS_SEPARATOR = "thousandsSeparator"
 
@@ -201,6 +201,26 @@ class _BaseDataFormat(object):
         defaultValue = self.optionalKeyValueMap.get(normalizedKey)
         return self.properties.get(normalizedKey, defaultValue)
 
+class _BaseSpreadsheetDataFormat(_BaseDataFormat):
+    """
+    Base data format for spreadsheet formats.
+    """
+    def __init__(self, name):
+        assert name
+        
+        super(_BaseSpreadsheetDataFormat, self).__init__(None, {KEY_SHEET: 1})
+        self.name = name
+        
+    def validated(self, key, value):
+        assert key == self._normalizedKey(key)
+        
+        if key == KEY_SHEET:
+            result = self._validatedLong(key, value, 1)
+        else:
+            result = super(_BaseSpreadsheetDataFormat, self).validated(key, value)
+
+        return result
+
 class DelimitedDataFormat(_BaseDataFormat):
     """
     Data format for delimited data such as CSV.
@@ -283,18 +303,16 @@ class FixedDataFormat(_BaseDataFormat):
             result = super(FixedDataFormat, self).validated(key, value)
         return result
 
-class OdsDataFormat(_BaseDataFormat):
+class OdsDataFormat(_BaseSpreadsheetDataFormat):
     """
     Data format for ODS as created by OpenOffice.org's Calc.
     """
     def __init__(self):
-        super(OdsDataFormat, self).__init__(None, None)
-        self.name = FORMAT_ODS
+        super(OdsDataFormat, self).__init__(FORMAT_ODS)
 
-class ExcelDataFormat(_BaseDataFormat):
+class ExcelDataFormat(_BaseSpreadsheetDataFormat):
     """
     Data format for Excel spreadsheets.
     """
     def __init__(self):
-        super(ExcelDataFormat, self).__init__(None, None)
-        self.name = FORMAT_EXCEL
+        super(ExcelDataFormat, self).__init__(FORMAT_EXCEL)

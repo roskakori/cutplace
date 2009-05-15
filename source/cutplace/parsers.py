@@ -231,12 +231,17 @@ class DelimitedParser(object):
             self._log.debug("(%d:%d) %r [%d;%d]" % (self.lineNumber, self.itemNumber, self.item, self.atEndOfLine, self.atEndOfFile))
         
 class OdsParser(DelimitedParser):
-    """Parser for Open Document Spreadsheets (ODS)."""
-    def __init__(self, readable):
+    """
+    Parser for Open Document Spreadsheets (ODS).
+    """
+    def __init__(self, readable, sheet=1):
+        assert readable is not None
+        assert sheet >= 1
+        
         # Convert ODS to CSV.
         (csvTempFd, self.csvTempFilePath) = tempfile.mkstemp(".csv", "cutplace-")
         os.close(csvTempFd)
-        ods.toCsv(readable, self.csvTempFilePath)
+        ods.toCsv(readable, self.csvTempFilePath, sheet=sheet)
         
         excelDialect = DelimitedDialect(AUTO, ",")
         excelDialect.quoteChar = "\""
@@ -304,9 +309,9 @@ class FixedParser(object):
                 self.atEndOfLine = True
 
 class ExcelParser(object):
-    def __init__(self, readable, sheetIndex=0):
+    def __init__(self, readable, sheet=1):
         assert readable is not None
-        assert sheetIndex is not None
+        assert sheet >= 1
         
         try:
             import xlrd
@@ -315,7 +320,7 @@ class ExcelParser(object):
         
         contents = readable.read()
         self.workbook = xlrd.open_workbook(file_contents=contents)
-        self.sheet = self.workbook.sheet_by_index(sheetIndex)
+        self.sheet = self.workbook.sheet_by_index(sheet - 1)
         # TODO: Obtain name of file to parse, if there is one.
         self.fileName = None
         self.itemNumberInRow = - 1

@@ -358,7 +358,8 @@ class InterfaceControlDocument(object):
                 # FIXME: Set escape char according to ICD.
                 reader = parsers.parserReader(parsers.DelimitedParser(dataFile, dialect))
             elif self.dataFormat.name == data.FORMAT_EXCEL:
-                parser = parsers.ExcelParser(dataFile)
+                sheet = self.dataFormat.get(data.KEY_SHEET)
+                parser = parsers.ExcelParser(dataFile, sheet=sheet)
                 reader = parsers.parserReader(parser)
             elif self.dataFormat.name == data.FORMAT_FIXED:
                 fieldLengths = []
@@ -376,7 +377,8 @@ class InterfaceControlDocument(object):
                     fieldLengths.append(longFixedLength)
                 reader = parsers.parserReader(parsers.FixedParser(dataFile, fieldLengths))
             elif self.dataFormat.name == data.FORMAT_ODS:
-                parser = parsers.OdsParser(dataFile)
+                sheet = self.dataFormat.get(data.KEY_SHEET)
+                parser = parsers.OdsParser(dataFile, sheet=sheet)
                 reader = parsers.parserReader(parser)
             else:
                 raise NotImplementedError("data format: %r" % self.dataFormat.name)
@@ -411,7 +413,7 @@ class InterfaceControlDocument(object):
                                         validCharacterRange.validate("character", character)
                                     except range.RangeValueError, error:
                                         raise fields.FieldValueError("value for fields %r must contain only valid characters: %s"
-                                                                     %(fieldFormat.fieldName, character, str(error)))
+                                                                     % (fieldFormat.fieldName, character, str(error)))
                                     
                             # Validate field format
                             fieldFormat.validateEmpty(item)
@@ -423,14 +425,14 @@ class InterfaceControlDocument(object):
                             raise checks.CheckError("unexpected data must be removed after item %d" % (itemIndex))
                         elif len(row) < len(self.fieldFormats):
                             missingFieldNames = self.fieldNames[(len(row) - 1):]
-                            raise checks.CheckError("row must contain items for the following fields: %r" %missingFieldNames)
+                            raise checks.CheckError("row must contain items for the following fields: %r" % missingFieldNames)
     
                         # Validate row checks.
                         for description, check in self.checkDescriptions.items():
                             try:
                                 check.checkRow(rowNumber, rowMap)
                             except checks.CheckError, error:
-                                raise checks.CheckError("row check failed: %r: %s" % (check.description, str(message)))
+                                raise checks.CheckError("row check failed: %r: %s" % (check.description, str(error)))
                         self._log.debug("accepted: %s" % row)
                         self.acceptedCount += 1
                         for listener in self.icdEventListeners:
