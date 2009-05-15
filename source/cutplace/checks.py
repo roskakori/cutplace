@@ -46,6 +46,8 @@ class AbstractCheck(object):
         self.rule = rule
         self.fieldNames = fieldNames
     
+    # FIXME: Add `reset()` and call it from `interface.validate()`.
+    
     def checkRow(self, rowNumber, row):
         """"
         Check row and in case it is invalid raise CheckError. By default do nothing.
@@ -114,6 +116,8 @@ class DistinctCountCheck(AbstractCheck):
         self.distinctValuesToCountMap = {}
         self._eval()
 
+    # FIXME: Add `reset()`.
+
     def _distinctCount(self):
         return len(self.distinctValuesToCountMap)
     
@@ -124,7 +128,7 @@ class DistinctCountCheck(AbstractCheck):
         except Exception, message:
             raise CheckSyntaxError("cannot evaluate count expression %r: %s" % (self.expression, message))
         if result not in [True, False]:
-            raise CheckSyntaxError("count expression %r must result in true or false, but test resulted in: %r" % (self.expression, result))
+            raise CheckSyntaxError("count expression %r must result in %r or %r, but test resulted in: %r" % (self.expression, True, False, result))
         return result
         
     def checkRow(self, rowNumber, rowMap):
