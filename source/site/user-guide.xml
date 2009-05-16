@@ -31,7 +31,11 @@
 
       <keyword>fixed</keyword>
 
-      <keyword>excel ods separated</keyword>
+      <keyword>excel</keyword>
+
+      <keyword>ods</keyword>
+
+      <keyword>separated</keyword>
 
       <keyword>file</keyword>
     </keywordset>
@@ -942,7 +946,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
       <para>This basically says that the data are provided as comma separated
       values (CSV) and the character encoding is ISO-8859-1 (also known as
       Latin-1). Rows are separated using linefeed characters (ASCII code 10)
-      and columns are separated using a comma (",").</para>
+      and columns are separated using a comma (,).</para>
 
       <para>The remainder of this section describes the supported formats and
       available properties for them.</para>
@@ -1119,8 +1123,14 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
             <term>Allowed characters</term>
 
             <listitem>
-              <para>This is a comma separated list or characters or character
-              ranges allowed for the item text.</para>
+              <para>This range describing the characters allowed for data
+              items. Each number represents the decimal Unicode value of a
+              character that can be used. With the help of colons (:) you can
+              easily specify several characters. For example,
+              <userinput>32:128</userinput> means "between 32 and 128".</para>
+
+              <para>You can find more information on how to specify ranges in
+              <xref linkend="ranges" />.</para>
             </listitem>
           </varlistentry>
         </variablelist>
@@ -1284,7 +1294,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
         </table>
       </section>
 
-      <section>
+      <section id="format-excel">
         <title>Excel data</title>
 
         <para>Excel is a spreadsheet application and part of Microsoft
@@ -1314,9 +1324,59 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
                 </row>
               </tbody>
             </tgroup>
-          </table>TODO: Read a certain sheet.</para>
+          </table></para>
 
-        <para>TODO: Skip heading rows.</para>
+        <para>Additionally there are a couple of optional properties.</para>
+
+        <para><table>
+            <title>A more advanced example for Excel data</title>
+
+            <tgroup cols="3">
+              <thead>
+                <row>
+                  <entry></entry>
+
+                  <entry>Property</entry>
+
+                  <entry>Value</entry>
+                </row>
+              </thead>
+
+              <tbody>
+                <row>
+                  <entry>F</entry>
+
+                  <entry>Format</entry>
+
+                  <entry>Excel</entry>
+                </row>
+
+                <row>
+                  <entry>F</entry>
+
+                  <entry>Header</entry>
+
+                  <entry>2</entry>
+                </row>
+
+                <row>
+                  <entry>F</entry>
+
+                  <entry>Sheet</entry>
+
+                  <entry>5</entry>
+                </row>
+              </tbody>
+            </tgroup>
+          </table>The property header describes how many rows should be
+        skipped before the data to validate start. It is optional and defaults
+        to 0, meaning there is no header and the first row already contains
+        data.</para>
+
+        <para>The property sheet specifies from which sheet the data should be
+        read. It is only required in case a workbook contains more than one
+        sheet and the data to validate are located in the second or any later
+        sheet. This property defaults to 1 meaning the first sheet.</para>
       </section>
 
       <section>
@@ -1376,8 +1436,6 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
         </table>
 
         <para></para>
-
-        <para></para>
       </section>
 
       <section>
@@ -1410,9 +1468,54 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
                 </row>
               </tbody>
             </tgroup>
-          </table>TODO: Read a certain sheet.</para>
+          </table></para>
 
-        <para>TODO: Skip heading rows.</para>
+        <para>The properties header and sheet have the same meaning as
+        described in <xref linkend="format-excel" />. </para>
+
+        <table>
+          <title>A more advanced example for ODS data</title>
+
+          <tgroup cols="3">
+            <thead>
+              <row>
+                <entry></entry>
+
+                <entry>Property</entry>
+
+                <entry>Value</entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry>F</entry>
+
+                <entry>Format</entry>
+
+                <entry>ODS</entry>
+              </row>
+
+              <row>
+                <entry>F</entry>
+
+                <entry>Header</entry>
+
+                <entry>2</entry>
+              </row>
+
+              <row>
+                <entry>F</entry>
+
+                <entry>Sheet</entry>
+
+                <entry>5</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+
+        <para></para>
       </section>
     </section>
 
@@ -1931,7 +2034,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
 
                 <entry></entry>
 
-                <entry>1...12</entry>
+                <entry>1:12</entry>
 
                 <entry>?*.*</entry>
               </row>
@@ -2197,6 +2300,82 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
       </itemizedlist>
 
       <para></para>
+    </section>
+
+    <section id="ranges">
+      <title>Ranges</title>
+
+      <para>At several locations in the ICD you can specify ranges. For
+      example as value for the "Allowed characters" property of a data format
+      or as length of a field format. <xref linkend="example-for-ranges" />
+      shows a couple of examples for ranges and explains their meaning.</para>
+
+      <table id="example-for-ranges">
+        <title>Example ranges</title>
+
+        <tgroup cols="2">
+          <thead>
+            <row>
+              <entry align="center">Example</entry>
+
+              <entry align="center">Description</entry>
+            </row>
+          </thead>
+
+          <tbody>
+            <row>
+              <entry>5:20</entry>
+
+              <entry>Between 5 and 20</entry>
+            </row>
+
+            <row>
+              <entry>6:</entry>
+
+              <entry>At least 6</entry>
+            </row>
+
+            <row>
+              <entry>:7</entry>
+
+              <entry>At most 7. Sample accepted values are -5, 0, 4 or 7.
+              Sample rejected values would be 8, 17, or 723.</entry>
+            </row>
+
+            <row>
+              <entry>8</entry>
+
+              <entry>Exactly 8, which is the only accepted value. Anything
+              else is rejected.</entry>
+            </row>
+
+            <row>
+              <entry>2, 4, 6, 8</entry>
+
+              <entry>One of the values specified, meaning 2, 4, 6 or 8.
+              Anything else is rejected, including 3, 5 and 7.</entry>
+            </row>
+
+            <row>
+              <entry>20:30, 40:50</entry>
+
+              <entry>Everything between 20 and 30 or between 40 and 50. Sample
+              accepted values are 20, 27, 43 and 50. Sample rejected values
+              are 19, 31, 55.</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+      <para>Essentially ranges are one or more values (separated by a comma
+      (,)) that are either numeric constant or a lower and upper limit
+      separated by a colon (:). You can omit the lower or upper limit, in
+      which case cutplace will use a sensible default depending on the
+      context. For instance, a length of <userinput>:20</userinput> will use 0
+      as lower limit, whereas a field format of type <type>Integer</type> with
+      a rule of <userinput>:20</userinput> will use the largest negative
+      number possible on your computer (which depends on the amount of memory
+      available).</para>
     </section>
   </chapter>
 
@@ -2686,25 +2865,31 @@ BUILD SUCCESSFUL</computeroutput>
     cutplace.</para>
 
     <section>
-      <title>Version 0.4.2, 14-May-2009</title>
+      <title>Version 0.4.2, 17-May-2009</title>
 
       <itemizedlist>
-        <listitem>
-          <para>Added option for complex ranges that consist of several sub
-          ranges separated by a comma (,). For example: <userinput>10:20,
-          30:40</userinput> means that a value must be between 10 and 20 or 30
-          and 40.</para>
-        </listitem>
-
         <listitem>
           <para>Added validation for data format property "Allowed
           characters", which can be used with all data formats.</para>
         </listitem>
 
         <listitem>
-          <para>Added data format property "Header" to soecify the number of
-          header rows that should be skipped without validation. This can be
-          used with all data formats.</para>
+          <para>Added data format property "Header" to specify the number of
+          header rows that should be skipped without validation. This property
+          can be used with all data formats.</para>
+        </listitem>
+
+        <listitem>
+          <para>Added data format property "Sheet" to specify the number of
+          the sheet to validate in spreadsheet data formats (Excel and
+          ODS).</para>
+        </listitem>
+
+        <listitem>
+          <para>Added complex ranges that consist of several sub ranges
+          separated by a comma (,). For example: <userinput>10:20,
+          30:40</userinput> means that a value must be between 10 and 20 or 30
+          and 40.</para>
         </listitem>
 
         <listitem>
