@@ -136,6 +136,7 @@ class InterfaceControlDocumentTest(unittest.TestCase):
         try:
             icd.validate(dataPath)
             self.assertEqual(icd.rejectedCount, 0)
+            self.assertEqual(icd.acceptedCount, 3)
         finally:
             icd.removeIcdEventListener(_defaultIcdListener)
 
@@ -145,8 +146,8 @@ class InterfaceControlDocumentTest(unittest.TestCase):
         icd.addIcdEventListener(_defaultIcdListener)
         try:
             icd.validate(dataPath)
-            self.assertEqual(icd.acceptedCount, 4)
             self.assertEqual(icd.rejectedCount, 0)
+            self.assertEqual(icd.acceptedCount, 4)
         finally:
             icd.removeIcdEventListener(_defaultIcdListener)
 
@@ -157,6 +158,20 @@ class InterfaceControlDocumentTest(unittest.TestCase):
         try:
             icd.validate(dataPath)
             self.assertEqual(icd.rejectedCount, 0)
+            self.assertEqual(icd.acceptedCount, 3)
+        except parsers.CutplaceXlrdImportError:
+            _log.warning("ignored ImportError caused by missing xlrd")
+        finally:
+            icd.removeIcdEventListener(_defaultIcdListener)
+
+        # TODO: Remove the line below once icd.validate() calls reset().
+        icd = createDefaultTestIcd(data.FORMAT_EXCEL)
+        icd.dataFormat.set(data.KEY_SHEET, 2)
+        icd.addIcdEventListener(_defaultIcdListener)
+        try:
+            icd.validate(dataPath)
+            self.assertEqual(icd.rejectedCount, 0)
+            self.assertEqual(icd.acceptedCount, 4)
         except parsers.CutplaceXlrdImportError:
             _log.warning("ignored ImportError caused by missing xlrd")
         finally:
@@ -491,6 +506,6 @@ Mike,male,23.12.1974"""
 
 if __name__ == '__main__':
     logging.basicConfig()
-    logging.getLogger("cutplace").setLevel(logging.INFO)
-    logging.getLogger("cutplace.test_interface").setLevel(logging.INFO)
+    logging.getLogger("cutplace").setLevel(logging.DEBUG)
+    logging.getLogger("cutplace.test_interface").setLevel(logging.DEBUG)
     unittest.main()
