@@ -611,7 +611,7 @@
     example:</para>
 
     <para><userinput>cutplace icd_customers.csv
-    broken_customders.csv</userinput></para>
+    broken_customers.csv</userinput></para>
 
     <para>This time error messages show up in the console:</para>
 
@@ -1471,7 +1471,7 @@ ERROR:cutplace:  field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m
           </table></para>
 
         <para>The properties header and sheet have the same meaning as
-        described in <xref linkend="format-excel" />. </para>
+        described in <xref linkend="format-excel" />.</para>
 
         <table>
           <title>A more advanced example for ODS data</title>
@@ -2829,18 +2829,21 @@ BUILD SUCCESSFUL</computeroutput>
     <para>In addition to its homepage at <ulink
     url="http://cutplace.sourceforge.net/">http://cutplace.sourceforge.net/</ulink>,
     Cutplace has a project site at <ulink
-    url="http://sourceforge.net/projects/cutplace/">http://sourceforge.net/projects/cutplace/</ulink>.</para>
+    url="http://apps.sourceforge.net/trac/cutplace/">http://apps.sourceforge.net/trac/cutplace/</ulink>.</para>
 
     <para>In case you have a question about cutplace, encounter a bug you
     can't quite pin down yet, or just want to tell others about your
     experience with it, feel free to post a message to the cutplace forum at
     <ulink
-    url="https://sourceforge.net/forum/forum.php?forum_id=928547">https://sourceforge.net/forum/forum.php?forum_id=928547</ulink>.</para>
+    url="http://apps.sourceforge.net/phpbb/cutplace/">http://apps.sourceforge.net/phpbb/cutplace/</ulink>.</para>
 
     <para>In case you have a bug you can reproduce, please post it to the bug
     tracker at <ulink
-    url="https://sourceforge.net/tracker/?group_id=256054&amp;atid=1126964">https://sourceforge.net/tracker/?group_id=256054&amp;atid=1126964</ulink>.
-    Please include the following information:</para>
+    url="https://apps.sourceforge.net/trac/cutplace/newticket">https://apps.sourceforge.net/trac/cutplace/newticket</ulink>.
+    Before you can do so, you need to login at <ulink
+    url="https://sourceforge.net/">https://sourceforge.net/</ulink>.</para>
+
+    <para>Please include the following information:</para>
 
     <orderedlist>
       <listitem>
@@ -2890,6 +2893,16 @@ BUILD SUCCESSFUL</computeroutput>
           separated by a comma (,). For example: <userinput>10:20,
           30:40</userinput> means that a value must be between 10 and 20 or 30
           and 40.</para>
+        </listitem>
+
+        <listitem>
+          <para>Moved forums to <ulink
+          url="http://apps.sourceforge.net/phpbb/cutplace/">http://apps.sourceforge.net/phpbb/cutplace/</ulink>.</para>
+        </listitem>
+
+        <listitem>
+          <para>Moved project site and issue tracker to <ulink
+          url="http://apps.sourceforge.net/trac/cutplace/">http://apps.sourceforge.net/trac/cutplace/</ulink>.</para>
         </listitem>
 
         <listitem>
