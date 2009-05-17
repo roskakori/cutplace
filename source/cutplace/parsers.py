@@ -65,7 +65,7 @@ def fixedReader(readable, fieldLengths):
             columns = []
         parser.advance()
 
-def excelReader(readable, sheetIndex=0):
+def excelReader(readable, sheetIndex=1):
     """Generator yielding the "readable" row by row using "fieldLengths"."""
     assert readable is not None
     assert sheetIndex is not None
