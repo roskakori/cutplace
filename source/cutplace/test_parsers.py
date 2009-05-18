@@ -186,7 +186,18 @@ class DelimitedParserTest(AbstractParserTest):
             rowCount += 1
             self.assertEqual(2, len(row))
         self.assertEqual(2, rowCount)
-    
+
+    def testAutoItemDelimiter(self):
+        dialect = self._createDefaultDialect()
+        dialect.itemDelimiter = parsers.AUTO
+        dataStream = StringIO.StringIO("some;items;using;a;semicolon;as;separator")
+        csvReader = parsers.delimitedReader(dataStream, dialect)
+        rowCount = 0
+        for row in csvReader:
+            rowCount += 1
+            self.assertEqual(7, len(row))
+        self.assertEqual(1, rowCount)
+        
 if __name__ == '__main__':
     logging.basicConfig()
     _log.setLevel(logging.INFO)

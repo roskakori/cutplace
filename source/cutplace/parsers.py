@@ -145,6 +145,8 @@ class DelimitedParser(object):
         assert dialect.lineDelimiter is not None
         assert dialect.itemDelimiter is not None
 
+        self._log = logging.getLogger("cutplace.parsers")
+
         # Automatically set line and item delimiter.
         # TODO: Use a more intelligent logic. Csv.Sniffer would be nice,
         # but not all test cases work with it.
@@ -166,6 +168,7 @@ class DelimitedParser(object):
                     actualLineDelimiter = CRLF
                 else:
                     actualLineDelimiter = LF
+            self._log.debug(" detected line delimiter: %r" % actualLineDelimiter)
         else:
             actualLineDelimiter = dialect.lineDelimiter
         if dialect.itemDelimiter == AUTO:
@@ -175,6 +178,7 @@ class DelimitedParser(object):
                 actualItemDelimiter = ","
             else:
                 actualItemDelimiter = ";"
+            self._log.debug(" detected item delimiter: %r" % actualItemDelimiter)
         else:
             actualItemDelimiter = dialect.itemDelimiter
         
@@ -185,12 +189,14 @@ class DelimitedParser(object):
         self.escapeChar = dialect.escapeChar
         self.blanksAroundItemDelimiter = dialect.blanksAroundItemDelimiter
 
-        self._log = logging.getLogger("cutplace.parsers")
         self.item = None
 
         # FIXME: Read delimited items without holding the whole file into memory.
         self.rows = []
-        for row in csv.reader(readable):
+        dialect = self.toCsvDialect()
+        reader = csv.reader(readable, delimiter=self.itemDelimiter, lineterminator=self.lineDelimiter,
+                              quotechar=self.quoteChar, doublequote=(self.quoteChar == self.escapeChar))
+        for row in reader:
             self.rows.append(row)
         self.rowCount = len(self.rows)
         self.itemNumber = 0
@@ -206,6 +212,17 @@ class DelimitedParser(object):
             self.atEndOfLine = True
             self.lineNumber = 0
 
+    def toCsvDialect(self):
+        """
+        Dialect for `csv.reader` representing the current settings.
+        """
+        result = csv.excel()
+        result.lineterminator = self.lineDelimiter
+        result.delimiter = self.itemDelimiter
+        result.quotechar = self.quoteChar
+        result.escapechar = self.escapeChar
+        return result
+    
     def advance(self):
         """
         Advance one item and make it available in `self.item`.
