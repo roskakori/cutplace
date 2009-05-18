@@ -193,7 +193,6 @@ class DelimitedParser(object):
 
         # FIXME: Read delimited items without holding the whole file into memory.
         self.rows = []
-        dialect = self.toCsvDialect()
         reader = csv.reader(readable, delimiter=self.itemDelimiter, lineterminator=self.lineDelimiter,
                               quotechar=self.quoteChar, doublequote=(self.quoteChar == self.escapeChar))
         for row in reader:
@@ -212,17 +211,6 @@ class DelimitedParser(object):
             self.atEndOfLine = True
             self.lineNumber = 0
 
-    def toCsvDialect(self):
-        """
-        Dialect for `csv.reader` representing the current settings.
-        """
-        result = csv.excel()
-        result.lineterminator = self.lineDelimiter
-        result.delimiter = self.itemDelimiter
-        result.quotechar = self.quoteChar
-        result.escapechar = self.escapeChar
-        return result
-    
     def advance(self):
         """
         Advance one item and make it available in `self.item`.
