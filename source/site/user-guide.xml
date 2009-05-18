@@ -2868,6 +2868,18 @@ BUILD SUCCESSFUL</computeroutput>
     cutplace.</para>
 
     <section>
+      <title>Version 0.4.3, 18-May-2009</title>
+
+      <itemizedlist>
+        <listitem>
+          <para>Fixed auto detection of delimiters in a CSV file, which got
+          broken when switching to Python's built in CSV reader with version
+          0.3.1. See also: Ticket #8.</para>
+        </listitem>
+      </itemizedlist>
+    </section>
+
+    <section>
       <title>Version 0.4.2, 17-May-2009</title>
 
       <itemizedlist>
