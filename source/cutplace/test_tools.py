@@ -39,5 +39,11 @@ class ToolsTest(unittest.TestCase):
         self.assertRaises(NameError, tools.validatedPythonName, "x", " ")
         self.assertRaises(NameError, tools.validatedPythonName, "x", "a.b")
         
+    def testHumanReadableList(self):
+        self.assertEqual(tools.humanReadableList([]), "")
+        self.assertEqual(tools.humanReadableList(["a"]), "'a'")
+        self.assertEqual(tools.humanReadableList(["a", "b"]), "'a' or 'b'")
+        self.assertEqual(tools.humanReadableList(["a", "b", "c"]), "'a', 'b' or 'c'")
+
 if __name__ == "__main__":
     unittest.main()

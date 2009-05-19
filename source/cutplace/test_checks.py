@@ -19,7 +19,22 @@ def _createFieldMap(fieldNames, fieldValues):
 def _getTestFieldNames():
     return "branch_id customer_id first_name surname gender date_of_birth".split()
 
-class IsUniqueCheckTest(unittest.TestCase):
+class _AbstractCheckTest(unittest.TestCase):
+
+    def testStr(self):
+        fieldNames = _getTestFieldNames()
+        # TODO: Create an instance of the current class instead of _AbstractCheck even for ancestors.
+        check = checks.AbstractCheck("test check", "", fieldNames)
+        self.assertTrue(check.__str__())
+        
+    def testMissingFieldNames(self):
+        try:
+            check = checks.AbstractCheck("missing fields", "", [])
+        except fields.FieldLookupError, error:
+            # Ignore expected error
+            pass
+        
+class IsUniqueCheckTest(_AbstractCheckTest):
     def testIsUniqueCheck(self):
         fieldNames = _getTestFieldNames()
         check = checks.IsUniqueCheck("test check", "branch_id, customer_id", fieldNames)
@@ -31,6 +46,28 @@ class IsUniqueCheckTest(unittest.TestCase):
         # These methods should not do anything, but call them anyway for test sake.
         check.checkAtEnd()
         check.cleanup()
+
+    def testBrokenUniqueCheckWithMissingFields(self):
+        fieldNames = _getTestFieldNames()
+        self.assertRaises(checks.CheckSyntaxError, checks.IsUniqueCheck, "test check", "", fieldNames)
+        self.assertRaises(checks.CheckSyntaxError, checks.IsUniqueCheck, "test check", "   ", fieldNames)
+
+    def testBrokenUniqueCheckWithTwoSequentialCommas(self):
+        fieldNames = _getTestFieldNames()
+        self.assertRaises(checks.CheckSyntaxError, checks.IsUniqueCheck, "test check", "branch_id,,customer_id", fieldNames)
+        self.assertRaises(checks.CheckSyntaxError, checks.IsUniqueCheck, "test check", "branch_id,,", fieldNames)
+
+    def testBrokenUniqueCheckWithCommaAtStart(self):
+        fieldNames = _getTestFieldNames()
+        self.assertRaises(checks.CheckSyntaxError, checks.IsUniqueCheck, "test check", ",branch_id", fieldNames)
+
+    def testBrokenUniqueCheckWithBrokenFieldName(self):
+        fieldNames = _getTestFieldNames()
+        self.assertRaises(checks.CheckSyntaxError, checks.IsUniqueCheck, "test check", "branch_id, customer-id", fieldNames)
+
+    def testBrokenUniqueCheckWithMissingComma(self):
+        fieldNames = _getTestFieldNames()
+        self.assertRaises(checks.CheckSyntaxError, checks.IsUniqueCheck, "test check", "branch_id customer_id", fieldNames)
 
 class DistinctCountCheckTest(unittest.TestCase):
     def testDistinctCountCheck(self):

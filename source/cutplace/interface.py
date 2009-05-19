@@ -305,7 +305,9 @@ class InterfaceControlDocument(object):
                     elif rowId == InterfaceControlDocument._ID_FIELD_RULE:
                         self.addFieldFormat(row[1:])
                     elif rowId.strip():
-                        raise IcdSyntaxError("first item in row %d is %r but must be empty or one of: %r" % (lineNumber, row[0], InterfaceControlDocument._VALID_IDS))
+                        raise IcdSyntaxError("first item in row %d is %r but must be empty or one of: %s"
+                                             % (lineNumber, row[0],
+                                                tools.humanReadableList(InterfaceControlDocument._VALID_IDS)))
         finally:
             if needsOpen:
                 icdFile.close()

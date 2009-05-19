@@ -12,13 +12,11 @@ class RangeSyntaxError(tools.CutplaceError):
     """
     Error in Range declaration.
     """
-    pass
 
 class RangeValueError(tools.CutplaceError):
     """
     Error raised when Range.validate() detects that a value is outside the expected range.
     """
-    pass
 
 class Range(object):
     """
@@ -57,7 +55,7 @@ class Range(object):
                 colonFound = False
                 afterHyphen = False
                 next = tokens.next()
-                while not tokenize.ISEOF(next[0]) and not self._isCommaToken(next):
+                while not tools.isEofToken(next) and not tools.isCommaToken(next):
                     nextType = next[0]
                     nextValue = next[1]
                     if nextType == token.NUMBER:
@@ -121,7 +119,7 @@ class Range(object):
                             raise RangeSyntaxError("range items must not overlap: %r and %r"
                                                    % (self._repr_item(item), self._repr_item(result)))
                     self.items.append(result)
-                if tokenize.ISEOF(next[0]):
+                if tools.isEofToken(next):
                     endReached = True
 
     def _repr_item(self, item):
@@ -162,10 +160,6 @@ class Range(object):
             result = str(None)
         return result
     
-    def _isCommaToken(self, toky):
-        assert toky
-        return (toky[0] == token.OP) and (toky[1] == ",")
-
     def _itemsOverlap(self, some, other):
         assert some is not None
         assert other is not None

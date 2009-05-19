@@ -123,7 +123,8 @@ class _BaseDataFormat(object):
             
         # Validate key.
         if result not in self._allKeys:
-            raise DataFormatSyntaxError("key is %r but must be one of: %r" % (result, self._allKeys))
+            raise DataFormatSyntaxError("key is %r but must be one of: %s"
+                                        % (result, tools.humanReadableList(self._allKeys)))
 
         return result
 
@@ -135,7 +136,8 @@ class _BaseDataFormat(object):
         assert key
         assert choices
         if value not in choices:
-            raise DataFormatValueError("value for data format property %r is %r but must be one of: %r" % (key, value, choices))
+            raise DataFormatValueError("value for data format property %r is %r but must be one of: %s" 
+                                       % (key, value, tools.humanReadableList(choices)))
         return value
     
     def _validatedLong(self, key, value, lowerLimit=None, upperLimit=None):
@@ -162,7 +164,7 @@ class _BaseDataFormat(object):
        
        If `key` or `value` can not be handled, raise `DataFormaSyntaxError`.
 
-        This function should be overwritten by child classes, bit also be called by them via
+        This function should be overwritten by child classes, but also be called by them via
         `super` in case the child cannot handle `key` in order to consistently handle the
         standard keys.
         """
@@ -174,7 +176,8 @@ class _BaseDataFormat(object):
         elif key == KEY_HEADER:
             result = self._validatedLong(key, value, 0)
         else:
-            raise DataFormaSyntaxError("data format property is %r but must be one of: %r" % self._allKeys)
+            raise DataFormaSyntaxError("data format property is %r but must be one of: %s" 
+                                       % tools.humanReadableList(self._allKeys))
         return result
 
     def validateAllRequiredPropertiesHaveBeenSet(self):
@@ -187,15 +190,48 @@ class _BaseDataFormat(object):
                 raise DataFormatSyntaxError("required data format property must be set: %r" % requiredKey)
             
     def set(self, key, value):
+        r"""
+        Attempt to set `key`to `value`.
+
+        >>> format = createDataFormat(FORMAT_CSV)
+        >>> format.set(KEY_LINE_DELIMITER, LF)
+        
+        In case the key has already been set, raise a `DataValueError`.
+
+        >>> format.set(KEY_LINE_DELIMITER, CR)
+        Traceback (most recent call last):
+            ...
+        DataFormatValueError: data format property 'line delimiter' has already been set: '\n'
+        
+        In case `value` can not be used for `key`, reraise the error raised by `validated()`.
+
+        >>> format.set(KEY_ALLOWED_CHARACTERS, "spam")
+        Traceback (most recent call last):
+            ...
+        DataFormatSyntaxError: value for property 'allowed characters' must be a valid range: range must be specified using integer numbers and colon (:) but found: 'spam' [token type: 1]
+        """
         normalizedKey = self._normalizedKey(key)
         if normalizedKey in self.properties:
             raise DataFormatValueError("data format property %r has already been set: %r" % (key, self.properties[normalizedKey]))
         self.properties[normalizedKey] = self.validated(normalizedKey, value)
     
     def get(self, key):
-        """
+        r"""
         The value of `key`, or its default value (as specified with `__init__()`) in case it has
         not be set yet, or `None` if no default value exists.
+        
+        Note that the result does not have to be the same value that has been passed to `set()`
+        because for some keys the value for `set()` is in a human readable representation whereas
+        the result of `get()` can be an internal representation.
+        
+        >>> format = createDataFormat(FORMAT_CSV)
+        >>> format.set(KEY_LINE_DELIMITER, LF)
+        >>> print "%r" % format.get(KEY_LINE_DELIMITER)
+        '\n'
+        >>> format.set(KEY_LINE_DELIMITER, CR)
+        Traceback (most recent call last):
+            ...
+        DataFormatValueError: data format property 'line delimiter' has already been set: '\n'
         """
         normalizedKey = self._normalizedKey(key)
         defaultValue = self.optionalKeyValueMap.get(normalizedKey)

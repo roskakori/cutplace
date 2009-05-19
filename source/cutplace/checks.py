@@ -30,7 +30,8 @@ def _getFieldNameIndex(supposedFieldName, availableFieldNames):
     try:
         fieldIndex = availableFieldNames.index(fieldName)
     except ValueError:
-        raise fields.FieldLookupError("field name %r must be replaced by one of: %r" % (fieldName, availableFieldNames))
+        raise fields.FieldLookupError("unknown field name %r must be replaced by one of: %s"
+                                      % (fieldName, tools.humanReadableList(availableFieldNames)))
     return fieldIndex
     
 class AbstractCheck(object):
@@ -72,13 +73,37 @@ class IsUniqueCheck(AbstractCheck):
     """
     Check to ensure that all rows are unique concerning certain key fields.
     """
-    def __init__(self, description, rule, fieldNames):
-        super(IsUniqueCheck, self).__init__(description, rule, fieldNames)
-        self.fieldNamesToCheck = [fieldName.strip() for fieldName in rule.split(",")]
-        if len(self.fieldNamesToCheck) == 0:
-            raise fields.FieldLookupError("field names to compute unique value must be specified")
+    def __init__(self, description, rule, availableFieldNames):
+        super(IsUniqueCheck, self).__init__(description, rule, availableFieldNames)
+        
         self.uniqueValues = {}
-    
+        self.fieldNamesToCheck = []
+
+        # Extract field names to check from rule.
+        ruleReadLine = StringIO.StringIO(rule).readline
+        toky = tokenize.generate_tokens(ruleReadLine)
+        afterComma = True
+        nextToken = toky.next()
+        while not tools.isEofToken(nextToken):
+            tokenType = nextToken[0]
+            tokenValue = nextToken[1]
+            if afterComma:
+                # TODO: Report error when the same field name shows up again.
+                if tokenType != tokenize.NAME:
+                    raise CheckSyntaxError("field name must contain only ASCII letters, numbers and underscores (_) "
+                                           + "but found: %r [token type=%r]" % (tokenValue, tokenType))
+                try:
+                    _getFieldNameIndex(tokenValue, availableFieldNames)
+                except fields.FieldLookupError, error:
+                    raise CheckSyntaxError(str(error))
+                self.fieldNamesToCheck.append(tokenValue)
+            elif not tools.isCommaToken(nextToken):
+                raise CheckSyntaxError("after field name a comma (,) must follow but found: %r" % (tokenValue))
+            afterComma = not afterComma
+            nextToken = toky.next()
+        if not len(self.fieldNamesToCheck):
+            raise CheckSyntaxError("rule must contain at least one field name to check for uniqueness")
+            
     def checkRow(self, rowNumber, rowMap):
         key = []
         for fieldName in self.fieldNamesToCheck:

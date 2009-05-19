@@ -72,11 +72,12 @@ class ChoiceFieldFormat(AbstractFieldFormat):
     
     def validate(self, value):
         if value.lower() not in self.choices:
-            raise FieldValueError("value is %r but must be one of: %r" % (value, self.choices))
+            raise FieldValueError("value is %r but must be one of: %s"
+                                   % (value, tools.humanReadableList(self.choices)))
         return value
     
 class IntegerFieldFormat(AbstractFieldFormat):
-    _DEFAULT_RANGE = "%d:%d" %(- 2 ** 31, 2 ** 31 - 1)
+    _DEFAULT_RANGE = "%d:%d" % (-2 ** 31, 2 ** 31 - 1)
 
     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule):
         super(IntegerFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule)

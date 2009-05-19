@@ -128,3 +128,40 @@ def platformVersion():
         
 def pythonVersion():
         return platform.python_version()
+
+def humanReadableList(items):
+    """
+    All values in `items` in a human readable form. This is ment to be used in error messages, where
+    dumping "%r" to the user does not cut it.
+    """
+    assert items is not None
+    itemCount = len(items)
+    if itemCount == 0:
+        result = ""
+    elif itemCount == 1:
+        result = "%r" % items[0]
+    else:
+        result = ""
+        for itemIndex in range(itemCount):
+            if itemIndex == itemCount - 1:
+                result += " or "
+            elif itemIndex > 0:
+                result += ", "
+            result += "%r" % items[itemIndex]
+        assert result
+    assert result is not None
+    return result
+
+def isEofToken(someToken):
+    """
+    True if `someToken` is a token that represents an "end of file". 
+    """
+    assert someToken is not None
+    return tokenize.ISEOF(someToken[0])
+
+def isCommaToken(someToken):
+    """
+    True if `someToken` is a token that represents a comma (,). 
+    """
+    assert someToken
+    return (someToken[0] == token.OP) and (someToken[1] == ",")
