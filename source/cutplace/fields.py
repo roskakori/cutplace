@@ -69,10 +69,11 @@ class ChoiceFieldFormat(AbstractFieldFormat):
         # TODO: Parse choice  rule properly using tokenizer and accept strings too.
         for choice in rule.lower().split(","):
             choiceIndex += 1
+            choice = choice.strip()
             if not choice:
                 raise FieldSyntaxError("rule for a field of type %r must be a comma separated list of choices but choice #%d is empty"
                                        % ("choice", choiceIndex))
-            self.choices.append(choice.strip())
+            self.choices.append(choice)
     
     def validate(self, value):
         if value.lower() not in self.choices:

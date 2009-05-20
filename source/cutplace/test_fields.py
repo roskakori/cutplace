@@ -127,13 +127,12 @@ class ChoiceFieldFormatTest(unittest.TestCase):
         format = fields.ChoiceFieldFormat("color", False, None, "red")
         format.validate("red")
 
-    def testEmptyChoice(self):
-        # FIXME: Should cause ValueError
-        format = fields.ChoiceFieldFormat("color", False, None, " ")
-        format = fields.ChoiceFieldFormat("color", False, None, "red, ")
-        
-    def testBrokenNoChoices(self):
+    def testBrokenEmptyChoice(self):
         self.assertRaises(fields.FieldSyntaxError, fields.ChoiceFieldFormat, "color", False, None, "")
+        self.assertRaises(fields.FieldSyntaxError, fields.ChoiceFieldFormat, "color", False, None, " ")
+        self.assertRaises(fields.FieldSyntaxError, fields.ChoiceFieldFormat, "color", False, None, "red,")
+        self.assertRaises(fields.FieldSyntaxError, fields.ChoiceFieldFormat, "color", False, None, ",red")
+        self.assertRaises(fields.FieldSyntaxError, fields.ChoiceFieldFormat, "color", False, None, "red,,green")
 
 class PatternFieldFormatTest(unittest.TestCase):
     """
