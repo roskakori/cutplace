@@ -65,10 +65,14 @@ class ChoiceFieldFormat(AbstractFieldFormat):
     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule):
         super(ChoiceFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule)
         self.choices = []
+        choiceIndex = 0
+        # TODO: Parse choice  rule properly using tokenizer and accept strings too.
         for choice in rule.lower().split(","):
+            choiceIndex += 1
+            if not choice:
+                raise FieldSyntaxError("rule for a field of type %r must be a comma separated list of choices but choice #%d is empty"
+                                       % ("choice", choiceIndex))
             self.choices.append(choice.strip())
-        if not self.choices:
-            raise FieldSyntaxError("at least one choice must be specified for a %r field" % "choice")
     
     def validate(self, value):
         if value.lower() not in self.choices:

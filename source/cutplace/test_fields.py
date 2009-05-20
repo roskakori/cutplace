@@ -28,6 +28,10 @@ class AbstractFieldFormatTest(unittest.TestCase):
         format = fields.AbstractFieldFormat("x", True, "3:5", "")
         format.validateLength("")
         
+    def testValidate(self):
+        format = fields.AbstractFieldFormat("x", True, "3:5", "")
+        self.assertRaises(NotImplementedError, format.validate, None)
+        
 class DateTimeFieldFormatTest(unittest.TestCase):
     """
     Tests  for `DateTimeFieldFormat`.
@@ -127,6 +131,9 @@ class ChoiceFieldFormatTest(unittest.TestCase):
         # FIXME: Should cause ValueError
         format = fields.ChoiceFieldFormat("color", False, None, " ")
         format = fields.ChoiceFieldFormat("color", False, None, "red, ")
+        
+    def testBrokenNoChoices(self):
+        self.assertRaises(fields.FieldSyntaxError, fields.ChoiceFieldFormat, "color", False, None, "")
 
 class PatternFieldFormatTest(unittest.TestCase):
     """
