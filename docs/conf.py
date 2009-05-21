@@ -34,7 +34,7 @@ source_suffix = '.rst'
 #source_encoding = 'utf-8'
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = 'contents'
 
 # General information about the project.
 project = u'cutplace'
@@ -172,7 +172,7 @@ htmlhelp_basename = 'cutplacedoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'cutplace.tex', u'cutplace Documentation',
+  ('contents', 'cutplace.tex', u'cutplace Documentation',
    u'Thomas Aglassinger', 'manual'),
 ]
 

@@ -28,10 +28,10 @@ Version 0.4.2, 17-May-2009
   (,). For example: "10:20, 30:40" means that a value must be between 10 and 20
   or 30 and 40.
 
-* Moved forums to <http://apps.sourceforge.net/phpbb/cutplace/>.
+* Moved forums to http://apps.sourceforge.net/phpbb/cutplace/.
 
 * Moved project site and issue tracker to
-  <http://apps.sourceforge.net/trac/cutplace/>.
+  http://apps.sourceforge.net/trac/cutplace/.
 
 * Fixed handling of data rows with too few or too many items.
 
@@ -47,7 +47,7 @@ Version 0.4.0, 06-May-2009
 
 * Added support for ICDs stored in Excel format. In order for this to work, the
   xlrd Python package needs to be installed. It is available from
-  <http://pypi.python.org/pypi/xlrd>.
+  http://pypi.python.org/pypi/xlrd.
 
 * Changed ICD format: Inserted a new column after the field name and before the
   field type that can contain an optional example value. This enables readers
@@ -59,7 +59,7 @@ Version 0.3.1, 03-May-2009
 
 * Added proper error messages for several possible error the user might make
   when writing an ICD. So far these errors resulted into confusing messages
-  about failed assertions, attempted `NoneType` accesses and the like.
+  about failed assertions, attempted ``NoneType`` accesses and the like.
 
 * Added requirement that field names in the ICD only use ASCII letters, digits
   and underscore (_). This is necessary to prevent Python errors in checks that
@@ -76,9 +76,9 @@ Version 0.3.1, 03-May-2009
 
   However, it also introduces new issues:
 
-  - Increased memory usage when working with CSV data because `csv.reader` does
-    not fit well with the `AbstractParser` class. Currently the whole file is
-    read into memory.
+  - Increased memory usage when working with CSV data because ``csv.reader``
+    does not fit well with the ``AbstractParser`` class. Currently the whole
+    file is read into memory.
 
   - Lack of any error detection in the CSV structure. For example, unclosed
     quotes at the end or inconsistent line feeds do not raise any errors.
@@ -93,9 +93,9 @@ Version 0.3.0, 28-Apr-2009
 
 * Fixed error messages in case field name or type was missing in ICD.
 
-* Fixed handling of percent sign (%) in `DateTime` field format.
+* Fixed handling of percent sign (%) in ``DateTime`` field format.
 
-* Changed syntax to specify ranges like field lengths or rules for `Integer`
+* Changed syntax to specify ranges like field lengths or rules for ``Integer``
   fields formats. Use ":" instead of "...".
 
 * There are basically two reasons for this change: Firstly, this looks more
@@ -117,10 +117,10 @@ Version 0.2.2, 07-Apr-2009
 
 * Added support for fixed data format.
 
-* Added command line option `--browse` to be used together with `--web` in
+* Added command line option ``--browse`` to be used together with ``--web`` in
   order to open the validation page in the web browser.
 
-* Added command line option `--icd-encoding` to specify the character encoding
+* Added command line option ``--icd-encoding`` to specify the character encoding
   to be used with ICDs in CSV format.
 
 Version 0.2.1, 29-Mar-2009
@@ -128,32 +128,32 @@ Version 0.2.1, 29-Mar-2009
 
 * Added support for ICDs in ODS format for command line client.
 
-* Added `cutplace.exe` for Windows, which will be generated during
+* Added ``cutplace.exe`` for Windows, which will be generated during
   installation.
 
 * Added automatic installation of setuptools when you try to build cutplace
-  using the Subversion repository. This feature is provided by `ez_setup.py`,
+  using the Subversion repository. This feature is provided by ``ez_setup.py``,
   which is available from the setuptools site.
 
-* Fixed cutplace script, which did exit with an `ExitQuietlyOptionError` for
-  options that just showed some information and exited (such as `--help`).
+* Fixed cutplace script, which did exit with an ``ExitQuietlyOptionError`` for
+  options that just showed some information and exited (such as ``--help``).
 
 Version 0.2.0, 27-Mar-2009
 ==========================
 
-* Added option `--web` and `--port` to launch web server providing a simple
+* Added option ``--web`` and ``--port`` to launch web server providing a simple
   graphical user interface for validation.
 
-* Changed `--listencodings` to `--list-encodings`.
+* Changed ``--listencodings`` to ``--list-encodings``.
 
 Version 0.1.2, 22-Mar-2009
 ==========================
 
-* Added `DistinctCount` check.
+* Added ``DistinctCount`` check.
 
-* Added `IsUnique` check.
+* Added ``IsUnique`` check.
 
-* Added command line option `--trace`.
+* Added command line option ``--trace``.
 
 * Added support to validate an ICD when no data are specified in the command
   line.
