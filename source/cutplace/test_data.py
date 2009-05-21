@@ -57,11 +57,15 @@ class DataFormatTest(unittest.TestCase):
                           
     def testBrokenEncoding(self):
         format = data.CsvDataFormat()
-        self.assertRaises(data.DataFormatSyntaxError, format.set, data.KEY_ENCODING, "me-no-encoding")
+        self.assertRaises(data.DataFormatValueError, format.set, data.KEY_ENCODING, "broken-encoding")
+        
+    def testBrokenLineDelimiter(self):
+        format = data.CsvDataFormat()
+        self.assertRaises(data.DataFormatValueError, format.set, data.KEY_LINE_DELIMITER, "broken-line-delimiter")
         
     def testBrokenPropertyName(self):
         format = data.CsvDataFormat()
-        self.assertRaises(data.DataFormatSyntaxError, format.set, "me-no-key", "")
+        self.assertRaises(data.DataFormatSyntaxError, format.set, "broken-property-name", "")
         
 if __name__ == '__main__':
     logging.basicConfig()

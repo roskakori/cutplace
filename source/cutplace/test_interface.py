@@ -249,14 +249,14 @@ Jane"""
 "D","Format","CSV"
 "D","Header","-1"
 """
-        self._testBroken(spec, data.DataFormatSyntaxError)
+        self._testBroken(spec, data.DataFormatValueError)
         
     def testBrokenDataFormatNonNumericHeader(self):
         spec = ""","Broken Interface with invalid data format where the header is too small"
 "D","Format","CSV"
 "D","Header","eggs"
 """
-        self._testBroken(spec, data.DataFormatSyntaxError)
+        self._testBroken(spec, data.DataFormatValueError)
         
     def testBrokenDataFormatInvalidFormatPropertyName(self):
         spec = ""","Broken Interface with broken name for format property"

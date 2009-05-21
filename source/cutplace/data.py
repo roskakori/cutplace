@@ -151,17 +151,19 @@ class _BaseDataFormat(object):
         try:
             result = long(value)
         except ValueError, error:
-            raise DataFormatSyntaxError("value for data format property %r is %r but must be an integer number" % (key, value))
+            raise DataFormatValueError("value for data format property %r is %r but must be an integer number" % (key, value))
         if lowerLimit is not None:
             if result < lowerLimit:
-                raise DataFormatSyntaxError("value for data format property %r is %d but must be at least %d" % (key, result, lowerLimit))
+                raise DataFormatValueError("value for data format property %r is %d but must be at least %d" % (key, result, lowerLimit))
         return result
             
     def validated(self, key, value):
         """
        `Value` in its native type.
        
-       If `key` or `value` can not be handled, raise `DataFormaSyntaxError`.
+       If `key` can not be handled, raise `DataFormaSyntaxError`.
+
+       If `value` can not be handled, raise `DataFormaValueError`.
 
         This function should be overwritten by child classes, but also be called by them via
         `super` in case the child cannot handle `key` in order to consistently handle the
@@ -171,10 +173,10 @@ class _BaseDataFormat(object):
             try:
                 result = range.Range(value)
             except range.RangeSyntaxError, error:
-                raise DataFormatSyntaxError("value for property %r must be a valid range: %s" % (key, str(error)))
+                raise DataFormatValueError("value for property %r must be a valid range: %s" % (key, str(error)))
         elif key == KEY_HEADER:
             result = self._validatedLong(key, value, 0)
-        else:
+        else:  # pragma: no cover
             assert False, "_normalizedKey() must detect broken property name %r" % key
         return result
 
@@ -206,7 +208,7 @@ class _BaseDataFormat(object):
         >>> format.set(KEY_ALLOWED_CHARACTERS, "spam")
         Traceback (most recent call last):
             ...
-        DataFormatSyntaxError: value for property 'allowed characters' must be a valid range: range must be specified using integer numbers and colon (:) but found: 'spam' [token type: 1]
+        DataFormatValueError: value for property 'allowed characters' must be a valid range: range must be specified using integer numbers and colon (:) but found: 'spam' [token type: 1]
         """
         normalizedKey = self._normalizedKey(key)
         if normalizedKey in self.properties:
@@ -226,10 +228,6 @@ class _BaseDataFormat(object):
         >>> format.set(KEY_LINE_DELIMITER, LF)
         >>> print "%r" % format.get(KEY_LINE_DELIMITER)
         '\n'
-        >>> format.set(KEY_LINE_DELIMITER, CR)
-        Traceback (most recent call last):
-            ...
-        DataFormatValueError: data format property 'line delimiter' has already been set: '\n'
         """
         normalizedKey = self._normalizedKey(key)
         defaultValue = self.optionalKeyValueMap.get(normalizedKey)
@@ -257,7 +255,7 @@ class _BaseTextDataFormat(_BaseDataFormat):
             try:
                 result = codecs.lookup(value)
             except:
-                raise DataFormatSyntaxError("value for data format property %r is %r but must be a valid encoding" % (key, value))
+                raise DataFormatValueError("value for data format property %r is %r but must be a valid encoding" % (key, value))
         elif key == KEY_LINE_DELIMITER:
             lowerValue = value.lower()
             self._validatedChoice(key, lowerValue, _VALID_LINE_DELIMITER_TEXTS)
@@ -266,7 +264,6 @@ class _BaseTextDataFormat(_BaseDataFormat):
         else:
             result = super(_BaseTextDataFormat, self).validated(key, value)
         return result
-
 
 class _BaseSpreadsheetDataFormat(_BaseDataFormat):
     """
