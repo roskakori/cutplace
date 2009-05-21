@@ -7,6 +7,7 @@
     <property name="tests.dir" location="tests" />
     <property name="tests-input.dir" location="${tests.dir}/input" />
     <property name="tests-input-icds.dir" location="${tests-input.dir}/icds" />
+    <property name="tests-output.dir" location="${tests.dir}/output" />
     <property name="build" location="build" />
     <property name="dist" location="dist" />
     <property name="external.dir" location="external" />
@@ -90,6 +91,7 @@
         </delete>
         <delete includeemptydirs="true">
             <fileset dir="${site.dir}" includes="**/*"/>
+            <fileset dir="${tests-output.dir}" includes="**/*"/>
         </delete>
     </target>
 

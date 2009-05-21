@@ -9,17 +9,17 @@ class OdsTest(unittest.TestCase):
 
     def testConvertToCsv(self):
         testInPath = dev_test.getTestInputPath("valid_customers.ods")
-        testOutPath = dev_test.getTestInputPath("valid_customers_from_ods.csv")
+        testOutPath = dev_test.getTestOutputPath("valid_customers_from_ods.csv")
         ods.main([testInPath, testOutPath])
 
     def testConvertToDocBook(self):
         testInPath = dev_test.getTestInputPath("valid_customers.ods")
-        testOutPath = dev_test.getTestInputPath("valid_customers_from_ods.xml")
+        testOutPath = dev_test.getTestOutputPath("valid_customers_from_ods.xml")
         ods.main(["--format=docbook", testInPath, testOutPath])
 
     def testBrokenKinkyFileName(self):
         testInPath = dev_test.getTestInputPath("valid_customers.ods")
-        testOutPath = dev_test.getTestInputPath("kinky_file_name//\\:^$\\::/")
+        testOutPath = dev_test.getTestOutputPath("kinky_file_name//\\:^$\\::/")
         self.assertRaises(SystemExit, ods.main, [testInPath, testOutPath])
 
     def testBrokenNoOptionsAtAll(self):
@@ -27,7 +27,7 @@ class OdsTest(unittest.TestCase):
 
     def testBrokenSheet(self):
         testInPath = dev_test.getTestInputPath("valid_customers.ods")
-        testOutPath = dev_test.getTestInputPath("valid_customers_from_ods.csv")
+        testOutPath = dev_test.getTestOutputPath("valid_customers_from_ods.csv")
         self.assertRaises(SystemExit, ods.main, ["--sheet=x", testInPath, testOutPath])
         self.assertRaises(SystemExit, ods.main, ["--sheet=0", testInPath, testOutPath])
         # FIXME: Report error when sheet is out of range: self.assertRaises(SystemExit, ods.main, ["--sheet=17", testInPath, testOutPath])
