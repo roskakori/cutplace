@@ -63,6 +63,14 @@ class DataFormatTest(unittest.TestCase):
         format = data.CsvDataFormat()
         self.assertRaises(data.DataFormatValueError, format.set, data.KEY_LINE_DELIMITER, "broken-line-delimiter")
         
+    def testBrokenEscapeCharacter(self):
+        format = data.CsvDataFormat()
+        self.assertRaises(data.DataFormatValueError, format.set, data.KEY_ESCAPE_CHARACTER, "broken-escape-character")
+        
+    def testBrokenQuoteCharacter(self):
+        format = data.CsvDataFormat()
+        self.assertRaises(data.DataFormatValueError, format.set, data.KEY_QUOTE_CHARACTER, "broken-quote-character")
+        
     def testBrokenPropertyName(self):
         format = data.CsvDataFormat()
         self.assertRaises(data.DataFormatSyntaxError, format.set, "broken-property-name", "")

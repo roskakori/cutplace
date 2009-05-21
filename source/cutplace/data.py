@@ -237,15 +237,12 @@ class _BaseTextDataFormat(_BaseDataFormat):
     """
     Base data format that supports an "encoding" and "line delimiter" property.
     """
-    def __init__(self, name, requiredKeys, optionalKeyValueMap):
+    def __init__(self, name, optionalKeyValueMap):
         assert name
-        actualRequiredKeys = [KEY_ENCODING]
-        if requiredKeys is not None:
-            actualRequiredKeys.extend(requiredKeys)
         actualOptionalKeyValueMap = {KEY_LINE_DELIMITER: None}
         if optionalKeyValueMap is not None:
             actualOptionalKeyValueMap.update(optionalKeyValueMap)
-        super(_BaseTextDataFormat, self).__init__(actualRequiredKeys, actualOptionalKeyValueMap)
+        super(_BaseTextDataFormat, self).__init__([KEY_ENCODING], actualOptionalKeyValueMap)
         self.name = name
 
     def validated(self, key, value):
@@ -296,7 +293,6 @@ class DelimitedDataFormat(_BaseTextDataFormat):
         
         super(DelimitedDataFormat, self).__init__(
                                               FORMAT_DELIMITED,
-                                              None,
                                               {KEY_ESCAPE_CHARACTER: None,
                                                KEY_ITEM_DELIMITER: itemDelimiter,
                                                KEY_QUOTE_CHARACTER:None})
@@ -335,7 +331,7 @@ class FixedDataFormat(_BaseTextDataFormat):
     Data format for fixed data.
     """
     def __init__(self):
-        super(FixedDataFormat, self).__init__(FORMAT_FIXED, None, None)
+        super(FixedDataFormat, self).__init__(FORMAT_FIXED, None)
 
 class OdsDataFormat(_BaseSpreadsheetDataFormat):
     """
