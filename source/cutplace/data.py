@@ -123,7 +123,7 @@ class _BaseDataFormat(object):
             
         # Validate key.
         if result not in self._allKeys:
-            raise DataFormatSyntaxError("key is %r but must be one of: %s"
+            raise DataFormatSyntaxError("data format property is %r but must be one of: %s"
                                         % (result, tools.humanReadableList(self._allKeys)))
 
         return result
@@ -140,12 +140,14 @@ class _BaseDataFormat(object):
                                        % (key, value, tools.humanReadableList(choices)))
         return value
     
-    def _validatedLong(self, key, value, lowerLimit=None, upperLimit=None):
+    def _validatedLong(self, key, value, lowerLimit=None):
         """
-        Validate that `value`is a long number between `lowerLimit` and `upperLimit` (if specified)
+        Validate that `value`is a long number with a value of at least `lowerLimit` (if specified)
         and raise `DataFormatSyntaxError` if not.
         """
         assert key
+        assert value is not None
+        
         try:
             result = long(value)
         except ValueError, error:
@@ -153,9 +155,6 @@ class _BaseDataFormat(object):
         if lowerLimit is not None:
             if result < lowerLimit:
                 raise DataFormatSyntaxError("value for data format property %r is %d but must be at least %d" % (key, result, lowerLimit))
-        if upperLimit is not None:
-            if result > upperLimit:
-                raise DataFormatSyntaxError("value for data format property %r is %d but must be at most %d" % (key, result, upperLimit))
         return result
             
     def validated(self, key, value):
@@ -176,8 +175,7 @@ class _BaseDataFormat(object):
         elif key == KEY_HEADER:
             result = self._validatedLong(key, value, 0)
         else:
-            raise DataFormaSyntaxError("data format property is %r but must be one of: %s" 
-                                       % tools.humanReadableList(self._allKeys))
+            assert False, "_normalizedKey() must detect broken property name %r" % key
         return result
 
     def validateAllRequiredPropertiesHaveBeenSet(self):
@@ -237,6 +235,39 @@ class _BaseDataFormat(object):
         defaultValue = self.optionalKeyValueMap.get(normalizedKey)
         return self.properties.get(normalizedKey, defaultValue)
 
+class _BaseTextDataFormat(_BaseDataFormat):
+    """
+    Base data format that supports an "encoding" and "line delimiter" property.
+    """
+    def __init__(self, name, requiredKeys, optionalKeyValueMap):
+        assert name
+        actualRequiredKeys = [KEY_ENCODING]
+        if requiredKeys is not None:
+            actualRequiredKeys.extend(requiredKeys)
+        actualOptionalKeyValueMap = {KEY_LINE_DELIMITER: None}
+        if optionalKeyValueMap is not None:
+            actualOptionalKeyValueMap.update(optionalKeyValueMap)
+        super(_BaseTextDataFormat, self).__init__(actualRequiredKeys, actualOptionalKeyValueMap)
+        self.name = name
+
+    def validated(self, key, value):
+        assert key == self._normalizedKey(key)
+        
+        if key == KEY_ENCODING:
+            try:
+                result = codecs.lookup(value)
+            except:
+                raise DataFormatSyntaxError("value for data format property %r is %r but must be a valid encoding" % (key, value))
+        elif key == KEY_LINE_DELIMITER:
+            lowerValue = value.lower()
+            self._validatedChoice(key, lowerValue, _VALID_LINE_DELIMITER_TEXTS)
+            lineDelimiterIndex = _VALID_LINE_DELIMITER_TEXTS.index(lowerValue)
+            result = _VALID_LINE_DELIMITERS[lineDelimiterIndex]
+        else:
+            result = super(_BaseTextDataFormat, self).validated(key, value)
+        return result
+
+
 class _BaseSpreadsheetDataFormat(_BaseDataFormat):
     """
     Base data format for spreadsheet formats.
@@ -257,7 +288,7 @@ class _BaseSpreadsheetDataFormat(_BaseDataFormat):
 
         return result
 
-class DelimitedDataFormat(_BaseDataFormat):
+class DelimitedDataFormat(_BaseTextDataFormat):
     """
     Data format for delimited data such as CSV.
     """
@@ -267,30 +298,20 @@ class DelimitedDataFormat(_BaseDataFormat):
         assert (itemDelimiter == ANY) or (len(itemDelimiter) == 1)
         
         super(DelimitedDataFormat, self).__init__(
-                                              [KEY_ENCODING],
+                                              FORMAT_DELIMITED,
+                                              None,
                                               {KEY_ESCAPE_CHARACTER: None,
                                                KEY_ITEM_DELIMITER: itemDelimiter,
-                                               KEY_LINE_DELIMITER: lineDelimiter,
                                                KEY_QUOTE_CHARACTER:None})
-        self.name = FORMAT_DELIMITED
+        self.optionalKeyValueMap[KEY_LINE_DELIMITER] = lineDelimiter
         
     def validated(self, key, value):
         assert key == self._normalizedKey(key)
         
-        if key == KEY_ENCODING:
-            try:
-                result = codecs.lookup(value)
-            except:
-                raise DataFormatSyntaxError("value for property %r is %r but must be a valid encoding" % (key, value))
-        elif key == KEY_ESCAPE_CHARACTER:
+        if key == KEY_ESCAPE_CHARACTER:
             result = self._validatedChoice(key, value, _VALID_ESCAPE_CHARACTERS)
         elif key == KEY_ITEM_DELIMITER:
             result = value
-        elif key == KEY_LINE_DELIMITER:
-            lowerValue = value.lower()
-            self._validatedChoice(key, lowerValue, _VALID_LINE_DELIMITER_TEXTS)
-            lineDelimiterIndex = _VALID_LINE_DELIMITER_TEXTS.index(lowerValue)
-            result = _VALID_LINE_DELIMITERS[lineDelimiterIndex]
         elif key == KEY_QUOTE_CHARACTER:
             result = self._validatedChoice(key, value, _VALID_QUOTE_CHARACTERS)
         else:
@@ -312,32 +333,12 @@ class CsvDataFormat(DelimitedDataFormat):
         self.optionalKeyValueMap[KEY_QUOTE_CHARACTER] = "\""
         self.optionalKeyValueMap[KEY_ESCAPE_CHARACTER] = "\""
 
-class FixedDataFormat(_BaseDataFormat):
+class FixedDataFormat(_BaseTextDataFormat):
     """
     Data format for fixed data.
     """
     def __init__(self):
-        super(FixedDataFormat, self).__init__(
-                                              [KEY_ENCODING],
-                                              {KEY_LINE_DELIMITER: None})
-        self.name = FORMAT_FIXED
-
-    def validated(self, key, value):
-        assert key == self._normalizedKey(key)
-        
-        if key == KEY_ENCODING:
-            try:
-                result = codecs.lookup(value)
-            except:
-                raise DataFormatSyntaxError("value for data format property %r is %r but must be a valid encoding" % (key, value))
-        elif key == KEY_LINE_DELIMITER:
-            lowerValue = value.lower()
-            self._validatedChoice(key, lowerValue, _VALID_LINE_DELIMITER_TEXTS)
-            lineDelimiterIndex = _VALID_LINE_DELIMITER_TEXTS.index(lowerValue)
-            result = _VALID_LINE_DELIMITERS[lineDelimiterIndex]
-        else:
-            result = super(FixedDataFormat, self).validated(key, value)
-        return result
+        super(FixedDataFormat, self).__init__(FORMAT_FIXED, None, None)
 
 class OdsDataFormat(_BaseSpreadsheetDataFormat):
     """

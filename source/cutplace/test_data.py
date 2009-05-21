@@ -59,6 +59,10 @@ class DataFormatTest(unittest.TestCase):
         format = data.CsvDataFormat()
         self.assertRaises(data.DataFormatSyntaxError, format.set, data.KEY_ENCODING, "me-no-encoding")
         
+    def testBrokenPropertyName(self):
+        format = data.CsvDataFormat()
+        self.assertRaises(data.DataFormatSyntaxError, format.set, "me-no-key", "")
+        
 if __name__ == '__main__':
     logging.basicConfig()
     logging.getLogger("cutplace.test_data").setLevel(logging.INFO)
