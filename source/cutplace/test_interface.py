@@ -33,17 +33,17 @@ class _SimpleErrorLoggingIcdEventListener(interface.IcdEventListener):
 _defaultIcdListener = _SimpleErrorLoggingIcdEventListener()
 
 def createDefaultTestFixedIcd():
-    spec = """,Interface: customer,,,,,
-,,,,,,
-,Data format,,,,,
-,,,,,,
-D,Format,Fixed,,,,
-D,Line delimiter,any,,,,
-D,Encoding,ISO-8859-1,,,,
-D,Allowed characters,32:,,,,
-,,,,,,
-,Fields,,,,,
-,,,,,,
+    spec = """,Interface: customer
+,
+,Data format
+,
+D,Format,Fixed
+D,Line delimiter,any
+D,Encoding,ISO-8859-1
+D,Allowed characters,32:
+,
+,Fields
+,
 ,Name,Type,Example,Empty,Length,Rule
 F,branch_id,38123,RegEx,,5,38\d\d\d
 F,customer_id,12345,Integer,,5,0:99999
@@ -51,12 +51,12 @@ F,first_name,John,Text,X,15
 F,surname,Doe,Text,,15
 F,gender,male,Choice,,7,"male, female, unknown"
 F,date_of_birth,08.03.1957,DateTime,,10,DD.MM.YYYY
-,,,,,,
-,Checks,,,,,
-,,,,,,
-,Description,Type,Rule,,,
-C,customer must be unique,IsUnique,"branch_id, customer_id",,,
-C,distinct branches must be within limit,DistinctCount,branch_id <= 3,,,
+,
+,Checks
+,
+,Description,Type,Rule
+C,customer must be unique,IsUnique,"branch_id, customer_id"
+C,distinct branches must be within limit,DistinctCount,branch_id <= 3
 """
     result = interface.InterfaceControlDocument()
     result.read(StringIO.StringIO(spec))
@@ -66,21 +66,21 @@ def createDefaultTestIcd(format, lineDelimiter="\n"):
     assert format in [data.FORMAT_CSV, data.FORMAT_EXCEL, data.FORMAT_ODS], "format=%r" % format
     assert lineDelimiter
     
-    spec = ""","Interface: customer",,,,,
-,,,,,,
-,"Data format",,,,,
-,,,,,,
-"D","Format","%s",,,,
+    spec = ""","Interface: customer"
+,
+,"Data format"
+,
+"D","Format","%s",
 """ % format
     if format.lower() == data.FORMAT_CSV:
-        spec += """"D","Line delimiter","LF",,,,
-"D","Item delimiter",",",,,,
-"D","Encoding","ISO-8859-1",,,,
-"D","Allowed characters","32:",,,,
+        spec += """"D","Line delimiter","LF"
+"D","Item delimiter",","
+"D","Encoding","ISO-8859-1"
+"D","Allowed characters","32:"
 """
-    spec += """,,,,,,
-,"Fields",,,,,
-,,,,,,
+    spec += """,
+,"Fields"
+,
 ,"Name","Example","Type","Empty","Length","Rule"
 "F","branch_id",38123,"RegEx",,,"38\d\d\d"
 "F","customer_id",12345,"Integer",,,"0:99999"
@@ -88,12 +88,12 @@ def createDefaultTestIcd(format, lineDelimiter="\n"):
 "F","surname","Doe","Text",,"1:60"
 "F","gender","male","Choice",,,"female, male, other, unknown"
 "F","date_of_birth",08.03.1957,"DateTime",,,"DD.MM.YYYY"
-,,,,,,
-,"Checks",,,,,
-,,,,,,
-,"Description","Type","Rule",,,
-"C","customer must be unique","IsUnique","branch_id, customer_id",,,
-"C","number of branches must be in range","DistinctCount","branch_id < 10",,,
+,
+,"Checks"
+,
+,"Description","Type","Rule"
+"C","customer must be unique","IsUnique","branch_id, customer_id"
+"C","number of branches must be in range","DistinctCount","branch_id < 10"
 """
     result = interface.InterfaceControlDocument()
     result.read(StringIO.StringIO(spec))
