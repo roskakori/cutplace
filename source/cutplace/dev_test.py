@@ -13,7 +13,9 @@ import tools
 _log = logging.getLogger("cutplace.dev_test")
 
 def getTestFolder(folder):
-    """Path of "folder" in tests folder."""
+    """
+    Path of `folder`in tests folder.
+    """
     assert folder
     
     # Try current folder.
@@ -35,7 +37,9 @@ def getTestFolder(folder):
     return result
     
 def getTestFile(folder, fileName):
-    """Path of "folder" and "fileName" in tests folder."""
+    """
+    Path of `folder` and `fileName` in tests folder.
+    """
     assert folder
     assert fileName
     
@@ -43,12 +47,16 @@ def getTestFile(folder, fileName):
     return result
 
 def getTestInputPath(fileName):
-    """Get path for test file in input folder."""
+    """
+    Get path for test file in input folder.
+    """
     assert fileName
     return getTestFile("input", fileName)
 
 def getTestIcdPath(fileName):
-    """Get path for test ICD."""
+    """
+    Path for test ICD `fileName`which has to be located in "tests/input/icds".
+    """
     assert fileName
     return getTestFile(os.path.join("input", "icds"), fileName)
 
@@ -77,7 +85,7 @@ def createIcdsCustomerCsv():
     ods.toCsv(sourceOdsPath, targetCsvPath)
 
 def createLotsOfCustomersCsv(targetCsvPath):
-    # TODO: Use a randome seed to generate the same data every time.
+    # TODO: Use a random seed to generate the same data every time.
     assert targetCsvPath is not None
     
     targetCsvFile = open(targetCsvPath, "w")
