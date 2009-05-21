@@ -34,6 +34,13 @@ class _AbstractCheckTest(unittest.TestCase):
             # Ignore expected error
             pass
         
+    def testCheckRow(self):
+        # HACK: This is just here to make coverage happy because "# pragma: no cover" does not work
+        # on methods that consist of nothing but a single "pass".
+        fieldNames = _getTestFieldNames()
+        check = checks.AbstractCheck("test check", "", fieldNames)
+        check.checkRow(1, [])
+        
 class IsUniqueCheckTest(_AbstractCheckTest):
     def testIsUniqueCheck(self):
         fieldNames = _getTestFieldNames()
@@ -90,4 +97,6 @@ class DistinctCountCheckTest(unittest.TestCase):
         self.assertRaises(checks.CheckSyntaxError, checks.DistinctCountCheck, "broken", "branch_id + 123", fieldNames)
 
 if __name__ == "__main__":
+    logging.basicConfig()
+    logging.getLogger("cutplace").setLevel(logging.INFO)
     unittest.main()

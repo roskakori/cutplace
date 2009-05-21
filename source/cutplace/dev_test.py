@@ -1,5 +1,5 @@
 """
-Development tool to generate test date for cutplace tests.
+Development tool and utility functions for testing and test data generation.
 """
 import csv
 import logging
@@ -14,11 +14,11 @@ _log = logging.getLogger("cutplace.dev_test")
 
 def getTestFolder(folder):
     """
-    Path of `folder`in tests folder.
+    Path of `folder` in tests folder.
     """
     assert folder
     
-    # Try current folder.
+    # Attempt to find `folder` in "tests" folder based from current folder.
     testFolder = os.path.join(os.getcwd(), "tests")
     if not os.path.exists(testFolder) and (len(sys.argv) == 2):
         # Try the folder specified in the one and only command line option.
@@ -38,7 +38,7 @@ def getTestFolder(folder):
     
 def getTestFile(folder, fileName):
     """
-    Path of `folder` and `fileName` in tests folder.
+    Path of file `fileName` in `folder` located in tests folder.
     """
     assert folder
     assert fileName
@@ -48,10 +48,17 @@ def getTestFile(folder, fileName):
 
 def getTestInputPath(fileName):
     """
-    Get path for test file in input folder.
+    Path for test file `fileName` in input folder.
     """
     assert fileName
     return getTestFile("input", fileName)
+
+def getTestOutputPath(fileName):
+    """
+    Path for test file `fileName` in output folder.
+    """
+    assert fileName
+    return getTestFile("output", fileName)
 
 def getTestIcdPath(fileName):
     """
@@ -80,6 +87,9 @@ def createTestCustomerRow(customerId):
     return [branchId, customerId, firstName, surname, gender, dateOfBirth]
 
 def createIcdsCustomerCsv():
+    """
+    Create "customers.csv" from "customers.ods".
+    """
     sourceOdsPath = getTestIcdPath("customers.ods")
     targetCsvPath = getTestIcdPath("customers.csv")
     ods.toCsv(sourceOdsPath, targetCsvPath)
@@ -92,7 +102,7 @@ def createLotsOfCustomersCsv(targetCsvPath):
     _log.info("write lots of customers to %r" % targetCsvPath)
     try:
         csvWriter = csv.writer(targetCsvFile)
-        for customerId in range(0, 1000):
+        for customerId in range(1000):
             csvWriter.writerow(createTestCustomerRow(customerId))
     finally:
         targetCsvFile.close()

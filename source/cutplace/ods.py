@@ -8,6 +8,7 @@ import logging
 import optparse
 import os
 import sys
+import tools
 import xml.sax
 import zipfile
 
@@ -165,7 +166,7 @@ def toDocBookXml(odsFilePath, xmlTargetPath, id, title, sheet=1):
     docType = xml.dom.minidom.getDOMImplementation().createDocumentType("table", "-//OASIS//DTD DocBook XML V4.5//EN", "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd")
     dom.appendChild(docType)
     table = dom.createElement("table")
-    # TODO: Validat that `id` is valid.
+    # TODO: Validate that `id` is valid.
     table.setAttribute("id", id)
     dom.appendChild(table)
     titleElement = dom.createElement("title")
@@ -193,19 +194,23 @@ def toDocBookXml(odsFilePath, xmlTargetPath, id, title, sheet=1):
         xmlTargetFile.write(dom.toprettyxml("  ", encoding="utf-8"))
     finally:
         xmlTargetFile.close()
- 
-if __name__ == '__main__':
-    _FORMATS = ["csv", "docbook"]
-    logging.basicConfig()
-    logging.getLogger("cutplace.ods").setLevel(logging.INFO)
+
+def main(arguments):
+    assert arguments is not None
+
+    _FORMAT_CSV = "csv"
+    _FORMAT_DOCBOOK = "docbook"
+    _FORMATS = [_FORMAT_CSV, _FORMAT_DOCBOOK]
+
     usage = "usage: %prog [options] ODS-FILE OUTPUT-FILE"
     parser = optparse.OptionParser(usage)
-    parser.set_defaults(format="csv", id="insert-id", sheet=1, title="Insert Title")
-    parser.add_option("-f", "--format", metavar="FORMAT", type="choice", choices=_FORMATS, dest="format", help="output format: %r (default: %%default)" % _FORMATS)
+    parser.set_defaults(format=_FORMAT_CSV, id="insert-id", sheet=1, title="Insert Title")
+    parser.add_option("-f", "--format", metavar="FORMAT", type="choice", choices=_FORMATS, dest="format",
+                      help="output format: %s (default: %%default)" % tools.humanReadableList(_FORMATS))
     parser.add_option("-i", "--id", metavar="ID", dest="id", help="XML ID table can be referenced with (default: %default)")
     parser.add_option("-s", "--sheet", metavar="SHEET", type="long", dest="sheet", help="sheet to convert (default: %default)")
     parser.add_option("-t", "--title", metavar="TITLE", dest="title", help="title to be used for XML table (default: %default)")
-    options, others = parser.parse_args()
+    options, others = parser.parse_args(arguments)
 
     # TODO: If no output file is specified, derive name from input file.
     if options.sheet < 1:
@@ -216,15 +221,23 @@ if __name__ == '__main__':
         targetFilePath = others[1]
         logging.getLogger("cutplace.ods").info("convert %r to %r using format %r" % (sourceFilePath, targetFilePath, options.format))
         try:
-            if options.format == "csv":
+            if options.format == _FORMAT_CSV:
                 toCsv(sourceFilePath, targetFilePath, sheet=options.sheet)
-            elif options.format == "docbook":
+            elif options.format == _FORMAT_DOCBOOK:
                 toDocBookXml(sourceFilePath, targetFilePath, id=options.id, title=options.title, sheet=options.sheet)
-            else:
+            else: # pragma: no cover
                 raise NotImplementedError("format=%r" % (options.format))
+        except IOError, error:
+            logging.getLogger("cutplace.ods").error("cannot convert ods to csv: %s" % str(error))
+            sys.exit(1)
         except Exception, error:
             logging.getLogger("cutplace.ods").error("cannot convert ods to csv: %s" % str(error), exc_info=1)
             sys.exit(1)
     else:
         sys.stderr.write("%s%s" % ("ODS-FILE and OUTPUT-FILE must be specified", os.linesep))
         sys.exit(1)
+
+if __name__ == '__main__': # pragma: no cover
+    logging.basicConfig()
+    logging.getLogger("cutplace.ods").setLevel(logging.INFO)
+    main(sys.argv[1:])

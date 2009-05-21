@@ -8,6 +8,7 @@ import test_cutplace
 import test_data
 import test_interface
 import test_fields
+import test_ods
 import test_parsers
 import test_range
 import test_tools
@@ -50,6 +51,7 @@ def main():
             test_fields.IntegerFieldFormatTest,
             test_fields.PatternFieldFormatTest,
             test_fields.RegExFieldFormatTest,
+            test_ods.OdsTest,
             test_parsers.DelimitedParserTest,
             test_parsers.ExcelParserTest,
             test_parsers.FixedParserTest,
