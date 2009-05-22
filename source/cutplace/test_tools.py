@@ -45,5 +45,5 @@ class ToolsTest(unittest.TestCase):
         self.assertEqual(tools.humanReadableList(["a", "b"]), "'a' or 'b'")
         self.assertEqual(tools.humanReadableList(["a", "b", "c"]), "'a', 'b' or 'c'")
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     unittest.main()

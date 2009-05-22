@@ -198,7 +198,7 @@ class DelimitedParserTest(AbstractParserTest):
             self.assertEqual(7, len(row))
         self.assertEqual(1, rowCount)
         
-if __name__ == '__main__':
+if __name__ == '__main__': # pragma: no cover
     logging.basicConfig()
     _log.setLevel(logging.INFO)
     unittest.main()

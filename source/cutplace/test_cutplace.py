@@ -55,7 +55,7 @@ class LotsOfCustomersTest(unittest.TestCase):
         cutPlace.validate()
         # TODO: Assert number of errors detected in dataPath is 0.
         
-if __name__ == '__main__':
+if __name__ == '__main__': # pragma: no cover
     logging.basicConfig()
     logging.getLogger("cutplace").setLevel(logging.WARNING)
     unittest.main()

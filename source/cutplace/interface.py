@@ -95,7 +95,7 @@ class InterfaceControlDocument(object):
         try:
             result = getattr(module, className)
         except AttributeError:
-            raise LookupError("cannot find %s: %s" % (typeName, str(type)))
+            raise fields.FieldSyntaxError("cannot find %s: %s" % (typeName, str(type)))
         return result
 
     def _createFieldFormatClass(self, fieldType):
@@ -382,7 +382,7 @@ class InterfaceControlDocument(object):
                 sheet = self.dataFormat.get(data.KEY_SHEET)
                 parser = parsers.OdsParser(dataFile, sheet=sheet)
                 reader = parsers.parserReader(parser)
-            else:
+            else: # pragma: no cover
                 raise NotImplementedError("data format: %r" % self.dataFormat.name)
             # TODO: Replace rowNumber by position in parser.
             

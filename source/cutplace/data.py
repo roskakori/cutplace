@@ -49,15 +49,13 @@ def createDataFormat(name):
                             FORMAT_FIXED: FixedDataFormat,
                             FORMAT_ODS: OdsDataFormat
                            }
-
     actualName = name.lower()
     formatClass = _NAME_TO_FORMAT_MAP.get(actualName)
     if formatClass is None:
         dataFormatNames = _NAME_TO_FORMAT_MAP.keys()
         dataFormatNames.sort()
-        raise DataFormatSyntaxError("data format is %r but must be on of: %r"
-                                    % (name, dataFormatNames))
-
+        raise DataFormatSyntaxError("data format is %r but must be one of: %r"
+                                    % (actualName, tools.humanReadableList(dataFormatNames)))
     result = formatClass()
     return result
 
@@ -233,6 +231,9 @@ class _BaseDataFormat(object):
         defaultValue = self.optionalKeyValueMap.get(normalizedKey)
         return self.properties.get(normalizedKey, defaultValue)
 
+    def __str__(self):
+        return "DataFormat(%r, %r)" % (self.name, self.properties)
+    
 class _BaseTextDataFormat(_BaseDataFormat):
     """
     Base data format that supports an "encoding" and "line delimiter" property.

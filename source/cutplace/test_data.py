@@ -16,6 +16,7 @@ class DataFormatTest(unittest.TestCase):
         for formatName in [data.FORMAT_CSV, data.FORMAT_DELIMITED, data.FORMAT_FIXED, data.FORMAT_ODS]:
             format = data.createDataFormat(formatName)
             self.assertTrue(format)
+            self.assertTrue(format.__str__())
         self.assertRaises(data.DataFormatSyntaxError, data.createDataFormat, "no-such-format")
             
     def testCsvDataFormat(self):

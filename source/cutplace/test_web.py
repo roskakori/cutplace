@@ -79,7 +79,7 @@ class WebTest(unittest.TestCase):
         # TODO: Implement: testValidateBrokenIcd
         pass
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     logging.basicConfig()
     logging.getLogger("cutplace").setLevel(logging.INFO)
     logging.getLogger("cutplace.server").setLevel(logging.INFO)

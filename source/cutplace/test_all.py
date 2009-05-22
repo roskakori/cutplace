@@ -70,7 +70,7 @@ def main():
     if (errorCount + failureCount) > 0:
         sys.exit(1)
     
-if __name__ == '__main__':
+if __name__ == '__main__': # pragma: no cover
     logging.basicConfig()
     logging.getLogger("cutplace").setLevel(logging.WARNING)
     main()

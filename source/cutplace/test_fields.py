@@ -149,7 +149,7 @@ class PatternFieldFormatTest(unittest.TestCase):
         self.assertRaises(fields.FieldValueError, format.validate, "")
         self.assertRaises(fields.FieldValueError, format.validate, "hang")
 
-if __name__ == '__main__':
+if __name__ == '__main__': # pragma: no cover
     logging.basicConfig()
     logging.getLogger("cutplace").setLevel(logging.INFO)
     unittest.main()

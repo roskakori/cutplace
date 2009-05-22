@@ -251,6 +251,27 @@ Jane"""
 """
         self._testBroken(spec, data.DataFormatValueError)
         
+    def testBrokenDataFormatDefinedTwice(self):
+        spec = ""","Broken Interface with invalid data format where the format shows up twice"
+"D","Format","CSV"
+"D","Format","CSV"
+"""
+        self._testBroken(spec, data.DataFormatSyntaxError)
+        
+    def testBrokenDataFormatWithoutName(self):
+        spec = ""","Broken Interface with invalid data format where the format value is missing"
+"D","Format"
+"""
+        self._testBroken(spec, data.DataFormatSyntaxError)
+        
+    def testBrokenDataFormatWithoutPropertyName(self):
+        spec = ""","Broken Interface with invalid data format where the property name is missing"
+"D","Format","CSV"
+"D"
+"""
+        icd = interface.InterfaceControlDocument()
+        self._testBroken(spec, data.DataFormatSyntaxError)
+        
     def testBrokenDataFormatNonNumericHeader(self):
         spec = ""","Broken Interface with invalid data format where the header is too small"
 "D","Format","CSV"
@@ -365,6 +386,18 @@ Jane"""
 ,"Name","Example","Type","Empty","Length","Rule","Example"
 "F","först_name",,"Text","X"
 "F","customer_id",,"",,,"0:99999"
+"""
+        self._testBroken(spec, fields.FieldSyntaxError)
+
+    def testBrokenFieldTypeWithNonExistentClass(self):
+        spec = ""","Broken Interface with field type being of a non existent class"
+"D","Format","CSV"
+"D","Line delimiter","LF"
+"D","Item delimiter",","
+"D","Encoding","ISO-8859-1"
+,,,,,,
+,"Name","Example","Type","Empty","Length","Rule","Example"
+"F","first_name",,"NoSuchFieldType","X"
 """
         self._testBroken(spec, fields.FieldSyntaxError)
 
@@ -504,7 +537,7 @@ Mike,male,23.12.1974"""
         dataReadable = StringIO.StringIO(dataText)
         icd.validate(dataReadable)
 
-if __name__ == '__main__':
+if __name__ == '__main__': # pragma: no cover
     logging.basicConfig()
     logging.getLogger("cutplace").setLevel(logging.DEBUG)
     logging.getLogger("cutplace.test_interface").setLevel(logging.DEBUG)

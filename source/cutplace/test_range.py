@@ -89,5 +89,5 @@ class RangeTest(unittest.TestCase):
         self.assertRaises(range.RangeValueError, multiRange.validate, "x", 723)
         
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     unittest.main()

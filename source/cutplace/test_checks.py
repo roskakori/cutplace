@@ -96,7 +96,7 @@ class DistinctCountCheckTest(unittest.TestCase):
         self.assertRaises(checks.CheckSyntaxError, checks.DistinctCountCheck, "broken", "branch_id ! broken ^ 5ynt4x ?!?", fieldNames)
         self.assertRaises(checks.CheckSyntaxError, checks.DistinctCountCheck, "broken", "branch_id + 123", fieldNames)
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     logging.basicConfig()
     logging.getLogger("cutplace").setLevel(logging.INFO)
     unittest.main()
