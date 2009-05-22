@@ -170,8 +170,7 @@ class InterfaceControlDocument(object):
                     if fieldType:
                         fieldType += "."
                     fieldType += tools.validatedPythonName("field type part", part)
-                if not fieldType:
-                    raise fields.FieldSyntaxError("field type must not be empty")
+                assert fieldType, "empty field type must be detected by validatedPythonName()"
             except NameError, error:
                 raise fields.FieldSyntaxError(str(error))
             # Obtain "empty" flag. 
@@ -185,13 +184,13 @@ class InterfaceControlDocument(object):
                                                   % (InterfaceControlDocument._EMPTY_INDICATOR,
                                                      fieldIsAllowedToBeEmptyText))
                 if itemCount >= 5:
-                    fieldLength = items[4]
+                    fieldLength = items[4].strip()
                     if itemCount >= 6:
                         fieldRule = items[5].strip()
 
             # Validate fixed fields.
-            if self.dataFormat == data.FORMAT_FIXED:
-                if fieldLength is None:
+            if isinstance(self.dataFormat, data.FixedDataFormat):
+                if not fieldLength:
                     raise fields.FieldSyntaxError("field length must be specified with fixed data format")
                 # FIXME: Validate that field length is fixed size.
 

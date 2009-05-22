@@ -102,6 +102,32 @@ def createDefaultTestIcd(format, lineDelimiter="\n"):
 class InterfaceControlDocumentTest(unittest.TestCase):
     """Tests  for InterfaceControlDocument."""
 
+    def _testBroken(self, spec, expectedError):
+        assert spec is not None
+        assert expectedError is not None
+        icd = interface.InterfaceControlDocument()
+        self.assertRaises(expectedError, icd.read, StringIO.StringIO(spec))
+        
+    def testBrokenFixedFieldWithoutLength(self):
+        spec = """,Broken interface with a fixed field without length
+,
+,Data format
+,
+D,Format,Fixed
+D,Line delimiter,any
+D,Encoding,ISO-8859-1
+D,Allowed characters,32:
+,
+,Fields
+,
+,Name,Type,Example,Empty,Length,Rule
+F,branch_id,38123,RegEx,,5,38\d\d\d
+F,customer_id,12345,Integer,,,0:99999
+F,first_name,John,Text,X,15
+"""
+        icd = interface.InterfaceControlDocument()
+        self._testBroken(spec, fields.FieldSyntaxError)
+
     def testSimpleIcd(self):
         createDefaultTestIcd(data.FORMAT_CSV, "\n")
         createDefaultTestIcd(data.FORMAT_CSV, "\r")
@@ -232,12 +258,6 @@ Jane"""
         dataReadable = StringIO.StringIO(dataText)
         icd.validate(dataReadable)
     
-    def _testBroken(self, spec, expectedError):
-        assert spec is not None
-        assert expectedError is not None
-        icd = interface.InterfaceControlDocument()
-        self.assertRaises(expectedError, icd.read, StringIO.StringIO(spec))
-        
     def testBrokenDataFormatInvalidFormat(self):
         spec = ""","Broken Interface with invalid data format"
 "D","Format","XYZ"
@@ -269,7 +289,6 @@ Jane"""
 "D","Format","CSV"
 "D"
 """
-        icd = interface.InterfaceControlDocument()
         self._testBroken(spec, data.DataFormatSyntaxError)
         
     def testBrokenDataFormatNonNumericHeader(self):
@@ -352,6 +371,18 @@ Jane"""
 """
         self._testBroken(spec, fields.FieldSyntaxError)
 
+    def testBrokenFieldEmptyMark(self):
+        spec = ""","Broken Interface with broken empty mark"
+"D","Format","CSV"
+"D","Line delimiter","LF"
+"D","Item delimiter",","
+"D","Encoding","ISO-8859-1"
+,,,,,,
+,"Name","Example","Type","Empty","Length","Rule","Example"
+"F","first_name",,"Text","@",,,"John"
+"""
+        self._testBroken(spec, fields.FieldSyntaxError)
+
     def testBrokenFieldTypeWitEmptyClass(self):
         spec = ""","Broken Interface with missing field type"
 "D","Format","CSV"
@@ -385,7 +416,21 @@ Jane"""
 ,,,,,,
 ,"Name","Example","Type","Empty","Length","Rule","Example"
 "F","först_name",,"Text","X"
-"F","customer_id",,"",,,"0:99999"
+"F","customer_id",,"Integer",,,"0:99999"
+"""
+        self._testBroken(spec, fields.FieldSyntaxError)
+
+    def testBrokenFieldNameUsedTwice(self):
+        spec = ""","Broken Interface with field name containing invalid characters"
+"D","Format","CSV"
+"D","Line delimiter","LF"
+"D","Item delimiter",","
+"D","Encoding","ISO-8859-1"
+,,,,,,
+,"Name","Example","Type","Empty","Length","Rule","Example"
+"F","first_name",,"Text","X"
+"F","customer_id",,"Integer",,,"0:99999"
+"F","first_name",,"Text","X"
 """
         self._testBroken(spec, fields.FieldSyntaxError)
 
@@ -402,7 +447,7 @@ Jane"""
         self._testBroken(spec, fields.FieldSyntaxError)
 
     def testBrokenFieldTypeWithMultipleWord(self):
-        spec = ""","Broken Interface with field type containing multiple words"
+        spec = ""","Broken interface with field type containing multiple words"
 "D","Format","CSV"
 "D","Line delimiter","LF"
 "D","Item delimiter",","
@@ -413,7 +458,7 @@ Jane"""
 "F","customer_id",,"",,,"0:99999"
 """
         self._testBroken(spec, fields.FieldSyntaxError)
-        
+
     def testBrokenInterfaceWithoutFields(self):
         spec = ""","Broken Interface without fields"
 "D","Format","CSV"
