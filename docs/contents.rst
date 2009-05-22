@@ -12,4 +12,5 @@ Contents:
    :maxdepth: 2
 
    installation
+   writing-an-icd
    changes
