@@ -11,7 +11,7 @@
     <property name="build" location="build" />
     <property name="dist" location="dist" />
     <property name="external.dir" location="external" />
-    <property name="site.dir" location="site" />
+    <property name="site.dir" location="${build}/site" />
     <property name="reports.dir" location="${site.dir}/reports" />
     <property name="test_all.py" location="${source}/cutplace/test_all.py" />
 
@@ -137,6 +137,20 @@
         <copy file="${tests-input-icds.dir}/customers.ods" tofile="${site.dir}/icd_customers.ods" />
         <copy file="${tests-input-icds.dir}/customers.xls" tofile="${site.dir}/icd_customers.xls" />
     </target>
+
+    <target description="build documentation" name="docs" depends="sitebase, testdata">
+    	<exec executable="sphinx-build" failonerror="true">
+    	    <!-- Use HTML builder. -->
+            <arg value="-b" />
+            <arg value="html" />
+    	    <!-- Disable colored output. -->
+            <arg value="-N" />
+    	    <!--Show only warnings and errors. -->
+            <arg value="-q" />
+            <arg value="docs" />
+            <arg value="${site.dir}" />
+    	</exec>
+	</target>
 
 	<target name="reports" depends="sitebase, testdata">
         <!-- <exec executable="python" error="build-stderr.txt"> -->
