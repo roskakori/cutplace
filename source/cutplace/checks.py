@@ -52,10 +52,13 @@ class AbstractCheck(object):
         Reset all internal resources needed by the check to keep track of the check conditions.
         By default do nothing.
         
+        It is recommended that the `__init__()` of any child classes calls this method.
+        
         This is called by `interface.InterfaceControlDocument.validate()` when starting to
         validate the data.
         """
         pass
+
     def checkRow(self, rowNumber, row):
         """"
         Check row and in case it is invalid raise CheckError. By default do nothing.
@@ -109,6 +112,7 @@ class IsUniqueCheck(AbstractCheck):
             nextToken = toky.next()
         if not len(self.fieldNamesToCheck):
             raise CheckSyntaxError("rule must contain at least one field name to check for uniqueness")
+        self.reset()
             
     def reset(self):
         self.uniqueValues = {}
