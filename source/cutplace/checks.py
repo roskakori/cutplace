@@ -47,8 +47,15 @@ class AbstractCheck(object):
         self.rule = rule
         self.fieldNames = fieldNames
     
-    # FIXME: Add `reset()` and call it from `interface.validate()`.
-    
+    def reset(self):
+        """
+        Reset all internal resources needed by the check to keep track of the check conditions.
+        By default do nothing.
+        
+        This is called by `interface.InterfaceControlDocument.validate()` when starting to
+        validate the data.
+        """
+        pass
     def checkRow(self, rowNumber, row):
         """"
         Check row and in case it is invalid raise CheckError. By default do nothing.
@@ -76,7 +83,6 @@ class IsUniqueCheck(AbstractCheck):
     def __init__(self, description, rule, availableFieldNames):
         super(IsUniqueCheck, self).__init__(description, rule, availableFieldNames)
         
-        self.uniqueValues = {}
         self.fieldNamesToCheck = []
 
         # Extract field names to check from rule.
@@ -104,6 +110,9 @@ class IsUniqueCheck(AbstractCheck):
         if not len(self.fieldNamesToCheck):
             raise CheckSyntaxError("rule must contain at least one field name to check for uniqueness")
             
+    def reset(self):
+        self.uniqueValues = {}
+        
     def checkRow(self, rowNumber, rowMap):
         key = []
         for fieldName in self.fieldNamesToCheck:
@@ -138,10 +147,11 @@ class DistinctCountCheck(AbstractCheck):
 
         # Build and test Python expression for validation.
         self.expression = DistinctCountCheck._COUNT_NAME + rule[columnWhereFieldNameEnds:]
-        self.distinctValuesToCountMap = {}
+        self.reset()
         self._eval()
 
-    # FIXME: Add `reset()`.
+    def reset(self):
+        self.distinctValuesToCountMap = {}
 
     def _distinctCount(self):
         return len(self.distinctValuesToCountMap)

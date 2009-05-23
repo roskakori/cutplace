@@ -380,6 +380,8 @@ class InterfaceControlDocument(object):
         # FIXME: Split up `validate()` in several smaller methods.
         self._log.info("validate \"%s\"" % (dataFileToValidatePath))
         self._resetCounts()
+        for check in self.checkDescriptions.values():
+            check.reset()
 
         (dataFile, needsOpen) = self._obtainReader(dataFileToValidatePath)
         try:
