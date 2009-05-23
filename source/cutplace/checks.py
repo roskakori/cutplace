@@ -67,7 +67,7 @@ class AbstractCheck(object):
         pass
     
     def __str__(self):
-        return "%s(%r, %r, %r)" % (self.__class__.__name__, self.description, self.rule, self.fieldNames)
+        return "%s(%r, %r)" % (self.__class__.__name__, self.description, self.rule)
         
 class IsUniqueCheck(AbstractCheck):
     """
