@@ -13,25 +13,48 @@ import sys
 import tools
 import types
 
-class IcdEventListener(object):
+class ValidationEventListener(object):
     """
-    Listener to process events detected during parsing.
+    Listener to process events during `InterfaceControlDocument.validate()`.
+    
+    To act on events, define a class inheriting from `ValidationEventListener` and overwrite the
+    methods for those events you are interested in:
+
+    >>> class MyValidationEventListener(ValidationEventListener):
+    ...     def rejectedRow(self, row, error):
+    ...         print "%r" % row
+    ...         print "error: %s" % error
+    ... 
+
+    Create a new listener:
+    
+    >>> listener = MyValidationEventListener()
+    
+    To actually receive events, you have to attach it to an ICD:
+    
+    >>> icd = InterfaceControlDocument()
+    >>> icd.addValidationEventListener(listener)
+    >>> # Add data format and field formats and call `icd.validate()`
+
+    When you are done, remove the listener so its resources are released:
+    
+    >>> icd.removeValidationEventListener(listener)
     """
     # TODO: Rename to `BaseValidationEventListener`.
     # FIXME: Add error positions: rowNumber, itemNumber, indexInItem
     def acceptedRow(self, row):
         pass
     
-    def rejectedRow(self, row, errorMessage):
+    def rejectedRow(self, row, error):
         pass
     
-    def checkAtRowFailed(self, row, errorMessage):
+    def checkAtRowFailed(self, row, error):
         pass
     
-    def checkAtEndFailed(self, errorMessage):
+    def checkAtEndFailed(self, error):
         pass
     
-    def dataFormatFailed(self, errorMessage):
+    def dataFormatFailed(self, error):
         pass
 
 class IcdSyntaxError(tools.CutplaceError):
@@ -60,7 +83,7 @@ class InterfaceControlDocument(object):
         self.fieldFormats = []
         self.fieldNameToFormatMap = {}
         self.checkDescriptions = {}
-        self.icdEventListeners = []
+        self.ValidationEventListeners = []
         # TODO: Add logTrace as property and let setter check for True or False.
         self.logTrace = False
         self.acceptedCount = 0
@@ -450,7 +473,7 @@ class InterfaceControlDocument(object):
                                 raise checks.CheckError("row check failed: %r: %s" % (check.description, str(error)))
                         self._log.debug("accepted: %s" % row)
                         self.acceptedCount += 1
-                        for listener in self.icdEventListeners:
+                        for listener in self.ValidationEventListeners:
                             listener.acceptedRow(row)
                     except tools.CutplaceError, error:
                         # Handle failed check and other errors.
@@ -463,7 +486,7 @@ class InterfaceControlDocument(object):
                             reason = str(error)
                         self._log.debug("rejected: %s" % row)
                         self._log.debug(reason, exc_info=self.logTrace)
-                        for listener in self.icdEventListeners:
+                        for listener in self.ValidationEventListeners:
                             listener.rejectedRow(row, reason)
         finally:
             if needsOpen:
@@ -477,15 +500,15 @@ class InterfaceControlDocument(object):
             except checks.CheckError, message:
                 reason = "check at end of data failed: %r: %s" % (check.description, message)
                 self._log.error(reason)
-                for listener in self.icdEventListeners:
+                for listener in self.ValidationEventListeners:
                     listener.checkAtEndFailed(reason)
         
-    def addIcdEventListener(self, listener):
+    def addValidationEventListener(self, listener):
         assert listener is not None
-        assert listener not in self.icdEventListeners
-        self.icdEventListeners.append(listener)
+        assert listener not in self.ValidationEventListeners
+        self.ValidationEventListeners.append(listener)
         
-    def removeIcdEventListener(self, listener):
+    def removeValidationEventListener(self, listener):
         assert listener is not None
-        assert listener in self.icdEventListeners
-        self.icdEventListeners.remove(listener)
+        assert listener in self.ValidationEventListeners
+        self.ValidationEventListeners.remove(listener)

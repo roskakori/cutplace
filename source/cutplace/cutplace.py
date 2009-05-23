@@ -51,7 +51,7 @@ class NoExitOptionParser(optparse.OptionParser):
         if self.version:
             print >> file, "Python %s, %s" % (tools.pythonVersion(), tools.platformVersion()) 
 
-class CutplaceIcdEventListener(interface.IcdEventListener):
+class CutplaceValidationEventListener(interface.ValidationEventListener):
     """
     Listener for ICD events that writes accepted and rejected rows to the files specified in the
     command line options.
@@ -221,12 +221,12 @@ def main():
         server.main(cutPlace.port, cutPlace.isOpenBrowser)
     elif cutPlace.dataToValidatePaths:
         for path in cutPlace.dataToValidatePaths:
-            listener = CutplaceIcdEventListener(None, None)
-            cutPlace.icd.addIcdEventListener(listener)
+            listener = CutplaceValidationEventListener(None, None)
+            cutPlace.icd.addValidationEventListener(listener)
             try:
                 cutPlace.icd.validate(path)
             finally:
-                cutPlace.icd.removeIcdEventListener(listener)
+                cutPlace.icd.removeValidationEventListener(listener)
                 
 
 def mainForScript():

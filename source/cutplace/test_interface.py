@@ -14,7 +14,7 @@ import unittest
 
 _log = logging.getLogger("cutplace.test_interface")
 
-class _SimpleErrorLoggingIcdEventListener(interface.IcdEventListener):
+class _SimpleErrorLoggingValidationEventListener(interface.ValidationEventListener):
     def _logError(self, row, errorMessage):
         _log.warning("error during validation: %s %r" % (str(errorMessage), row))
         
@@ -30,7 +30,7 @@ class _SimpleErrorLoggingIcdEventListener(interface.IcdEventListener):
     def dataFormatFailed(self, errorMessage):
         self._logError(None, errorMessage)
 
-_defaultIcdListener = _SimpleErrorLoggingIcdEventListener()
+_defaultIcdListener = _SimpleErrorLoggingValidationEventListener()
 
 def createDefaultTestFixedIcd():
     spec = """,Interface: customer
@@ -173,7 +173,6 @@ F,first_name,John,Text,X,15
         self.assertEqual(icd.rejectedCount, 1)
         self.assertEqual(icd.acceptedCount, 1)
         
-        
     def testSimpleFixedIcd(self):
         icd = createDefaultTestFixedIcd()
         dataText = "3800012345John           Doe            male   08.03.19573800012346Jane           Miller         female 04.10.1946"
@@ -185,29 +184,29 @@ F,first_name,John,Text,X,15
     def testValidOds(self):
         icd = createDefaultTestIcd(data.FORMAT_ODS)
         dataPath = dev_test.getTestInputPath("valid_customers.ods")
-        icd.addIcdEventListener(_defaultIcdListener)
+        icd.addValidationEventListener(_defaultIcdListener)
         try:
             icd.validate(dataPath)
             self.assertEqual(icd.rejectedCount, 0)
             self.assertEqual(icd.acceptedCount, 3)
         finally:
-            icd.removeIcdEventListener(_defaultIcdListener)
+            icd.removeValidationEventListener(_defaultIcdListener)
 
         # TODO: Remove the line below once icd.validate() calls reset().
         icd = createDefaultTestIcd(data.FORMAT_ODS)
         icd.dataFormat.set(data.KEY_SHEET, 2)
-        icd.addIcdEventListener(_defaultIcdListener)
+        icd.addValidationEventListener(_defaultIcdListener)
         try:
             icd.validate(dataPath)
             self.assertEqual(icd.rejectedCount, 0)
             self.assertEqual(icd.acceptedCount, 4)
         finally:
-            icd.removeIcdEventListener(_defaultIcdListener)
+            icd.removeValidationEventListener(_defaultIcdListener)
 
     def testValidExcel(self):
         icd = createDefaultTestIcd(data.FORMAT_EXCEL)
         dataPath = dev_test.getTestInputPath("valid_customers.xls")
-        icd.addIcdEventListener(_defaultIcdListener)
+        icd.addValidationEventListener(_defaultIcdListener)
         try:
             icd.validate(dataPath)
             self.assertEqual(icd.rejectedCount, 0)
@@ -215,12 +214,12 @@ F,first_name,John,Text,X,15
         except parsers.CutplaceXlrdImportError:
             _log.warning("ignored ImportError caused by missing xlrd")
         finally:
-            icd.removeIcdEventListener(_defaultIcdListener)
+            icd.removeValidationEventListener(_defaultIcdListener)
 
         # TODO: Remove the line below once icd.validate() calls reset().
         icd = createDefaultTestIcd(data.FORMAT_EXCEL)
         icd.dataFormat.set(data.KEY_SHEET, 2)
-        icd.addIcdEventListener(_defaultIcdListener)
+        icd.addValidationEventListener(_defaultIcdListener)
         try:
             icd.validate(dataPath)
             self.assertEqual(icd.rejectedCount, 0)
@@ -228,7 +227,7 @@ F,first_name,John,Text,X,15
         except parsers.CutplaceXlrdImportError:
             _log.warning("ignored ImportError caused by missing xlrd")
         finally:
-            icd.removeIcdEventListener(_defaultIcdListener)
+            icd.removeValidationEventListener(_defaultIcdListener)
 
     def testEmptyChoice(self):
         spec = ""","Interface with a Choice field (gender) that can be empty"
@@ -614,13 +613,13 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 234,
 """
         dataReadable = StringIO.StringIO(dataText)
-        icd.addIcdEventListener(_defaultIcdListener)
+        icd.addValidationEventListener(_defaultIcdListener)
         try:
             icd.validate(dataReadable)
             self.assertEqual(icd.acceptedCount, 2)
             self.assertEqual(icd.rejectedCount, 0)
         finally:
-            icd.removeIcdEventListener(_defaultIcdListener)
+            icd.removeValidationEventListener(_defaultIcdListener)
 
     def testTooFewItems(self):
         spec = ""","Interface with two fields with the second being required"
@@ -638,24 +637,24 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
         icd.read(StringIO.StringIO(spec))
         dataText = "123,"
         dataReadable = StringIO.StringIO(dataText)
-        icd.addIcdEventListener(_defaultIcdListener)
+        icd.addValidationEventListener(_defaultIcdListener)
         try:
             icd.validate(dataReadable)
             self.assertEqual(icd.acceptedCount, 0)
             self.assertEqual(icd.rejectedCount, 1)
         finally:
-            icd.removeIcdEventListener(_defaultIcdListener)
+            icd.removeValidationEventListener(_defaultIcdListener)
 
         # Test that a missing item is rejected.
         dataText = "234"
         dataReadable = StringIO.StringIO(dataText)
-        icd.addIcdEventListener(_defaultIcdListener)
+        icd.addValidationEventListener(_defaultIcdListener)
         try:
             icd.validate(dataReadable)
             self.assertEqual(icd.acceptedCount, 0)
             self.assertEqual(icd.rejectedCount, 1)
         finally:
-            icd.removeIcdEventListener(_defaultIcdListener)
+            icd.removeValidationEventListener(_defaultIcdListener)
 
     def testSkipHeader(self):
         spec = ""","Interface for data with header rows"

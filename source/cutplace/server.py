@@ -25,7 +25,7 @@ DEFAULT_PORT = 8778
 
 _SERVER_VERSION = "cutplace/%s" % version.VERSION_NUMBER
 
-class WfileWritingIcdEventListener(interface.IcdEventListener):
+class WfileWritingValidationEventListener(interface.ValidationEventListener):
     def __init__(self, wfile, itemCount):
         assert wfile is not None
         assert itemCount is not None
@@ -209,8 +209,8 @@ Platform: %s</p>
                     self.wfile.write("</tr>")
 
                     # Start listening to validation events.
-                    wfileListener = WfileWritingIcdEventListener(self.wfile, len(icd.fieldNames))
-                    icd.addIcdEventListener(wfileListener)
+                    wfileListener = WfileWritingValidationEventListener(self.wfile, len(icd.fieldNames))
+                    icd.addValidationEventListener(wfileListener)
                     try:
                         dataReadable = StringIO.StringIO(dataContent)
                         icd.validate(dataReadable)
@@ -218,7 +218,7 @@ Platform: %s</p>
                         self.send_error(400, "cannot validate data: %s\n\n%s" % (cgi.escape(str(sys.exc_info()[1])), cgi.escape(icdContent)))
                     finally:
                         self.wfile.write("</table>")
-                        icd.removeIcdEventListener(wfileListener)
+                        icd.removeValidationEventListener(wfileListener)
                         self.wfile.write(Handler._FOOTER)
                 else:
                     log.info("ICD is valid")
