@@ -79,17 +79,6 @@ class CutplaceValidationEventListener(interface.ValidationEventListener):
             self.rejectedFile.write("%s%s" % (rowText, os.linesep))
             self.rejectedFile.write("%s%s" % (errorText, os.linesep))
     
-    def checkAtRowFailed(self, row, error):
-        rowText = "items: %r" % row
-        errorText = "field error: %s" % str(error)
-        if self.rejectedFile is None:
-            self.log.error(rowText)
-            self.log.error(errorText)
-        else:
-            # Write to a text file.
-            self.rejectedFile.write("%s%s" % (rowText, os.linesep))
-            self.rejectedFile.write("%s%s" % (errorText, os.linesep))
-    
     def checkAtEndFailed(self, error):
         errorText = "check at end failed: %s" % str(error)
         if self.rejectedFile is None:
@@ -98,14 +87,6 @@ class CutplaceValidationEventListener(interface.ValidationEventListener):
             # Write to a text file.
             self.rejectedFile.write("%s%s" % (errorText, os.linesep))
     
-    def dataFormatFailed(self, error):
-        errorText = "data format error: %s" % str(error)
-        if self.rejectedFile is None:
-            self.log.error(errorText)
-        else:
-            # Write to a text file.
-            self.rejectedFile.write("%s%s" % (errorText, os.linesep))
-
 class CutPlace(object):
     """
     Command line interface for CutPlace.

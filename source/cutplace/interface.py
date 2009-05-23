@@ -48,14 +48,10 @@ class ValidationEventListener(object):
     def rejectedRow(self, row, error):
         pass
     
-    def checkAtRowFailed(self, row, error):
-        pass
-    
     def checkAtEndFailed(self, error):
         pass
     
-    def dataFormatFailed(self, error):
-        pass
+    # TODO: Ponder: Would there be any point in `dataFormatFailed(self, error)`?
 
 class IcdSyntaxError(tools.CutplaceError):
     """
@@ -86,8 +82,13 @@ class InterfaceControlDocument(object):
         self.ValidationEventListeners = []
         # TODO: Add logTrace as property and let setter check for True or False.
         self.logTrace = False
+        self._resetCounts()
+        
+    def _resetCounts(self):
         self.acceptedCount = 0
         self.rejectedCount = 0
+        self.failedChecksAtEndCount = 0
+        self.passedChecksAtEndCount = 0
     
     def _createClass(self, defaultModuleName, type, classNameAppendix, typeName):
         assert defaultModuleName
@@ -378,8 +379,7 @@ class InterfaceControlDocument(object):
         """
         # FIXME: Split up `validate()` in several smaller methods.
         self._log.info("validate \"%s\"" % (dataFileToValidatePath))
-        self.acceptedCount = 0
-        self.rejectedCount = 0
+        self._resetCounts()
 
         (dataFile, needsOpen) = self._obtainReader(dataFileToValidatePath)
         try:
@@ -468,6 +468,8 @@ class InterfaceControlDocument(object):
                         # Validate row checks.
                         for description, check in self.checkDescriptions.items():
                             try:
+                                if __debug__ and self._log.isEnabledFor(logging.DEBUG):
+                                    self._log.debug("check row: %s" % check)  
                                 check.checkRow(rowNumber, rowMap)
                             except checks.CheckError, error:
                                 raise checks.CheckError("row check failed: %r: %s" % (check.description, str(error)))
@@ -495,11 +497,13 @@ class InterfaceControlDocument(object):
         # Validate checks at end of data.
         for description, check in self.checkDescriptions.items():
             try:
-                self._log.debug("checkAtEnd: %r" % (check))
+                self._log.debug("checkAtEnd: %s" % (check))
                 check.checkAtEnd()
+                self.passedChecksAtEndCount += 1
             except checks.CheckError, message:
                 reason = "check at end of data failed: %r: %s" % (check.description, message)
                 self._log.error(reason)
+                self.failedChecksAtEndCount += 1
                 for listener in self.ValidationEventListeners:
                     listener.checkAtEndFailed(reason)
         

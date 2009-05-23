@@ -15,21 +15,17 @@ import unittest
 _log = logging.getLogger("cutplace.test_interface")
 
 class _SimpleErrorLoggingValidationEventListener(interface.ValidationEventListener):
-    def _logError(self, row, errorMessage):
-        _log.warning("error during validation: %s %r" % (str(errorMessage), row))
+    def _logError(self, row, error):
+        _log.warning("error during validation: %s %r" % (str(error), row))
         
-    def rejectedRow(self, row, errorMessage):
-        self._logError(row, errorMessage)
+    def rejectedRow(self, row, error):
+        self._logError(row, error)
+        super(_SimpleErrorLoggingValidationEventListener, self).rejectedRow(row, error)
     
-    def checkAtRowFailed(self, row, errorMessage):
-        self._logError(row, errorMessage)
+    def checkAtEndFailed(self, error):
+        self._logError(None, error)
+        super(_SimpleErrorLoggingValidationEventListener, self).checkAtEndFailed(error)
     
-    def checkAtEndFailed(self, errorMessage):
-        self._logError(None, errorMessage)
-    
-    def dataFormatFailed(self, errorMessage):
-        self._logError(None, errorMessage)
-
 _defaultIcdListener = _SimpleErrorLoggingValidationEventListener()
 
 def createDefaultTestFixedIcd():
@@ -144,10 +140,44 @@ F,first_name,John,Text,X,15
     def testIsUniqueCheck(self):
         icd = createDefaultTestIcd(data.FORMAT_CSV)
         dataText = """38000,23,"John","Doe","male","08.03.1957"
+38000,23,"Mike","Webster","male","23.12.1974"
 38000,59,"Jane","Miller","female","04.10.1946"
-38000,23,"Mike","Webster","male","23.12.1974" """
+"""
         dataReadable = StringIO.StringIO(dataText)
-        icd.validate(dataReadable)
+        icd.addValidationEventListener(_defaultIcdListener)
+        try:
+            icd.validate(dataReadable)
+            self.assertEqual(icd.acceptedCount, 2)
+            self.assertEqual(icd.rejectedCount, 1)
+            self.assertEqual(icd.passedChecksAtEndCount, 2)
+            self.assertEqual(icd.failedChecksAtEndCount, 0)
+        finally:
+            icd.removeValidationEventListener(_defaultIcdListener)
+
+    def testDistinctCountCheck(self):
+        icd = createDefaultTestIcd(data.FORMAT_CSV)
+        dataText = """38000,23,"John","Doe","male","08.03.1957"
+38001,23,"Mike","Webster","male","23.12.1974"
+38002,23,"Mike","Webster","male","23.12.1974"
+38003,23,"Mike","Webster","male","23.12.1974"
+38004,23,"Mike","Webster","male","23.12.1974"
+38005,23,"Mike","Webster","male","23.12.1974"
+38006,23,"Mike","Webster","male","23.12.1974"
+38007,23,"Mike","Webster","male","23.12.1974"
+38008,23,"Mike","Webster","male","23.12.1974"
+38009,23,"Mike","Webster","male","23.12.1974"
+38010,23,"Mike","Webster","male","23.12.1974"
+"""
+        dataReadable = StringIO.StringIO(dataText)
+        icd.addValidationEventListener(_defaultIcdListener)
+        try:
+            icd.validate(dataReadable)
+            self.assertEqual(icd.acceptedCount, 11)
+            self.assertEqual(icd.rejectedCount, 0)
+            self.assertEqual(icd.passedChecksAtEndCount, 1)
+            self.assertEqual(icd.failedChecksAtEndCount, 1)
+        finally:
+            icd.removeValidationEventListener(_defaultIcdListener)
 
     def testLatin1(self):
         icd = createDefaultTestIcd(data.FORMAT_CSV)
