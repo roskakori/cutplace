@@ -17,6 +17,7 @@ class IcdEventListener(object):
     """
     Listener to process events detected during parsing.
     """
+    # TODO: Rename to `BaseValidationEventListener`.
     # FIXME: Add error positions: rowNumber, itemNumber, indexInItem
     def acceptedRow(self, row):
         pass
@@ -35,7 +36,7 @@ class IcdEventListener(object):
 
 class IcdSyntaxError(tools.CutplaceError):
     """
-    General syntax error in specification of the ICD.
+    General syntax error in the specification of the ICD.
     """
 
 class InterfaceControlDocument(object):
@@ -340,6 +341,14 @@ class InterfaceControlDocument(object):
         
         return (dataFile, needsOpen)
         
+    def _strippedOfBlanks(self, value):
+        """
+        `value` but with leading and trailing blanks removed.
+        """
+        # FIXME: Take ICD property "blanks" (or whatever it is named) into account.
+        result = value.strip()
+        return result
+    
     def validate(self, dataFileToValidatePath):
         """
         Validate that all lines and items in dataFileToValidatePath conform to this interface.
@@ -411,14 +420,19 @@ class InterfaceControlDocument(object):
                             if validCharacterRange is not None:
                                 for character in item:
                                     try:
-                                        validCharacterRange.validate("character", character)
+                                        validCharacterRange.validate("character", ord(character))
                                     except range.RangeValueError, error:
                                         raise fields.FieldValueError("value for fields %r must contain only valid characters: %s"
-                                                                     % (fieldFormat.fieldName, character, str(error)))
+                                                                     % (fieldFormat.fieldName, str(error)))
                                     
                             # Validate field format
-                            fieldFormat.validateEmpty(item)
-                            fieldFormat.validateLength(item)
+                            if self.dataFormat.name == data.FORMAT_FIXED:
+                                item = self._strippedOfBlanks(item)
+                                fieldFormat.validateEmpty(item)
+                                # Note: No need to validate the length with fixed length items.
+                            else:
+                                fieldFormat.validateEmpty(item)
+                                fieldFormat.validateLength(item)
                             rowMap[fieldFormat.fieldName] = fieldFormat.validate(item) 
                             itemIndex += 1
                         if itemIndex != len(row):

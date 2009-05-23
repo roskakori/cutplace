@@ -109,6 +109,13 @@ class InterfaceControlDocumentTest(unittest.TestCase):
         icd = interface.InterfaceControlDocument()
         self.assertRaises(expectedError, icd.read, StringIO.StringIO(spec))
         
+    def testBrokenFirstItem(self):
+        spec = ""","Broken Interface with a row where the first item is not a valid row id"
+"D","Format","CSV"
+"x"
+"""
+        self._testBroken(spec, interface.IcdSyntaxError)
+    
     def testBrokenFixedFieldWithoutLength(self):
         spec = """,Broken interface with a fixed field without length
 ,
@@ -149,12 +156,31 @@ F,first_name,John,Text,X,15
 38000,23,"Mike","Webster","male","23.12.1974" """
         dataReadable = StringIO.StringIO(dataText)
         icd.validate(dataReadable)
+
+    def testBrokenInvalidCharacter(self):
+        icd = createDefaultTestIcd(data.FORMAT_CSV)
+        dataText = """38000,23,"John","Doe","male","08.03.1957"
+38000,23,"Ja\ne","Miller","female","23.12.1974" """
+        dataReadable = StringIO.StringIO(dataText)
+        icd.validate(dataReadable)
+        self.assertEqual(icd.rejectedCount, 1)
+        self.assertEqual(icd.acceptedCount, 1)
+
+        icd = createDefaultTestFixedIcd()
+        dataText = "3800012345John           Doe            male   08.03.19573800012346Ja\ne           Miller         female 04.10.1946"
+        dataReadable = StringIO.StringIO(dataText)
+        icd.validate(dataReadable)
+        self.assertEqual(icd.rejectedCount, 1)
+        self.assertEqual(icd.acceptedCount, 1)
+        
         
     def testSimpleFixedIcd(self):
         icd = createDefaultTestFixedIcd()
         dataText = "3800012345John           Doe            male   08.03.19573800012346Jane           Miller         female 04.10.1946"
         dataReadable = StringIO.StringIO(dataText)
         icd.validate(dataReadable)
+        self.assertEqual(icd.rejectedCount, 0)
+        self.assertEqual(icd.acceptedCount, 2)
 
     def testValidOds(self):
         icd = createDefaultTestIcd(data.FORMAT_ODS)
@@ -254,11 +280,53 @@ Jane"""
 "F","date_of_birth",08.03.1957,"DateTime",,,"DD.MM.YYYY"
 """
         icd = interface.InterfaceControlDocument()
-        icd.read(StringIO.StringIO(spec))
+        readable = StringIO.StringIO(spec)
+        icd.read(readable)
         dataText = """"John",,"08.03.1957"
 "Jane","female","04.10.1946" """
         dataReadable = StringIO.StringIO(dataText)
         icd.validate(dataReadable)
+
+    def testBrokenCheckDuplicateDescription(self):
+        spec = ""","Broken Interface with duplicate check description"
+"D","Format","CSV"
+"D","Line delimiter","LF"
+"D","Item delimiter",","
+"D","Encoding","ISO-8859-1"
+,
+,"Name","Example","Type","Empty","Length","Rule","Example"
+"F","branch_id",,"RegEx",,,"38\d\d\d"
+"F","customer_id",,"Integer",,,"0:99999"
+,
+,Description,Type,Rule
+C,customer must be unique,IsUnique,"branch_id, customer_id"
+C,distinct branches must be within limit,DistinctCount,branch_id <= 3
+C,customer must be unique,IsUnique,"branch_id, customer_id"
+"""
+        self._testBroken(spec, checks.CheckSyntaxError)
+    
+    def testBrokenCheckTooFewItems(self):
+        baseSpec = ""","Broken Interface with duplicate check description"
+"D","Format","CSV"
+"D","Line delimiter","LF"
+"D","Item delimiter",","
+"D","Encoding","ISO-8859-1"
+,
+,"Name","Example","Type","Empty","Length","Rule","Example"
+"F","branch_id",,"RegEx",,,"38\d\d\d"
+"F","customer_id",,"Integer",,,"0:99999"
+,
+,Description,Type,Rule
+C,customer must be unique,IsUnique,"branch_id, customer_id"
+"""
+        icd = interface.InterfaceControlDocument()
+        readable = StringIO.StringIO(baseSpec)
+        icd.read(readable)
+
+        spec = baseSpec + "C"        
+        self._testBroken(spec, checks.CheckSyntaxError)
+        spec = baseSpec + "C,incomplete check"        
+        self._testBroken(spec, checks.CheckSyntaxError)
     
     def testBrokenDataFormatInvalidFormat(self):
         spec = ""","Broken Interface with invalid data format"
