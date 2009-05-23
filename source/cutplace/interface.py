@@ -217,7 +217,7 @@ class InterfaceControlDocument(object):
             else:
                 raise fields.FieldSyntaxError("field name must be used for only one field: %s" % fieldName)
         else:
-            raise fields.FieldSyntaxError("field format line (marked with %r) must contain at least 4 columns" % InterfaceControlDocument._ID_FIELD_RULE)
+            raise fields.FieldSyntaxError("field format row (marked with %r) must contain at least 4 columns" % InterfaceControlDocument._ID_FIELD_RULE)
 
         assert fieldName
         assert fieldExample is not None
@@ -335,7 +335,7 @@ class InterfaceControlDocument(object):
             dataFile = open(dataFileToValidatePath, "rb")
             # TODO: Remove the line below, it should not be needed.
             dataReader = None
-        else:
+        else: # pragma: no cover
             raise NotImplementedError("data format: %r" % self.dataFormat.name)
         
         return (dataFile, needsOpen)

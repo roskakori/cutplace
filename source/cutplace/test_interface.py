@@ -96,7 +96,8 @@ def createDefaultTestIcd(format, lineDelimiter="\n"):
 "C","number of branches must be in range","DistinctCount","branch_id < 10"
 """
     result = interface.InterfaceControlDocument()
-    result.read(StringIO.StringIO(spec))
+    readable = StringIO.StringIO(spec)
+    result.read(readable)
     return result
         
 class InterfaceControlDocumentTest(unittest.TestCase):
@@ -216,7 +217,8 @@ F,first_name,John,Text,X,15
 "F","date_of_birth",08.03.1957,"DateTime",,,"DD.MM.YYYY"
 """
         icd = interface.InterfaceControlDocument()
-        icd.read(StringIO.StringIO(spec))
+        readable = StringIO.StringIO(spec)
+        icd.read(readable)
         dataText = """"John",,"08.03.1957"
 "Jane","female","04.10.1946" """
         dataReadable = StringIO.StringIO(dataText)
@@ -310,6 +312,7 @@ Jane"""
 "D","Format","XYZ"
 """
         self._testBroken(spec, data.DataFormatSyntaxError)
+
         
     def testBrokenFieldNameMissing(self):
         spec = ""","Broken Interface with missing field name"
@@ -334,7 +337,31 @@ Jane"""
 "F","     ",,"Integer",,,"0:99999"
 """
         self._testBroken(spec, fields.FieldSyntaxError)
-        
+
+    def testBrokenFieldWithTooFewItems(self):
+        baseSpec = ""","Broken Interface with a field that has too few items"
+"D","Format","CSV"
+"D","Line delimiter","LF"
+"D","Item delimiter",","
+"D","Encoding","ISO-8859-1"
+,,,,,,
+,"Name","Example","Type","Empty","Length","Rule","Example"
+"F","branch_id",,"RegEx",,,"38\d\d\d"
+"""
+        # First of all. make sure `baseSpec` is in order by building a valid ICD.
+        spec = baseSpec + "F,customer_id,example,Text"
+        icd = interface.InterfaceControlDocument()
+        readable = StringIO.StringIO(spec)
+        icd.read(readable)
+
+        # Now comes the real meat: broken ICDs with incomplete field formats.
+        spec = baseSpec + "F"
+        self._testBroken(spec, fields.FieldSyntaxError)
+        spec = baseSpec + "F,customer_id"
+        self._testBroken(spec, fields.FieldSyntaxError)
+        spec = baseSpec + "F,customer_id,example"
+        self._testBroken(spec, fields.FieldSyntaxError)
+
     def testBrokenFieldTypeMissing(self):
         spec = ""","Broken Interface with missing field type"
 "D","Format","CSV"
