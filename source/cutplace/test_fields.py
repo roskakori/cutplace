@@ -74,6 +74,9 @@ class DecimalFieldFormatTest(unittest.TestCase):
         self.assertRaises(fields.FieldValueError, format.validated, "eggs")
         self.assertRaises(fields.FieldValueError, format.validated, "12.345,678")
         
+    def testBrokenDecimalSyntax(self):
+        self.assertRaises(fields.FieldSyntaxError, fields.DecimalFieldFormat, "x", False, None, "eggs")
+        
 class IntegerFieldFormatTest(unittest.TestCase):
     """
     Tests  for `IntegerFieldFormat`.

@@ -98,19 +98,6 @@ class DecimalFieldFormat(AbstractFieldFormat):
             raise FieldValueError(message)
         return result
         
-    def _long(self, value):
-        """
-        `Value converted to `long` or 0 if `value` is "".
-        """
-        assert value is not None
-        assert value.strip() == value, "value=%r" % value
-        
-        if value:
-            result = long(value)
-        else:
-            result = 0
-        return result
-     
 class IntegerFieldFormat(AbstractFieldFormat):
     _DEFAULT_RANGE = "%d:%d" % (-2 ** 31, 2 ** 31 - 1)
 
