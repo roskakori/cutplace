@@ -296,13 +296,13 @@ The field format section of the ICD contains rows with the following columns:
 
 Simple examples for various field formats
 
-==  =============  ==========  ========  ======  ==========  ====
+==  =============  ==========  ========  ======  ==========  ========
 ..  Name           Example     Type      Empty   Length      Rule
-==  =============  ==========  ========  ======  ==========  ====
-F   customer_id    123456      Integer           1:999999
+==  =============  ==========  ========  ======  ==========  ========
+F   customer_id    123456      Integer                       1:999999
 F   surname        Miller      Text              1:60
 F   date_of_birth  1969-11-03  DateTime  X       YYYY-MM-DD
-==  =============  ==========  ========  ======  ==========  ====
+==  =============  ==========  ========  ======  ==========  ========
 
 Text
 ----
@@ -329,7 +329,7 @@ Examples for Integer fields
 ==  ======  =======  =======  =====  ======  =======
 ..  Name    Example  Type     Empty  Length  Rule
 ==  ======  =======  =======  =====  ======  =======
-F   height  3798     Integer         0:8848
+F   height  3798     Integer                 0:8848
 F   weight  72       Integer         0:      0:
 F   id      1337     Integer         5       1:99999
 ==  ======  =======  =======  =====  ======  =======
