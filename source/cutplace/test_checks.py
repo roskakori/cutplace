@@ -12,7 +12,7 @@ def _createFieldMap(fieldNames, fieldValues):
     
     # FIXME: There must be a more pythonic way to do this.
     result = {}
-    for fieldIndex in range(0, len(fieldNames) - 1):
+    for fieldIndex in range(len(fieldNames) - 1):
         result[fieldNames[fieldIndex]] = fieldValues[fieldIndex]
     return result
 

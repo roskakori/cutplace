@@ -56,7 +56,7 @@ class AbstractOdsContentHandler(xml.sax.ContentHandler):
         if (name == "table:table-cell") and (self.tablesToSkip == 0):
             assert self.cellText is not None
             self.insideCell = False
-            for i in range(0, self.numberColumnsRepeated):
+            for i in range(self.numberColumnsRepeated):
                 self.row.append(self.cellText)
             self.cellText = None
         if (name == "table:table-row") and (self.tablesToSkip == 0):
