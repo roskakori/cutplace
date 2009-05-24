@@ -14,4 +14,6 @@ Contents:
    installation
    writing-an-icd
    command-line-usage
+   development
+   support
    changes
