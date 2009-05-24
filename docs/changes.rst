@@ -4,6 +4,28 @@ Revision history
 
 This chapter describes improvements compared to earlier versions of cutplace.
 
+Version 0.4.4, 23-May-2009
+==========================
+
+* Fixed checks when validating more than one data file from the command line.
+  Until now the checks did preserve internal state information needed to
+  perform the check. For instance, IsUnique check remembered the keys of all
+  rows read so far. So when a data file contained a row with a key that already
+  showed up in an earlier data file, the check failed. To prevent this from
+  happening, ``validate()`` now resets all checks. See also: Ticket #9.
+
+* Fixed detection of characters outside of the "Allowed characters" range.
+  Apparently this never worked until now.
+
+* Fixed handling of empty choices consisting only of white space.
+
+* Fixed detection of fixed fields without length.
+
+* Fixed handling of white space in field items of fixed length data.
+
+* Added plenty of test cases and consequently performed a couple of minor
+  fixes, improvements and clean ups.
+
 Version 0.4.3, 18-May-2009
 ==========================
 
