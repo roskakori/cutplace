@@ -16,7 +16,7 @@ _log = logging.getLogger("cutplace.test_interface")
 
 class _SimpleErrorLoggingValidationEventListener(interface.ValidationEventListener):
     def _logError(self, row, error):
-        _log.warning("error during validation: %s %r" % (str(error), row))
+        _log.warning("error during validation: %s %r" % (error, row))
         
     def rejectedRow(self, row, error):
         self._logError(row, error)

@@ -228,10 +228,10 @@ def main(arguments):
             else: # pragma: no cover
                 raise NotImplementedError("format=%r" % (options.format))
         except IOError, error:
-            logging.getLogger("cutplace.ods").error("cannot convert ods to csv: %s" % str(error))
+            logging.getLogger("cutplace.ods").error("cannot convert ods to csv: %s" % error)
             sys.exit(1)
         except Exception, error:
-            logging.getLogger("cutplace.ods").error("cannot convert ods to csv: %s" % str(error), exc_info=1)
+            logging.getLogger("cutplace.ods").error("cannot convert ods to csv: %s" % error, exc_info=1)
             sys.exit(1)
     else:
         sys.stderr.write("%s%s" % ("ODS-FILE and OUTPUT-FILE must be specified", os.linesep))

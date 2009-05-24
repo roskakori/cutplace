@@ -49,19 +49,19 @@ class WfileWritingValidationEventListener(interface.ValidationEventListener):
     def acceptedRow(self, row):
         self._writeRow(row, "ok")
     
-    def rejectedRow(self, row, errorMessage):
+    def rejectedRow(self, row, error):
         self._writeRow(row, "error")
-        self._writeTextRow(str(errorMessage))
+        self._writeTextRow("%s" % error)
     
-    def checkAtRowFailed(self, row, errorMessage):
+    def checkAtRowFailed(self, row, error):
         self._writeRow(row, "error")
-        self._writeTextRow(str(errorMessage))
+        self._writeTextRow("%s" % error)
     
-    def checkAtEndFailed(self, errorMessage):
-        self._writeTextRow("check at end failed: %s" % str(errorMessage))
+    def checkAtEndFailed(self, error):
+        self._writeTextRow("check at end failed: %s" % error)
     
-    def dataFormatFailed(self, errorMessage):
-        self._writeTextRow("data format is broken: %s" % str(errorMessage))
+    def dataFormatFailed(self, error):
+        self._writeTextRow("data format is broken: %s" % error)
 
 class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
     server_version = _SERVER_VERSION

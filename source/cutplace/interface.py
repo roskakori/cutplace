@@ -230,7 +230,7 @@ class InterfaceControlDocument(object):
                 try:
                     fieldFormat.validate(fieldExample)
                 except fields.FieldValueError, error:
-                    raise IcdSyntaxError("cannot validate example for field %r: %s" % (fieldName, str(error)))
+                    raise IcdSyntaxError("cannot validate example for field %r: %s" % (fieldName, error))
 
             # Validate that field name is unique.
             if not self.fieldNameToFormatMap.has_key(fieldName):
@@ -448,7 +448,7 @@ class InterfaceControlDocument(object):
                                         validCharacterRange.validate("character", ord(character))
                                     except range.RangeValueError, error:
                                         raise fields.FieldValueError("value for fields %r must contain only valid characters: %s"
-                                                                     % (fieldFormat.fieldName, str(error)))
+                                                                     % (fieldFormat.fieldName, error))
                                     
                             # Validate field format
                             if self.dataFormat.name == data.FORMAT_FIXED:
@@ -474,7 +474,7 @@ class InterfaceControlDocument(object):
                                     self._log.debug("check row: %s" % check)  
                                 check.checkRow(rowNumber, rowMap)
                             except checks.CheckError, error:
-                                raise checks.CheckError("row check failed: %r: %s" % (check.description, str(error)))
+                                raise checks.CheckError("row check failed: %r: %s" % (check.description, error))
                         self._log.debug("accepted: %s" % row)
                         self.acceptedCount += 1
                         for listener in self.ValidationEventListeners:
@@ -485,7 +485,7 @@ class InterfaceControlDocument(object):
                         self.rejectedCount += 1
                         if isinstance(error, (fields.FieldValueError)):
                             fieldName = self.fieldNames[itemIndex]
-                            reason = "field %r must match format: %s" % (fieldName, str(error))
+                            reason = "field %r must match format: %s" % (fieldName, error)
                         else:
                             reason = str(error)
                         self._log.debug("rejected: %s" % row)

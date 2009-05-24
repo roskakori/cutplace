@@ -70,7 +70,7 @@ class CutplaceValidationEventListener(interface.ValidationEventListener):
     
     def rejectedRow(self, row, error):
         rowText = "items: %r" % row
-        errorText = "field error: %s" % str(error)
+        errorText = "field error: %s" % error
         if self.rejectedFile is None:
             self.log.error(rowText)
             self.log.error(errorText)
@@ -80,7 +80,7 @@ class CutplaceValidationEventListener(interface.ValidationEventListener):
             self.rejectedFile.write("%s%s" % (errorText, os.linesep))
     
     def checkAtEndFailed(self, error):
-        errorText = "check at end failed: %s" % str(error)
+        errorText = "check at end failed: %s" % error
         if self.rejectedFile is None:
             self.log.error(errorText)
         else:
@@ -217,10 +217,10 @@ def mainForScript():
     try:
         main()
     except tools.CutplaceError, error:
-        sys.stderr.write("cannot process Excel format: %s%s" % (str(error), os.linesep))
+        sys.stderr.write("cannot process Excel format: %s%s" % (error, os.linesep))
     except optparse.OptionError, error:
         if not isinstance(error, ExitQuietlyOptionError):
-            sys.stderr.write("cannot process command line options: %s%s" % (str(error), os.linesep))
+            sys.stderr.write("cannot process command line options: %s%s" % (error, os.linesep))
             sys.exit(1)
     
 if __name__ == '__main__':

@@ -171,7 +171,7 @@ class _BaseDataFormat(object):
             try:
                 result = range.Range(value)
             except range.RangeSyntaxError, error:
-                raise DataFormatValueError("value for property %r must be a valid range: %s" % (key, str(error)))
+                raise DataFormatValueError("value for property %r must be a valid range: %s" % (key, error))
         elif key == KEY_HEADER:
             result = self._validatedLong(key, value, 0)
         else:  # pragma: no cover
