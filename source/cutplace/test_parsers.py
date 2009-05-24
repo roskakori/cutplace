@@ -29,7 +29,7 @@ class AbstractParserTest(unittest.TestCase):
             rows.append(row)
         self.assertEqual(rows, expectedRows)
 
-class ExcelParserTest(AbstractParserTest):
+class ExcelReaderTest(unittest.TestCase):
 
     def testIcdCustomersXls(self):
         icdCustomersIcdXlsPath = dev_test.getTestIcdPath("customers.xls")
@@ -42,7 +42,24 @@ class ExcelParserTest(AbstractParserTest):
             _log.warning("ignored ImportError caused by missing xlrd")
         finally:
             readable.close()
-
+            
+    def testCellValue(self):
+        fieldTypesXlsPath = dev_test.getTestInputPath("fieldtypes.xls")
+        readable = open(fieldTypesXlsPath, "rb")
+        try:
+            titleRowSkipped = False
+            for row in parsers.excelReader(readable):
+                self.assertTrue(row is not None)
+                self.assertTrue(len(row) == 3, "row=%r" % row)
+                if titleRowSkipped:
+                    self.assertEqual(row[1], row[2], "row=%r" % row)
+                else:
+                    titleRowSkipped = True
+        except parsers.CutplaceXlrdImportError:
+            _log.warning("ignored ImportError caused by missing xlrd")
+        finally:
+            readable.close()
+            
 class FixedParserTest(AbstractParserTest):
     _DEFAULT_FIELD_LENGTHS = [5, 4, 10]
         
@@ -200,5 +217,5 @@ class DelimitedParserTest(AbstractParserTest):
         
 if __name__ == '__main__': # pragma: no cover
     logging.basicConfig()
-    _log.setLevel(logging.INFO)
+    _log.setLevel(logging.DEBUG)
     unittest.main()

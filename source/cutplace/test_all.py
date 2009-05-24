@@ -54,7 +54,7 @@ def main():
             test_fields.RegExFieldFormatTest,
             test_ods.OdsTest,
             test_parsers.DelimitedParserTest,
-            test_parsers.ExcelParserTest,
+            test_parsers.ExcelReaderTest,
             test_parsers.FixedParserTest,
             test_range.RangeTest,
             test_tools.ToolsTest

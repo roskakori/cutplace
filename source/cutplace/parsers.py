@@ -4,6 +4,7 @@ containing the columns.
 """
 import csv
 import data
+import datetime
 import logging
 import ods
 import os
@@ -65,21 +66,63 @@ def fixedReader(readable, fieldLengths):
             columns = []
         parser.advance()
 
+def _excelCellValue(cell, datemode):
+    """
+    The value of `cell` as text taking into account the way excel encodes dates and times.
+
+    Numeric Excel types (Currency,  Fractional, Number, Percent, Scientific) simply yield the decimal number without any special formatting.
+    
+    Dates result in a text using the format "YYYY-MM-DD", times in a text using the format "hh:mm:ss".
+    
+    Boolean yields "0" or "1".
+    
+    Formulas are evaluated and yield the respective result.
+    """
+    assert cell is not None
+
+    # Just import without sanitizing the error message.
+    # If we got that far, the import should have worked already.
+    import xlrd
+
+    if cell.ctype == xlrd.XL_CELL_DATE:
+        cellTuple = xlrd.xldate_as_tuple(cell.value, datemode)
+        assert len(cellTuple) == 6, "cellTuple=%r" % cellTuple
+        if cellTuple[:3] == (0, 0, 0):
+            timeTuple = cellTuple[3:]
+            result = str(datetime.time(*timeTuple))
+        else:
+            result = str(datetime.datetime(*cellTuple))
+    elif cell.ctype == xlrd.XL_CELL_ERROR:
+        defaultErrorText = xlrd.error_text_from_code[0x2a] # same as "#N/A!"
+        errorCode = cell.value
+        result = xlrd.error_text_from_code.get(errorCode, defaultErrorText)
+    else:
+        result = str(cell.value)
+    return result
+
 def excelReader(readable, sheetIndex=1):
-    """Generator yielding the "readable" row by row using "fieldLengths"."""
+    """
+    Generator yielding the Excel spreadsheet located in the workbook stored in `readable` at index `sheetIndex` row
+    by row.
+    """
     assert readable is not None
     assert sheetIndex is not None
+    assert sheetIndex >= 1
     
-    parser = ExcelParser(readable, sheetIndex)
-    # parserReader(parser)
-    columns = []
-    while not parser.atEndOfFile:
-        if parser.item is not None:
-            columns.append(parser.item)
-        if parser.atEndOfLine:
-            yield columns
-            columns = []
-        parser.advance()
+    try:
+        import xlrd
+    except ImportError:
+        raise CutplaceXlrdImportError("to read Excel data the xlrd package must be installed, see <http://pypi.python.org/pypi/xlrd> for more information")
+        
+    contents = readable.read()
+    workbook = xlrd.open_workbook(file_contents=contents)
+    datemode = workbook.datemode
+    sheet = workbook.sheet_by_index(sheetIndex - 1)
+    for y in range(sheet.nrows):
+        row = []
+        for x in range(sheet.ncols):
+            row.append(_excelCellValue(sheet.cell(y, x), datemode))
+        yield row
 
 class DelimitedDialect(object):
     def __init__(self, lineDelimiter=AUTO, itemDelimiter=AUTO):
@@ -311,52 +354,4 @@ class FixedParser(object):
                 self._raiseSyntaxError("item must have %d characters but data already end after %d yielding: %r" % (expectedLength, actualLength, self.item))
             self.columnNumberInRow += actualLength
             if self.itemNumberInRow == len(self.fieldLengths) - 1:
-                self.atEndOfLine = True
-
-class ExcelParser(object):
-    def __init__(self, readable, sheet=1):
-        assert readable is not None
-        assert sheet >= 1
-        
-        try:
-            import xlrd
-        except ImportError:
-            raise CutplaceXlrdImportError("to read Excel data the xlrd package must be installed, see <http://pypi.python.org/pypi/xlrd> for more information")
-        
-        contents = readable.read()
-        self.workbook = xlrd.open_workbook(file_contents=contents)
-        self.sheet = self.workbook.sheet_by_index(sheet - 1)
-        # TODO: Obtain name of file to parse, if there is one.
-        self.fileName = None
-        self.itemNumberInRow = - 1
-        self.rowNumber = 0
-        self.atEndOfLine = False
-        self.atEndOfFile = False
-        self.item = None
-        self._log = logging.getLogger("cutplace.parsers")
-
-        self.advance()
-        
-    def advance(self):
-        assert not self.atEndOfFile
-        
-        if self.atEndOfLine:
-            self.itemNumberInRow = 0
-            self.columnNumberInRow = 0
-            self.rowNumber += 1
-            self.atEndOfLine = False
-        else:
-            self.itemNumberInRow += 1
-
-        if self.rowNumber >= self.sheet.nrows:
-            # Last row reached.
-            self.item = None
-            self.atEndOfLine = True
-            self.atEndOfFile = True
-        else:
-            if self._log.isEnabledFor(logging.DEBUG):
-                self._log.debug("parse excel item at (%d:%d) of (%d:%d)"
-                                % (self.rowNumber, self.itemNumberInRow, self.sheet.nrows, self.sheet.ncols))
-            self.item = self.sheet.cell_value(self.rowNumber - 1, self.itemNumberInRow)
-            if self.itemNumberInRow + 1 == self.sheet.ncols:
                 self.atEndOfLine = True

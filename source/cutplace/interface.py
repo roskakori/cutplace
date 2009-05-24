@@ -394,8 +394,7 @@ class InterfaceControlDocument(object):
                 reader = parsers.parserReader(parsers.DelimitedParser(dataFile, dialect))
             elif self.dataFormat.name == data.FORMAT_EXCEL:
                 sheet = self.dataFormat.get(data.KEY_SHEET)
-                parser = parsers.ExcelParser(dataFile, sheet=sheet)
-                reader = parsers.parserReader(parser)
+                reader = parsers.excelReader(dataFile, sheet)
             elif self.dataFormat.name == data.FORMAT_FIXED:
                 fieldLengths = []
                 for fieldFormat in self.fieldFormats:
