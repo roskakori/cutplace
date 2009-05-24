@@ -300,7 +300,7 @@ F,first_name,John,Text,X,15
 "D","Line delimiter","LF"
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
-,,,,,,
+,
 ,"Name","Example","Type","Empty","Length","Rule"
 "F","first_name","John","Text","X"
 "F","gender","male","Choice",X,,"female, male"
@@ -320,7 +320,7 @@ F,first_name,John,Text,X,15
 "D","Line delimiter","LF"
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
-,,,,,,
+,
 ,"Name","Example","Type","Empty","Length","Rule"
 "F","first_name","John","fields.Text","X"
 """
@@ -337,7 +337,7 @@ Jane"""
 "D","Line delimiter","LF"
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
-,,,,,,
+,
 ,"Name","Example","Type","Empty","Length","Rule"
 "F","first_name","John","Text","X"
 "F","gender","male","Choice",X,4:6,"female, male"
@@ -452,7 +452,7 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "D","Line delimiter","LF"
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
-,,,,,,
+,
 ,"Name","Example","Type","Empty","Length","Rule","Example"
 "F","branch_id",,"RegEx",,,"38\d\d\d"
 "F","","Integer",,,,"0:99999"
@@ -463,7 +463,7 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "D","Line delimiter","LF"
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
-,,,,,,
+,
 ,"Name","Example","Type","Empty","Length","Rule","Example"
 "F","branch_id",,"RegEx",,,"38\d\d\d"
 "F","     ",,"Integer",,,"0:99999"
@@ -476,7 +476,7 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "D","Line delimiter","LF"
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
-,,,,,,
+,
 ,"Name","Example","Type","Empty","Length","Rule","Example"
 "F","branch_id",,"RegEx",,,"38\d\d\d"
 """
@@ -500,7 +500,7 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "D","Line delimiter","LF"
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
-,,,,,,
+,
 ,"Name","Example","Type","Empty","Length","Rule","Example"
 "F","branch_id",,"RegEx",,,"38\d\d\d"
 "F","customer_id",,"",,,"0:99999"
@@ -511,7 +511,7 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "D","Line delimiter","LF"
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
-,,,,,,
+,
 ,"Name","Example","Type","Empty","Length","Rule","Example"
 "F","branch_id",,"RegEx",,,"38\d\d\d"
 "F","customer_id",,"     ",,,"0:99999"
@@ -524,7 +524,7 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "D","Line delimiter","LF"
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
-,,,,,,
+,
 ,"Name","Example","Type","Empty","Length","Rule","Example"
 "F","first_name",,".Text","X",,,"John"
 """
@@ -536,7 +536,7 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "D","Line delimiter","LF"
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
-,,,,,,
+,
 ,"Name","Example","Type","Empty","Length","Rule","Example"
 "F","first_name",,"Text","@",,,"John"
 """
@@ -548,7 +548,7 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "D","Line delimiter","LF"
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
-,,,,,,
+,
 ,"Name","Example","Type","Empty","Length","Rule","Example"
 "F","first_name",,"fields.","X"
 """
@@ -560,7 +560,7 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "D","Line delimiter","LF"
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
-,,,,,,
+,
 ,"Name","Example","Type","Empty","Length","Rule","Example"
 "F","first_name",,"fields..Text","X"
 """
@@ -572,7 +572,7 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "D","Line delimiter","LF"
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
-,,,,,,
+,
 ,"Name","Example","Type","Empty","Length","Rule","Example"
 "F","först_name",,"Text","X"
 "F","customer_id",,"Integer",,,"0:99999"
@@ -585,7 +585,7 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "D","Line delimiter","LF"
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
-,,,,,,
+,
 ,"Name","Example","Type","Empty","Length","Rule","Example"
 "F","first_name",,"Text","X"
 "F","customer_id",,"Integer",,,"0:99999"
@@ -599,7 +599,7 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "D","Line delimiter","LF"
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
-,,,,,,
+,
 ,"Name","Example","Type","Empty","Length","Rule","Example"
 "F","first_name",,"NoSuchFieldType","X"
 """
@@ -611,7 +611,7 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "D","Line delimiter","LF"
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
-,,,,,,
+,
 ,"Name","Example","Type","Empty","Length","Rule","Example"
 "F","first_name",,"Text and text again","X"
 "F","customer_id",,"",,,"0:99999"
@@ -636,7 +636,7 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "D","Line delimiter","LF"
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
-,,,,,,
+,
 ,"Name","Example","Type","Empty","Length","Rule"
 "F","first_name","John","Text","X"
 "F","gender","spam","Choice",,4:6,"female, male"
@@ -650,7 +650,7 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "D","Line delimiter","LF"
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
-,,,,,,
+,
 ,"Name","Example","Type","Empty","Length","Rule"
 "F","first_name","John","Text","X"
 """
@@ -667,7 +667,7 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "D","Line delimiter","LF"
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
-,,,,,,
+,
 ,"Name","Example","Type","Empty","Length","Rule"
 "F","customer_id",,Integer,,,0:
 "F","first_name","John","Text","X"
@@ -692,7 +692,7 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "D","Line delimiter","LF"
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
-,,,,,,
+,
 ,"Name","Example","Type","Empty","Length","Rule"
 "F","customer_id",,Integer,,,0:
 "F","first_name","John","Text"
@@ -727,7 +727,7 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "D","Line delimiter","Any"
 "D","Item delimiter",","
 "D","Header","1"
-,,,,,,
+,
 ,"Name","Example","Type","Empty","Length","Rule"
 "F","first_name","John","Text","X"
 "F","gender","male","Choice",X,,"female, male"
