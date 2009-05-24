@@ -1,6 +1,8 @@
 """
 Standard field formats supported by cutplace.
 """
+import decimal
+import locale
 import logging
 import range
 import re
@@ -80,7 +82,35 @@ class ChoiceFieldFormat(AbstractFieldFormat):
             raise FieldValueError("value is %r but must be one of: %s"
                                    % (value, tools.humanReadableList(self.choices)))
         return value
-    
+
+class DecimalFieldFormat(AbstractFieldFormat):
+    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule):
+        super(DecimalFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule)
+        if rule.strip():
+            raise FieldSyntaxError("decimal rule must be empty")
+
+    def validated(self, value):
+        assert value is not None
+        try:
+            result = decimal.Decimal(value)
+        except Exception, error:
+            message = "value is %r but must be a decimal number: %s" % (value, error)
+            raise FieldValueError(message)
+        return result
+        
+    def _long(self, value):
+        """
+        `Value converted to `long` or 0 if `value` is "".
+        """
+        assert value is not None
+        assert value.strip() == value, "value=%r" % value
+        
+        if value:
+            result = long(value)
+        else:
+            result = 0
+        return result
+     
 class IntegerFieldFormat(AbstractFieldFormat):
     _DEFAULT_RANGE = "%d:%d" % (-2 ** 31, 2 ** 31 - 1)
 

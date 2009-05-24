@@ -1,6 +1,7 @@
 """
 Tests  for field formats.
 """
+import decimal
 import fields
 import logging
 import unittest
@@ -58,7 +59,21 @@ class DateTimeFieldFormatTest(unittest.TestCase):
         format = fields.DateTimeFieldFormat("x", False, None, "%YYYY-MM-DD")
         format.validate("%2000-01-01")
 
+class DecimalFieldFormatTest(unittest.TestCase):
+    """
+    Test for `DecimalFieldFormat`.
+    """
+    def testValidDecimals(self):
+        format = fields.DecimalFieldFormat("x", False, None, "")
+        self.assertEqual(decimal.Decimal("17.23"), format.validated("17.23"))
+        self.assertEqual(decimal.Decimal("17.123456789"), format.validated("17.123456789"))
 
+    def testBrokenDecimals(self):
+        format = fields.DecimalFieldFormat("x", False, None, "")
+        self.assertRaises(fields.FieldValueError, format.validated, "")
+        self.assertRaises(fields.FieldValueError, format.validated, "eggs")
+        self.assertRaises(fields.FieldValueError, format.validated, "12.345,678")
+        
 class IntegerFieldFormatTest(unittest.TestCase):
     """
     Tests  for `IntegerFieldFormat`.

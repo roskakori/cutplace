@@ -48,6 +48,7 @@ def main():
             test_fields.AbstractFieldFormatTest,
             test_fields.ChoiceFieldFormatTest,
             test_fields.DateTimeFieldFormatTest,
+            test_fields.DecimalFieldFormatTest,
             test_fields.IntegerFieldFormatTest,
             test_fields.PatternFieldFormatTest,
             test_fields.RegExFieldFormatTest,
