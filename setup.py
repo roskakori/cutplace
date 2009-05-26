@@ -12,7 +12,7 @@ from source.cutplace import version
 
 setup(
       name="cutplace",
-      version="0.5.0",
+      version=version.VERSION_NUMBER,
       description="validate flat data according to an interface control document",
       author="Thomas Aglassinger",
       author_email="roskakori@users.sourceforge.net",
