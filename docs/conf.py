@@ -16,7 +16,7 @@ import sys, os
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sourceCutplaceFolder = os.path.join(os.path.abspath(os.pardir), "source", "cutplace")
+sourceCutplaceFolder = os.path.join(os.path.abspath(os.pardir), "cutplace")
 sys.path.append(sourceCutplaceFolder)
 
 # -- General configuration -----------------------------------------------------
