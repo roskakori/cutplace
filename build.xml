@@ -11,6 +11,7 @@
     <property name="build" location="build" />
     <property name="dist" location="dist" />
     <property name="external.dir" location="external" />
+    <property name="docs.dir" location="docs" />
     <property name="site.dir" location="${build}/site" />
     <property name="reports.dir" location="${site.dir}/reports" />
     <property name="test_all.py" location="${source}/cutplace/test_all.py" />
@@ -107,10 +108,6 @@
     <target name="sitebase">
         <mkdir dir="${site.dir}/images" />
         <mkdir dir="${reports.dir}" />
-        <copy file="${source}/site/style.css" todir="${site.dir}" />
-        <copy todir="${site.dir}/images">
-            <fileset dir="${source}/site/images" includes="*.png" />
-        </copy>
     </target>
     
     <target name="user-guide" depends="sitebase, testdata">
