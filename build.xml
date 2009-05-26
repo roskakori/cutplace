@@ -43,7 +43,7 @@
         </exec>
     </target>
 
-    <target name="bdist_egg" depends="version, user-guide" description="build binary distribution">
+    <target name="bdist_egg" depends="user-guide" description="build binary distribution">
         <tstamp />
         <exec executable="python">
             <arg value="setup.py" />
@@ -51,7 +51,7 @@
         </exec>
     </target>
 
-    <target name="bdist_egg_upload" depends="version, user-guide" description="build binary distribution and upload it to PyPI">
+    <target name="bdist_egg_upload" depends="user-guide" description="build binary distribution and upload it to PyPI">
         <tstamp />
         <exec executable="python">
             <arg value="setup.py" />
@@ -60,7 +60,7 @@
         </exec>
     </target>
 
-    <target name="bdist_wininst_upload" depends="version, user-guide" description="build Windows installer and upload it to PyPI">
+    <target name="bdist_wininst_upload" depends="user-guide" description="build Windows installer and upload it to PyPI">
         <tstamp />
         <exec executable="python">
             <arg value="setup.py" />
@@ -75,7 +75,7 @@
         </exec>
 	</target>
 
-    <target name="test" depends="version, testdata" description="run test suite">
+    <target name="test" depends="testdata" description="run test suite">
         <exec executable="python" failonerror="true">
             <arg value="${test_all.py}" />
         </exec>
@@ -94,11 +94,6 @@
             <fileset dir="${site.dir}" includes="**/*"/>
             <fileset dir="${tests-output.dir}" includes="**/*"/>
         </delete>
-    </target>
-
-    <target description="update version information" name="version">
-        <xslt in="version.xml" out="${source}/cutplace/version.py" style="${source}/xml/version-py.xsl" />
-        <xslt in="version.xml" out="setup.py" style="${source}/xml/version-setup-py.xsl" />
     </target>
 
     <target name="site" depends="reports, user-guide" description="build web site">

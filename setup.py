@@ -1,7 +1,4 @@
-<?xml version="1.0"?>
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-<xsl:output method="text" />
-<xsl:template match="cutplace-version">#!/usr/bin/env python
+#!/usr/bin/env python
 """
 Cutplace setup for setuptools.
 """
@@ -11,10 +8,11 @@ import ez_setup
 ez_setup.use_setuptools()
 
 from setuptools import setup, find_packages
+from source.cutplace import version
 
 setup(
       name="cutplace",
-      version="<xsl:value-of select="version" />.<xsl:value-of select="release" />.<xsl:value-of select="revision" />",
+      version="0.5.0",
       description="validate flat data according to an interface control document",
       author="Thomas Aglassinger",
       author_email="roskakori@users.sourceforge.net",
@@ -57,5 +55,3 @@ thinking. It acts as "executable specification" which cutplace can use to valida
           "Topic :: Software Development :: Testing"
       ]
 )
-</xsl:template>
-</xsl:stylesheet>
