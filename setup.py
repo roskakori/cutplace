@@ -22,7 +22,7 @@ import ez_setup
 ez_setup.use_setuptools()
 
 from setuptools import setup, find_packages
-from source.cutplace import version
+from cutplace import version
 
 setup(
       name="cutplace",
@@ -34,14 +34,14 @@ setup(
       # TODO: Actually coverage is only required for the development reports. How to express this here?
       install_requires = ["coverage", "xlrd"],
       packages = find_packages("source"),
-      package_dir={"": "source"},
+      package_dir={"": "cutplace"},
       # TODO: Include documentation in distribution by copying it to package folder.
       package_data = {"": ["*.html, *.png, *.txt"]},
       entry_points = {
         "console_scripts": ["cutplace = cutplace.cutplace:mainForScript"]
       },
       license = "GNU GPLv3",
-      test_suite = "source.cutplace.test_all.createTestSuite",
+      test_suite = "cutplace.test_all.createTestSuite",
       long_description="""Cutplace is a tool to validate that data conform to an interface control document (ICD).
 
 Cutplace works with flat data formats using a separator (such as CSV) or fixed length fields. Such formats are commonly

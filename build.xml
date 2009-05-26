@@ -14,7 +14,7 @@
     <property name="docs.dir" location="docs" />
     <property name="site.dir" location="${build}/site" />
     <property name="reports.dir" location="${site.dir}/reports" />
-    <property name="test_all.py" location="${source}/cutplace/test_all.py" />
+    <property name="test_all.py" location="cutplace/test_all.py" />
 
     <xmlcatalog id="catalogs">
         <dtd location="dtds/docbook-xml/docbookx.dtd" publicId="-//OASIS//DTD DocBook XML V4.5//EN" />
@@ -71,7 +71,7 @@
 
 	<target name="testdata" description="generate test data">
         <exec executable="python">
-            <arg value="${source}/cutplace/dev_test.py" />
+            <arg value="cutplace/dev_test.py" />
         </exec>
 	</target>
 
@@ -88,7 +88,7 @@
             <arg value="clean" />
         </exec>
         <delete>
-            <fileset dir="${source}" includes="**/*.pyc, **/*$py.class"/>
+            <fileset dir="." includes="**/*.pyc, **/*$py.class"/>
         </delete>
         <delete includeemptydirs="true">
             <fileset dir="${site.dir}" includes="**/*"/>
@@ -108,7 +108,7 @@
     <target name="user-guide" depends="sitebase, testdata">
         <exec executable="python" failonerror="true">
             <!-- FIXME: Use platform independent paths. --> 
-            <arg value="source/cutplace/ods.py" />
+            <arg value="cutplace/ods.py" />
             <arg value="--format=docbook" />
             <arg value="--id=icd-csv-customers" />
             <arg value="--title" />
@@ -149,7 +149,7 @@
         <!-- <exec executable="python" error="build-stderr.txt"> -->
         <exec executable="python">
             <!-- FIXME: Use platform independent path. --> 
-            <arg value="source/cutplace/dev_reports.py" />
+            <arg value="cutplace/dev_reports.py" />
             <arg value="${reports.dir}" />
         </exec>
 	</target>
