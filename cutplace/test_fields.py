@@ -8,8 +8,7 @@ import unittest
 
 class AbstractFieldFormatTest(unittest.TestCase):
     """
-    Test for base validation in `AbstractFieldFormatTest`. This does not include `validate()`, which always raises a
-    `NotImplementedError`.
+    Test for base validation in `AbstractFieldFormatTest`.
     """
     def testValidateEmpty(self):
         format = fields.AbstractFieldFormat("x", True, None, "")
