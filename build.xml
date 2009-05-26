@@ -139,6 +139,7 @@
     </target>
 
     <target description="build documentation" name="docs" depends="sitebase, testdata">
+        <echo message="build documentation in ${site.dir}" />
     	<exec executable="sphinx-build" failonerror="true">
     	    <!-- Use HTML builder. -->
             <arg value="-b" />
