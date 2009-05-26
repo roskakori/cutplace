@@ -218,14 +218,16 @@ F,first_name,John,Text,X,15
         icd = createDefaultTestIcd(data.FORMAT_CSV)
         dataText = """38000,23,"John","Doe","male","08.03.1957"
 38000,59,"Bärbel","Müller","female","04.10.1946"
-38000,23,"Mike","Webster","male","23.12.1974" """
+38000,23,"Mike","Webster","male","23.12.1974"
+"""
         dataReadable = StringIO.StringIO(dataText)
         icd.validate(dataReadable)
 
     def testBrokenInvalidCharacter(self):
         icd = createDefaultTestIcd(data.FORMAT_CSV)
         dataText = """38000,23,"John","Doe","male","08.03.1957"
-38000,23,"Ja\ne","Miller","female","23.12.1974" """
+38000,23,"Ja\ne","Miller","female","23.12.1974"
+"""
         dataReadable = StringIO.StringIO(dataText)
         icd.validate(dataReadable)
         self.assertEqual(icd.rejectedCount, 1)

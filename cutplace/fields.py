@@ -138,7 +138,7 @@ class DateTimeFieldFormat(AbstractFieldFormat):
         try:
             result = time.strptime(value, self.strptimeFormat)
         except ValueError:
-            raise FieldValueError("date must match format %s (%s) but is: %s (%s)" % (self.humanReadableFormat, self.strptimeFormat, value, sys.exc_value))
+            raise FieldValueError("date must match format %s (%s) but is: %r (%s)" % (self.humanReadableFormat, self.strptimeFormat, value, sys.exc_value))
         return result
                 
 class RegExFieldFormat(AbstractFieldFormat):
