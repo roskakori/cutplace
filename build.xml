@@ -43,7 +43,7 @@
         </exec>
     </target>
 
-    <target name="bdist_egg" depends="user-guide" description="build binary distribution">
+    <target name="bdist_egg" depends="docs" description="build binary distribution">
         <tstamp />
         <exec executable="python">
             <arg value="setup.py" />
@@ -51,7 +51,7 @@
         </exec>
     </target>
 
-    <target name="bdist_egg_upload" depends="user-guide" description="build binary distribution and upload it to PyPI">
+    <target name="bdist_egg_upload" depends="docs" description="build binary distribution and upload it to PyPI">
         <tstamp />
         <exec executable="python">
             <arg value="setup.py" />
@@ -60,7 +60,7 @@
         </exec>
     </target>
 
-    <target name="bdist_wininst_upload" depends="user-guide" description="build Windows installer and upload it to PyPI">
+    <target name="bdist_wininst_upload" depends="docs" description="build Windows installer and upload it to PyPI">
         <tstamp />
         <exec executable="python">
             <arg value="setup.py" />
@@ -91,12 +91,11 @@
             <fileset dir="." includes="**/*.pyc, **/*$py.class"/>
         </delete>
         <delete includeemptydirs="true">
-            <fileset dir="${site.dir}" includes="**/*"/>
             <fileset dir="${tests-output.dir}" includes="**/*"/>
         </delete>
     </target>
 
-    <target name="site" depends="reports, user-guide" description="build web site">
+    <target name="site" depends="reports, docs" description="build web site">
         <!-- Dummy target to invoke all dependencies. -->
     </target>
 
@@ -105,31 +104,6 @@
         <mkdir dir="${reports.dir}" />
     </target>
     
-    <target name="user-guide" depends="sitebase, testdata">
-        <exec executable="python" failonerror="true">
-            <!-- FIXME: Use platform independent paths. --> 
-            <arg value="cutplace/ods.py" />
-            <arg value="--format=docbook" />
-            <arg value="--id=icd-csv-customers" />
-            <arg value="--title" />
-            <arg value="Example ICD for CSV data describing customers" />
-            <arg value="${tests-input-icds.dir}/customers.ods" />
-            <arg value="${source-site.dir}/icd-customers.xml" />
-        </exec>
-        <xslt classpath="${external.dir}/serializer.jar:${external.dir}/xalan.jar" in="${source}/site/user-guide.xml" out="${site.dir}/index.html" style="docbook-xsl/xhtml/docbook.xsl">
-            <xmlcatalog refid="catalogs" />
-            <!--
-            TODO: Add a working style.
-            <param name="html.stylesheet" expression="style.css"/>
-            -->
-        </xslt>
-        <copy file="${tests-input.dir}/valid_customers.csv" todir="${site.dir}" />
-        <copy file="${tests-input.dir}/broken_customers.csv" todir="${site.dir}" />
-        <copy file="${tests-input-icds.dir}/customers.csv" tofile="${site.dir}/icd_customers.csv" />
-        <copy file="${tests-input-icds.dir}/customers.ods" tofile="${site.dir}/icd_customers.ods" />
-        <copy file="${tests-input-icds.dir}/customers.xls" tofile="${site.dir}/icd_customers.xls" />
-    </target>
-
     <target description="build documentation" name="docs" depends="sitebase, testdata">
         <echo message="build documentation in ${site.dir}" />
     	<exec executable="sphinx-build" failonerror="true">
@@ -153,8 +127,4 @@
             <arg value="${reports.dir}" />
         </exec>
 	</target>
-    <target name="setup" description="setup project after checking it out">
-        <untar compression="bzip2" src="${external.dir}/dtds.tar.bz2" dest="." />
-        <untar compression="bzip2" src="${external.dir}/docbook-xsl.tar.bz2" dest="." />
-    </target>
 </project>
