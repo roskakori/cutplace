@@ -41,6 +41,7 @@ setup(
         "console_scripts": ["cutplace = cutplace.cutplace:mainForScript"]
       },
       license = "GNU GPLv3",
+      test_suite = "source.cutplace.test_all.createTestSuite",
       long_description="""Cutplace is a tool to validate that data conform to an interface control document (ICD).
 
 Cutplace works with flat data formats using a separator (such as CSV) or fixed length fields. Such formats are commonly

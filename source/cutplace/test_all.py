@@ -27,16 +27,16 @@ import server
 import tools
 import version
 
-def main():
+def createTestSuite():
+    """
+    TestSuite including all unit tests and doctests found in the source code.
+    """
+    result = unittest.TestSuite()
     loader = unittest.TestLoader()
-    testCount = 0
-    errorCount = 0
-    failureCount = 0
 
-    allTestSuite = unittest.TestSuite()
     # TODO: Automatically discover doctest cases.
     for module in checks, cutplace, data, fields, interface, ods, parsers, range, server, tools, version:
-        allTestSuite.addTest(doctest.DocTestSuite(module))    
+        result.addTest(doctest.DocTestSuite(module))    
 
     # TODO: Automatically discover test cases.
     allTests = [
@@ -61,8 +61,19 @@ def main():
             # FIXME: Stop server and add: test_web.WebTest
             ]
     for testCaseClass in allTests:
-        allTestSuite.addTest(loader.loadTestsFromTestCase(testCaseClass))
+        result.addTest(loader.loadTestsFromTestCase(testCaseClass))
+    
+    return result
+    
+def main():
+    """
+    Run all tests.
+    """
+    testCount = 0
+    errorCount = 0
+    failureCount = 0
 
+    allTestSuite = createTestSuite()
     testResults = unittest.TextTestRunner(verbosity=2).run(allTestSuite)
     testCount += testResults.testsRun
     failureCount += len(testResults.failures)
