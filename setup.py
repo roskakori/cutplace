@@ -33,10 +33,8 @@ setup(
       url="http://cutplace.sourceforge.net/",
       # TODO: Actually coverage is only required for the development reports. How to express this here?
       install_requires = ["coverage", "xlrd"],
-      packages = find_packages("source"),
-      package_dir={"": "cutplace"},
       # TODO: Include documentation in distribution by copying it to package folder.
-      package_data = {"": ["*.html, *.png, *.txt"]},
+      packages = ["cutplace"],
       entry_points = {
         "console_scripts": ["cutplace = cutplace.cutplace:mainForScript"]
       },
