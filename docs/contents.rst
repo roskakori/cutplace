@@ -7,6 +7,7 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   index
    installation
    tutorial
    writing-an-icd
