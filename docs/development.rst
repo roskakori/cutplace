@@ -64,7 +64,7 @@ The source code consists of:
   files
 
 * ``tests/input/*`` are test data used by the unittest tests in
-  ``source/cutplace/test_*.py``
+  ``cutplace/test_*.py``
 
 * ``.project`` and ``.pydevproject`` are for use with `Eclipse
   <http://www.eclipse.org/>`_ and `PyDev <http://pydev.sourceforge.net/>`_.
