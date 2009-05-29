@@ -12,54 +12,52 @@ Obtaining additional tools and Python packages
 
 To build the source code, you need a few additional tools and Python packages.
 
-`Ant <http://ant.apache.org/>`_ is a build tool popular in the Java world.
-Eventually all the functionality in the build process should be available using
-``setup.py``, but for the time being ant is more convenient.
-
-Next there are a couple of Python packages:
+First there are a couple of Python packages:
 
 * coverage
 
 * profiler
 
+* sphinx
+
 The easiest way to install them is running::
 
-  easy_install coverage profiler
+  easy_install coverage profiler sphinx
 
 If you are using Ubuntu, you should instead use ``apt-get``::
 
   sudo apt-get install python-setuptools
   sudo apt-get install python-profiler
-  sudo easy_install coverage
+  sudo easy_install coverage sphinx
+
+And finally you might need `ant <http://ant.apache.org/>`_,  a build tool popular in the Java world.
+Although most of the build process is covered by ``setup.py`` and a some custom
+Python modules, a few things use ant. The reason for that is partially because
+it is more robust and portable than using shell scripts for the same thing
+and partially because it seems easier to write and maintain an ant target
+than adding a new ``setup.py`` command. Ideally though there would be no need for
+ant and everything would be covered by ``setup.py``.
 
 Obtaining and building the source code
 ======================================
 
 The source code for cutplace is available via a Subversion repository from
 https://cutplace.svn.sourceforge.net/svnroot/cutplace/trunk. You can browse it
-at http://cutplace.svn.sourceforge.net/viewvc/cutplace/.
+at https://apps.sourceforge.net/trac/cutplace/browser/trunk.
 
 The source code consists of:
 
-* ``build.xml`` is the project file for the build tool `Ant
+* ``build.xml`` is the project file for the build tool `ant
   <http://ant.apache.org/>`_
 
-* ``version.xml`` contains basic version information
+* ``cutplace/*.py`` are the Python modules for cutplace
 
-* ``source/cutplace/*.py`` are the Python modules for cutplace
-
-* ``source/cutplace/dev_*.py`` are Python modules useful only during
+* ``cutplace/dev_*.py`` are Python modules useful only during
   development
 
-* ``source/cutplace/test_*.py`` are test cases for unittest
+* ``cutplace/test_*.py`` are test cases for unittest
 
-* ``source/site`` is the source code needed to build the cutplace website
-
-* ``source/site/user-guide.xml`` is the Documentation written in `DocBook XML
-  <http://www.docbook.org/>`_
-
-* ``source/xml/*.xml`` are XSL transformations for source code generated from
-  ``version.xml``
+* ``docs/*`` is the reStructuredText for the web site and user guide
 
 * ``tests/*`` contains test data; use for example `OpenOffice.org
   <http://www.openoffice.org/>`_'s calc to edit the ``*.ods`` and ``*.csv``
@@ -73,66 +71,35 @@ The source code consists of:
 
 If Eclipse and PyDev are your developer environment of choice, you can check
 out the repository directly from Eclipse using ``File | New | Other...`` and
-select ``SVN | Checkout projects from SVN``. After that, you should open
-``build.xml`` and run the ant target "setup".
+select ``SVN | Checkout projects from SVN``.
 
 If you prefer the command line, you need any Subversion client and the build
-tool ant. Some parts of the code are generated using XSL and ant's ``<xslt>``
-task, so simply using distutils alone won't suffice.
+tool ant.
 
 To check out the current version using the standard Subversion command line
 client, run::
 
   svn checkout https://cutplace.svn.sourceforge.net/svnroot/cutplace/trunk cutplace
 
-After the checkout, change to the cutplace folder and execute the ant target
-"setup"::
+After the checkout, change to the cutplace folder::
 
   cd cutplace
-  ant setup
-
-The output should look something like this (replace "..." with your local
-project path)::
-
-  Buildfile: build.xml
-  setup:
-  [untar] Expanding: .../cutplace/external/dtds.tar.bz2 into .../cutplace
-  [untar] Expanding: .../cutplace/external/docbook-xsl.tar.bz2 into .../cutplace
-  BUILD SUCCESSFUL Total time: 3 seconds
 
 To just build a binary distribution, run::
 
-  ant bdist_egg
+  python setup.py bdist_egg
 
 The output should look something like this::
 
-  Buildfile: build.xml
-
-    version:
-     [xslt] Processing .../cutplace/version.xml to .../cutplace/source/cutplace/version.py
-     [xslt] Loading stylesheet .../cutplace/source/xml/version-py.xsl
-     [xslt] Processing .../cutplace/version.xml to .../cutplace/setup.py
-     [xslt] Loading stylesheet .../cutplace/source/xml/version-setup-py.xsl
-
-    user-guide:
-     [xslt] Processing .../cutplace/source/site/user-guide.xml to .../cutplace/site/index.html
-     [xslt] Loading stylesheet .../cutplace/docbook-xsl/xhtml/docbook.xsl
-
-    bdist:
-     [exec] running bdist
-     [exec] running bdist_dumb
-     [exec] running build
-     [exec] running build_py
-     [exec] creating build
-     [exec] creating build/lib
-     [exec] creating build/lib/cutplace
-     [exec] ...
-
-    BUILD SUCCESSFUL
+  running bdist_egg
+  running egg_info
+  writing requirements to cutplace.egg-info/requires.txt
+  writing cutplace.egg-info/PKG-INFO
+  ...
 
 To run all test cases::
 
-  ant test
+  python setup.py test
 
 To build the user guide, developer reports and web site::
 
@@ -150,7 +117,7 @@ If however you have some very special requirements, you can write your own
 formats.
 
 The easiest way to do so is by adding your format to
-``source/cutplace/fields.py``. Simply inherit from ``AbstractFieldFormat`` and
+``cutplace/fields.py``. Simply inherit from ``AbstractFieldFormat`` and
 provide a constructor to parse the ``rule`` parameter. Next, implement
 ``validate(self, item)`` that validates that the text in ``item`` conforms to
 ``rule``. If not, raise an ``FieldValueError`` with a descriptive error
@@ -165,7 +132,7 @@ Writing checks
 ==============
 
 Writing checks is quite similar to writing field formats. The standard checks
-are stored in ``source/cutplace/fields.py``. Inherit from ``AbstractCheck`` and
+are stored in ``cutplace/fields.py``. Inherit from ``AbstractCheck`` and
 provide a constructor. You might want to implement at least one of the
 following methods:
 
@@ -185,8 +152,8 @@ Contributing source code
 In case you fixed any bugs or added improvements to cutplace, feel free to
 contribute your changes.
 
-The easiest way to do this is by submitting them to the project's patch tracker
-at https://sourceforge.net/tracker/?group_id=256054&atid=1126965.
+The easiest way to do this is by posting your patch to the 
+`developer forum <http://apps.sourceforge.net/phpbb/cutplace/viewforum.php?f=4&sid=4f287a1c1267adcf22a13f90731d645f>`_
 
 Developer notes
 ===============
