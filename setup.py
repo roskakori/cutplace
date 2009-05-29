@@ -21,8 +21,41 @@ Cutplace setup for setuptools.
 import ez_setup
 ez_setup.use_setuptools()
 
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages, Command
+from cutplace import ods
+from cutplace import tools
 from cutplace import version
+
+import os
+
+class _DocsGeneratedCommand(Command):
+    description = "build generated files for documentation"
+    user_options = [ ]
+
+    def _convertAllOdsToCsvAndRst(self, folder):
+        assert folder is not None
+        for baseFolder, subFolders, fileNames in os.walk(folder):
+            for fileName in fileNames:
+                if os.path.splitext(fileName)[1].lower() == ".ods":
+                    self._convertOdsToCsvAndRst(os.path.join(baseFolder, fileName))
+                    
+    def _convertOdsToCsvAndRst(self, odsSourcePath):
+        assert odsSourcePath is not None
+        csvTargetPath = tools.withSuffix(odsSourcePath, ".csv")
+        rstTargetPath = tools.withSuffix(odsSourcePath, ".rst")
+        print "generating %r and %r" % (csvTargetPath, rstTargetPath)
+        ods.toCsv(odsSourcePath, csvTargetPath)
+        ods.toRst(odsSourcePath, rstTargetPath, firstRowIsHeading=False)
+
+    def initialize_options(self):
+        pass
+    
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        self._convertAllOdsToCsvAndRst("examples")
+        
 
 setup(
       name="cutplace",
@@ -32,14 +65,14 @@ setup(
       author_email="roskakori@users.sourceforge.net",
       url="http://cutplace.sourceforge.net/",
       # TODO: Actually coverage is only required for the development reports. How to express this here?
-      install_requires = ["coverage", "xlrd"],
+      install_requires=["coverage", "xlrd"],
       # TODO: Include documentation in distribution by copying it to package folder.
-      packages = ["cutplace"],
-      entry_points = {
+      packages=["cutplace"],
+      entry_points={
         "console_scripts": ["cutplace = cutplace.cutplace:mainForScript"]
       },
-      license = "GNU GPLv3",
-      test_suite = "cutplace.test_all.createTestSuite",
+      license="GNU General Public License 3 or later",
+      test_suite="cutplace.test_all.createTestSuite",
       long_description="""Cutplace is a tool to validate that data conform to an interface control document (ICD).
 
 Cutplace works with flat data formats using a separator (such as CSV) or fixed length fields. Such formats are commonly
@@ -50,7 +83,7 @@ architecturally very different systems like mainframes.
 With cutplace you can describe these data in a simple and human readable spreadsheets using popular applications
 like Calc or Excel. Unlike a lot of documentation these days, this description does not only describe wishful
 thinking. It acts as "executable specification" which cutplace can use to validate that data actually conform to it.""",
-      classifiers = [
+      classifiers=[
           "Development Status :: 3 - Alpha",
           "Environment :: Console",
           "Environment :: Web Environment",
@@ -66,5 +99,9 @@ thinking. It acts as "executable specification" which cutplace can use to valida
           "Topic :: Documentation",
           "Topic :: Software Development :: Quality Assurance",
           "Topic :: Software Development :: Testing"
-      ]
+      ],
+      cmdclass={
+          "docs_generated": _DocsGeneratedCommand
+      }
 )
+        
