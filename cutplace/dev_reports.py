@@ -24,7 +24,7 @@ def _testLotsOfCustomers():
     unittest.TextTestRunner(verbosity=2).run(suite)
 
 def _getSourceFolder():
-    return os.path.join("source", "cutplace")
+    return "cutplace"
 
 def _listdirPythonSource():
     return tools.listdirMatching(_getSourceFolder(), ".*\\.py")
