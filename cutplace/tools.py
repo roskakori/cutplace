@@ -165,3 +165,22 @@ def isCommaToken(someToken):
     """
     assert someToken
     return (someToken[0] == token.OP) and (someToken[1] == ",")
+"""
+Same as `path` but with suffix changed to `suffix`.
+
+Examples:
+
+>>> print tools.withSuffix("eggs.txt", ".rst")
+eggs.rst
+>>> print tools.withSuffix("eggs.txt", "")
+eggs
+>>> print tools.withSuffix(os.path.join("spam", "eggs.txt"), ".rst")
+spam/eggs.rst
+"""
+def withSuffix(path, suffix=""):
+    assert path is not None
+    assert suffix is not None
+    result = os.path.splitext(path)[0]
+    if suffix:
+        result += suffix
+    return result

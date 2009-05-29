@@ -2,6 +2,7 @@
 Test for `tools` module.
 """
 import dev_test
+import os.path
 import tools
 import unittest
 
@@ -45,5 +46,16 @@ class ToolsTest(unittest.TestCase):
         self.assertEqual(tools.humanReadableList(["a", "b"]), "'a' or 'b'")
         self.assertEqual(tools.humanReadableList(["a", "b", "c"]), "'a', 'b' or 'c'")
 
+    def _testWithSuffix(self, expectedPath, pathToTest, suffixToTest):
+        actualPath = tools.withSuffix(pathToTest, suffixToTest)
+        self.assertEqual(expectedPath, actualPath)
+
+    def testWithSuffix(self):
+        self._testWithSuffix("hugo.pas", "hugo.txt", ".pas")
+        self._testWithSuffix("hugo", "hugo.txt", "")
+        self._testWithSuffix("hugo.", "hugo.txt", ".")
+        self._testWithSuffix("hugo.txt", "hugo", ".txt")
+        self._testWithSuffix(os.path.join("eggs", "hugo.pas"), os.path.join("eggs", "hugo.txt"), ".pas")
+        
 if __name__ == "__main__": # pragma: no cover
     unittest.main()

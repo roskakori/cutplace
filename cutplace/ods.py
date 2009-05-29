@@ -278,8 +278,12 @@ def main(arguments):
     _FORMAT_DOCBOOK = "docbook"
     _FORMAT_RST = "rst"
     _FORMATS = [_FORMAT_CSV, _FORMAT_DOCBOOK, _FORMAT_RST]
-
-    usage = "usage: %prog [options] ODS-FILE OUTPUT-FILE"
+    _FORMAT_TO_SUFFIX_MAP = {
+                             _FORMAT_CSV: ".csv",
+                             _FORMAT_DOCBOOK: ".xml",
+                             _FORMAT_RST: ".rst"
+                             }
+    usage = "usage: %prog [options] ODS-FILE [OUTPUT-FILE]"
     parser = optparse.OptionParser(usage)
     parser.set_defaults(format=_FORMAT_CSV, id="insert-id", sheet=1, title="Insert Title")
     parser.add_option("-f", "--format", metavar="FORMAT", type="choice", choices=_FORMATS, dest="format",
@@ -294,9 +298,14 @@ def main(arguments):
     if options.sheet < 1:
         logging.getLogger("cutplace.ods").error("option --sheet is %d but must be at least 1" % options.sheet)
         sys.exit(1)
-    elif len(others) == 2:
+    elif len(others) in [1, 2]:
         sourceFilePath = others[0]
-        targetFilePath = others[1]
+        if len(others) == 2:
+            targetFilePath = others[1]
+        else:
+            assert options.format in _FORMAT_TO_SUFFIX_MAP
+            suffix = _FORMAT_TO_SUFFIX_MAP[options.format]
+            targetFilePath = tools.withSuffix(sourceFilePath, suffix)
         logging.getLogger("cutplace.ods").info("convert %r to %r using format %r" % (sourceFilePath, targetFilePath, options.format))
         try:
             if options.format == _FORMAT_CSV:
