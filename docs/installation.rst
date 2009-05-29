@@ -91,6 +91,6 @@ However, there is a 2.5 beta available which seems to work pretty well. It does
 not integrate with ``setuptools``, so you need to use the Subversion repository
 and then run it using something like::
 
-  jython .../path/to/cutplace/source/cutplace/cutplace.py --help
+  jython .../path/to/cutplace/cutplace/cutplace.py --help
 
 This should output the quick help.
