@@ -295,8 +295,9 @@ def main(arguments):
     options, others = parser.parse_args(arguments)
 
     # TODO: If no output file is specified, derive name from input file.
+    log = logging.getLogger("cutplace.ods")
     if options.sheet < 1:
-        logging.getLogger("cutplace.ods").error("option --sheet is %d but must be at least 1" % options.sheet)
+        log.error("option --sheet is %d but must be at least 1" % options.sheet)
         sys.exit(1)
     elif len(others) in [1, 2]:
         sourceFilePath = others[0]
@@ -306,10 +307,12 @@ def main(arguments):
             assert options.format in _FORMAT_TO_SUFFIX_MAP
             suffix = _FORMAT_TO_SUFFIX_MAP[options.format]
             targetFilePath = tools.withSuffix(sourceFilePath, suffix)
-        logging.getLogger("cutplace.ods").info("convert %r to %r using format %r" % (sourceFilePath, targetFilePath, options.format))
+        log.info("convert %r to %r using format %r" % (sourceFilePath, targetFilePath, options.format))
         try:
             if options.format == _FORMAT_CSV:
-                
+                if options.firstRowIsHeading:
+                    log.error("option --heading can not be used with --format=csv")
+                    sys.exit(1)
                 toCsv(sourceFilePath, targetFilePath, sheet=options.sheet)
             elif options.format == _FORMAT_DOCBOOK:
                 # FIXME: Add support for --heading with DocBook.
@@ -326,7 +329,7 @@ def main(arguments):
             logging.getLogger("cutplace.ods").error("cannot convert ods to csv: %s" % error, exc_info=1)
             sys.exit(1)
     else:
-        sys.stderr.write("%s%s" % ("ODS-FILE and OUTPUT-FILE must be specified", os.linesep))
+        log.error("ODS-FILE must be specified")
         sys.exit(1)
 
 if __name__ == '__main__': # pragma: no cover
