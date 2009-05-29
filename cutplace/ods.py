@@ -115,6 +115,80 @@ def toCsv(odsFilePath, csvTargetPath, dialect="excel", sheet=1):
     finally:
         csvTargetFile.close()
  
+def _writeRstRow(rstTargetFile, columnLengths, items):
+    assert rstTargetFile is not None
+    assert columnLengths
+    assert items
+    assert len(columnLengths) >= len(items)
+    
+    for columnIndex in range(len(columnLengths)):
+        columnLength = columnLengths[columnIndex]
+        assert columnLength > 0
+        item = items[columnIndex]
+        itemLength = len(item)
+        assert columnLength >= itemLength
+        # FIXME: Add support for items containing line separators .
+        if ("\n" in item) or ("\r" in item):
+            raise NotImplementedError("item must not contain line separator: %r" % item)
+        rstTargetFile.write("+%s%s" % (item, " " * (columnLength - itemLength)))
+    rstTargetFile.write("+\n")
+     
+def _writeRstSeparatorLine(rstTargetFile, columnLengths, lineSeparator):
+    assert rstTargetFile is not None
+    assert columnLengths
+    assert lineSeparator in ["-", "="]
+    
+    for columnLength in columnLengths:
+        assert columnLength > 0
+        rstTargetFile.write("+")
+        rstTargetFile.write(lineSeparator * columnLength)
+    rstTargetFile.write("+\n")
+        
+def toRst(odsFilePath, rstTargetPath, firstRowIsHeading=True, sheet=1):
+    """
+    Convert ODS file in `odsFilePath` to reStructuredText and store the result in `rstTargetPath`.
+    """
+    assert odsFilePath is not None
+    assert rstTargetPath is not None
+    assert sheet >= 1
+    
+    rowListHandler = RowListContentHandler(sheet)
+    zipArchive = zipfile.ZipFile(odsFilePath, "r")
+    try:
+        # TODO: Consider switching to 2.6 and use ZipFile.open(). This would need less memory.
+        xmlData = zipArchive.read("content.xml")
+        xml.sax.parseString(xmlData, rowListHandler)
+    finally:
+        zipArchive.close()
+
+    # Find out the length of each column.
+    lengths = []
+    isFirstRow = True
+    for row in rowListHandler.rows:
+        for columnIndex in range(len(row)):
+            item = row[columnIndex]
+            itemLength = len(item)
+            if isFirstRow or (columnIndex == len(lengths)):
+                lengths.append(itemLength)
+                isFirstRow = False
+            elif lengths[columnIndex] < itemLength:
+                lengths[columnIndex] = itemLength
+                
+    rstTargetFile = open(rstTargetPath, "w")
+    try:
+        isFirstRow = firstRowIsHeading
+        _writeRstSeparatorLine(rstTargetFile, lengths, "-")
+        for row in rowListHandler.rows:
+            _writeRstRow(rstTargetFile, lengths, row)
+            if isFirstRow:
+                lineSeparator = "="
+                isFirstRow = False
+            else:
+                lineSeparator = "-"
+            _writeRstSeparatorLine(rstTargetFile, lengths, lineSeparator)
+    finally:
+        rstTargetFile.close()
+ 
 def _isEmptyRow(row):
     """
     True if row has no items or all items in row are "".
@@ -195,12 +269,15 @@ def toDocBookXml(odsFilePath, xmlTargetPath, id, title, sheet=1):
     finally:
         xmlTargetFile.close()
 
+# FIXME: The handlers for the various formats should support items spawning multiple columns.
+# FIXME: Add support for items spawning multiple rows.
 def main(arguments):
     assert arguments is not None
 
     _FORMAT_CSV = "csv"
     _FORMAT_DOCBOOK = "docbook"
-    _FORMATS = [_FORMAT_CSV, _FORMAT_DOCBOOK]
+    _FORMAT_RST = "rst"
+    _FORMATS = [_FORMAT_CSV, _FORMAT_DOCBOOK, _FORMAT_RST]
 
     usage = "usage: %prog [options] ODS-FILE OUTPUT-FILE"
     parser = optparse.OptionParser(usage)
@@ -208,6 +285,7 @@ def main(arguments):
     parser.add_option("-f", "--format", metavar="FORMAT", type="choice", choices=_FORMATS, dest="format",
                       help="output format: %s (default: %%default)" % tools.humanReadableList(_FORMATS))
     parser.add_option("-i", "--id", metavar="ID", dest="id", help="XML ID table can be referenced with (default: %default)")
+    parser.add_option("-1", "--heading", action="store_true", dest="firstRowIsHeading", help="render first row as heading")
     parser.add_option("-s", "--sheet", metavar="SHEET", type="long", dest="sheet", help="sheet to convert (default: %default)")
     parser.add_option("-t", "--title", metavar="TITLE", dest="title", help="title to be used for XML table (default: %default)")
     options, others = parser.parse_args(arguments)
@@ -222,9 +300,14 @@ def main(arguments):
         logging.getLogger("cutplace.ods").info("convert %r to %r using format %r" % (sourceFilePath, targetFilePath, options.format))
         try:
             if options.format == _FORMAT_CSV:
+                
                 toCsv(sourceFilePath, targetFilePath, sheet=options.sheet)
             elif options.format == _FORMAT_DOCBOOK:
+                # FIXME: Add support for --heading with DocBook.
+                assert not options.firstRowIsHeading
                 toDocBookXml(sourceFilePath, targetFilePath, id=options.id, title=options.title, sheet=options.sheet)
+            elif options.format == _FORMAT_RST:
+                toRst(sourceFilePath, targetFilePath, firstRowIsHeading=options.firstRowIsHeading, sheet=options.sheet)
             else: # pragma: no cover
                 raise NotImplementedError("format=%r" % (options.format))
         except IOError, error:

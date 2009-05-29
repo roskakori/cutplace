@@ -2,6 +2,7 @@
 Tests for ODS.
 '''
 import dev_test
+import logging
 import ods
 import unittest
 
@@ -16,6 +17,11 @@ class OdsTest(unittest.TestCase):
         testInPath = dev_test.getTestInputPath("valid_customers.ods")
         testOutPath = dev_test.getTestOutputPath("valid_customers_from_ods.xml")
         ods.main(["--format=docbook", testInPath, testOutPath])
+
+    def testConvertToRst(self):
+        testInPath = dev_test.getTestInputPath("valid_customers.ods")
+        testOutPath = dev_test.getTestOutputPath("valid_customers_from_ods.rst")
+        ods.main(["--format=rst", testInPath, testOutPath])
 
     def testBrokenKinkyFileName(self):
         testInPath = dev_test.getTestInputPath("valid_customers.ods")
