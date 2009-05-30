@@ -173,7 +173,13 @@ def toRst(odsFilePath, rstTargetPath, firstRowIsHeading=True, sheet=1):
                 isFirstRow = False
             elif lengths[columnIndex] < itemLength:
                 lengths[columnIndex] = itemLength
-                
+    
+    if not lengths:
+        raise ValueError("file must contain columns: %r" % odsFilePath)
+    for columnsIndex in range(len(lengths)):
+        if lengths[columnIndex] == 0:
+            raise ValueError("column %d in file %r must not always be empty" % (columnIndex + 1, odsFilePath))
+
     rstTargetFile = open(rstTargetPath, "w")
     try:
         isFirstRow = firstRowIsHeading

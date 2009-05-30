@@ -257,27 +257,24 @@ Overview
 
 The field format section of the ICD contains rows with the following columns:
 
-* The letter "F" to indicate that the remaining columns describe a field
+# The letter "F" to indicate that the remaining columns describe a field
   format.
       
-* The name of the field. It must start with an ASCII letter and continue with
+# The name of the field. It must start with an ASCII letter and continue with
   letters, numbers and underscores (_), for example
   ``customer_id``.
 
-* An optional example value for the field. This is for documentation purpose
+# An optional example value for the field. This is for documentation purpose
   only and can be omitted for fields where there is no meaningful example (such
   as a field containing a BLOB). In case a value is specified though, it must
   be a valid example conforming to all the rules for this field.
 
-* The type of the field, for example ``Text``, ``Integer``, ``DateTime`` and
-  others. Refer to the sections below for detailed descriptions of these types.
-
-* A flag that indicates if the field is allowed to be empty.  "X" means that
+# A flag that indicates if the field is allowed to be empty. ``X`` means that
   the field can be empty, no text means that the field always must contain at
   least some data.
 
-* The length of the field in characters.  For separated formats, this is
-  optional and takes the form ``lower_limit``:``upper_limit``.  For example,
+# The optional length of the field in characters.  For separated formats, this is
+  optional and takes the form ``lower_limit:upper_limit``.  For example,
   ``10:20`` means that values in this field must contains at least 10
   characters and at most 20. It is also possible to specify only a lower or
   upper limit, for example ``10:`` means at least 10 characters ans ``:20``
@@ -286,23 +283,27 @@ The field format section of the ICD contains rows with the following columns:
   For fixed formats, this column takes a number that specifies the exact length
   of the field, for example ``50``.
 
-* A rule depending on the type further describing the field.  For example, a
-  field of type DateTime requires an exact date or time format such as
-  DD.MM.YYYY.
+# The optional type of the field, for example ``Text``, ``Integer``, ``DateTime`` and
+  others. Refer to the sections below for detailed descriptions of these types. If you
+  do not specify a type, ``Text`` is used.
 
-* The remaining columns are not parsed by cutplace and can contain any text you
-  like, for example a description of the meaning of the field or details about
-  from where the data originate.
+# A rule depending on the type further describing the field.  For example, a
+  field of type DateTime requires an exact date or time format such as
+  ``DD.MM.YYYY``.
+
+The remaining columns are not parsed by cutplace and can contain any text you
+like, for example a description of the meaning of the field or details about
+from where the data originate.
 
 Simple examples for various field formats
 
-==  =============  ==========  ========  ======  ==========  ========
-..  Name           Example     Type      Empty   Length      Rule
-==  =============  ==========  ========  ======  ==========  ========
-F   customer_id    123456      Integer                       1:999999
-F   surname        Miller      Text              1:60
-F   date_of_birth  1969-11-03  DateTime  X       YYYY-MM-DD
-==  =============  ==========  ========  ======  ==========  ========
+==  =============  ==========  ======  ==========  ========  ==========
+..  Name           Example     Empty   Length      Type      Rule
+==  =============  ==========  ======  ==========  ========  ==========
+F   customer_id    123456                          Integer   1:999999
+F   surname        Miller              1:60        Text      
+F   date_of_birth  1969-11-03  X                   DateTime  YYYY-MM-DD
+==  =============  ==========  ======  ==========  ========  ==========
 
 Text
 ----
@@ -312,11 +313,11 @@ characters.
 
 Examples for Text fields
 
-==  =======  =======  ====  =====  ======  ====
-..  Name     Example  Type  Empty  Length  Rule
-==  =======  =======  ====  =====  ======  ====
-F   surname  Miller   Text         1..60 
-==  =======  =======  ====  =====  ======  ====
+==  =======  =======  =====  ======  ====  ====
+..  Name     Example  Empty  Length  Type  Rule
+==  =======  =======  =====  ======  ====  ====
+F   surname  Miller          1..60   Text  
+==  =======  =======  =====  ======  ====  ====
 
 Integer
 -------
@@ -326,13 +327,13 @@ fractional part.
 
 Examples for Integer fields
 
-==  ======  =======  =======  =====  ======  =======
-..  Name    Example  Type     Empty  Length  Rule
-==  ======  =======  =======  =====  ======  =======
-F   height  3798     Integer                 0:8848
-F   weight  72       Integer         0:      0:
-F   id      1337     Integer         5       1:99999
-==  ======  =======  =======  =====  ======  =======
+==  ======  =======  =====  ======  =======  =======
+..  Name    Example  Empty  Length  Type     Rule
+==  ======  =======  =====  ======  =======  =======
+F   height  3798                    Integer  0:8848
+F   weight  72              0:      Integer  0:
+F   id      1337            5       Integer  1:99999
+==  ======  =======  =====  ======  =======  =======
 
 Choice
 ------
@@ -342,13 +343,13 @@ possibly values.
 
 Examples for Choice fields
 
-==  ==========  =======  ======  =====  ======  ========================================
-..  Name        Example  Type    Empty  Length  Rule
-==  ==========  =======  ======  =====  ======  ========================================
-F   color       red      Choice                 red, green, blue
-F   iso_gender  male     Choice                 male, female, unknown, other
-F   department  sales    Choice                 accounting, development, sales, shipping
-==  ==========  =======  ======  =====  ======  ========================================
+==  ==========  =======  =====  ======  ======  ========================================
+..  Name        Example  Empty  Length  Type    Rule
+==  ==========  =======  =====  ======  ======  ========================================
+F   color       red                     Choice  red, green, blue
+F   iso_gender  male                    Choice  male, female, unknown, other
+F   department  sales                   Choice  accounting, development, sales, shipping
+==  ==========  =======  =====  ======  ======  ========================================
 
 DateTime
 --------
@@ -380,12 +381,12 @@ separators and have to appear in the data as specified.
 
 Examples for DateTime fields
 
-==  ===============  ==========  ========  =====  ======  ==========
-..  Name             Example     Type      Empty  Length  Rule
-==  ===============  ==========  ========  =====  ======  ==========
-F   date_of_birth    1969-11-03  DateTime                 YYYY-MM-DD
-F   time_of_arrival  17:23       DateTime                 hh:mm
-==  ===============  ==========  ========  =====  ======  ==========
+==  ===============  ==========  =====  ======  ========  ==========
+..  Name             Example     Empty  Length  Type      Rule
+==  ===============  ==========  =====  ======  ========  ==========
+F   date_of_birth    1969-11-03                 DateTime  YYYY-MM-DD
+F   time_of_arrival  17:23                      DateTime  hh:mm
+==  ===============  ==========  =====  ======  ========  ==========
 
 Pattern
 -------
@@ -399,12 +400,12 @@ special characters as place holders:
 
 Examples for Pattern fields
 
-==  ============  =======  =====  ======  ============
-..  Name          Type     Empty  Length  Rule
-==  ============  =======  =====  ======  ============
-F   dos_filename  Pattern         1:12    ?*.*
-F   branch_id     Pattern                 B???-????-?*
-==  ============  =======  =====  ======  ============
+==  ============  =====  ======  =======  ============
+..  Name          Empty  Length  Type     Rule
+==  ============  =====  ======  =======  ============
+F   dos_filename         1:12    Pattern  ?*.*
+F   branch_id                    Pattern  B???-????-?*
+==  ============  =====  ======  =======  ============
 
 RegEx
 -----
@@ -416,11 +417,11 @@ documentation, available from http://docs.python.org/library/re.html.
 
 Examples for RegEx fields
 
-==  =====  ================  =====  =====  ======  ================================================
-..  Name   Example           Type   Empty  Length  Rule
-==  =====  ================  =====  =====  ======  ================================================
-F   email  some@example.com  RegEx                 ^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$ [#fn1]_
-==  =====  ================  =====  =====  ======  ================================================
+==  =====  ================  =====  ======  =====  ================================================
+..  Name   Example           Empty  Length  Type   Rule
+==  =====  ================  =====  ======  =====  ================================================
+F   email  some@example.com                 RegEx  ^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$ [#fn1]_
+==  =====  ================  =====  ======  =====  ================================================
 
 Checks
 ======

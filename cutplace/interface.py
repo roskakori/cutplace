@@ -96,8 +96,12 @@ class InterfaceControlDocument(object):
         assert classNameAppendix
         assert typeName
         
+        # FIXME: Remove check for "fields." and provide a proper test case in testFieldTypeWithModule
+        # using a "real" module.
+        if type.startswith("fields."):
+            type = type[7:]
         lastDotIndex = type.rfind(".")
-        if lastDotIndex >= 0:
+        if (lastDotIndex >= 0):
             # FIXME: Detect and report errors for  cases ".class" and "module.".
             moduleName = type[0:lastDotIndex]
             className = type[lastDotIndex + 1:]
@@ -157,10 +161,10 @@ class InterfaceControlDocument(object):
         Add field as described by `items`. The meanings of the items are:
         
         0) field name
-        1) example value (can be empty)
-        2) field type
+        1) optional: example value (can be empty)
         3) optional: empty flag ("X"=field is allowed to be empty)
         4) optional: length ("lower:upper")
+        2) optional: field type
         5) optional: rule to validate field (depending on type)
         
         Further values in `items` are ignored.
@@ -170,48 +174,61 @@ class InterfaceControlDocument(object):
         assert items is not None
 
         if self.dataFormat is None:
-            raise data.DataFormatSyntaxError("data format must be specified before first field")
+            raise IcdSyntaxError("data format must be specified before first field")
 
         fieldName = None
         fieldExample = None
-        fieldType = None
+        fieldIsAllowedToBeEmpty = False
         fieldLength = None
+        fieldType = None
         fieldRule = ""
         
         itemCount = len(items)
-        if itemCount >= 3:
+        if itemCount >= 1:
             # Obtain field name.
             try:
                 fieldName = tools.validatedPythonName("field name", items[0])
             except NameError, error:
                 raise fields.FieldSyntaxError(str(error))
+
             # Obtain example.
-            fieldExample = items[1]
-            # Obtain field type.
-            try:
-                fieldType = ""
-                fieldTypeParts = items[2].split(".")
-                for part in fieldTypeParts:
-                    if fieldType:
-                        fieldType += "."
-                    fieldType += tools.validatedPythonName("field type part", part)
-                assert fieldType, "empty field type must be detected by validatedPythonName()"
-            except NameError, error:
-                raise fields.FieldSyntaxError(str(error))
+            if itemCount >= 2:
+                fieldExample = items[1]
+            else:
+                fieldExample = ""
+
             # Obtain "empty" flag. 
-            fieldIsAllowedToBeEmpty = False
-            if itemCount >= 4:
-                fieldIsAllowedToBeEmptyText = items[3].strip().lower()
+            if itemCount >= 3:
+                fieldIsAllowedToBeEmptyText = items[2].strip().lower()
                 if fieldIsAllowedToBeEmptyText == InterfaceControlDocument._EMPTY_INDICATOR:
                     fieldIsAllowedToBeEmpty = True
                 elif fieldIsAllowedToBeEmptyText:
                     raise fields.FieldSyntaxError("mark for empty field must be %r or empty but is %r" 
                                                   % (InterfaceControlDocument._EMPTY_INDICATOR,
                                                      fieldIsAllowedToBeEmptyText))
-                if itemCount >= 5:
-                    fieldLength = items[4].strip()
-                    if itemCount >= 6:
-                        fieldRule = items[5].strip()
+
+            # Obtain length.
+            if itemCount >= 4:
+                fieldLength = items[3].strip()
+
+            # Obtain field type.
+            if itemCount >= 5:
+                fieldTypeItem = items[4].strip()
+                if fieldTypeItem:
+                    fieldType = ""
+                    fieldTypeParts = fieldTypeItem.split(".")
+                    try:
+                        for part in fieldTypeParts:
+                            if fieldType:
+                                fieldType += "."
+                            fieldType += tools.validatedPythonName("field type part", part)
+                        assert fieldType, "empty field type must be detected by validatedPythonName()"
+                    except NameError, error:
+                        raise fields.FieldSyntaxError(str(error))
+
+            # Obtain rule.
+            if itemCount >= 6:
+                fieldRule = items[5].strip()
 
             # Validate fixed fields.
             if isinstance(self.dataFormat, data.FixedDataFormat):
@@ -220,6 +237,8 @@ class InterfaceControlDocument(object):
                 # FIXME: Validate that field length is fixed size.
 
             # Obtain class for field type.
+            if not fieldType:
+                fieldType = "Text"
             fieldClass = self._createFieldFormatClass(fieldType);
             self._log.debug("create field: %s(%r, %r, %r)" % (fieldClass.__name__, fieldName, fieldType, fieldRule))
             fieldFormat = fieldClass.__new__(fieldClass, fieldName, fieldIsAllowedToBeEmpty, fieldLength, fieldRule)
@@ -242,7 +261,7 @@ class InterfaceControlDocument(object):
             else:
                 raise fields.FieldSyntaxError("field name must be used for only one field: %s" % fieldName)
         else:
-            raise fields.FieldSyntaxError("field format row (marked with %r) must contain at least 4 columns" % InterfaceControlDocument._ID_FIELD_RULE)
+            raise fields.FieldSyntaxError("field format row (marked with %r) must at least contain a field name" % InterfaceControlDocument._ID_FIELD_RULE)
 
         assert fieldName
         assert fieldExample is not None

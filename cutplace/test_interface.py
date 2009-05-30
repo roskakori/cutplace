@@ -40,13 +40,13 @@ D,Allowed characters,32:
 ,
 ,Fields
 ,
-,Name,Type,Example,Empty,Length,Rule
-F,branch_id,38123,RegEx,,5,38\d\d\d
-F,customer_id,12345,Integer,,5,0:99999
-F,first_name,John,Text,X,15
-F,surname,Doe,Text,,15
-F,gender,male,Choice,,7,"male, female, unknown"
-F,date_of_birth,08.03.1957,DateTime,,10,DD.MM.YYYY
+,Name,Example,Empty,Length,Type,Rule
+F,branch_id,38123,,5,RegEx,38\d\d\d
+F,customer_id,12345,,5,Integer,0:99999
+F,first_name,John,X,15,Text
+F,surname,Doe,,15,Text
+F,gender,male,,7,Choice,"male, female, unknown"
+F,date_of_birth,08.03.1957,,10,DateTime,DD.MM.YYYY
 ,
 ,Checks
 ,
@@ -77,13 +77,13 @@ def createDefaultTestIcd(format, lineDelimiter="\n"):
     spec += """,
 ,"Fields"
 ,
-,"Name","Example","Type","Empty","Length","Rule"
-"F","branch_id",38123,"RegEx",,,"38\d\d\d"
-"F","customer_id",12345,"Integer",,,"0:99999"
-"F","first_name","John","Text","X"
-"F","surname","Doe","Text",,"1:60"
-"F","gender","male","Choice",,,"female, male, other, unknown"
-"F","date_of_birth",08.03.1957,"DateTime",,,"DD.MM.YYYY"
+,"Name","Example","Empty","Length","Type","Rule"
+"F","branch_id",38123,,,"RegEx","38\d\d\d"
+"F","customer_id",12345,,,"Integer","0:99999"
+"F","first_name","John","X",,"Text"
+"F","surname","Doe",,"1:60","Text"
+"F","gender","male",,,"Choice","female, male, other, unknown"
+"F","date_of_birth",08.03.1957,,,"DateTime","DD.MM.YYYY"
 ,
 ,"Checks"
 ,
@@ -124,10 +124,10 @@ D,Allowed characters,32:
 ,
 ,Fields
 ,
-,Name,Type,Example,Empty,Length,Rule
-F,branch_id,38123,RegEx,,5,38\d\d\d
-F,customer_id,12345,Integer,,,0:99999
-F,first_name,John,Text,X,15
+,Name,Example,Empty,Length,Type,Rule
+F,branch_id,38123,,5,RegEx,38\d\d\d
+F,customer_id,12345,,,Integer,0:99999
+F,first_name,John,X,15,Text
 """
         icd = interface.InterfaceControlDocument()
         self._testBroken(spec, fields.FieldSyntaxError)
@@ -303,10 +303,10 @@ F,first_name,John,Text,X,15
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
 ,
-,"Name","Example","Type","Empty","Length","Rule"
-"F","first_name","John","Text","X"
-"F","gender","male","Choice",X,,"female, male"
-"F","date_of_birth",08.03.1957,"DateTime",,,"DD.MM.YYYY"
+,"Name","Empty","Length","Example","Type","Rule"
+"F","first_name","John","X",,"Text"
+"F","gender","male",X,,"Choice","female, male"
+"F","date_of_birth",08.03.1957,,,"DateTime","DD.MM.YYYY"
 """
         icd = interface.InterfaceControlDocument()
         readable = StringIO.StringIO(spec)
@@ -323,8 +323,8 @@ F,first_name,John,Text,X,15
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
 ,
-,"Name","Example","Type","Empty","Length","Rule"
-"F","first_name","John","fields.Text","X"
+,"Name","Example","Empty","Length","Type","Rule"
+"F","first_name","John","X",,"fields.Text"
 """
         icd = interface.InterfaceControlDocument()
         icd.read(StringIO.StringIO(spec))
@@ -340,10 +340,10 @@ Jane"""
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
 ,
-,"Name","Example","Type","Empty","Length","Rule"
-"F","first_name","John","Text","X"
-"F","gender","male","Choice",X,4:6,"female, male"
-"F","date_of_birth",08.03.1957,"DateTime",,,"DD.MM.YYYY"
+,"Name","Example","Empty","Length","Type","Rule"
+"F","first_name","John","X",,"Text"
+"F","gender","male",X,4:6,"Choice","female, male"
+"F","date_of_birth",08.03.1957,,,"DateTime","DD.MM.YYYY"
 """
         icd = interface.InterfaceControlDocument()
         readable = StringIO.StringIO(spec)
@@ -360,9 +360,9 @@ Jane"""
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
 ,
-,"Name","Example","Type","Empty","Length","Rule","Example"
-"F","branch_id",,"RegEx",,,"38\d\d\d"
-"F","customer_id",,"Integer",,,"0:99999"
+,"Name","Example","Empty","Length","Rule","Type","Example"
+"F","branch_id",,,,"RegEx","38\d\d\d"
+"F","customer_id",,,,"Integer","0:99999"
 ,
 ,Description,Type,Rule
 C,customer must be unique,IsUnique,"branch_id, customer_id"
@@ -378,9 +378,9 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
 ,
-,"Name","Example","Type","Empty","Length","Rule","Example"
-"F","branch_id",,"RegEx",,,"38\d\d\d"
-"F","customer_id",,"Integer",,,"0:99999"
+,"Name","Example","Empty","Length","Rule","Type","Example"
+"F","branch_id",,,,"RegEx","38\d\d\d"
+"F","customer_id",,,,"Integer","0:99999"
 ,
 ,Description,Type,Rule
 C,customer must be unique,IsUnique,"branch_id, customer_id"
@@ -440,12 +440,12 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 """
         self._testBroken(spec, data.DataFormatSyntaxError)
         
-    def testBrokenDataFormatAfterField(self):
+    def testBrokenInterfaceFieldBeforeDataFormat(self):
         spec = ""","Broken Interface with data format specified after first field"
-"F","branch_id",,"Text"
+"F","branch_id"
 "D","Format","XYZ"
 """
-        self._testBroken(spec, data.DataFormatSyntaxError)
+        self._testBroken(spec, interface.IcdSyntaxError)
 
         
     def testBrokenFieldNameMissing(self):
@@ -455,9 +455,9 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
 ,
-,"Name","Example","Type","Empty","Length","Rule","Example"
-"F","branch_id",,"RegEx",,,"38\d\d\d"
-"F","","Integer",,,,"0:99999"
+,"Name","Example","Empty","Length","Type","Rule"
+"F","branch_id",,,,"RegEx","38\d\d\d"
+"F","",,,,"Integer","0:99999"
 """
         self._testBroken(spec, fields.FieldSyntaxError)
         spec = ""","Broken Interface with missing field name"
@@ -466,9 +466,9 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
 ,
-,"Name","Example","Type","Empty","Length","Rule","Example"
-"F","branch_id",,"RegEx",,,"38\d\d\d"
-"F","     ",,"Integer",,,"0:99999"
+,"Name","Example","Empty","Length","Rule","Type"
+"F","branch_id",,,,"RegEx","38\d\d\d"
+"F","     ",,,,"Integer","0:99999"
 """
         self._testBroken(spec, fields.FieldSyntaxError)
 
@@ -479,21 +479,17 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
 ,
-,"Name","Example","Type","Empty","Length","Rule","Example"
-"F","branch_id",,"RegEx",,,"38\d\d\d"
+,"Name","Example","Empty","Length","Type","Rule"
+"F","branch_id",,,,"RegEx","38\d\d\d"
 """
-        # First of all. make sure `baseSpec` is in order by building a valid ICD.
-        spec = baseSpec + "F,customer_id,example,Text"
+        # First of all,  make sure `baseSpec` is in order by building a valid ICD.
+        spec = baseSpec + "F,customer_id"
         icd = interface.InterfaceControlDocument()
         readable = StringIO.StringIO(spec)
         icd.read(readable)
 
-        # Now comes the real meat: broken ICDs with incomplete field formats.
+        # Now comes the real meat: broken ICD with incomplete field formats.
         spec = baseSpec + "F"
-        self._testBroken(spec, fields.FieldSyntaxError)
-        spec = baseSpec + "F,customer_id"
-        self._testBroken(spec, fields.FieldSyntaxError)
-        spec = baseSpec + "F,customer_id,example"
         self._testBroken(spec, fields.FieldSyntaxError)
 
     def testBrokenFieldTypeMissing(self):
@@ -639,10 +635,10 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
 ,
-,"Name","Example","Type","Empty","Length","Rule"
-"F","first_name","John","Text","X"
-"F","gender","spam","Choice",,4:6,"female, male"
-"F","date_of_birth",08.03.1957,"DateTime",,,"DD.MM.YYYY"
+,"Name","Example","Empty","Length","Type","Rule"
+"F","first_name","John","X",,"Text"
+"F","gender","spam",,4:6,"Choice","female, male"
+"F","date_of_birth",08.03.1957,,,"DateTime","DD.MM.YYYY"
 """
         self._testBroken(spec, interface.IcdSyntaxError)
 
@@ -653,8 +649,8 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
 ,
-,"Name","Example","Type","Empty","Length","Rule"
-"F","first_name","John","Text","X"
+,"Name","Example","Empty","Length","Type","Rule"
+"F","first_name","John","X",,"Text"
 """
         icd = interface.InterfaceControlDocument()
         icd.read(StringIO.StringIO(spec))
@@ -670,9 +666,9 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
 ,
-,"Name","Example","Type","Empty","Length","Rule"
-"F","customer_id",,Integer,,,0:
-"F","first_name","John","Text","X"
+,"Name","Example","Empty","Length","Type","Rule"
+"F","customer_id",,,,Integer,0:
+"F","first_name","John","X",,"Text"
 """
         icd = interface.InterfaceControlDocument()
         icd.read(StringIO.StringIO(spec))
@@ -695,9 +691,9 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
 ,
-,"Name","Example","Type","Empty","Length","Rule"
-"F","customer_id",,Integer,,,0:
-"F","first_name","John","Text"
+,"Name","Example","Empty","Length","Type","Rule"
+"F","customer_id",,,,Integer,0:
+"F","first_name","John",,,"Text"
 """
         # Test that a specifically empty item is rejected.
         icd = interface.InterfaceControlDocument()
@@ -730,10 +726,10 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "D","Item delimiter",","
 "D","Header","1"
 ,
-,"Name","Example","Type","Empty","Length","Rule"
-"F","first_name","John","Text","X"
-"F","gender","male","Choice",X,,"female, male"
-"F","date_of_birth",08.03.1957,"DateTime",,,"DD.MM.YYYY"
+,"Name","Example","Empty","Length","Type","Rule"
+"F","first_name","John","X",,"Text"
+"F","gender","male",X,,"Choice","female, male"
+"F","date_of_birth",08.03.1957,,,"DateTime","DD.MM.YYYY"
 """
         icd = interface.InterfaceControlDocument()
         icd.read(StringIO.StringIO(spec))

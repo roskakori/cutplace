@@ -48,4 +48,55 @@ open it in a spreadsheet application such as Excel or Calc and add headings:
 +38111    +96         +Andrew    +Dixon  +male  +02.10.1913   +
 +---------+-----------+----------+-------+------+-------------+
 
-TODO: Actually explain cutplace.
+Now let's try to describe the format of this file. From our initial pondering we already know the following facts:
+
+#. The data are provided as comma separated values (CSV).
+#. The fields in the data have a meaning we can assign a heading to.
+
+This is already enough to write your first interface control document. It could look like this:
+
++-+-------------------+---+
++ +Interface: customer+   +
++-+-------------------+---+
++ +                   +   +
++-+-------------------+---+
++ +**Data format**    +   +
++-+-------------------+---+
++D+Format             +CSV+
++-+-------------------+---+
++ +                   +   +
++-+-------------------+---+
++ +**Fields**         +   +
++-+-------------------+---+
++F+branch_id          +   +
++-+-------------------+---+
++F+customer_id        +   +
++-+-------------------+---+
++F+first_name         +   +
++-+-------------------+---+
++F+surname            +   +
++-+-------------------+---+
++F+gender             +   +
++-+-------------------+---+
++F+date_of_birth      +   +
++-+-------------------+---+
+
+Actually, this would mean the same for cutplace:
+
++-+-------------------+---+
++D+Format             +CSV+
++-+-------------------+---+
++F+branch_id          +   +
++-+-------------------+---+
++F+customer_id        +   +
++-+-------------------+---+
++F+first_name         +   +
++-+-------------------+---+
++F+surname            +   +
++-+-------------------+---+
++F+gender             +   +
++-+-------------------+---+
++F+date_of_birth      +   +
++-+-------------------+---+
+
+But it's a lot harder to read for you, isn't it?
