@@ -26,10 +26,15 @@ from cutplace import ods
 from cutplace import tools
 from cutplace import version
 
-import os
+import os.path
+import subprocess
 
-class _DocsGeneratedCommand(Command):
-    description = "build generated files for documentation"
+buildFolder = "build"
+buildSiteFolder = os.path.join(buildFolder, "site")
+docsFolder = "docs"
+
+class _DocsCommand(Command):
+    description = "build documentation"
     user_options = [ ]
 
     def _convertAllOdsToCsvAndRst(self, folder):
@@ -55,7 +60,9 @@ class _DocsGeneratedCommand(Command):
 
     def run(self):
         self._convertAllOdsToCsvAndRst("examples")
-        
+        sphinxCall = ["sphinx-build", "-b", "html", "-N", "-q", docsFolder, buildSiteFolder]
+        print " ".join(sphinxCall)
+        subprocess.check_call(sphinxCall)
 
 setup(
       name="cutplace",
@@ -101,7 +108,7 @@ thinking. It acts as "executable specification" which cutplace can use to valida
           "Topic :: Software Development :: Testing"
       ],
       cmdclass={
-          "docs_generated": _DocsGeneratedCommand
+          "docs": _DocsCommand
       }
 )
         
