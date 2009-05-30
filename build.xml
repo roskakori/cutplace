@@ -16,13 +16,6 @@
     <property name="reports.dir" location="${site.dir}/reports" />
     <property name="test_all.py" location="cutplace/test_all.py" />
 
-    <xmlcatalog id="catalogs">
-        <dtd location="dtds/docbook-xml/docbookx.dtd" publicId="-//OASIS//DTD DocBook XML V4.5//EN" />
-        <dtd location="dtds/html4/loose.dtd" publicId="-//W3C//DTD HTML 4.01 Transitional//EN" />
-        <dtd location="dtds/xhtml/xhtml1-strict.dtd" publicId="-//W3C//DTD XHTML 1.0 Strict//EN" />
-        <dtd location="dtds/xhtml/xhtml1-transitional.dtd" publicId="-//W3C//DTD XHTML 1.0 Transitional//EN" />
-    </xmlcatalog>
-
     <target name="install" depends="bdist_egg" description="install binary distribution">
         <tstamp />
         <exec executable="python">
