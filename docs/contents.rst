@@ -2,12 +2,11 @@
 Table of contents
 =======================================
 
-Contents:
-
 .. toctree::
    :maxdepth: 2
 
    index
+   self
    installation
    tutorial
    writing-an-icd
