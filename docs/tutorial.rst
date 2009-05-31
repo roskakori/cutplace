@@ -247,3 +247,110 @@ Let's recap what we learned so far:
   can contain any information that is helpful for human readers to
   understand the interface.
 
+Adding examples
+===============
+
+Most people find it easist to get a general grasp of something by
+looking at an example. Cutplace supports this line of thinking by
+letting you add an examples for a field right after the name:
+
++-+--------------------+--------------+
++ +Fields              +              +
++-+--------------------+--------------+
++ +*Name*              +*Example*     +
++-+--------------------+--------------+
++F+branch_id           +**38000**     +
++-+--------------------+--------------+
++F+customer_id         +**16**        +
++-+--------------------+--------------+
++F+first_name          +**Jane**      +
++-+--------------------+--------------+
++F+surname             +**Doe**       +
++-+--------------------+--------------+
++F+gender              +**female**    +
++-+--------------------+--------------+
++F+date_of_birth       +**27.02.1946**+
++-+--------------------+--------------+
+
+See: :download:`icd_customers_2.csv <../examples/icd_customers_2.csv>`
+or :download:`icd_customers_2.ods <../examples/icd_customers_2.ods>`
+
+Finding an example usually does not require much imagination. In this
+case we just took the values from the first customer and changed the
+name to the generic "Jane Doe".
+
+These examples are entirely optional. If you cannot find a good example
+for a field (like one containing a database BLOB) or you do not think
+a real world example does not add any value (like for a field
+containing an encrypted password), feel free to leave it empty.
+
+Allowing fields to be empty
+===========================
+
+So far, every data item had an actual value and none of it was empty.
+But what if for instance we do not know the date of birth for one of 
+our customers? Consider the following example data file:
+
++---------+-----------+----------+-------+------+-------------+
++Branch id+Customer id+First name+Surname+Gender+Date of birth+
++---------+-----------+----------+-------+------+-------------+
++38000    +16         +Daisy     +Mason  +female+27.02.1946   +
++---------+-----------+----------+-------+------+-------------+
++38000    +42         +Wendy     +Davis  +female+30.12.1971   +
++---------+-----------+----------+-------+------+-------------+
++38000    +57         +Keith     +Parker +male  +02.06.1984   +
++---------+-----------+----------+-------+------+-------------+
++38000    +76         +Kenneth   +Tucker +male  +             +
++---------+-----------+----------+-------+------+-------------+
++38053    +2          +Carlos    +Barrett+male  +09.02.1929   +
++---------+-----------+----------+-------+------+-------------+
++38053    +20         +Terrance  +Hart   +male  +11.03.1961   +
++---------+-----------+----------+-------+------+-------------+
++38053    +34         +Lori      +Dunn   +female+26.09.1996   +
++---------+-----------+----------+-------+------+-------------+
++38053    +73         +Mary      +Sutton +female+09.12.1982   +
++---------+-----------+----------+-------+------+-------------+
++38053    +83         +Lorraine  +Castro +female+15.08.1978   +
++---------+-----------+----------+-------+------+-------------+
++38111    +16         +Esther    +Newman +female+             +
++---------+-----------+----------+-------+------+-------------+
++38111    +79         +Tyler     +Rose   +male  +17.12.1920   +
++---------+-----------+----------+-------+------+-------------+
++38111    +96         +Andrew    +Dixon  +male  +02.10.1913   +
++---------+-----------+----------+-------+------+-------------+
+
+See: :download:`customers_without_date_of_birth.csv <../examples/customers_without_date_of_birth.csv>`
+
+Two customers do not have a date of birth: Kenneth Tucker in row 4 and
+Ester Newman in row 10.
+
+Now try to validate these data with the same ICD we used before::
+
+  cutplace icd_customers_1.ods customers_without_date_of_birth.csv
+
+This time the output contains the following lines::
+
+  INFO:cutplace:validate "customers_without_date_of_birth.csv"
+  ...
+  ERROR:cutplace:items: ['38000', '76', 'Kenneth', 'Tucker', 'male', '']
+  ERROR:cutplace:field error: field 'date_of_birth' must match format: value must not be empty
+  ...
+  ERROR:cutplace:items: ['38111', '16', 'Esther', 'Newman', 'female', '']
+  ERROR:cutplace:field error: field 'date_of_birth' must match format: value must not be empty
+  ...
+
+The essential part here is::
+
+  field 'date_of_birth' must match format: value must not be empty
+
+When you describe a field to cutplace in the ICD, it assumes that the
+data always provide a value for this field. Apparently this is not the
+case with the data provided, so cutplace complains about it.
+
+But what if there are actually customers we do not yet know the date of
+birth yet? Not every business transactions requires the date of birth,
+so this is perfectly valid.
+
+So we have to tell cutplace that this field actually can be empty. This
+can easily be done by adding another column to the field description,
+where fields that can be empty are marked with an ``X``:
