@@ -29,6 +29,8 @@ to fit in a table with each column always containing the same kind of value.
 
 TODO: elaborate
 
+.. _data-formats:
+
 Data formats
 ============
 
@@ -247,6 +249,8 @@ F   Header    2
 F   Sheet     5
 ==  ========  =====
 
+.. _field-formats:
+
 Field formats
 =============
 
@@ -335,6 +339,23 @@ F   weight  72              0:      Integer  0:
 F   id      1337            5       Integer  1:99999
 ==  ======  =======  =====  ======  =======  =======
 
+.. _field-format-decimal:
+
+Decimal
+-------
+
+The Decimal type describes a field that can contain decimal numbers
+including a fractional part. Currently the rule has to be empty.
+
+Examples for Decimal fields
+
+==  ======  =======  =====  ======  =======  =======
+..  Name    Example  Empty  Length  Type     Rule
+==  ======  =======  =====  ======  =======  =======
+F   amount  17.3                    Decimal
+F   size    28.34                   Decimal
+==  ======  =======  =====  ======  =======  =======
+
 Choice
 ------
 
@@ -388,6 +409,8 @@ F   date_of_birth    1969-11-03                 DateTime  YYYY-MM-DD
 F   time_of_arrival  17:23                      DateTime  hh:mm
 ==  ===============  ==========  =====  ======  ========  ==========
 
+.. _field-format-pattern:
+
 Pattern
 -------
 
@@ -406,6 +429,8 @@ Examples for Pattern fields
 F   dos_filename         1:12    Pattern  ?*.*
 F   branch_id                    Pattern  B???-????-?*
 ==  ============  =====  ======  =======  ============
+
+.. _field-format-regex:
 
 RegEx
 -----

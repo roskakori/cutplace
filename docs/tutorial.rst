@@ -37,7 +37,7 @@ open it in a spreadsheet application such as Excel or Calc:
 +---------+-----------+----------+-------+------+-------------+
 +38000    +76         +Kenneth   +Tucker +male  +15.11.1908   +
 +---------+-----------+----------+-------+------+-------------+
-+38053    +2          +Carlos    +Barrett+male  +09.02.1929   +
++38053    +11         +Carlos    +Barrett+male  +09.02.1929   +
 +---------+-----------+----------+-------+------+-------------+
 +38053    +20         +Terrance  +Hart   +male  +11.03.1961   +
 +---------+-----------+----------+-------+------+-------------+
@@ -51,7 +51,7 @@ open it in a spreadsheet application such as Excel or Calc:
 +---------+-----------+----------+-------+------+-------------+
 +38111    +79         +Tyler     +Rose   +male  +17.12.1920   +
 +---------+-----------+----------+-------+------+-------------+
-+38111    +96         +Andrew    +Dixon  +male  +02.10.1913   +
++38111    +127        +Andrew    +Dixon  +male  +02.10.1913   +
 +---------+-----------+----------+-------+------+-------------+
 
 Describing data format and and field names
@@ -381,3 +381,146 @@ Now lets try again with the new ICD::
   cutplace icd_customers_with_empty_fields.ods customers_without_date_of_birth.csv
 
 This time, no error messages show up and all the data are accepted.
+
+Limiting the length of field values
+===================================
+
+Right now we allow the fields to have any length. But what if the data should be
+processes by another program, which wants to insert the data in a database?
+Every field in the database has a limit on how many characters it can hold. If
+there are too many characters, the import will fail. And not always with an
+error message that makes it easy to backtrack where the broken data came from.
+
+Fortunately, cutplace allows to describe length limits for fields:
+
++-+--------------------+----------+------+----------+
++ +Name                +Example   +Empty?+**Length**+
++-+--------------------+----------+------+----------+
++F+branch_id           +38000     +      +**5**     +
++-+--------------------+----------+------+----------+
++F+customer_id         +16        +      +**2:**    +
++-+--------------------+----------+------+----------+
++F+first_name          +Jane      +      +**:60**   +
++-+--------------------+----------+------+----------+
++F+surname             +Doe       +      +**:60**   +
++-+--------------------+----------+------+----------+
++F+gender              +female    +      +**4:6**   +
++-+--------------------+----------+------+----------+
++F+date_of_birth       +27.02.1946+X     +**10**    +
++-+--------------------+----------+------+----------+
+
+See: :download:`icd_customers_with_lengths.csv <../examples/icd_customers_with_lengths.csv>`
+or :download:`icd_customers_with_lengths.ods <../examples/icd_customers_with_lengths.ods>`
+
+Let's take a closer look at these examples, especially at the meaning of
+the colon (:) in some of the description of the lengths.
+
+* The ``branch_id`` always has to have exactly 5 characters, so its
+  length is ``5``.
+
+* Let's assume same the ``customer_id`` has to have at least 2 characters
+  because one of them is a checksum in order to catch (most) mistyped
+  numbers. In this case, the length is ``2:``.
+
+* The ``first_name`` and ``surname`` can take at most 60 characters, maybe
+  because someone said so way back in the 70'ies when COBOL ruled the
+  world. To express this as length, use ``:60``.
+  
+* The ``gender`` can be ``male`` or ``female``, so its length is between
+  4 and 6, which reads as ``4:6``.
+  
+* And finally, ``date_of_birth`` always takes exactly 10 characters
+  because apparently we require it to use leading zeros. This is
+  similar to ``brach_id``, which also used an exact length.
+
+  Wait a second, didnt we state before that the ``date_of_birth`` can be
+  empty? Shouldn't we use ``0:10`` then? Actually no, because this would
+  also accept dates with a length of 1, 2, 3 and so on until 9. The
+  possibility that ``date_of_birth`` can have a length of 0 is already
+  taken care of by the ``X`` in the *Empty?* column.
+
+To summarize: lenghts are either extact values (like ``5``) or ranges
+with an lower and upper limit separated by a colon (like ``4:6``).
+Either the lower or upper limit can be omitted (like ``2:`` or ``:60``).
+
+In case you cannot decide yet on a reasonale limit on a certain field,
+just leave its entry in the *Length* column empty.
+
+Now lets try again with the new ICD::
+
+  cutplace icd_customers_with_lengths.ods customers_without_date_of_birth.csv
+
+As expected, all the data are accepted again.
+
+TODO: Provide an example that causes errors.
+
+Field types and rules
+=====================
+
+So far, all the validations have been rather simple and generic. It's
+time to reveal the big guns: types and rules.
+
+Let's take a closer look at the ``customer_id``. Apparently, it's a
+number. To be more specific, an integer number with no fractional part.
+Let's say the same person who told us that a ``customer_id`` has at
+least two digits now informed us that due a design steming from the 16
+bit era, the highest ``customer_id`` is 65536 (the largest number one
+can represent with 16 bit). Here's how to express this knowledge with
+cutplace:
+
++-+--------------------+----------+------+------+------------+----------------+
++ +Name                +Example   +Empty?+Length+**Type**    +**Rule**        +
++-+--------------------+----------+------+------+------------+----------------+
++F+branch_id           +38000     +      +5     +            +                +
++-+--------------------+----------+------+------+------------+----------------+
++F+customer_id         +16        +      +2:    +**Integer** +**10:65535**    +
++-+--------------------+----------+------+------+------------+----------------+
++F+first_name          +Jane      +      +:60   +            +                +
++-+--------------------+----------+------+------+------------+----------------+
++F+surname             +Doe       +      +:60   +            +                +
++-+--------------------+----------+------+------+------------+----------------+
++F+gender              +female    +      +2:6   +**Choice**  +**male, female**+
++-+--------------------+----------+------+------+------------+----------------+
++F+date_of_birth       +27.02.1946+X     +10    +**DateTime**+**DD.MM.YYYY**  +
++-+--------------------+----------+------+------+------------+----------------+
+
+See: :download:`icd_customers_with_types_and_rules.csv <../examples/icd_customers_with_types_and_rules.csv>`
+or :download:`icd_customers_with_types_and_rules.ods <../examples/icd_customers_with_types_and_rules.ods>`
+
+The column *Type* can contain one of several available types. The column
+*Rule* can hold a text that gives further details about the *Type*.
+
+In case of ``customer_id``, the type is ``Integer``. In this case, the
+rule can specify a valid range. The syntax for the range is the same
+we've been using already for the *Length* column. So ``11:65535`` means
+"between 10 and 65535".
+
+For ``gender``, the type is ``Choice`` which means that every value in
+this field must be in a list of possible choices specified with the
+rule. Here, possible choices are ``male`` and ``female``.
+
+Finally ``date_of_birth`` is of type ``DateTime``. The rule describes
+the date format using place holders: ``DD`` (day), ``MM`` (month),
+``YYYY`` (year including century) and ``YY``(year without century). Any
+other character must show up literally, for example the ``.``in the rule
+must show up as ``.`` in the value.
+
+.. warning::
+
+  Type names are case sensitive. So when you specify a type, make sure
+  the letters match exactly concerning upper and lower case.
+  
+This tutorial showcases just a few of the types availble.
+
+.. seealso::
+
+  :ref:`field-format-decimal`
+    A field format to describe decimal numbers with a fractional part.
+
+  :ref:`field-format-pattern`
+    A field format to match patterns using asterisk (*) and question
+    mark (?) as placeholders.
+
+  :ref:`field-format-regex`
+    A field format to match patterns using regular expressions.
+
