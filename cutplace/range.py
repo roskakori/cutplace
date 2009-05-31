@@ -147,7 +147,7 @@ class Range(object):
         Human readable description of the range similar to a Python tuple.
         """
         if self.items:
-            result = "("
+            result = "'"
             isFirst = True
             for item in self.items:
                 if isFirst:
@@ -155,7 +155,7 @@ class Range(object):
                 else:
                     result += ", "
                 result += self._repr_item(item)
-            result += ")"
+            result += "'"
         else:
             result = str(None)
         return result
@@ -213,5 +213,5 @@ class Range(object):
                     isValid = True
                 itemIndex += 1
             if not isValid:
-                raise RangeValueError("%s is %r but must be within range: %r" % (name, value, self.items))
+                raise RangeValueError("%s is %r but must be within range: %r" % (name, value, self))
         
