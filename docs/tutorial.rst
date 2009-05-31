@@ -20,12 +20,11 @@ In order to make use of cutplace, you need some data. For this tutorial,
 we will use a simple set of customer data:
 
 .. literalinclude:: ../examples/customers_1.csv
-   :lines: 2-
 
-Example file: `customers_1.csv <customers_1.csv>`_
+See: :download:`customers_1.csv <../examples/customers_1.csv>`
 
 Because this is hard to read here is how the file looks if you
-open it in a spreadsheet application such as Excel or Calc and add headings:
+open it in a spreadsheet application such as Excel or Calc:
 
 +---------+-----------+----------+-------+------+-------------+
 +Branch id+Customer id+First name+Surname+Gender+Date of birth+
@@ -75,6 +74,8 @@ Without much further ado, here's how you can tell these facts to cutplace:
 +-+-------------------+---+
 +D+Format             +CSV+
 +-+-------------------+---+
++D+Header             +1  +
++-+-------------------+---+
 + +                   +   +
 +-+-------------------+---+
 + +**Fields**         +   +
@@ -92,28 +93,32 @@ Without much further ado, here's how you can tell these facts to cutplace:
 +F+date_of_birth      +   +
 +-+-------------------+---+
 
-Example files: 
-`icd_customers_1.ods <icd_customers_1.ods>`_ or
-`icd_customers_1.csv <icd_customers_1.csv>`_.
+See: :download:`icd_customers_1.csv <../examples/icd_customers_1.csv>`
+or :download:`icd_customers_1.ods <../examples/icd_customers_1.ods>`
 
 Let's take a closer look at this.
 
-Row 1 is a heading that simply describes what the document is a but:
-the interface for customer data.
+Row 1 is a heading that simply describes what the document is a but: the
+interface for customer data.
 
 Row 3 is a section heading to point out that the description of the data
 format is about to follow.
 
 Row 4 describes actually the data format by stating that the ``Format``
-is ``CSV``. Did you notice the ``D`` in the first column? This is a hint for
-cutplace that the row contains information about the data format it should be
-able to process.
+is ``CSV``. Did you notice the ``D`` in the first column? This is a hint
+for cutplace that the row contains information about the data format it
+should be able to process.
 
-Row 6 again is a section heading, this time pointing out that descriptions about 
-the field formats are about to follow.
+Row 5 adds another detail to the data format: data files have a header
+row does not contain data yet. In this our case there is only one such
+row. If there would no header at all, you could have omitted this row.
 
-The remaining rows then describe the fields that data files must have. So far we only
-describe the name of the field, for example ``customer_id``. 
+Row 7 again is a section heading, this time pointing out that
+descriptions about the field formats are about to follow.
+
+The remaining rows then describe the fields that data files must have.
+So far we only describe the name of the field, for example
+``customer_id``.
 
 .. note::
   A field name must contain only ASCII letters, numbers and underscore
@@ -138,6 +143,33 @@ describe the name of the field, for example ``customer_id``.
   
   * ``123easy`` - error: starts with a numeric digits; use a letter as
     first character.
+
+Using comments
+==============
+
+As already pointed out, if a row in the ICD starts with an empty column,
+cutplace skips it without processing in any way. Actually, this would
+mean the same for cutplace:
+
++-+-------------------+---+
++D+Format             +CSV+
++-+-------------------+---+
++D+Header             +1  +
++-+-------------------+---+
++F+branch_id          +   +
++-+-------------------+---+
++F+customer_id        +   +
++-+-------------------+---+
++F+first_name         +   +
++-+-------------------+---+
++F+surname            +   +
++-+-------------------+---+
++F+gender             +   +
++-+-------------------+---+
++F+date_of_birth      +   +
++-+-------------------+---+
+
+But it's a lot harder to read for you, isn't it?
 
 How and where to store the ICD
 ==============================
@@ -164,33 +196,54 @@ Running cutplace for the first time
 Now that we have both a data and an ICD file, we can finally take a look
 at how cutplace actually works.
 
-TODO: elaborate
+Open a terminal and change into the folder where where the example data
+and ICD files are located::
+
+  cd .../where/ever/examples
+
+Next let's try if cutplace has been installed properly::
+
+  cutplace --version
+  
+This should result in an output similar to::
+
+  cutplace.py 0.x.x
+  Python 2.5.4, Mac OS 10.5.7 (i386)
+
+The actual numbers of versions may vary. If your version of cutplace is
+older then |release|, consider upgrading to avoid compatibiliy issues
+with this tutorial.
+
+If instead this results in an error message, refer to the chapter on
+:doc:`installation` about how to setup cutplace.
+
+In case everything worked out so far, let's finally do what we came here
+for: validate that our data conform to the interface we just described::
+
+  cutplace icd_customers_1.ods customers_1.csv
+
+This assumes you used Calc to create the ICD. Users of Excel should
+replace the "``.ods``" with "``.xls``", users of text editors with
+"``.csv``" respectively.
 
 Summary so far
 ==============
 
 Let's recap what we learned so far:
 
-* 
+* You can use cutplace to validate that data conform to an ICD.
 
+* The ICD is a file you can create with Calc, Excel or your favorite
+  text editor.
 
+* As a minimum, the ICD has to specify the data format and the name of
+  the fields.
 
-Actually, this would mean the same for cutplace:
+* Rows describing the data format have to start with "``D``".
 
-+-+-------------------+---+
-+D+Format             +CSV+
-+-+-------------------+---+
-+F+branch_id          +   +
-+-+-------------------+---+
-+F+customer_id        +   +
-+-+-------------------+---+
-+F+first_name         +   +
-+-+-------------------+---+
-+F+surname            +   +
-+-+-------------------+---+
-+F+gender             +   +
-+-+-------------------+---+
-+F+date_of_birth      +   +
-+-+-------------------+---+
+* Rows describing a field have to start with "``F``".
 
-But it's a lot harder to read for you, isn't it?
+* Rows starting with an empty column will not be parsed by cutplace and
+  can contain any information that is helpful for human readers to
+  understand the interface.
+

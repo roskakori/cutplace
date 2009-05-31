@@ -86,8 +86,9 @@ class _DocsCommand(Command):
 
     def run(self):
         self._convertAllOdsToCsvAndRst("examples")
-        _copyFilesToFolder(tutorialFolder, buildSiteFolder, ".*\\.csv$")
-        _copyFilesToFolder(tutorialFolder, buildSiteFolder, ".*\\.ods$")
+        # TODO: Remove dead code below.
+        # _copyFilesToFolder(tutorialFolder, buildSiteFolder, ".*\\.csv$")
+        # _copyFilesToFolder(tutorialFolder, buildSiteFolder, ".*\\.ods$")
         sphinxCall = ["sphinx-build", "-b", "html", "-N", "-q", docsFolder, buildSiteFolder]
         print " ".join(sphinxCall)
         subprocess.check_call(sphinxCall)
