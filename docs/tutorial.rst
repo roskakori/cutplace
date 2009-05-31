@@ -354,3 +354,30 @@ so this is perfectly valid.
 So we have to tell cutplace that this field actually can be empty. This
 can easily be done by adding another column to the field description,
 where fields that can be empty are marked with an ``X``:
+
++-+--------------------+----------+----------+
++ +Fields              +          +          +
++-+--------------------+----------+----------+
++ +Name                +Example   +**Empty?**+
++-+--------------------+----------+----------+
++F+branch_id           +38000     +          +
++-+--------------------+----------+----------+
++F+customer_id         +16        +          +
++-+--------------------+----------+----------+
++F+first_name          +Jane      +          +
++-+--------------------+----------+----------+
++F+surname             +Doe       +          +
++-+--------------------+----------+----------+
++F+gender              +female    +          +
++-+--------------------+----------+----------+
++F+date_of_birth       +27.02.1946+**X**     +
++-+--------------------+----------+----------+
+
+See: :download:`icd_customers_with_empty_fields.csv <../examples/icd_customers_with_empty_fields.csv>`
+or :download:`icd_customers_with_empty_fields.ods <../examples/icd_customers_with_empty_fields.ods>`
+
+Now lets try again with the new ICD::
+
+  cutplace icd_customers_with_empty_fields.ods customers_without_date_of_birth.csv
+
+This time, no error messages show up and all the data are accepted.
