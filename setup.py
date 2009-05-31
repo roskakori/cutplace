@@ -27,15 +27,41 @@ from cutplace import tools
 from cutplace import version
 
 import os.path
+import re
+import shutil
 import subprocess
 
+# Various properties that control the build process.
 buildFolder = "build"
 buildSiteFolder = os.path.join(buildFolder, "site")
 docsFolder = "docs"
+examplesFolder = "examples"
+tutorialFolder = examplesFolder
 
+def _copyFilesToFolder(sourceFolder, targetFolder, pattern=".*"):
+    """
+    Copy those files in `sourceFolder` to `targetFolder` whose name matches the regex `pattern`.
+    
+    If the target file already exists, overwrite it.
+    
+    If an error occurs, no cleanup is performed and a partially copied target file might remain.
+    """
+    # TODO: Support recursive copy.
+    fileNameToCopyRegEx = re.compile(pattern)
+    for baseFolder, subFolders, fileNames in os.walk(sourceFolder):
+        for fileName in fileNames:
+            if fileNameToCopyRegEx.match(fileName) and not ".svn" in baseFolder:
+                sourceFilePath = os.path.join(baseFolder, fileName)
+                targetFilePath = os.path.join(targetFolder, fileName)
+                print "copying %r to %r" % (sourceFilePath, targetFilePath)
+                shutil.copy(sourceFilePath, targetFilePath)
+            
 class _DocsCommand(Command):
+    """
+    Command for setuptools to build the documentation.
+    """
     description = "build documentation"
-    user_options = [ ]
+    user_options = []
 
     def _convertAllOdsToCsvAndRst(self, folder):
         assert folder is not None
@@ -60,6 +86,8 @@ class _DocsCommand(Command):
 
     def run(self):
         self._convertAllOdsToCsvAndRst("examples")
+        _copyFilesToFolder(tutorialFolder, buildSiteFolder, ".*\\.csv$")
+        _copyFilesToFolder(tutorialFolder, buildSiteFolder, ".*\\.ods$")
         sphinxCall = ["sphinx-build", "-b", "html", "-N", "-q", docsFolder, buildSiteFolder]
         print " ".join(sphinxCall)
         subprocess.check_call(sphinxCall)
