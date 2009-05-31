@@ -272,8 +272,8 @@ letting you add an examples for a field right after the name:
 +F+date_of_birth       +**27.02.1946**+
 +-+--------------------+--------------+
 
-See: :download:`icd_customers_2.csv <../examples/icd_customers_2.csv>`
-or :download:`icd_customers_2.ods <../examples/icd_customers_2.ods>`
+See: :download:`icd_customers_with_examples.csv <../examples/icd_customers_with_examples.csv>`
+or :download:`icd_customers_with_examples.ods <../examples/icd_customers_with_examples.ods>`
 
 Finding an example usually does not require much imagination. In this
 case we just took the values from the first customer and changed the
