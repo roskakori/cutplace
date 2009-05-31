@@ -3,24 +3,20 @@
 
     <!-- Set global properties for this build. -->
     <property name="source" location="source" />
-    <property name="source-site.dir" location="${source}/site" />
     <property name="tests.dir" location="tests" />
     <property name="tests-input.dir" location="${tests.dir}/input" />
     <property name="tests-input-icds.dir" location="${tests-input.dir}/icds" />
     <property name="tests-output.dir" location="${tests.dir}/output" />
     <property name="build" location="build" />
     <property name="dist" location="dist" />
-    <property name="external.dir" location="external" />
-    <property name="docs.dir" location="docs" />
     <property name="site.dir" location="${build}/site" />
     <property name="reports.dir" location="${site.dir}/reports" />
-    <property name="test_all.py" location="cutplace/test_all.py" />
 
     <macrodef name="pyst">
         <!-- Macro to run a setup.py command. -->
         <attribute name="command" />
        <sequential>
-           <exec executable="python">
+           <exec executable="python" failonerror="true">
                <arg value="setup.py" />
                <arg value="@{command}" />
            </exec>
@@ -74,9 +70,7 @@
 	</target>
 
     <target name="test" depends="testdata" description="run test suite">
-        <exec executable="python" failonerror="true">
-            <arg value="${test_all.py}" />
-        </exec>
+        <pyst command="test" />
     </target>
 
     <target name="clean" description="clean up">
