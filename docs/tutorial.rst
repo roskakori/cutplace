@@ -490,6 +490,11 @@ or :download:`icd_customers_with_types_and_rules.ods <../examples/icd_customers_
 The column *Type* can contain one of several available types. The column
 *Rule* can hold a text that gives further details about the *Type*.
 
+.. warning::
+
+  Type names are case sensitive. So when you specify a type, make sure
+  the letters match exactly concerning upper and lower case.
+  
 In case of ``customer_id``, the type is ``Integer``. In this case, the
 rule can specify a valid range. The syntax for the range is the same
 we've been using already for the *Length* column. So ``11:65535`` means
@@ -501,15 +506,10 @@ rule. Here, possible choices are ``male`` and ``female``.
 
 Finally ``date_of_birth`` is of type ``DateTime``. The rule describes
 the date format using place holders: ``DD`` (day), ``MM`` (month),
-``YYYY`` (year including century) and ``YY``(year without century). Any
-other character must show up literally, for example the ``.``in the rule
-must show up as ``.`` in the value.
+``YYYY`` (year including century) and ``YY`` (year without century). Any
+other character must show up literally, for example the ``.`` in the
+rule must show up as ``.`` in the value.
 
-.. warning::
-
-  Type names are case sensitive. So when you specify a type, make sure
-  the letters match exactly concerning upper and lower case.
-  
 This tutorial showcases just a few of the types availble.
 
 .. seealso::
