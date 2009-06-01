@@ -70,8 +70,9 @@ The source code consists of:
   <http://www.eclipse.org/>`_ and `PyDev <http://pydev.sourceforge.net/>`_.
 
 If Eclipse and PyDev are your developer environment of choice, you can check
-out the repository directly from Eclipse using ``File | New | Other...`` and
-select ``SVN | Checkout projects from SVN``.
+out the repository directly from Eclipse using
+:menuselection:`File --> New --> Other...` and select 
+:menuselection:`SVN --> Checkout projects from SVN`.
 
 If you prefer the command line, you need any Subversion client and the build
 tool ant.
@@ -152,8 +153,8 @@ Contributing source code
 In case you fixed any bugs or added improvements to cutplace, feel free to
 contribute your changes.
 
-The easiest way to do this is by posting your patch to the 
-`developer forum <http://apps.sourceforge.net/phpbb/cutplace/viewforum.php?f=4&sid=4f287a1c1267adcf22a13f90731d645f>`_
+The easiest way to do this is by posting your patch to the
+`developer forum <http://apps.sourceforge.net/phpbb/cutplace/viewforum.php?f=4>`_
 
 Developer notes
 ===============
