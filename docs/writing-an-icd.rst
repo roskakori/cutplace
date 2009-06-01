@@ -205,6 +205,21 @@ only required in case a workbook contains more than one sheet and the data to
 validate are located in the second or any later sheet. This property defaults
 to 1 meaning the first sheet.
 
+Excel uses special ways to internally store dates and times, so what
+you see on the screen in genral is not what cutplace gets when it
+reads Excel data. To avoid confusion, here's short list of how
+certain data from Excel will look to cutplace:
+
+============= ============= ===================
+Excel type    cutplace type rule
+============= ============= ===================
+Currency      Decimal
+Date          DateTime      YYYY-MM-DD 00:00:00
+Date and time DateTime      YYYY-MM-DD hh:mm:ss
+Percent       Decimal
+Time          DateTime      hh:mm:ss
+============= ============= ===================
+
 Fixed data
 ----------
 
