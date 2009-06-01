@@ -123,8 +123,10 @@ def _writeRstRow(rstTargetFile, columnLengths, items):
     
     for columnIndex in range(len(columnLengths)):
         columnLength = columnLengths[columnIndex]
-        assert columnLength > 0
-        item = items[columnIndex]
+        if columnIndex < len(items):
+            item = items[columnIndex]
+        else:
+            item = ""
         itemLength = len(item)
         assert columnLength >= itemLength
         # FIXME: Add support for items containing line separators .
@@ -139,9 +141,9 @@ def _writeRstSeparatorLine(rstTargetFile, columnLengths, lineSeparator):
     assert lineSeparator in ["-", "="]
     
     for columnLength in columnLengths:
-        assert columnLength > 0
         rstTargetFile.write("+")
-        rstTargetFile.write(lineSeparator * columnLength)
+        if columnLength > 0:
+            rstTargetFile.write(lineSeparator * columnLength)
     rstTargetFile.write("+\n")
         
 def toRst(odsFilePath, rstTargetPath, firstRowIsHeading=True, sheet=1):
