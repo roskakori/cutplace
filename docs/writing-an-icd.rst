@@ -472,6 +472,8 @@ the ICD, a row describing the check requires the following columns:
 The remainder of this section describes the available checks in detail and
 gives specific examples.
 
+.. _check-distinct-count:
+
 DistinctCount
 -------------
 
@@ -492,6 +494,8 @@ C   distinct branches must be within limit  DistinctCount  branch_id < 5
 
 To describe the rule you can use any comparison operator or mathematical
 expression available to the Python language.
+
+.. _check-is-unique:
 
 IsUnique
 --------

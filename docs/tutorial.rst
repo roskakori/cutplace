@@ -1,8 +1,8 @@
-================
+========
 Tutorial
-================
+========
 
-This chapter gives a gently introduction and overview to cutplace. It
+This chapter gives a gentle introduction and overview to cutplace. It
 introduces a simple set of example data and shows how to write a simple
 interface control document (ICD) for it which can be used to validate
 the data. Starting from there, the ICD gets refined and improved to
@@ -10,7 +10,7 @@ allow more rigorous validations which detect increasingly subtle errors
 in the data.
 
 You can find the files for the examples in the ``examples`` folder of
-the cutplace source distrubution. For your conveniance they are also
+the cutplace source distribution. For your convenience they are also
 provided as links at the bottom of each data or ICD file.
 
 A simple set of customer data
@@ -184,7 +184,7 @@ with blanks or commas are embedded between double quotes (").
 Concerning the location on your disk, cutplace does not impose any
 requirements on you
 
-TODO: Recommendations how to name the ICD files.
+.. TODO: Recommendations how to name the ICD files.
 
 For this tutorial, we assume both the data and ICD files are stored in
 the same folder which and your current console terminal session already
@@ -452,7 +452,7 @@ Now lets try again with the new ICD::
 
 As expected, all the data are accepted again.
 
-TODO: Provide an example that causes errors.
+.. TODO: Provide an example data file that causes errors.
 
 Field types and rules
 =====================
@@ -524,3 +524,59 @@ This tutorial showcases just a few of the types availble.
   :ref:`field-format-regex`
     A field format to match patterns using regular expressions.
 
+Checking general conditions
+===========================
+
+So far we learned how to validate the general data format and values
+of separate fields. But what about conditions that are more sophisticated
+and require several fields or rows to validate them?
+
+For example, we might want to validate that every customer has a unique
+``customer_id`` within its assigned branch.
+
+Or we might want to validate that the number of distinct branches does
+remain within a certain limit, say, 3 branches.
+
+For these kind of conditions cutplace supports *checks*. Here's how it
+looks in practice:
+
++-+--------------------------------------+-------------+----------------------+
++ +Checks                                +             +                      +
++-+--------------------------------------+-------------+----------------------+
++ +*Description*                         +*Type*       +*Rule*                +
++-+--------------------------------------+-------------+----------------------+
++C+customer must be unique               +IsUnique     +branch_id, customer_id+
++-+--------------------------------------+-------------+----------------------+
++C+distinct branches must be within limit+DistinctCount+branch_id <= 3        +
++-+--------------------------------------+-------------+----------------------+
+
+See: :download:`icd_customers.csv <../examples/icd_customers.csv>`
+or :download:`icd_customers.ods <../examples/icd_customers.ods>`
+
+As you can see, checks require a "C" in the first column.
+
+Next there is a description of the check. This should be a meaningful
+sentence because it shows up in error messages. It's a good idea to word
+them as "Something must be something else" sentences.
+
+The remaining two columns contain the type of the check and the rule. How
+the rule can look solely depends on the type of the check.
+
+.. seealso::
+
+  :ref:`check-distinct-count`
+    A check to validate that the number of distinct values in a field
+    meets a specified condition.
+
+  :ref:`check-is-unique`
+    A check to validate that a field value or a combination of field
+    values is unique in each row compared with all other rows.
+
+Conclusion
+==========
+
+Well, that's it.
+
+You are now familiar with the basic concepts behind cutplace and should
+be able to use this for writing reasonably complete and sophisticated
+ICDs.
