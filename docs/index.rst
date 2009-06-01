@@ -16,7 +16,7 @@ conform to an interface control document (ICD).
   
 * Take a look at the
   `roadmap <https://apps.sourceforge.net/trac/cutplace/roadmap>`_ to find out
-  what's in store for the future.
+  what the future has in store.
 
 * Read the :doc:`developer guide <development>` to learn how to obtain the
   source code and extend cutplace to fit your own needs.
