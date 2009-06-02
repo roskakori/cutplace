@@ -168,6 +168,6 @@ Add a release tag
 When publishing a new release, a tag should be added to the repository. This
 can be done using the following template::
 
-  svn copy -m "Added tag for version 0.x.x." https://cutplace.svn.sourceforge.net/svnroot/cutplace/trunk https://cutplace.svn.sourceforge.net/svnroot/cutplace/tags/0.x.x</userinput>
+  svn copy -m "Added tag for version 0.x.x." https://cutplace.svn.sourceforge.net/svnroot/cutplace/trunk https://cutplace.svn.sourceforge.net/svnroot/cutplace/tags/0.x.x
 
 Simply replace ``0.x.x`` with the current version number.
