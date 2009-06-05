@@ -103,8 +103,13 @@ setup(
       url="http://cutplace.sourceforge.net/",
       # TODO: Actually coverage is only required for the development reports. How to express this here?
       install_requires=["coverage", "xlrd"],
-      # TODO: Include documentation in distribution by copying it to package folder.
       packages=["cutplace"],
+      data_files=[
+          ("", ["license.txt", "README.txt"]),
+          ("docs", glob.glob("docs/*.*")),
+          ("docs/_static", glob.glob("docs/_static/*.*")),
+          ("examples", glob.glob("examples/*.csv") + glob.glob("examples/*.ods"))
+      ],
       entry_points={
         "console_scripts": ["cutplace = cutplace.cutplace:mainForScript"]
       },
@@ -139,9 +144,5 @@ thinking. It acts as "executable specification" which cutplace can use to valida
       ],
       cmdclass={
           "docs": _DocsCommand
-      },
-      data_files = [
-          ('examples', glob.glob('examples/*')),
-          ('', ['license.txt'])
-      ]
+      }
 )
