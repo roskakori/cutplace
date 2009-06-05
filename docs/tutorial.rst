@@ -19,9 +19,9 @@ A simple set of customer data
 In order to make use of cutplace, you need some data. For this tutorial,
 we will use a simple set of customer data:
 
-.. literalinclude:: ../examples/customers_1.csv
+.. literalinclude:: ../examples/customers.csv
 
-See: :download:`customers_1.csv <../examples/customers_1.csv>`
+See: :download:`customers.csv <../examples/customers.csv>`
 
 Because this is hard to read here is how the file looks if you
 open it in a spreadsheet application such as Excel or Calc:
@@ -93,8 +93,8 @@ Without much further ado, here's how you can tell these facts to cutplace:
 +F+date_of_birth      +   +
 +-+-------------------+---+
 
-See: :download:`icd_customers_1.csv <../examples/icd_customers_1.csv>`
-or :download:`icd_customers_1.ods <../examples/icd_customers_1.ods>`
+See: :download:`icd_customers_field_names_only.csv <../examples/icd_customers_field_names_only.csv>`
+or :download:`icd_customers_field_names_only.ods <../examples/icd_customers_field_names_only.ods>`
 
 Let's take a closer look at this.
 
