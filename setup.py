@@ -30,6 +30,7 @@ import os.path
 import re
 import shutil
 import subprocess
+import glob
 
 # Various properties that control the build process.
 buildFolder = "build"
@@ -138,6 +139,9 @@ thinking. It acts as "executable specification" which cutplace can use to valida
       ],
       cmdclass={
           "docs": _DocsCommand
-      }
+      },
+      data_files = [
+          ('examples', glob.glob('examples/*')),
+          ('', ['license.txt'])
+      ]
 )
-        
