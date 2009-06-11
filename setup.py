@@ -127,6 +127,7 @@ setup(
       install_requires=["coverage", "xlrd"],
       packages=["cutplace"],
       data_files=[
+          ("", ["setup.py"]),
           ("", ["license.txt", "README.txt"]),
           ("docs", glob.glob("docs/*.*")),
           ("docs/_static", glob.glob("docs/_static/*.*")),

@@ -4,6 +4,11 @@ Revision history
 
 This chapter describes improvements compared to earlier versions of cutplace.
 
+Version 0.5.2, 11-Jun-2009
+==========================
+
+* Fixed missing setup script.
+
 Version 0.5.1, 11-Jun-2009
 ==========================
 
