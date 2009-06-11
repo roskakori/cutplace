@@ -41,7 +41,11 @@ def createProfilerReport(targetBasePath):
     itemName = "profile_lotsOfCustomers"
     targetProfilePath = os.path.join(targetBasePath, itemName) + ".profile"
     targetReportPath = os.path.join(targetBasePath, itemName) + ".txt"
-    cProfile.run("_testLotsOfCustomers()", targetProfilePath)
+    try:
+        cProfile.run("_testLotsOfCustomers()", targetProfilePath)
+    except NameError:
+        # HACK: Use explicit module prefix when run from setup.py.
+        cProfile.run("dev_reports._testLotsOfCustomers()", targetProfilePath)
     targetReportFile = open(targetReportPath, "w")
     try:
         stats = pstats.Stats(targetProfilePath, stream=targetReportFile)
@@ -120,10 +124,14 @@ def createCoverageReport(targetBasePath):
     moduleNames = [moduleName for moduleName in moduleNames if not moduleName.startswith("dev_")]
     moduleNames.sort()
     for moduleName in moduleNames:
-        modules.append(__import__(moduleName))
+        try:
+            modules.append(__import__(moduleName))
+        except ImportError:
+            # HACK: Use "cutplace.module" instead of "module" when run from setup.py.
+            modules.append(__import__("cutplace." + moduleName))
     import test_all
     test_all.main()
-    createProfilerReport(baseFolder)
+    createProfilerReport(targetBasePath)
     coverage.stop()
 
     # Create report.
@@ -138,7 +146,9 @@ def createCoverageReport(targetBasePath):
           <tr><th>Module</th><th>Statements</th><th>Covered</th><th>Coverage</th></tr>
 """
     for module in modules:
+        print "%r" % module
         f, s, m, mf = coverage.analysis(module)
+        # print "%r, %r, %r, %r" % (f, s, m, mf)
         coverageHtmlName = "coverage_" + os.path.basename(f) + ".html"
         targetHtmlPath = os.path.join(targetBasePath, coverageHtmlName)
         coverageHtml += "<tr><td><a href=\"%s\">%s</a></td>" % (coverageHtmlName, os.path.basename(f))
@@ -174,6 +184,13 @@ def createCoverageReport(targetBasePath):
     # erase coverage data
     coverage.erase()
 
+def createReports(targetFolder):
+    assert targetFolder is not None
+    
+    tools.mkdirs(targetFolder)
+    createCoverageReport(targetFolder)
+    createTasksReport(targetFolder)
+        
 if __name__ == '__main__':
     logging.basicConfig()
     logging.getLogger("cutplace").setLevel(logging.WARNING)
@@ -184,9 +201,7 @@ if __name__ == '__main__':
     options, others = parser.parse_args()
     if len(others) == 1:
         baseFolder = others[0]
-        createCoverageReport(baseFolder)
-        createTasksReport(baseFolder)
+        createReports(baseFolder)
     else:
         sys.stderr.write("%s%s" % ("target folder for reports must be specified", os.linesep))
         sys.exit(1)
-        

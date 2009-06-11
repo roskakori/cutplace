@@ -1,6 +1,7 @@
 """
 Various utility functions.
 """
+import errno
 import os
 import platform
 import random
@@ -38,6 +39,18 @@ def listdirMatching(folder, pattern):
     for entry in os.listdir(folder):
         if regex.match(entry):
             yield entry
+
+def mkdirs(folder):
+    """
+    Like `os.mkdirs()` but does not raise an `OSError` if `folder` already exists. 
+    """
+    assert folder is not None
+
+    try:
+        os.makedirs(folder)
+    except OSError, error:
+        if error.errno != errno.EEXIST:
+            raise
 
 # Most popular names in the USA according to U.S. Census Bureau, Population Division, 
 # Population Analysis & Evaluation Staff from 2005-11-20. 

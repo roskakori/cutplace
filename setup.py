@@ -22,10 +22,13 @@ import ez_setup
 ez_setup.use_setuptools()
 
 from setuptools import setup, find_packages, Command
+
+from cutplace import dev_reports
 from cutplace import ods
 from cutplace import tools
 from cutplace import version
 
+import logging
 import os.path
 import re
 import shutil
@@ -38,6 +41,8 @@ buildSiteFolder = os.path.join(buildFolder, "site")
 docsFolder = "docs"
 examplesFolder = "examples"
 tutorialFolder = examplesFolder
+
+logging.basicConfig()
 
 def _copyFilesToFolder(sourceFolder, targetFolder, pattern=".*"):
     """
@@ -94,6 +99,23 @@ class _DocsCommand(Command):
         print " ".join(sphinxCall)
         subprocess.check_call(sphinxCall)
 
+class _ReportsCommand(Command):
+    """
+    Command for setuptools to build the developer reports.
+    """
+    description = "build developer reports"
+    user_options = []
+
+    def initialize_options(self):
+        pass
+    
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        targetFolder = os.path.join("dist", "site", "reports")
+        dev_reports.createReports(targetFolder)
+
 setup(
       name="cutplace",
       version=version.VERSION_NUMBER,
@@ -143,6 +165,7 @@ thinking. It acts as "executable specification" which cutplace can use to valida
           "Topic :: Software Development :: Testing"
       ],
       cmdclass={
-          "docs": _DocsCommand
+          "docs": _DocsCommand,
+          "reports":_ReportsCommand
       }
 )
