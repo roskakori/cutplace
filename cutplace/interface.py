@@ -290,9 +290,9 @@ class InterfaceControlDocument(object):
         else:
             raise checks.CheckSyntaxError("check row (marked with %r) must contain at least 2 columns" % InterfaceControlDocument._ID_FIELD_RULE)
 
-    def _fittingParser(self, icdReadable):
+    def _fittingReader(self, icdReadable):
         """
-        A parser fitting the contents of `icdReadable`.
+        A reader fitting the contents of `icdReadable`.
         """
         assert icdReadable is not None
         
@@ -302,13 +302,13 @@ class InterfaceControlDocument(object):
         if icdHeader == InterfaceControlDocument._ODS_HEADER:
             # Consider ICD to be ODS.
             icdReadable.seek(0)
-            result = parsers.OdsParser(icdReadable)
+            result = parsers.odsReader(icdReadable)
         else:
             icdHeader += icdReadable.read(4)
             icdReadable.seek(0)
             if icdHeader == InterfaceControlDocument._EXCEL_HEADER:
                 # Consider ICD to be Excel.
-                result = parsers.ExcelParser(icdReadable)
+                result = parsers.excelReader(icdReadable)
             else:
                 # Consider ICD to be CSV.
                 dialect = parsers.DelimitedDialect()
@@ -316,7 +316,7 @@ class InterfaceControlDocument(object):
                 dialect.itemDelimiter = parsers.AUTO
                 dialect.quoteChar = "\""
                 dialect.escapeChar = "\""
-                result = parsers.DelimitedParser(icdReadable, dialect)
+                result = parsers.delimitedReader(icdReadable, dialect)
         return result
     
     def read(self, icdFilePath, encodingName="iso-8859-1"):
@@ -333,12 +333,11 @@ class InterfaceControlDocument(object):
         else:
             icdFile = icdFilePath
         try:
-            parser = self._fittingParser(icdFile)
-            assert parser is not None
-            reader = parsers.parserReader(parser)
+            reader = self._fittingReader(icdFile)
+            rowNumber = 0
             for row in reader:
-                lineNumber = parser.lineNumber
-                self._log.debug("parse icd line%5d: %r" % (lineNumber, row))
+                rowNumber += 1
+                self._log.debug("parse icd row%5d: %r" % (rowNumber, row))
                 if len(row) >= 1:
                     rowId = str(row[0]).lower() 
                     if rowId == InterfaceControlDocument._ID_CHECK:
@@ -349,7 +348,7 @@ class InterfaceControlDocument(object):
                         self.addFieldFormat(row[1:])
                     elif rowId.strip():
                         raise IcdSyntaxError("first item in row %d is %r but must be empty or one of: %s"
-                                             % (lineNumber, row[0],
+                                             % (rowNumber, row[0],
                                                 tools.humanReadableList(InterfaceControlDocument._VALID_IDS)))
         finally:
             if needsOpen:

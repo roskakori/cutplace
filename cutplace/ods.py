@@ -7,7 +7,10 @@ import xml.dom.minidom
 import logging
 import optparse
 import os
+import Queue
+import StringIO
 import sys
+import threading
 import tools
 import xml.sax
 import zipfile
@@ -92,6 +95,19 @@ class RowListContentHandler(AbstractOdsContentHandler):
     def rowCompleted(self):
         self.rows.append(self.row)
 
+class RowProducingContentHandler(AbstractOdsContentHandler):
+    """
+    ContentHandler to produce all rows to a target queue where a consumer in a different thread
+    can get them.
+    """
+    def __init__(self, targetQueue, sheet=1):
+        assert targetQueue is not None
+        AbstractOdsContentHandler.__init__(self, sheet)
+        self.queue = targetQueue
+
+    def rowCompleted(self):
+        self.queue.put(self.row)
+
 def toCsv(odsFilePath, csvTargetPath, dialect="excel", sheet=1):
     """
     Convert ODS file in `odsFilePath` to CSV using `dialect` and store the result in `csvTargetPath`.
@@ -99,22 +115,54 @@ def toCsv(odsFilePath, csvTargetPath, dialect="excel", sheet=1):
     assert odsFilePath is not None
     assert csvTargetPath is not None
     assert dialect is not None
+    assert sheet is not None
     assert sheet >= 1
     
-    zipArchive = zipfile.ZipFile(odsFilePath, "r")
+    contentReadable = odsContent(odsFilePath)
     try:
-        # TODO: Consider switching to 2.6 and use ZipFile.open(). This would need less memory.
-        xmlData = zipArchive.read("content.xml")
+        csvTargetFile = open(csvTargetPath, "w")
+        try:
+            csvWriter = csv.writer(csvTargetFile, dialect)
+            xml.sax.parse(contentReadable, OdsToCsvContentHandler(csvWriter, sheet))
+        finally:
+            csvTargetFile.close()
     finally:
-        zipArchive.close()
+        contentReadable.close()
 
-    csvTargetFile = open(csvTargetPath, "w")
-    try:
-        csvWriter = csv.writer(csvTargetFile, dialect)
-        xml.sax.parseString(xmlData, OdsToCsvContentHandler(csvWriter, sheet))
-    finally:
-        csvTargetFile.close()
- 
+class ProducerThread(threading.Thread):
+    """
+    Thread to produce the contents of an ODS readable to a queue where a consumer can get it.
+    
+    Consumers should call `Queue.get()` until it returns `None`. Possible exceptions raised
+    in the background during `run()` are raised again when calling `join()` so no special means
+    are necessary for the consumer to handle exceptions in the producer thread. 
+    """
+    def __init__(self, readable, targetQueue, sheet=1):
+        assert readable is not None
+        assert targetQueue is not None
+        assert sheet is not None
+        assert sheet >= 1
+        super(ProducerThread, self).__init__()
+        self.readable = readable
+        self.targetQueue = targetQueue
+        self.sheet = sheet
+        self.error = None
+        
+    def run(self):
+        try:
+            xml.sax.parse(self.readable, RowProducingContentHandler(self.targetQueue, self.sheet))
+        except Exception, error:
+            # Remember error information to raise it later during `join()`.
+            self.error = error
+        finally:
+            # The last row always is a `None` to mark the end.
+            self.targetQueue.put(None)
+    
+    def join(self):
+        super(ProducerThread, self).join()
+        if self.error is not None:
+            raise self.error
+
 def _writeRstRow(rstTargetFile, columnLengths, items):
     assert rstTargetFile is not None
     assert columnLengths
@@ -145,7 +193,23 @@ def _writeRstSeparatorLine(rstTargetFile, columnLengths, lineSeparator):
         if columnLength > 0:
             rstTargetFile.write(lineSeparator * columnLength)
     rstTargetFile.write("+\n")
-        
+
+def odsContent(odsSourceFilePath):
+    """
+    Readable for content.xml in `odsSourceFilePath`.
+    """
+    assert odsSourceFilePath is not None
+    
+    zipArchive = zipfile.ZipFile(odsSourceFilePath, "r")
+    try:
+        # TODO: Consider switching to 2.6 and use ZipFile.open(). This would need less memory.
+        xmlData = zipArchive.read("content.xml")
+        result = StringIO.StringIO(xmlData)
+    finally:
+        zipArchive.close()
+
+    return result
+    
 def toRst(odsFilePath, rstTargetPath, firstRowIsHeading=True, sheet=1):
     """
     Convert ODS file in `odsFilePath` to reStructuredText and store the result in `rstTargetPath`.
@@ -155,13 +219,11 @@ def toRst(odsFilePath, rstTargetPath, firstRowIsHeading=True, sheet=1):
     assert sheet >= 1
     
     rowListHandler = RowListContentHandler(sheet)
-    zipArchive = zipfile.ZipFile(odsFilePath, "r")
+    readable = odsContent(odsFilePath)
     try:
-        # TODO: Consider switching to 2.6 and use ZipFile.open(). This would need less memory.
-        xmlData = zipArchive.read("content.xml")
-        xml.sax.parseString(xmlData, rowListHandler)
+        xml.sax.parse(readable, rowListHandler)
     finally:
-        zipArchive.close()
+        readable.close()
 
     # Find out the length of each column.
     lengths = []
@@ -220,14 +282,12 @@ def toDocBookXml(odsFilePath, xmlTargetPath, id, title, sheet=1):
     assert title is not None
 
     # Convert ODS to row list.
-    zipArchive = zipfile.ZipFile(odsFilePath, "r")
-    try:
-        # TODO: Consider switching to 2.6 and use ZipFile.open(). This would need less memory.
-        xmlData = zipArchive.read("content.xml")
-    finally:
-        zipArchive.close()
     handler = RowListContentHandler(sheet)
-    xml.sax.parseString(xmlData, handler)
+    contentReadable = odsContent(odsFilePath)
+    try:
+        xml.sax.parse(contentReadable, handler)
+    finally:
+        contentReadable.close()
     
     # Remove trailing empty rows.
     rows = handler.rows

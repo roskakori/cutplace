@@ -8,6 +8,7 @@ import datetime
 import logging
 import ods
 import os
+import Queue
 import tempfile
 import tools
 
@@ -124,6 +125,30 @@ def excelReader(readable, sheetIndex=1):
             row.append(_excelCellValue(sheet.cell(y, x), datemode))
         yield row
 
+def odsReader(readable, sheetIndex=1):
+    """
+    Generator yielding the Open Document spreadsheet stored in `readable`.
+    """
+    assert readable is not None
+    assert sheetIndex is not None
+    assert sheetIndex >= 1
+
+    rowQueue = Queue.Queue()
+    contentXmlReadable = ods.odsContent(readable)
+    try:
+        producer = ods.ProducerThread(contentXmlReadable, rowQueue)
+        producer.start()
+        hasRow = True
+        while hasRow:
+            row = rowQueue.get()
+            if row is not None:
+                yield row
+            else:
+                hasRow = False
+    finally:
+        contentXmlReadable.close()
+    producer.join()
+    
 class DelimitedDialect(object):
     def __init__(self, lineDelimiter=AUTO, itemDelimiter=AUTO):
         assert lineDelimiter is not None
@@ -236,6 +261,7 @@ class DelimitedParser(object):
 
         # FIXME: Read delimited items without holding the whole file into memory.
         self.rows = []
+        print "%r (%d)" % (self.itemDelimiter, len(self.itemDelimiter))
         reader = csv.reader(readable, delimiter=self.itemDelimiter, lineterminator=self.lineDelimiter,
                               quotechar=self.quoteChar, doublequote=(self.quoteChar == self.escapeChar))
         for row in reader:

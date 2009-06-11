@@ -5,8 +5,11 @@ import cutplace
 import dev_test
 import logging
 import os.path
+import parsers
 import tools
 import unittest
+
+_log = logging.getLogger("cutplace")
 
 class CutplaceTest(unittest.TestCase):
     """Test cases for cutplace command line interface."""
@@ -25,6 +28,24 @@ class CutplaceTest(unittest.TestCase):
         cutPlace.setOptions(["--list-encodings"])
 
     # TODO: Add tests for broken CSV files.
+
+    def _testValidIcd(self, suffix):
+        assert suffix is not None
+        icdPath = dev_test.getTestIcdPath("customers." + suffix)
+        cutPlace = cutplace.CutPlace()
+        cutPlace.setIcdFromFile(icdPath)
+    
+    def testValidIcdInCsvFormat(self):
+        self._testValidIcd("csv")
+    
+    def testValidIcdInOdsFormat(self):
+        self._testValidIcd("ods")
+    
+    def testValidIcdInXlsFormat(self):
+        try:
+            self._testValidIcd("xls")
+        except parsers.CutplaceXlrdImportError:
+            _log.warning("skipped test due lack of xlrd module")
     
     def testValidCsvs(self):
         VALID_PREFIX = "valid_"
