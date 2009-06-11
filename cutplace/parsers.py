@@ -5,6 +5,7 @@ containing the columns.
 import csv
 import data
 import datetime
+import decimal
 import logging
 import ods
 import os
@@ -99,6 +100,9 @@ def _excelCellValue(cell, datemode):
         result = xlrd.error_text_from_code.get(errorCode, defaultErrorText)
     else:
         result = str(cell.value)
+        if (cell.ctype == xlrd.XL_CELL_NUMBER) and (result.endswith(".0")):
+            result = result[:-2]
+
     return result
 
 def excelReader(readable, sheetIndex=1):
@@ -261,7 +265,6 @@ class DelimitedParser(object):
 
         # FIXME: Read delimited items without holding the whole file into memory.
         self.rows = []
-        print "%r (%d)" % (self.itemDelimiter, len(self.itemDelimiter))
         # HACK: Convert delimiters using `str()` because `csv.reader()` cannot handle Unicode strings,
         # thus u"," becomes "," which can be processed.
         reader = csv.reader(readable, delimiter=str(self.itemDelimiter), lineterminator=str(self.lineDelimiter),
