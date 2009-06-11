@@ -262,8 +262,10 @@ class DelimitedParser(object):
         # FIXME: Read delimited items without holding the whole file into memory.
         self.rows = []
         print "%r (%d)" % (self.itemDelimiter, len(self.itemDelimiter))
-        reader = csv.reader(readable, delimiter=self.itemDelimiter, lineterminator=self.lineDelimiter,
-                              quotechar=self.quoteChar, doublequote=(self.quoteChar == self.escapeChar))
+        # HACK: Convert delimiters using `str()` because `csv.reader()` cannot handle Unicode strings,
+        # thus u"," becomes "," which can be processed.
+        reader = csv.reader(readable, delimiter=str(self.itemDelimiter), lineterminator=str(self.lineDelimiter),
+                              quotechar=str(self.quoteChar), doublequote=(self.quoteChar == self.escapeChar))
         for row in reader:
             self.rows.append(row)
         self.rowCount = len(self.rows)
