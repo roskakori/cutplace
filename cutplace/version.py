@@ -3,7 +3,7 @@ Cutplace version information.
 """
 VERSION = 0
 RELEASE = 5
-REVISION = 1
+REVISION = 2
 VERSION_DATE = "2009-06-11"
 
 VERSION_NUMBER = "%d.%d.%d" % (VERSION, RELEASE, REVISION)
