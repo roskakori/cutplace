@@ -4,6 +4,21 @@ Revision history
 
 This chapter describes improvements compared to earlier versions of cutplace.
 
+Version 0.5.1, 11-Jun-2009
+==========================
+
+* Added support for ICDs in Excel and ODS format for built in web server.
+
+* Changed representation of integer number read from Excel data: instead
+  of for example "123.0" this now renders as "123".
+  
+* Improved memory usage for data and ICDs in ODS format.
+
+* Fixed reading of ICDs in Excel and ODS format.
+
+* Fixed TypeError when the CSV delimiters specified in the ICD were encoded
+  in Unicode.
+
 Version 0.5.0, 02-Jun-2009
 ==========================
 
