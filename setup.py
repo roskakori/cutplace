@@ -149,7 +149,7 @@ With cutplace you can describe these data in a simple and human readable spreads
 like Calc or Excel. Unlike a lot of documentation these days, this description does not only describe wishful
 thinking. It acts as "executable specification" which cutplace can use to validate that data actually conform to it.""",
       classifiers=[
-          "Development Status :: 3 - Alpha",
+          "Development Status :: 4 - Beta",
           "Environment :: Console",
           "Environment :: Web Environment",
           "Intended Audience :: Developers",
