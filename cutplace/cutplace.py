@@ -149,7 +149,11 @@ class CutPlace(object):
 
         if not self.isShowEncodings and not self.isWebServer:
             if len(others) >= 1:
-                self.setIcdFromFile(others[0])
+                icdPath = others[0]
+                try:
+                    self.setIcdFromFile(icdPath)
+                except EnvironmentError, error:
+                    raise IOError("cannot read ICD file %r: %s" % (icdPath, error))
                 if len(others) >= 2:
                     self.dataToValidatePaths = others[1:]
             else:
@@ -205,21 +209,35 @@ def main():
             cutPlace.icd.addValidationEventListener(listener)
             try:
                 cutPlace.icd.validate(path)
+            except EnvironmentError, error:
+                raise EnvironmentError("cannot read data file %r: %s" % (path, error))
             finally:
                 cutPlace.icd.removeValidationEventListener(listener)
 
+def _exitWithError(exitCode, error):
+    """
+    Print `error` and `sys.exit()` with `exitCode`.
+    """
+    assert exitCode is not None
+    assert exitCode > 0
+    assert error is not None
+    
+    sys.stderr.write("%s%s" % (error, os.linesep))
+    sys.exit(exitCode)
+    
 def mainForScript():
     """
     Main routine that reports errors in options to `sys.stderr` and does `sys.exit()`.
     """
     try:
         main()
+    except EnvironmentError, error:
+        _exitWithError(3, error)
     except tools.CutplaceError, error:
-        sys.stderr.write("cannot process Excel format: %s%s" % (error, os.linesep))
+        _exitWithError(1, "cannot process Excel format: %s" % error)
     except optparse.OptionError, error:
         if not isinstance(error, ExitQuietlyOptionError):
-            sys.stderr.write("cannot process command line options: %s%s" % (error, os.linesep))
-            sys.exit(1)
+            _exitWithError(2, "cannot process command line options: %s" % error)
     
 if __name__ == '__main__':
     mainForScript()
