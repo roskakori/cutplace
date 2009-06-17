@@ -157,7 +157,7 @@ class CutPlace(object):
                 if len(others) >= 2:
                     self.dataToValidatePaths = others[1:]
             else:
-                parser.error("file containing ICD  must be specified")
+                parser.error("file containing ICD must be specified")
 
         self._log.debug("cutplace " + version.VERSION_TAG)
         self._log.debug("options=" + str(self.options))
