@@ -390,7 +390,7 @@ def main(arguments):
                 toRst(sourceFilePath, targetFilePath, firstRowIsHeading=options.firstRowIsHeading, sheet=options.sheet)
             else: # pragma: no cover
                 raise NotImplementedError("format=%r" % (options.format))
-        except IOError, error:
+        except EnvironmentError, error:
             logging.getLogger("cutplace.ods").error("cannot convert ods to csv: %s" % error)
             sys.exit(1)
         except Exception, error:
