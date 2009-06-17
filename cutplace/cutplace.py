@@ -163,7 +163,6 @@ class CutPlace(object):
         assert self.icd is not None
         
         for dataFilePath in self.dataToValidatePaths:
-            
             self.icd.validate(dataFilePath)
             
     def setIcdFromFile(self, newIcdPath):
@@ -208,7 +207,6 @@ def main():
                 cutPlace.icd.validate(path)
             finally:
                 cutPlace.icd.removeValidationEventListener(listener)
-                
 
 def mainForScript():
     """
