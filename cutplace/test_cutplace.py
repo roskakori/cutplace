@@ -29,13 +29,32 @@ class CutplaceTest(unittest.TestCase):
 
     # TODO: Add tests for broken CSV files.
 
-    def testSplit(self):
+    def testSplitValidData(self):
         icdPath = dev_test.getTestIcdPath("customers.ods")
         dataPath = dev_test.getTestInputPath("valid_customers_iso-8859-1.csv")
         cutPlace = cutplace.CutPlace()
         cutPlace.setOptions(["--split", icdPath, dataPath])
         cutPlace.validate()
-
+        acceptedDataPath = dev_test.getTestInputPath("valid_customers_iso-8859-1_accepted.csv")
+        rejectedDataPath = dev_test.getTestInputPath("valid_customers_iso-8859-1_rejected.txt")
+        self.assertNotEqual(os.path.getsize(acceptedDataPath), 0)
+        self.assertEqual(os.path.getsize(rejectedDataPath), 0)
+        os.remove(acceptedDataPath)
+        os.remove(rejectedDataPath)
+        
+    def testSplitBrokenData(self):
+        icdPath = dev_test.getTestIcdPath("customers.ods")
+        dataPath = dev_test.getTestInputPath("broken_customers.csv")
+        cutPlace = cutplace.CutPlace()
+        cutPlace.setOptions(["--split", icdPath, dataPath])
+        cutPlace.validate()
+        acceptedDataPath = dev_test.getTestInputPath("broken_customers_accepted.csv")
+        rejectedDataPath = dev_test.getTestInputPath("broken_customers_rejected.txt")
+        self.assertNotEqual(os.path.getsize(acceptedDataPath), 0)
+        self.assertNotEqual(os.path.getsize(rejectedDataPath), 0)
+        os.remove(acceptedDataPath)
+        os.remove(rejectedDataPath)
+        
     def _testValidIcd(self, suffix):
         assert suffix is not None
         icdPath = dev_test.getTestIcdPath("customers." + suffix)
