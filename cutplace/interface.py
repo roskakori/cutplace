@@ -391,11 +391,15 @@ class InterfaceControlDocument(object):
         result = value.strip()
         return result
     
-    def validate(self, dataFileToValidatePath):
+    def validate(self, dataFileToValidatePath, validationListener=None):
         """
-        Validate that all lines and items in dataFileToValidatePath conform to this interface.
+        Validate that all rows and items in `dataFileToValidatePath` conform to this interface.
+        The optional `validationListener` is a  `ValidationEventListener` which is informed
+        about detailed results of the validation. 
         """
         # FIXME: Split up `validate()` in several smaller methods.
+        assert dataFileToValidatePath is not None
+        
         self._log.info("validate \"%s\"" % (dataFileToValidatePath))
         self._resetCounts()
         for check in self.checkDescriptions.values():
@@ -443,82 +447,88 @@ class InterfaceControlDocument(object):
             validCharacterRange = self.dataFormat.get(data.KEY_ALLOWED_CHARACTERS)
 
             # Validate data row by row.
-            rowNumber = 0
-            for row in reader:
-                itemIndex = 0
-                rowNumber += 1
-                
-                if rowNumber > firstRowToValidateFieldsIn:
-                    try:
-                        # Validate all items of the current row and collect their values in `rowMap`.
-                        maxItemCount = min(len(row), len(self.fieldFormats))
-                        rowMap = {}
-                        while itemIndex < maxItemCount:
-                            item = row[itemIndex]
-                            if __debug__ and self._log.isEnabledFor(logging.DEBUG):
-                                self._log.debug("validate item %d/%d: %r <- %r" % (itemIndex + 1, len(self.fieldFormats), item, row))  
-                            fieldFormat = self.fieldFormats[itemIndex]
-                            # Validate characters.
-                            if validCharacterRange is not None:
-                                for character in item:
-                                    try:
-                                        validCharacterRange.validate("character", ord(character))
-                                    except range.RangeValueError, error:
-                                        raise fields.FieldValueError("value for fields %r must contain only valid characters: %s"
-                                                                     % (fieldFormat.fieldName, error))
-                                    
-                            # Validate field format
-                            if self.dataFormat.name == data.FORMAT_FIXED:
-                                item = self._strippedOfBlanks(item)
-                                fieldFormat.validateEmpty(item)
-                                # Note: No need to validate the length with fixed length items.
-                            else:
-                                fieldFormat.validateEmpty(item)
-                                fieldFormat.validateLength(item)
-                            rowMap[fieldFormat.fieldName] = fieldFormat.validate(item) 
-                            itemIndex += 1
-                        if itemIndex != len(row):
-                            itemIndex -= 1
-                            raise checks.CheckError("unexpected data must be removed after item %d" % (itemIndex))
-                        elif len(row) < len(self.fieldFormats):
-                            missingFieldNames = self.fieldNames[(len(row) - 1):]
-                            raise checks.CheckError("row must contain items for the following fields: %r" % missingFieldNames)
-    
-                        # Validate row checks.
-                        for description, check in self.checkDescriptions.items():
-                            try:
+            try:
+                if validationListener is not None:
+                    self.addValidationEventListener(validationListener)
+                rowNumber = 0
+                for row in reader:
+                    itemIndex = 0
+                    rowNumber += 1
+                    
+                    if rowNumber > firstRowToValidateFieldsIn:
+                        try:
+                            # Validate all items of the current row and collect their values in `rowMap`.
+                            maxItemCount = min(len(row), len(self.fieldFormats))
+                            rowMap = {}
+                            while itemIndex < maxItemCount:
+                                item = row[itemIndex]
                                 if __debug__ and self._log.isEnabledFor(logging.DEBUG):
-                                    self._log.debug("check row: %s" % check)  
-                                check.checkRow(rowNumber, rowMap)
-                            except checks.CheckError, error:
-                                raise checks.CheckError("row check failed: %r: %s" % (check.description, error))
-                        self._log.debug("accepted: %s" % row)
-                        self.acceptedCount += 1
-                        for listener in self.ValidationEventListeners:
-                            listener.acceptedRow(row)
-                    except Exception, error:
-                        # Handle failed check and other errors.
-                        # HACK: This should work using "except CutplaceError", but for some reason
-                        #     when run using ``python setup.py test`` a ``FieldValueError`` raised
-                        #     by ``validateEmpty()`` is not considered a ``CutplaceError``. I have
-                        #     no idea why because running ``python cutplace/test_all.py`` works
-                        #     fine. Even slightly less ugly code using
-                        #     ``isinstance(error, fields.FieldValue)`` does not work because it
-                        #     yields ``False``. 
-                        isFieldValueError = error.__class__.__name__ == 'FieldValueError'
-                        isCutplaceError = ("CutplaceError" in [clazz.__name__ for clazz in error.__class__.__bases__])
-                        if not isCutplaceError:
-                            raise
-                        elif isFieldValueError:
-                            fieldName = self.fieldNames[itemIndex]
-                            reason = "field %r must match format: %s" % (fieldName, error)
-                        else:
-                            reason = str(error)
-                        self._log.debug("rejected: %s" % row)
-                        self._log.debug(reason, exc_info=self.logTrace)
-                        self.rejectedCount += 1
-                        for listener in self.ValidationEventListeners:
-                            listener.rejectedRow(row, reason)
+                                    self._log.debug("validate item %d/%d: %r <- %r" % (itemIndex + 1, len(self.fieldFormats), item, row))  
+                                fieldFormat = self.fieldFormats[itemIndex]
+                                # Validate characters.
+                                if validCharacterRange is not None:
+                                    for character in item:
+                                        try:
+                                            validCharacterRange.validate("character", ord(character))
+                                        except range.RangeValueError, error:
+                                            raise fields.FieldValueError("value for fields %r must contain only valid characters: %s"
+                                                                         % (fieldFormat.fieldName, error))
+                                        
+                                # Validate field format
+                                if self.dataFormat.name == data.FORMAT_FIXED:
+                                    item = self._strippedOfBlanks(item)
+                                    fieldFormat.validateEmpty(item)
+                                    # Note: No need to validate the length with fixed length items.
+                                else:
+                                    fieldFormat.validateEmpty(item)
+                                    fieldFormat.validateLength(item)
+                                rowMap[fieldFormat.fieldName] = fieldFormat.validate(item) 
+                                itemIndex += 1
+                            if itemIndex != len(row):
+                                itemIndex -= 1
+                                raise checks.CheckError("unexpected data must be removed after item %d" % (itemIndex))
+                            elif len(row) < len(self.fieldFormats):
+                                missingFieldNames = self.fieldNames[(len(row) - 1):]
+                                raise checks.CheckError("row must contain items for the following fields: %r" % missingFieldNames)
+        
+                            # Validate row checks.
+                            for description, check in self.checkDescriptions.items():
+                                try:
+                                    if __debug__ and self._log.isEnabledFor(logging.DEBUG):
+                                        self._log.debug("check row: %s" % check)  
+                                    check.checkRow(rowNumber, rowMap)
+                                except checks.CheckError, error:
+                                    raise checks.CheckError("row check failed: %r: %s" % (check.description, error))
+                            self._log.debug("accepted: %s" % row)
+                            self.acceptedCount += 1
+                            for listener in self.ValidationEventListeners:
+                                listener.acceptedRow(row)
+                        except Exception, error:
+                            # Handle failed check and other errors.
+                            # HACK: This should work using "except CutplaceError", but for some reason
+                            #     when run using ``python setup.py test`` a ``FieldValueError`` raised
+                            #     by ``validateEmpty()`` is not considered a ``CutplaceError``. I have
+                            #     no idea why because running ``python cutplace/test_all.py`` works
+                            #     fine. Even slightly less ugly code using
+                            #     ``isinstance(error, fields.FieldValue)`` does not work because it
+                            #     yields ``False``. 
+                            isFieldValueError = error.__class__.__name__ == 'FieldValueError'
+                            isCutplaceError = ("CutplaceError" in [clazz.__name__ for clazz in error.__class__.__bases__])
+                            if not isCutplaceError:
+                                raise
+                            elif isFieldValueError:
+                                fieldName = self.fieldNames[itemIndex]
+                                reason = "field %r must match format: %s" % (fieldName, error)
+                            else:
+                                reason = str(error)
+                            self._log.debug("rejected: %s" % row)
+                            self._log.debug(reason, exc_info=self.logTrace)
+                            self.rejectedCount += 1
+                            for listener in self.ValidationEventListeners:
+                                listener.rejectedRow(row, reason)
+            finally:
+                if validationListener is not None:
+                    self.removeValidationEventListener(validationListener)
         finally:
             if needsOpen:
                 dataFile.close()

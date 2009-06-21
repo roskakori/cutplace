@@ -16,6 +16,8 @@ Cutplace - Validate flat data according to an interface control document.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import codecs
+import csv
 import encodings
 import glob
 import interface
@@ -27,6 +29,10 @@ import server
 import sys
 import tools
 import version
+
+def _openForWriteUsingUtf8(targetPath):
+    assert targetPath is not None
+    return codecs.open(targetPath, encoding="utf-8", mode="w")
 
 class ExitQuietlyOptionError(optparse.OptionError):
     """
@@ -56,8 +62,8 @@ class CutplaceValidationEventListener(interface.ValidationEventListener):
     Listener for ICD events that writes accepted and rejected rows to the files specified in the
     command line options.
     """
-    def __init__(self, acceptedCsvFile, rejectedTextFile):
-        self.acceptedFile = acceptedCsvFile
+    def __init__(self, acceptedCsvWriter, rejectedTextFile):
+        self.acceptedFile = acceptedCsvWriter
         self.rejectedFile = rejectedTextFile
         self.log = logging.getLogger("cutplace")
 
@@ -66,7 +72,7 @@ class CutplaceValidationEventListener(interface.ValidationEventListener):
             self.log.info("accepted: %r" % row)
         else:
             # Write to a csv.writer.
-            self.acceptedFile.write(row)
+            self.acceptedFile.writerow(row)
     
     def rejectedRow(self, row, error):
         rowText = "items: %r" % row
@@ -122,9 +128,11 @@ class CutPlace(object):
         parser.set_defaults(icdEncoding="iso-8859-1", isLogTrace=False, isOpenBrowser=False, logLevel="info", port=server.DEFAULT_PORT)
         parser.add_option("--list-encodings", action="store_true", dest="isShowEncodings", help="show list of available character encodings and exit")
         validationGroup = optparse.OptionGroup(parser, "Validation options", "Specify how to validate data and how to report the results")
-        validationGroup.add_option("-e", "--icd-encoding", metavar="ENCODING", dest="icdEncoding", help="character encoding to use when reading the ICD (default: %default)")
-        # TODO: validationGroup.add_option("-a", "--accepted", metavar="FILE", dest="pathForAcceptedRows", help="path for CSV file with accepted rows (default: log.info)")
-        # TODO: validationGroup.add_option("-r", "--rejected", metavar="FILE", dest="pathForRejectedRows", help="path for row text file with rejected rows (default: log.error")
+        validationGroup.add_option("-e", "--icd-encoding", metavar="ENCODING", dest="icdEncoding",
+                                   help="character encoding to use when reading the ICD (default: %default)")
+        validationGroup.add_option("-s", "--split", action="store_true", dest="isSplit",
+                                   help="split data in a CSV file containing the accepted rows and a raw text file "
+                                   + "containing rejected rows with both using UTF-8 as character encoding")
         parser.add_option_group(validationGroup)
         webGroup = optparse.OptionGroup(parser, "Web options", "Provide a  GUI for validation using a simple web server")
         webGroup.add_option("-w", "--web", action="store_true", dest="isWebServer", help="launch web server")
@@ -144,8 +152,7 @@ class CutPlace(object):
         self.isShowEncodings = self.options.isShowEncodings
         self.isWebServer = self.options.isWebServer
         self.port = self.options.port
-        # TODO: self.pathForAcceptedRows = self.options.pathForAcceptedRows
-        # TODO: self.pathForRejectedRows = self.options.pathForRejectedRows
+        self.isSplit = self.options.isSplit
 
         if not self.isShowEncodings and not self.isWebServer:
             if len(others) >= 1:
@@ -167,7 +174,27 @@ class CutPlace(object):
         assert self.icd is not None
         
         for dataFilePath in self.dataToValidatePaths:
-            self.icd.validate(dataFilePath)
+            isWriteSplit = self.isSplit
+            if isWriteSplit:
+                splitTargetFolder, splitBaseName = os.path.split(dataFilePath)
+                splitBaseName = os.path.splitext(dataFilePath)[0]
+                acceptedCsvPath = os.path.join(splitTargetFolder, splitBaseName + "_accepted.csv")
+                rejectedTextPath = os.path.join(splitTargetFolder, splitBaseName + "_rejected.txt")
+                acceptedCsvFile = _openForWriteUsingUtf8(acceptedCsvPath)
+            try:
+                if isWriteSplit:
+                    rejectedTextFile = _openForWriteUsingUtf8(rejectedTextPath)
+                    validationSplitListener = CutplaceValidationEventListener(csv.writer(acceptedCsvFile), rejectedTextFile)
+                else:
+                    validationSplitListener = None
+                try:
+                    self.icd.validate(dataFilePath, validationSplitListener)
+                finally:
+                    if isWriteSplit:
+                        rejectedTextFile.close()
+            finally:
+                if isWriteSplit:
+                    acceptedCsvFile.close()                   
             
     def setIcdFromFile(self, newIcdPath):
         assert newIcdPath is not None

@@ -29,6 +29,13 @@ class CutplaceTest(unittest.TestCase):
 
     # TODO: Add tests for broken CSV files.
 
+    def testSplit(self):
+        icdPath = dev_test.getTestIcdPath("customers.ods")
+        dataPath = dev_test.getTestInputPath("valid_customers_iso-8859-1.csv")
+        cutPlace = cutplace.CutPlace()
+        cutPlace.setOptions(["--split", icdPath, dataPath])
+        cutPlace.validate()
+
     def _testValidIcd(self, suffix):
         assert suffix is not None
         icdPath = dev_test.getTestIcdPath("customers." + suffix)
@@ -46,7 +53,7 @@ class CutplaceTest(unittest.TestCase):
             self._testValidIcd("xls")
         except parsers.CutplaceXlrdImportError:
             _log.warning("skipped test due lack of xlrd module")
-    
+
     def testValidCsvs(self):
         VALID_PREFIX = "valid_"
         testsInputFolder = dev_test.getTestFolder("input")
