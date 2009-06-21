@@ -221,10 +221,9 @@ Time          DateTime      hh:mm:ss
 ============= ============= ===================
 
 .. warning::
-
-Excel cannot represent integer numbers exactly, so you better use
-*Decimal* instead of *Integer* in the ICD. In case you do use *Integer*
-be prepared for weird validation error and rounding issues.
+  Excel cannot represent integer numbers exactly, so you better use
+  *Decimal* instead of *Integer* in the ICD. In case you do use *Integer*
+  be prepared for weird validation error and rounding issues.
 
 Fixed data
 ----------
