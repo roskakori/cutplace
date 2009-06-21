@@ -79,6 +79,21 @@ validating data:
 
 TODO: elaborate
 
+If ``--split`` is set, cutplace creates stores each row in one of two files:
+
+# A CSV file containing the rows that have been accepted. It uses a comma (,)
+  as separator and UTF-8 as character encoding. This file can be helpful in case
+  you decide to process the valid part of the data even if some of them where
+  broken.
+
+# A text file containing a raw dump of each rejected row and the related error
+  message. It uses UTF-8 as character encoding and Python's `repr()` format to
+  render the data. This has the advantage that hairy issues such as control
+  characters or padding white space are easy to see.
+
+These files are stored in the same folder as the data file and have a the same
+name but a suffix of "_accepted.csv" and "_rejected.txt" appended.
+
 The command line option ``--trace`` can be helpful for tracking down bugs in
 the rules you specified for complex checks like DistinctCount, field formats or
 checks you developed yourself, or in cutplace itself. When enabled, error
