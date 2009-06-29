@@ -470,8 +470,11 @@ class InterfaceControlDocument(object):
                             while itemIndex < maxItemCount:
                                 item = row[itemIndex]
                                 if hasRowEncoding and (type(item) != types.UnicodeType):
-                                    item = unicode(item, rowEncoding)
-                                    row[itemIndex] = item
+                                    try:
+                                        item = unicode(item, rowEncoding)
+                                        row[itemIndex] = item
+                                    except UnicodeDecodeError, error:
+                                        raise data.DataFormatValueError("cannot decode item at row %d, column %d to %r: %s" %(rowNumber, itemIndex + 1, rowEncoding, error))
                                 if __debug__ and self._log.isEnabledFor(logging.DEBUG):
                                     self._log.debug("validate item %d/%d: %r <- %r" % (itemIndex + 1, len(self.fieldFormats), item, row))  
                                 fieldFormat = self.fieldFormats[itemIndex]
@@ -513,6 +516,8 @@ class InterfaceControlDocument(object):
                             self.acceptedCount += 1
                             for listener in self.ValidationEventListeners:
                                 listener.acceptedRow(row)
+                        except data.DataFormatValueError:
+                            raise
                         except Exception, error:
                             # Handle failed check and other errors.
                             # HACK: This should work using "except CutplaceError", but for some reason

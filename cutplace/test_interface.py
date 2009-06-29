@@ -213,6 +213,22 @@ F,first_name,John,X,15,Text
         self.assertEqual(icd.passedChecksAtEndCount, 2)
         self.assertEqual(icd.failedChecksAtEndCount, 0)
 
+    def testBrokenAsciiIcd(self):
+        spec = ",Broken ASCII interface with with non ASCII character: \0xfd" 
+        icd = interface.InterfaceControlDocument()
+        # FIXME: Currently causes "Error: line contains NULL byte" but should cause some kind of encoding error.
+        # self._testBroken(spec, UnicodeError)
+
+    def testBrokenAsciiData(self):
+        icd = createDefaultTestIcd(data.FORMAT_CSV)
+        del icd.dataFormat.properties[data.KEY_ENCODING]
+        icd.dataFormat.set(data.KEY_ENCODING, "ascii")
+        dataText = """38000,23,"John","Doe","male","08.03.1957"
+38000,59,"Bärbel","Müller","female","04.10.1946"
+38000,23,"Mike","Webster","male","23.12.1974"
+"""
+        dataReadable = StringIO.StringIO(dataText)
+        self.assertRaises(data.DataFormatValueError, icd.validate, dataReadable)
 
     def testLatin1(self):
         icd = createDefaultTestIcd(data.FORMAT_CSV)
