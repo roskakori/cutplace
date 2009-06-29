@@ -445,6 +445,13 @@ class InterfaceControlDocument(object):
             assert firstRowToValidateFieldsIn is not None
             assert firstRowToValidateFieldsIn >= 0
             validCharacterRange = self.dataFormat.get(data.KEY_ALLOWED_CHARACTERS)
+            try:
+                rowEncoding = self.dataFormat.get(data.KEY_ENCODING)
+                if rowEncoding is not None:
+                    rowEncoding = rowEncoding.name
+            except data.DataFormatSyntaxError:
+                rowEncoding = None
+            hasRowEncoding = (rowEncoding is not None)
 
             # Validate data row by row.
             try:
@@ -462,6 +469,9 @@ class InterfaceControlDocument(object):
                             rowMap = {}
                             while itemIndex < maxItemCount:
                                 item = row[itemIndex]
+                                if hasRowEncoding and (type(item) != types.UnicodeType):
+                                    item = unicode(item, rowEncoding)
+                                    row[itemIndex] = item
                                 if __debug__ and self._log.isEnabledFor(logging.DEBUG):
                                     self._log.debug("validate item %d/%d: %r <- %r" % (itemIndex + 1, len(self.fieldFormats), item, row))  
                                 fieldFormat = self.fieldFormats[itemIndex]

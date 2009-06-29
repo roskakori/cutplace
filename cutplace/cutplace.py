@@ -72,6 +72,7 @@ class CutplaceValidationEventListener(interface.ValidationEventListener):
             self.log.info("accepted: %r" % row)
         else:
             # Write to a csv.writer.
+            print "%r" % row
             self.acceptedFile.writerow(row)
     
     def rejectedRow(self, row, error):
@@ -180,11 +181,11 @@ class CutPlace(object):
                 splitBaseName = os.path.splitext(dataFilePath)[0]
                 acceptedCsvPath = os.path.join(splitTargetFolder, splitBaseName + "_accepted.csv")
                 rejectedTextPath = os.path.join(splitTargetFolder, splitBaseName + "_rejected.txt")
-                acceptedCsvFile = _openForWriteUsingUtf8(acceptedCsvPath)
+                acceptedCsvFile = open(acceptedCsvPath, "w")
             try:
                 if isWriteSplit:
                     rejectedTextFile = _openForWriteUsingUtf8(rejectedTextPath)
-                    validationSplitListener = CutplaceValidationEventListener(csv.writer(acceptedCsvFile), rejectedTextFile)
+                    validationSplitListener = CutplaceValidationEventListener(tools.UnicodeCsvWriter(acceptedCsvFile), rejectedTextFile)
                 else:
                     validationSplitListener = None
                 try:
