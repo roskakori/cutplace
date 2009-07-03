@@ -1,3 +1,4 @@
+# -*- coding: iso-8859-1 -*-
 """
 Tests  for field formats.
 """
@@ -143,6 +144,12 @@ class ChoiceFieldFormatTest(unittest.TestCase):
     def testMatchingOnlyChoice(self):
         format = fields.ChoiceFieldFormat("color", False, None, "red")
         format.validate("red")
+
+    def testMatchWithUmlaut(self):
+        format = fields.ChoiceFieldFormat("geschlecht", False, None, u"männlich, weiblich")
+        format.validate(u"männlich")
+        format.validate(u"Männlich")
+        self.assertRaises(fields.FieldValueError, format.validate, u"unbekannt")
 
     def testBrokenEmptyChoice(self):
         self.assertRaises(fields.FieldSyntaxError, fields.ChoiceFieldFormat, "color", False, None, "")
