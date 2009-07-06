@@ -72,7 +72,6 @@ class CutplaceValidationEventListener(interface.ValidationEventListener):
             self.log.info("accepted: %r" % row)
         else:
             # Write to a csv.writer.
-            print "%r" % row
             self.acceptedFile.writerow(row)
     
     def rejectedRow(self, row, error):
