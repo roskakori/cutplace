@@ -12,6 +12,7 @@ import StringIO
 import sys
 import threading
 import tools
+import types
 import xml.sax
 import zipfile
 
@@ -55,17 +56,21 @@ class AbstractOdsContentHandler(xml.sax.ContentHandler):
             self.cellText += text
 
     def endElement(self, name):
-        self.indent -= 1
         if (name == "table:table-cell") and (self.tablesToSkip == 0):
+            self._log.debug("%s</%s>" % (" " * 2 * self.indent, name))
             assert self.cellText is not None
             self.insideCell = False
             for i in range(self.numberColumnsRepeated):
+                cellType = type(self.cellText)
+                assert cellType == types.UnicodeType, "type(%r)=%r" % (self.cellText, cellType)
                 self.row.append(self.cellText)
             self.cellText = None
         if (name == "table:table-row") and (self.tablesToSkip == 0):
+            self._log.debug("%s</%s>" % (" " * 2 * self.indent, name))
             assert self.row is not None
             self.rowCompleted()
             self.row = None
+        self.indent -= 1
             
     def rowCompleted(self):
         """
