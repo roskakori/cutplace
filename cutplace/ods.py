@@ -45,7 +45,7 @@ class AbstractOdsContentHandler(xml.sax.ContentHandler):
                 self.numberColumnsRepeated = 1
             self._log.debug("%s<%s> (%d) %r" % (" " * 2 * self.indent, name, self.numberColumnsRepeated, attributes.items()))
             self.insideCell = True
-            self.cellText = ""
+            self.cellText = u""
         elif (name == "table:table-row") and (self.tablesToSkip == 0):
             self._log.debug("%s<%s>" % (" " * 2 * self.indent, name))
             self.row = []
