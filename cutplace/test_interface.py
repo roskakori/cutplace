@@ -17,7 +17,10 @@ _log = logging.getLogger("cutplace.test_interface")
 class _SimpleErrorLoggingValidationEventListener(interface.ValidationEventListener):
     def _logError(self, row, error):
         _log.warning("error during validation: %s %r" % (error, row))
-        
+
+    def acceptedRow(self, row):
+        _log.info("accepted: %r" % row)
+
     def rejectedRow(self, row, error):
         self._logError(row, error)
         super(_SimpleErrorLoggingValidationEventListener, self).rejectedRow(row, error)
@@ -757,6 +760,6 @@ Mike,male,23.12.1974"""
 
 if __name__ == '__main__': # pragma: no cover
     logging.basicConfig()
-    logging.getLogger("cutplace").setLevel(logging.DEBUG)
-    logging.getLogger("cutplace.test_interface").setLevel(logging.DEBUG)
+    logging.getLogger("cutplace").setLevel(logging.INFO)
+    logging.getLogger("cutplace.test_interface").setLevel(logging.INFO)
     unittest.main()
