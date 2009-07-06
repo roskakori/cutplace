@@ -24,24 +24,12 @@ class CutplaceXlrdImportError(tools.CutplaceError):
     Error raised if xlrd package to read Excel can not be imported.
     """
     
-def parserReader(parser):
-    """Generator yielding the readable of parser row by row."""
-    assert parser is not None
-    columns = []
-    while not parser.atEndOfFile:
-        if parser.item is not None:
-            columns.append(parser.item)
-        if parser.atEndOfLine:
-            yield columns
-            columns = []
-        parser.advance()
-
 def delimitedReader(readable, dialect):
     """Generator yielding the "readable" row by row using "dialect"."""
     assert readable is not None
     assert dialect is not None
     
-    parser = DelimitedParser(readable, dialect)
+    parser = _DelimitedParser(readable, dialect)
     columns = []
     while not parser.atEndOfFile:
         if parser.item is not None:
@@ -57,8 +45,7 @@ def fixedReader(readable, fieldLengths):
     assert fieldLengths
     assert len(fieldLengths) > 0
     
-    parser = FixedParser(readable, fieldLengths)
-    # parserReader(parser)
+    parser = _FixedParser(readable, fieldLengths)
     columns = []
     while not parser.atEndOfFile:
         if parser.item is not None:
@@ -100,8 +87,9 @@ def _excelCellValue(cell, datemode):
         result = xlrd.error_text_from_code.get(errorCode, defaultErrorText)
     else:
         result = str(cell.value)
+        # FIXME: Convert Excel cell value to Unicode.
         if (cell.ctype == xlrd.XL_CELL_NUMBER) and (result.endswith(".0")):
-            result = result[:-2]
+            result = result[: - 2]
 
     return result
 
@@ -140,7 +128,7 @@ def odsReader(readable, sheetIndex=1):
     rowQueue = Queue.Queue()
     contentXmlReadable = ods.odsContent(readable)
     try:
-        producer = ods.ProducerThread(contentXmlReadable, rowQueue)
+        producer = ods.ProducerThread(contentXmlReadable, rowQueue, sheetIndex)
         producer.start()
         hasRow = True
         while hasRow:
@@ -209,7 +197,7 @@ class ParserSyntaxError(tools.CutplaceError):
         result += "): %s" % self.message
         return result
             
-class DelimitedParser(object):
+class _DelimitedParser(object):
     """Parser for data where items are separated by delimiters."""
     def __init__(self, readable, dialect):
         assert readable is not None
@@ -270,6 +258,7 @@ class DelimitedParser(object):
         reader = csv.reader(readable, delimiter=str(self.itemDelimiter), lineterminator=str(self.lineDelimiter),
                               quotechar=str(self.quoteChar), doublequote=(self.quoteChar == self.escapeChar))
         for row in reader:
+            # TODO: Convert all items in row to Unicode.
             self.rows.append(row)
         self.rowCount = len(self.rows)
         self.itemNumber = 0
@@ -308,40 +297,8 @@ class DelimitedParser(object):
             self.atEndOfFile = True
         if self._log.isEnabledFor(logging.DEBUG):
             self._log.debug("(%d:%d) %r [%d;%d]" % (self.lineNumber, self.itemNumber, self.item, self.atEndOfLine, self.atEndOfFile))
-        
-class OdsParser(DelimitedParser):
-    """
-    Parser for Open Document Spreadsheets (ODS).
-    """
-    def __init__(self, readable, sheet=1):
-        assert readable is not None
-        assert sheet >= 1
-        
-        # Convert ODS to CSV.
-        (csvTempFd, self.csvTempFilePath) = tempfile.mkstemp(".csv", "cutplace-")
-        os.close(csvTempFd)
-        ods.toCsv(readable, self.csvTempFilePath, sheet=sheet)
-        
-        excelDialect = DelimitedDialect(AUTO, ",")
-        excelDialect.quoteChar = "\""
 
-        # Now act as DelimitedParser for the derived CSV.
-        self.csvTempFile = open(self.csvTempFilePath, "rb")
-        super(OdsParser, self).__init__(self.csvTempFile, excelDialect)
-    
-    def _removeCsvTempTargetFile(self):
-        self.csvTempFile.close()
-        os.remove(self.csvTempFilePath)
-
-    def advance(self):
-        try:
-            super(OdsParser, self).advance()
-            if self.atEndOfFile:
-                self._removeCsvTempTargetFile()
-        except:
-            self._removeCsvTempTargetFile
-
-class FixedParser(object):
+class _FixedParser(object):
     def __init__(self, readable, fieldLengths):
         assert readable is not None
         assert fieldLengths is not None
@@ -375,6 +332,7 @@ class FixedParser(object):
             self.itemNumberInRow += 1
         expectedLength = self.fieldLengths[self.itemNumberInRow]
         self.item = self.readable.read(expectedLength)
+        # FIXME: Convert item to Unicode.
         if (self.item == "") and (self.itemNumberInRow == 0):
             self.item = None
             self.atEndOfLine = True

@@ -372,12 +372,10 @@ class InterfaceControlDocument(object):
                 dataFile = dataFileToValidatePath
             encoding = self.dataFormat.get(data.KEY_ENCODING)
             assert encoding is not None
-            dataReader = encoding.streamreader(dataFile)
+            dataFile = encoding.streamreader(dataFile)
         elif self.dataFormat.name in [data.FORMAT_EXCEL, data.FORMAT_ODS]:
             needsOpen = True
             dataFile = open(dataFileToValidatePath, "rb")
-            # TODO: Remove the line below, it should not be needed.
-            dataReader = None
         else: # pragma: no cover
             raise NotImplementedError("data format: %r" % self.dataFormat.name)
         
@@ -413,7 +411,7 @@ class InterfaceControlDocument(object):
                 dialect.itemDelimiter = self.dataFormat.get(data.KEY_ITEM_DELIMITER)
                 dialect.quoteChar = self.dataFormat.get(data.KEY_QUOTE_CHARACTER)
                 # FIXME: Set escape char according to ICD.
-                reader = parsers.parserReader(parsers.DelimitedParser(dataFile, dialect))
+                reader = parsers.delimitedReader(dataFile, dialect)
             elif self.dataFormat.name == data.FORMAT_EXCEL:
                 sheet = self.dataFormat.get(data.KEY_SHEET)
                 reader = parsers.excelReader(dataFile, sheet)
@@ -431,11 +429,10 @@ class InterfaceControlDocument(object):
                     assert fixedLength == firstLengthItem[1]
                     longFixedLength = long(fixedLength)
                     fieldLengths.append(longFixedLength)
-                reader = parsers.parserReader(parsers.FixedParser(dataFile, fieldLengths))
+                reader = parsers.fixedReader(dataFile, fieldLengths)
             elif self.dataFormat.name == data.FORMAT_ODS:
                 sheet = self.dataFormat.get(data.KEY_SHEET)
-                parser = parsers.OdsParser(dataFile, sheet=sheet)
-                reader = parsers.parserReader(parser)
+                reader = parsers.odsReader(dataFile, sheet)
             else: # pragma: no cover
                 raise NotImplementedError("data format: %r" % self.dataFormat.name)
             # TODO: Replace rowNumber by position in parser.
@@ -474,7 +471,7 @@ class InterfaceControlDocument(object):
                                         item = unicode(item, rowEncoding)
                                         row[itemIndex] = item
                                     except UnicodeDecodeError, error:
-                                        raise data.DataFormatValueError("cannot decode item at row %d, column %d to %r: %s" %(rowNumber, itemIndex + 1, rowEncoding, error))
+                                        raise data.DataFormatValueError("cannot decode item at row %d, column %d to %r: %s" % (rowNumber, itemIndex + 1, rowEncoding, error))
                                 if __debug__ and self._log.isEnabledFor(logging.DEBUG):
                                     self._log.debug("validate item %d/%d: %r <- %r" % (itemIndex + 1, len(self.fieldFormats), item, row))  
                                 fieldFormat = self.fieldFormats[itemIndex]

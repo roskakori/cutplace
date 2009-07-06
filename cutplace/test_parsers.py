@@ -23,9 +23,9 @@ class AbstractParserTest(unittest.TestCase):
             result = readable
         return result
 
-    def parseAndAssertEquals(self, expectedRows, parser):
+    def readAndAssertEquals(self, expectedRows, reader):
         rows = []
-        for row in parsers.parserReader(parser):
+        for row in reader:
             rows.append(row)
         self.assertEqual(rows, expectedRows)
 
@@ -69,8 +69,8 @@ class FixedParserTest(AbstractParserTest):
         assert fieldLengths is not None
         
         actualReadable = self.possiblyStringIoedReadable(readable)
-        parser = parsers.FixedParser(actualReadable, fieldLengths)
-        self.parseAndAssertEquals(expectedRows, parser)
+        reader = parsers.fixedReader(actualReadable, fieldLengths)
+        self.readAndAssertEquals(expectedRows, reader)
 
     def testEmpty(self):
         self._testParse([], "")
@@ -104,8 +104,8 @@ class DelimitedParserTest(AbstractParserTest):
             actualDialect = self._createDefaultDialect()
         else:
             actualDialect = dialect
-        parser = parsers.DelimitedParser(actualReadable, actualDialect)
-        self.parseAndAssertEquals(expectedRows, parser)
+        reader = parsers.delimitedReader(actualReadable, actualDialect)
+        self.readAndAssertEquals(expectedRows, reader)
         
     def _assertRaisesParserSyntaxError(self, readable, dialect=None):
         """
@@ -119,8 +119,8 @@ class DelimitedParserTest(AbstractParserTest):
         else:
             actualDialect = dialect
         try:
-            parser = parsers.DelimitedParser(actualReadable, actualDialect)
-            for dummy in parsers.parserReader(parser):
+            reader = parsers.delimitedReader(actualReadable, actualDialect)
+            for dummy in reader:
                 pass
             # FIXME: self.fail("readable must raise %s" % parsers.ParserSyntaxError.__name__)
         except parsers.ParserSyntaxError:
