@@ -10,6 +10,7 @@ import interface
 import logging
 import parsers
 import StringIO
+import tools
 import unittest
 
 _log = logging.getLogger("cutplace.test_interface")
@@ -32,7 +33,7 @@ class _SimpleErrorLoggingValidationEventListener(interface.ValidationEventListen
 _defaultIcdListener = _SimpleErrorLoggingValidationEventListener()
 
 def createDefaultTestFixedIcd():
-    spec = """,Interface: customer
+    spec = u""",Interface: customer
 ,
 ,Data format
 ,
@@ -65,19 +66,19 @@ def createDefaultTestIcd(format, lineDelimiter="\n"):
     assert format in [data.FORMAT_CSV, data.FORMAT_EXCEL, data.FORMAT_ODS], "format=%r" % format
     assert lineDelimiter
     
-    spec = ""","Interface: customer"
+    spec = u""","Interface: customer"
 ,
 ,"Data format"
 ,
 "D","Format","%s",
 """ % format
     if format.lower() == data.FORMAT_CSV:
-        spec += """"D","Line delimiter","LF"
+        spec += u""""D","Line delimiter","LF"
 "D","Item delimiter",","
 "D","Encoding","ISO-8859-1"
 "D","Allowed characters","32:"
 """
-    spec += """,
+    spec += u""",
 ,"Fields"
 ,
 ,"Name","Example","Empty","Length","Type","Rule"
@@ -109,14 +110,14 @@ class InterfaceControlDocumentTest(unittest.TestCase):
         self.assertRaises(expectedError, icd.read, StringIO.StringIO(spec))
         
     def testBrokenFirstItem(self):
-        spec = ""","Broken Interface with a row where the first item is not a valid row id"
+        spec = u""","Broken Interface with a row where the first item is not a valid row id"
 "D","Format","CSV"
 "x"
 """
         self._testBroken(spec, interface.IcdSyntaxError)
     
     def testBrokenFixedFieldWithoutLength(self):
-        spec = """,Broken interface with a fixed field without length
+        spec = u""",Broken interface with a fixed field without length
 ,
 ,Data format
 ,
@@ -142,7 +143,7 @@ F,first_name,John,X,15,Text
         
     def testIsUniqueCheck(self):
         icd = createDefaultTestIcd(data.FORMAT_CSV)
-        dataText = """38000,23,"John","Doe","male","08.03.1957"
+        dataText = u"""38000,23,"John","Doe","male","08.03.1957"
 38000,23,"Mike","Webster","male","23.12.1974"
 38000,59,"Jane","Miller","female","04.10.1946"
 """
@@ -159,7 +160,7 @@ F,first_name,John,X,15,Text
 
     def testDistinctCountCheck(self):
         icd = createDefaultTestIcd(data.FORMAT_CSV)
-        dataText = """38000,23,"John","Doe","male","08.03.1957"
+        dataText = u"""38000,23,"John","Doe","male","08.03.1957"
 38001,23,"Mike","Webster","male","23.12.1974"
 38002,23,"Mike","Webster","male","23.12.1974"
 38003,23,"Mike","Webster","male","23.12.1974"
@@ -186,7 +187,7 @@ F,first_name,John,X,15,Text
         icd = createDefaultTestIcd(data.FORMAT_CSV)
 
         # Validate some data that cause checks to fail.
-        dataText = """38000,23,"John","Doe","male","08.03.1957"
+        dataText = u"""38000,23,"John","Doe","male","08.03.1957"
 38000,23,"Mike","Webster","male","23.12.1974"
 38001,23,"Mike","Webster","male","23.12.1974"
 38002,23,"Mike","Webster","male","23.12.1974"
@@ -207,7 +208,7 @@ F,first_name,John,X,15,Text
         self.assertEqual(icd.failedChecksAtEndCount, 1)
 
         # Now try valid data with the same ICD.
-        dataText = """38000,23,"John","Doe","male","08.03.1957"
+        dataText = u"""38000,23,"John","Doe","male","08.03.1957"
 """
         dataReadable = StringIO.StringIO(dataText)
         icd.validate(dataReadable)
@@ -217,7 +218,7 @@ F,first_name,John,X,15,Text
         self.assertEqual(icd.failedChecksAtEndCount, 0)
 
     def testBrokenAsciiIcd(self):
-        spec = ",Broken ASCII interface with with non ASCII character: \0xfd" 
+        spec = u",Broken ASCII interface with with non ASCII character: \0xfd" 
         icd = interface.InterfaceControlDocument()
         # FIXME: Currently causes "Error: line contains NULL byte" but should cause some kind of encoding error.
         # self._testBroken(spec, UnicodeError)
@@ -226,16 +227,16 @@ F,first_name,John,X,15,Text
         icd = createDefaultTestIcd(data.FORMAT_CSV)
         del icd.dataFormat.properties[data.KEY_ENCODING]
         icd.dataFormat.set(data.KEY_ENCODING, "ascii")
-        dataText = """38000,23,"John","Doe","male","08.03.1957"
+        dataText = u"""38000,23,"John","Doe","male","08.03.1957"
 38000,59,"Bärbel","Müller","female","04.10.1946"
 38000,23,"Mike","Webster","male","23.12.1974"
 """
         dataReadable = StringIO.StringIO(dataText)
-        self.assertRaises(data.DataFormatValueError, icd.validate, dataReadable)
+        self.assertRaises(tools.CutplaceUnicodeError, icd.validate, dataReadable)
 
     def testLatin1(self):
         icd = createDefaultTestIcd(data.FORMAT_CSV)
-        dataText = """38000,23,"John","Doe","male","08.03.1957"
+        dataText = u"""38000,23,"John","Doe","male","08.03.1957"
 38000,59,"Bärbel","Müller","female","04.10.1946"
 38000,23,"Mike","Webster","male","23.12.1974"
 """
@@ -244,7 +245,7 @@ F,first_name,John,X,15,Text
 
     def testBrokenInvalidCharacter(self):
         icd = createDefaultTestIcd(data.FORMAT_CSV)
-        dataText = """38000,23,"John","Doe","male","08.03.1957"
+        dataText = u"""38000,23,"John","Doe","male","08.03.1957"
 38000,23,"Ja\ne","Miller","female","23.12.1974"
 """
         dataReadable = StringIO.StringIO(dataText)
@@ -253,7 +254,7 @@ F,first_name,John,X,15,Text
         self.assertEqual(icd.acceptedCount, 1)
 
         icd = createDefaultTestFixedIcd()
-        dataText = "3800012345John           Doe            male   08.03.19573800012346Ja\ne           Miller         female 04.10.1946"
+        dataText = u"3800012345John           Doe            male   08.03.19573800012346Ja\ne           Miller         female 04.10.1946"
         dataReadable = StringIO.StringIO(dataText)
         icd.validate(dataReadable)
         self.assertEqual(icd.rejectedCount, 1)
@@ -261,7 +262,7 @@ F,first_name,John,X,15,Text
         
     def testSimpleFixedIcd(self):
         icd = createDefaultTestFixedIcd()
-        dataText = "3800012345John           Doe            male   08.03.19573800012346Jane           Miller         female 04.10.1946"
+        dataText = u"3800012345John           Doe            male   08.03.19573800012346Jane           Miller         female 04.10.1946"
         dataReadable = StringIO.StringIO(dataText)
         icd.validate(dataReadable)
         self.assertEqual(icd.rejectedCount, 0)

@@ -251,9 +251,11 @@ class _BaseTextDataFormat(_BaseDataFormat):
         
         if key == KEY_ENCODING:
             try:
-                result = codecs.lookup(value)
+                # Validate encoding name.
+                codecs.lookup(value)
             except:
                 raise DataFormatValueError("value for data format property %r is %r but must be a valid encoding" % (key, value))
+            result = value
         elif key == KEY_LINE_DELIMITER:
             lowerValue = value.lower()
             self._validatedChoice(key, lowerValue, _VALID_LINE_DELIMITER_TEXTS)
@@ -323,9 +325,9 @@ class CsvDataFormat(DelimitedDataFormat):
         assert self.get(KEY_ITEM_DELIMITER) == ANY
 
         self.name = FORMAT_CSV
-        self.optionalKeyValueMap[KEY_ENCODING] = codecs.lookup("ascii")
-        self.optionalKeyValueMap[KEY_QUOTE_CHARACTER] = "\""
-        self.optionalKeyValueMap[KEY_ESCAPE_CHARACTER] = "\""
+        self.optionalKeyValueMap[KEY_ENCODING] = u"ascii"
+        self.optionalKeyValueMap[KEY_QUOTE_CHARACTER] = u"\""
+        self.optionalKeyValueMap[KEY_ESCAPE_CHARACTER] = u"\""
 
 class FixedDataFormat(_BaseTextDataFormat):
     """

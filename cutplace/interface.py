@@ -290,11 +290,12 @@ class InterfaceControlDocument(object):
         else:
             raise checks.CheckSyntaxError("check row (marked with %r) must contain at least 2 columns" % InterfaceControlDocument._ID_FIELD_RULE)
 
-    def _fittingReader(self, icdReadable):
+    def _fittingReader(self, icdReadable, encoding):
         """
         A reader fitting the contents of `icdReadable`.
         """
         assert icdReadable is not None
+        assert encoding is not None
         
         result = None
         icdHeader = icdReadable.read(4)
@@ -316,15 +317,15 @@ class InterfaceControlDocument(object):
                 dialect.itemDelimiter = parsers.AUTO
                 dialect.quoteChar = "\""
                 dialect.escapeChar = "\""
-                result = parsers.delimitedReader(icdReadable, dialect)
+                result = parsers.delimitedReader(icdReadable, dialect, encoding)
         return result
     
-    def read(self, icdFilePath, encodingName="iso-8859-1"):
+    def read(self, icdFilePath, encoding="iso-8859-1"):
         """"
         Read the ICD as specified in `icdFilePath`.
         
         - `icdPath` - either the path of a file or a `StringIO`
-        - `encodingName` - the name of the encoding to use when reading the ICD; depending the the
+        - `encoding` - the name of the encoding to use when reading the ICD; depending the the
         file type this might be ignored 
         """
         needsOpen = isinstance(icdFilePath, types.StringTypes)
@@ -333,7 +334,7 @@ class InterfaceControlDocument(object):
         else:
             icdFile = icdFilePath
         try:
-            reader = self._fittingReader(icdFile)
+            reader = self._fittingReader(icdFile, encoding)
             rowNumber = 0
             for row in reader:
                 rowNumber += 1
@@ -370,9 +371,6 @@ class InterfaceControlDocument(object):
                 dataFile = open(dataFileToValidatePath, "rb")
             else:
                 dataFile = dataFileToValidatePath
-            encoding = self.dataFormat.get(data.KEY_ENCODING)
-            assert encoding is not None
-            dataFile = encoding.streamreader(dataFile)
         elif self.dataFormat.name in [data.FORMAT_EXCEL, data.FORMAT_ODS]:
             needsOpen = True
             dataFile = open(dataFileToValidatePath, "rb")
@@ -411,7 +409,7 @@ class InterfaceControlDocument(object):
                 dialect.itemDelimiter = self.dataFormat.get(data.KEY_ITEM_DELIMITER)
                 dialect.quoteChar = self.dataFormat.get(data.KEY_QUOTE_CHARACTER)
                 # FIXME: Set escape char according to ICD.
-                reader = parsers.delimitedReader(dataFile, dialect)
+                reader = parsers.delimitedReader(dataFile, dialect, encoding=self.dataFormat.get(data.KEY_ENCODING))
             elif self.dataFormat.name == data.FORMAT_EXCEL:
                 sheet = self.dataFormat.get(data.KEY_SHEET)
                 reader = parsers.excelReader(dataFile, sheet)
@@ -442,13 +440,6 @@ class InterfaceControlDocument(object):
             assert firstRowToValidateFieldsIn is not None
             assert firstRowToValidateFieldsIn >= 0
             validCharacterRange = self.dataFormat.get(data.KEY_ALLOWED_CHARACTERS)
-            try:
-                rowEncoding = self.dataFormat.get(data.KEY_ENCODING)
-                if rowEncoding is not None:
-                    rowEncoding = rowEncoding.name
-            except data.DataFormatSyntaxError:
-                rowEncoding = None
-            hasRowEncoding = (rowEncoding is not None)
 
             # Validate data row by row.
             try:
@@ -466,12 +457,7 @@ class InterfaceControlDocument(object):
                             rowMap = {}
                             while itemIndex < maxItemCount:
                                 item = row[itemIndex]
-                                if hasRowEncoding and (type(item) != types.UnicodeType):
-                                    try:
-                                        item = unicode(item, rowEncoding)
-                                        row[itemIndex] = item
-                                    except UnicodeDecodeError, error:
-                                        raise data.DataFormatValueError("cannot decode item at row %d, column %d to %r: %s" % (rowNumber, itemIndex + 1, rowEncoding, error))
+                                assert not isinstance(item, str), "item at row %d, column %d must be Unicode string instead of plain string: %r" % (rowNumber, itemIndex + 1, item)
                                 if __debug__ and self._log.isEnabledFor(logging.DEBUG):
                                     self._log.debug("validate item %d/%d: %r <- %r" % (itemIndex + 1, len(self.fieldFormats), item, row))  
                                 fieldFormat = self.fieldFormats[itemIndex]

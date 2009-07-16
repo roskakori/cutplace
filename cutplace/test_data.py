@@ -22,10 +22,10 @@ class DataFormatTest(unittest.TestCase):
     def testCsvDataFormat(self):
         format = data.CsvDataFormat()
         self.assertTrue(format.name)
-        self.assertEqual(format.get(data.KEY_ENCODING), codecs.lookup("ascii"))
+        self.assertEqual(format.get(data.KEY_ENCODING), "ascii")
 
         format.set(data.KEY_ENCODING, DataFormatTest._TEST_ENCODING)
-        self.assertEqual(format.get(data.KEY_ENCODING), codecs.lookup(DataFormatTest._TEST_ENCODING))
+        self.assertEqual(format.get(data.KEY_ENCODING), DataFormatTest._TEST_ENCODING)
 
         self.assertEqual(format.get(data.KEY_LINE_DELIMITER), data.ANY)
         self.assertEqual(format.get(data.KEY_ITEM_DELIMITER), data.ANY)

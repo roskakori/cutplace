@@ -20,6 +20,14 @@ class CutplaceError(Exception):
     Error detected by cutplace caused by issues in the ICD or data.
     """
 
+class CutplaceUnicodeError(Exception):
+    """
+    Error detected by cutplace caused by improperly encoded ICD or data.
+    
+    This error is not derived from `CutplaceError` because it will not be handled in
+    any meaningful way and simply results in the the termination of the validation.
+    """
+    
 # The original source code for UTF8Recoder, UnicodeReader and UnicodeWriter
 # is available from the Python documentation.
 class UTF8Recoder:
@@ -33,7 +41,11 @@ class UTF8Recoder:
         return self
 
     def next(self):
-        return self.reader.next().encode("utf-8")
+        try:
+            result = self.reader.next().encode("utf-8")
+        except UnicodeError, error:
+            raise CutplaceUnicodeError("cannot decode input: %s" % str(error))
+        return result
 
 class UnicodeCsvReader:
     """

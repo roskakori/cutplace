@@ -24,12 +24,12 @@ class CutplaceXlrdImportError(tools.CutplaceError):
     Error raised if xlrd package to read Excel can not be imported.
     """
     
-def delimitedReader(readable, dialect):
+def delimitedReader(readable, dialect, encoding="ascii"):
     """Generator yielding the "readable" row by row using "dialect"."""
     assert readable is not None
     assert dialect is not None
     
-    parser = _DelimitedParser(readable, dialect)
+    parser = _DelimitedParser(readable, dialect, encoding)
     columns = []
     while not parser.atEndOfFile:
         if parser.item is not None:
@@ -199,9 +199,10 @@ class ParserSyntaxError(tools.CutplaceError):
             
 class _DelimitedParser(object):
     """Parser for data where items are separated by delimiters."""
-    def __init__(self, readable, dialect):
+    def __init__(self, readable, dialect, encoding="ascii"):
         assert readable is not None
         assert dialect is not None
+        assert encoding is not None
         assert dialect.lineDelimiter is not None
         assert dialect.itemDelimiter is not None
 
@@ -255,8 +256,8 @@ class _DelimitedParser(object):
         self.rows = []
         # HACK: Convert delimiters using `str()` because `csv.reader()` cannot handle Unicode strings,
         # thus u"," becomes "," which can be processed.
-        reader = csv.reader(readable, delimiter=str(self.itemDelimiter), lineterminator=str(self.lineDelimiter),
-                              quotechar=str(self.quoteChar), doublequote=(self.quoteChar == self.escapeChar))
+        reader = tools.UnicodeCsvReader(readable, delimiter=str(self.itemDelimiter), lineterminator=str(self.lineDelimiter),
+                              quotechar=str(self.quoteChar), doublequote=(self.quoteChar == self.escapeChar), encoding=encoding)
         for row in reader:
             # TODO: Convert all items in row to Unicode.
             self.rows.append(row)

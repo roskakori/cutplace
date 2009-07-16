@@ -1,3 +1,4 @@
+# -*- coding: iso-8859-1 -*-
 """
 Tests for parsers.
 """
@@ -26,6 +27,8 @@ class AbstractParserTest(unittest.TestCase):
     def readAndAssertEquals(self, expectedRows, reader):
         rows = []
         for row in reader:
+            for item in row:
+                self.assertFalse(isinstance(item, str), "item must not be plain string: %r" % item)
             rows.append(row)
         self.assertEqual(rows, expectedRows)
 
