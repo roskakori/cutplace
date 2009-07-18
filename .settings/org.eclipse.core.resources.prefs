@@ -1,4 +1,6 @@
-#Wed May 27 21:00:16 CEST 2009
+#Thu Jul 16 17:16:16 CEST 2009
 eclipse.preferences.version=1
+encoding//cutplace/dev_colorize.py=iso-8859-1
 encoding//cutplace/test_interface.py=iso-8859-1
+encoding//cutplace/test_parsers.py=iso-8859-1
 encoding//docs/conf.py=UTF-8
