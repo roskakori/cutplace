@@ -4,6 +4,21 @@ Revision history
 
 This chapter describes improvements compared to earlier versions of cutplace.
 
+Version 0.5.3, 18-Jul-2009
+==========================
+
+* Added command line option --split to store accepted and rejected data in two
+  separated files. See also: ticket #17.
+
+* Fixed handling of non ASCII data, which did not work properly with all
+  formats. Now cutplace consistently uses Unicode strings to internally
+  represent data items. See also: tickt #18.
+
+* Improved error messages and removed stack trace in cases where it does not
+  add anything of value such as for I/O errors.
+
+* Changed development status from alpha to beta.
+
 Version 0.5.2, 11-Jun-2009
 ==========================
 
@@ -29,16 +44,21 @@ Version 0.5.0, 02-Jun-2009
 
 * Fixed handling of Excel numbers, dates and times. Refer to the
   section on Excel data format for details.
+  
 * Changed order for field format (again): It now is 
   name/example/empty/length/type/rule instead of 
   name/example/empty/type/length/rule.
+
 * Changed optional items for field format: now the field name is the
   only thing required.  If no type is specified, "Text" is used.
+
 * Added a proper tutorial that starts with a very simple ICD and
   improves it step by step. The old tutorial presented one huge ICD
   and attempted to explain everything in it, which could easily
   overwhelm the reader.
+
 * Migrated documentation from DocBook to RestructuredText.
+
 * Improved build and installation process (``setup.py``).
 
 Version 0.4.4, 23-May-2009
