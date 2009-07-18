@@ -146,7 +146,6 @@ def createCoverageReport(targetBasePath):
           <tr><th>Module</th><th>Statements</th><th>Covered</th><th>Coverage</th></tr>
 """
     for module in modules:
-        print "%r" % module
         f, s, m, mf = coverage.analysis(module)
         # print "%r, %r, %r, %r" % (f, s, m, mf)
         coverageHtmlName = "coverage_" + os.path.basename(f) + ".html"
