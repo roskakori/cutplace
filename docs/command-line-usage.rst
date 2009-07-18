@@ -33,12 +33,27 @@ To validate that an ICD is syntactically and semantically correct, simply run
 cutplace with only the path of the ICD as option. For example, an ICD stored in
 CSV format and named ``customer_icd.csv`` can be validated by running::
 
-  cutplace customer_icd.csv
+  cutplace customer_icd.ods
 
 Possible errors show up in the console and result in an exit code of 1.
 
 In case the ICD is in good shape, no error messages appear and the exit code is
 0.
+
+ICDs containing non ASCII characters
+====================================
+
+If the ICD is provided in CSV format and contains non ASCII characters such as
+Umlauts or Kanji, you have to specify the encoding using ``--icd-encoding``::
+
+  cutplace --icd-encoding iso-8859-1 kunden.csv
+
+To obtain a list of all encodings available to cutplace, run::
+
+  cutplace --list-encodings
+
+You can avoid this by storing ICDs in ODS or Excel format, which include
+information about the encoding used inside the file already.
 
 Validate that a data file conforms to an ICD
 ============================================
