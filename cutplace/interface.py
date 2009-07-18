@@ -354,6 +354,8 @@ class InterfaceControlDocument(object):
                         raise IcdSyntaxError("first item in row %d is %r but must be empty or one of: %s"
                                              % (rowNumber, row[0],
                                                 tools.humanReadableList(InterfaceControlDocument._VALID_IDS)))
+        except tools.CutplaceUnicodeError, error:
+            raise tools.CutplaceUnicodeError("ICD must conform to encoding %r: %s" % (encoding, error))
         finally:
             if needsOpen:
                 icdFile.close()

@@ -264,6 +264,8 @@ def mainForScript():
         main()
     except EnvironmentError, error:
         _exitWithError(3, error)
+    except tools.CutplaceUnicodeError, error:
+        _exitWithError(1, str(error))
     except tools.CutplaceError, error:
         _exitWithError(1, "cannot process Excel format: %s" % error)
     except optparse.OptionError, error:
