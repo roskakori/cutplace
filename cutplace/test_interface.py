@@ -107,7 +107,7 @@ class InterfaceControlDocumentTest(unittest.TestCase):
         assert spec is not None
         assert expectedError is not None
         icd = interface.InterfaceControlDocument()
-        self.assertRaises(expectedError, icd.read, StringIO.StringIO(spec))
+        self.assertRaises(expectedError, icd.read, StringIO.StringIO(spec), "iso-8859-1")
         
     def testBrokenFirstItem(self):
         spec = u""","Broken Interface with a row where the first item is not a valid row id"
@@ -143,7 +143,7 @@ F,first_name,John,X,15,Text
         
     def testIsUniqueCheck(self):
         icd = createDefaultTestIcd(data.FORMAT_CSV)
-        dataText = u"""38000,23,"John","Doe","male","08.03.1957"
+        dataText = """38000,23,"John","Doe","male","08.03.1957"
 38000,23,"Mike","Webster","male","23.12.1974"
 38000,59,"Jane","Miller","female","04.10.1946"
 """
@@ -160,7 +160,7 @@ F,first_name,John,X,15,Text
 
     def testDistinctCountCheck(self):
         icd = createDefaultTestIcd(data.FORMAT_CSV)
-        dataText = u"""38000,23,"John","Doe","male","08.03.1957"
+        dataText = """38000,23,"John","Doe","male","08.03.1957"
 38001,23,"Mike","Webster","male","23.12.1974"
 38002,23,"Mike","Webster","male","23.12.1974"
 38003,23,"Mike","Webster","male","23.12.1974"
@@ -187,7 +187,7 @@ F,first_name,John,X,15,Text
         icd = createDefaultTestIcd(data.FORMAT_CSV)
 
         # Validate some data that cause checks to fail.
-        dataText = u"""38000,23,"John","Doe","male","08.03.1957"
+        dataText = """38000,23,"John","Doe","male","08.03.1957"
 38000,23,"Mike","Webster","male","23.12.1974"
 38001,23,"Mike","Webster","male","23.12.1974"
 38002,23,"Mike","Webster","male","23.12.1974"
@@ -208,7 +208,7 @@ F,first_name,John,X,15,Text
         self.assertEqual(icd.failedChecksAtEndCount, 1)
 
         # Now try valid data with the same ICD.
-        dataText = u"""38000,23,"John","Doe","male","08.03.1957"
+        dataText = """38000,23,"John","Doe","male","08.03.1957"
 """
         dataReadable = StringIO.StringIO(dataText)
         icd.validate(dataReadable)
@@ -227,7 +227,7 @@ F,first_name,John,X,15,Text
         icd = createDefaultTestIcd(data.FORMAT_CSV)
         del icd.dataFormat.properties[data.KEY_ENCODING]
         icd.dataFormat.set(data.KEY_ENCODING, "ascii")
-        dataText = u"""38000,23,"John","Doe","male","08.03.1957"
+        dataText = """38000,23,"John","Doe","male","08.03.1957"
 38000,59,"Bärbel","Müller","female","04.10.1946"
 38000,23,"Mike","Webster","male","23.12.1974"
 """
@@ -236,7 +236,7 @@ F,first_name,John,X,15,Text
 
     def testLatin1(self):
         icd = createDefaultTestIcd(data.FORMAT_CSV)
-        dataText = u"""38000,23,"John","Doe","male","08.03.1957"
+        dataText = """38000,23,"John","Doe","male","08.03.1957"
 38000,59,"Bärbel","Müller","female","04.10.1946"
 38000,23,"Mike","Webster","male","23.12.1974"
 """
@@ -245,7 +245,7 @@ F,first_name,John,X,15,Text
 
     def testBrokenInvalidCharacter(self):
         icd = createDefaultTestIcd(data.FORMAT_CSV)
-        dataText = u"""38000,23,"John","Doe","male","08.03.1957"
+        dataText = """38000,23,"John","Doe","male","08.03.1957"
 38000,23,"Ja\ne","Miller","female","23.12.1974"
 """
         dataReadable = StringIO.StringIO(dataText)
