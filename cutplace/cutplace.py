@@ -125,7 +125,7 @@ class CutPlace(object):
     launch web server providing a web interface for validation"""
 
         parser = NoExitOptionParser(usage=usage, version="%prog " + version.VERSION_NUMBER)
-        parser.set_defaults(icdEncoding="iso-8859-1", isLogTrace=False, isOpenBrowser=False, logLevel="info", port=server.DEFAULT_PORT)
+        parser.set_defaults(icdEncoding="ascii", isLogTrace=False, isOpenBrowser=False, logLevel="info", port=server.DEFAULT_PORT)
         parser.add_option("--list-encodings", action="store_true", dest="isShowEncodings", help="show list of available character encodings and exit")
         validationGroup = optparse.OptionGroup(parser, "Validation options", "Specify how to validate data and how to report the results")
         validationGroup.add_option("-e", "--icd-encoding", metavar="ENCODING", dest="icdEncoding",
@@ -147,6 +147,7 @@ class CutPlace(object):
         (self.options, others) = parser.parse_args(argv)
 
         self._log.setLevel(CutPlace._LOG_LEVEL_MAP[self.options.logLevel])
+        self.icdEncoding = self.options.icdEncoding
         self.isLogTrace = self.options.isLogTrace
         self.isOpenBrowser = self.options.isOpenBrowser
         self.isShowEncodings = self.options.isShowEncodings
@@ -201,7 +202,7 @@ class CutPlace(object):
         newIcd = interface.InterfaceControlDocument()
         if self.options is not None:
             newIcd.logTrace = self.options.isLogTrace
-        newIcd.read(newIcdPath)
+        newIcd.read(newIcdPath, self.icdEncoding)
         self.icd = newIcd 
         self.interfaceSpecificationPath = newIcdPath
         

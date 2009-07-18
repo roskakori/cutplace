@@ -320,7 +320,7 @@ class InterfaceControlDocument(object):
                 result = parsers.delimitedReader(icdReadable, dialect, encoding)
         return result
     
-    def read(self, icdFilePath, encoding="iso-8859-1"):
+    def read(self, icdFilePath, encoding="ascii"):
         """"
         Read the ICD as specified in `icdFilePath`.
         
@@ -328,6 +328,9 @@ class InterfaceControlDocument(object):
         - `encoding` - the name of the encoding to use when reading the ICD; depending the the
         file type this might be ignored 
         """
+        assert icdFilePath is not None
+        assert encoding is not None
+
         needsOpen = isinstance(icdFilePath, types.StringTypes)
         if needsOpen:
             icdFile = open(icdFilePath, "rb")

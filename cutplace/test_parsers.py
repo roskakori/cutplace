@@ -76,13 +76,13 @@ class FixedParserTest(AbstractParserTest):
         self.readAndAssertEquals(expectedRows, reader)
 
     def testEmpty(self):
-        self._testParse([], "")
+        self._testParse([], u"")
 
     def testValid(self):
-        self._testParse([["38000", " 123", "Doe       "]], "38000 123Doe       ")
+        self._testParse([[u"38000", u" 123", u"Doe       "]], u"38000 123Doe       ")
         
     def testBrokenEndingTooSoon(self):
-        self.assertRaises(parsers.ParserSyntaxError, self._testParse, [], "38000 123Doe  ")
+        self.assertRaises(parsers.ParserSyntaxError, self._testParse, [], u"38000 123Doe  ")
     
 class DelimitedParserTest(AbstractParserTest):
     """
