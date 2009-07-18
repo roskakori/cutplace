@@ -30,6 +30,8 @@ import sys
 import tools
 import version
 
+DEFAULT_ICD_ENCODING = "ascii"
+
 def _openForWriteUsingUtf8(targetPath):
     assert targetPath is not None
     return codecs.open(targetPath, encoding="utf-8", mode="w")
@@ -109,6 +111,7 @@ class CutPlace(object):
         self._log = logging.getLogger("cutplace")
         self.options = None
         self.icd = None
+        self.icdEncoding = DEFAULT_ICD_ENCODING
         self.icdPath = None
         self.dataToValidatePaths = None
 
@@ -125,7 +128,7 @@ class CutPlace(object):
     launch web server providing a web interface for validation"""
 
         parser = NoExitOptionParser(usage=usage, version="%prog " + version.VERSION_NUMBER)
-        parser.set_defaults(icdEncoding="ascii", isLogTrace=False, isOpenBrowser=False, logLevel="info", port=server.DEFAULT_PORT)
+        parser.set_defaults(icdEncoding=DEFAULT_ICD_ENCODING, isLogTrace=False, isOpenBrowser=False, logLevel="info", port=server.DEFAULT_PORT)
         parser.add_option("--list-encodings", action="store_true", dest="isShowEncodings", help="show list of available character encodings and exit")
         validationGroup = optparse.OptionGroup(parser, "Validation options", "Specify how to validate data and how to report the results")
         validationGroup.add_option("-e", "--icd-encoding", metavar="ENCODING", dest="icdEncoding",

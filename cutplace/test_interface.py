@@ -226,7 +226,7 @@ F,first_name,John,X,15,Text
     def testBrokenAsciiData(self):
         icd = createDefaultTestIcd(data.FORMAT_CSV)
         del icd.dataFormat.properties[data.KEY_ENCODING]
-        icd.dataFormat.set(data.KEY_ENCODING, "ascii")
+        icd.dataFormat.encoding = "ascii"
         dataText = """38000,23,"John","Doe","male","08.03.1957"
 38000,59,"Bärbel","Müller","female","04.10.1946"
 38000,23,"Mike","Webster","male","23.12.1974"

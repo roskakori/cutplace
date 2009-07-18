@@ -88,8 +88,18 @@ class CutplaceTest(unittest.TestCase):
             icdPath = os.path.join(icdFolder, icdBaseName + ".csv")
             cutPlace = cutplace.CutPlace()
             cutPlace.setOptions([icdPath, dataPath])
+            cutPlace.validate()
             # TODO: Assert number of errors detected in dataPath is 0.
 
+    def testValidFixedTxt(self):
+        icdPath = dev_test.getTestIcdPath("customers_fixed.ods")
+        dataPath = dev_test.getTestInputPath("valid_customers_fixed.txt")
+        cutPlace = cutplace.CutPlace()
+        cutPlace.setOptions([icdPath, dataPath])
+        cutPlace.validate()
+        # TODO: Assert number of errors detected in dataPath is 0.
+        
+        
 class LotsOfCustomersTest(unittest.TestCase):
     """Test case for performance profiling."""
 

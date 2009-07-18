@@ -368,7 +368,7 @@ class InterfaceControlDocument(object):
         assert self.dataFormat is not None
         assert dataFileToValidatePath is not None
 
-        if self.dataFormat.name in [data.FORMAT_CSV, data.FORMAT_FIXED]:
+        if self.dataFormat.name == data.FORMAT_CSV:
             needsOpen = isinstance(dataFileToValidatePath, types.StringTypes)
             if needsOpen:
                 dataFile = open(dataFileToValidatePath, "rb")
@@ -377,6 +377,12 @@ class InterfaceControlDocument(object):
         elif self.dataFormat.name in [data.FORMAT_EXCEL, data.FORMAT_ODS]:
             needsOpen = True
             dataFile = open(dataFileToValidatePath, "rb")
+        elif self.dataFormat.name == data.FORMAT_FIXED:
+            needsOpen = isinstance(dataFileToValidatePath, types.StringTypes)
+            if needsOpen:
+                dataFile = codecs.open(dataFileToValidatePath, "rb", self.dataFormat.encoding)
+            else:
+                dataFile = dataFileToValidatePath
         else: # pragma: no cover
             raise NotImplementedError("data format: %r" % self.dataFormat.name)
         
@@ -412,7 +418,7 @@ class InterfaceControlDocument(object):
                 dialect.itemDelimiter = self.dataFormat.get(data.KEY_ITEM_DELIMITER)
                 dialect.quoteChar = self.dataFormat.get(data.KEY_QUOTE_CHARACTER)
                 # FIXME: Set escape char according to ICD.
-                reader = parsers.delimitedReader(dataFile, dialect, encoding=self.dataFormat.get(data.KEY_ENCODING))
+                reader = parsers.delimitedReader(dataFile, dialect, encoding=self.dataFormat.encoding)
             elif self.dataFormat.name == data.FORMAT_EXCEL:
                 sheet = self.dataFormat.get(data.KEY_SHEET)
                 reader = parsers.excelReader(dataFile, sheet)

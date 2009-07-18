@@ -28,6 +28,7 @@ def delimitedReader(readable, dialect, encoding="ascii"):
     """Generator yielding the "readable" row by row using "dialect"."""
     assert readable is not None
     assert dialect is not None
+    assert encoding is not None
     
     parser = _DelimitedParser(readable, dialect, encoding)
     columns = []

@@ -231,6 +231,14 @@ class _BaseDataFormat(object):
         defaultValue = self.optionalKeyValueMap.get(normalizedKey)
         return self.properties.get(normalizedKey, defaultValue)
 
+    def _getEncoding(self):
+        return self.get(KEY_ENCODING)
+        
+    def _setEncoding(self, value):
+         self.set(KEY_ENCODING, value)
+         
+    encoding = property(_getEncoding, _setEncoding)
+
     def __str__(self):
         return "DataFormat(%r, %r)" % (self.name, self.properties)
     
