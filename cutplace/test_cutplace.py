@@ -16,7 +16,6 @@ class CutplaceTest(unittest.TestCase):
     """Test cases for cutplace command line interface."""
 
     def testVersion(self):
-        cutPlace = cutplace.CutPlace()
         self.assertRaises(cutplace.ExitQuietlyOptionError, cutplace.main, ["--version"])
         
     def testHelp(self):
@@ -27,6 +26,7 @@ class CutplaceTest(unittest.TestCase):
         cutplace.main(["--list-encodings"])
 
     # TODO: Add tests for broken CSV files.
+    # TODO: Add test for continued processing of multiple data files in case the first has a Unicode encoding error.
 
     def testSplitValidData(self):
         icdPath = dev_test.getTestIcdPath("customers.ods")
@@ -74,13 +74,14 @@ class CutplaceTest(unittest.TestCase):
         validCsvFileNames = tools.listdirMatching(testsInputFolder, VALID_PREFIX + ".*\\.csv")
         validCsvPaths = list(os.path.join(testsInputFolder, fileName) for fileName in validCsvFileNames)
         for dataPath in validCsvPaths:
-            # Get file name without "valid
+            # Compute the base name of the related ICD.
             baseFileName = os.path.basename(dataPath)
             baseFileNameWithoutCsvSuffix = os.path.splitext(baseFileName)[0]
             baseFileNameWithoutValidPrefixAndCsvSuffix = baseFileNameWithoutCsvSuffix[len(VALID_PREFIX):]
+            # Compute the full path of the related ICD.
             icdBaseName = baseFileNameWithoutValidPrefixAndCsvSuffix.split("_")[0]
-            icdFolder = os.path.join(testsInputFolder, "icds")
-            icdPath = os.path.join(icdFolder, icdBaseName + ".csv")
+            icdPath = dev_test.getTestIcdPath(icdBaseName + ".csv")
+            # Now validate the data.
             cutplace.main([icdPath, dataPath])
             # TODO: Assert number of errors detected in dataPath is 0.
 
@@ -93,14 +94,16 @@ class CutplaceTest(unittest.TestCase):
     def testBrokenUnknownCommandLineOption(self):
         self.assertRaises(optparse.OptionError, cutplace.main, ["--no-such-option"])
 
+    def testBrokenNoCommandLineOptions(self):
+        self.assertRaises(optparse.OptionError, cutplace.main, [])
+
     def testBrokenNonExistentIcdPath(self):
         self.assertRaises(IOError, cutplace.main, ["no-such-icd.nix"])
         
     def testBrokenNonExistentDataPath(self):
         icdPath = dev_test.getTestIcdPath("customers.ods")
         self.assertRaises(EnvironmentError, cutplace.main, [icdPath, "no-such-data.nix"])
-        
-        
+
 class LotsOfCustomersTest(unittest.TestCase):
     """Test case for performance profiling."""
 
