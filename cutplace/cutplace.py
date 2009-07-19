@@ -113,6 +113,7 @@ class CutPlace(object):
         self.icd = None
         self.icdEncoding = DEFAULT_ICD_ENCODING
         self.icdPath = None
+        self.isSplit = False
         self.dataToValidatePaths = None
 
     def setOptions(self, argv):
@@ -174,31 +175,34 @@ class CutPlace(object):
         self._log.debug("options=" + str(self.options))
         self._log.debug("others=" + str(others))
 
-    def validate(self):
+    def validate(self, dataFilePath):
+        """
+        Validate data stored in file `dataFilePath`.
+        """
+        assert dataFilePath is not None
         assert self.icd is not None
         
-        for dataFilePath in self.dataToValidatePaths:
-            isWriteSplit = self.isSplit
+        isWriteSplit = self.isSplit
+        if isWriteSplit:
+            splitTargetFolder, splitBaseName = os.path.split(dataFilePath)
+            splitBaseName = os.path.splitext(dataFilePath)[0]
+            acceptedCsvPath = os.path.join(splitTargetFolder, splitBaseName + "_accepted.csv")
+            rejectedTextPath = os.path.join(splitTargetFolder, splitBaseName + "_rejected.txt")
+            acceptedCsvFile = open(acceptedCsvPath, "w")
+        try:
             if isWriteSplit:
-                splitTargetFolder, splitBaseName = os.path.split(dataFilePath)
-                splitBaseName = os.path.splitext(dataFilePath)[0]
-                acceptedCsvPath = os.path.join(splitTargetFolder, splitBaseName + "_accepted.csv")
-                rejectedTextPath = os.path.join(splitTargetFolder, splitBaseName + "_rejected.txt")
-                acceptedCsvFile = open(acceptedCsvPath, "w")
+                rejectedTextFile = _openForWriteUsingUtf8(rejectedTextPath)
+                validationSplitListener = CutplaceValidationEventListener(tools.UnicodeCsvWriter(acceptedCsvFile), rejectedTextFile)
+            else:
+                validationSplitListener = None
             try:
-                if isWriteSplit:
-                    rejectedTextFile = _openForWriteUsingUtf8(rejectedTextPath)
-                    validationSplitListener = CutplaceValidationEventListener(tools.UnicodeCsvWriter(acceptedCsvFile), rejectedTextFile)
-                else:
-                    validationSplitListener = None
-                try:
-                    self.icd.validate(dataFilePath, validationSplitListener)
-                finally:
-                    if isWriteSplit:
-                        rejectedTextFile.close()
+                self.icd.validate(dataFilePath, validationSplitListener)
             finally:
                 if isWriteSplit:
-                    acceptedCsvFile.close()                   
+                    rejectedTextFile.close()
+        finally:
+            if isWriteSplit:
+                acceptedCsvFile.close()                   
             
     def setIcdFromFile(self, newIcdPath):
         assert newIcdPath is not None
@@ -221,29 +225,28 @@ class CutPlace(object):
             fileName = os.path.basename(filePath)
             yield os.path.splitext(fileName)[0]
             
-def main():
+def main(options):
     """
     Main routine that might raise errors but won't `sys.exit()`.
+    
+    `options` is string array containing the command line options to process, for example
+    `sys.argv[1:]`.
     """
     logging.basicConfig()
     logging.getLogger("cutplace").setLevel(logging.INFO)
 
     cutPlace = CutPlace()
-    cutPlace.setOptions(sys.argv[1:])
+    cutPlace.setOptions(options)
     if cutPlace.isShowEncodings:
         cutPlace._printAvailableEncodings()
     elif cutPlace.isWebServer:
         server.main(cutPlace.port, cutPlace.isOpenBrowser)
     elif cutPlace.dataToValidatePaths:
         for path in cutPlace.dataToValidatePaths:
-            listener = CutplaceValidationEventListener(None, None)
-            cutPlace.icd.addValidationEventListener(listener)
             try:
-                cutPlace.icd.validate(path)
+                cutPlace.validate(path)
             except EnvironmentError, error:
                 raise EnvironmentError("cannot read data file %r: %s" % (path, error))
-            finally:
-                cutPlace.icd.removeValidationEventListener(listener)
 
 def _exitWithError(exitCode, error):
     """
@@ -261,7 +264,7 @@ def mainForScript():
     Main routine that reports errors in options to `sys.stderr` and does `sys.exit()`.
     """
     try:
-        main()
+        main(sys.argv[1:])
     except EnvironmentError, error:
         _exitWithError(3, error)
     except tools.CutplaceUnicodeError, error:
