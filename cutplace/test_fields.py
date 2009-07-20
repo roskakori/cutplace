@@ -65,14 +65,14 @@ class DecimalFieldFormatTest(unittest.TestCase):
     """
     def testValidDecimals(self):
         format = fields.DecimalFieldFormat("x", False, None, "")
-        self.assertEqual(decimal.Decimal("17.23"), format.validated("17.23"))
-        self.assertEqual(decimal.Decimal("17.123456789"), format.validated("17.123456789"))
+        self.assertEqual(decimal.Decimal("17.23"), format.validate("17.23"))
+        self.assertEqual(decimal.Decimal("17.123456789"), format.validate("17.123456789"))
 
     def testBrokenDecimals(self):
         format = fields.DecimalFieldFormat("x", False, None, "")
-        self.assertRaises(fields.FieldValueError, format.validated, "")
-        self.assertRaises(fields.FieldValueError, format.validated, "eggs")
-        self.assertRaises(fields.FieldValueError, format.validated, "12.345,678")
+        self.assertRaises(fields.FieldValueError, format.validate, "")
+        self.assertRaises(fields.FieldValueError, format.validate, "eggs")
+        self.assertRaises(fields.FieldValueError, format.validate, "12.345,678")
         
     def testBrokenDecimalSyntax(self):
         self.assertRaises(fields.FieldSyntaxError, fields.DecimalFieldFormat, "x", False, None, "eggs")

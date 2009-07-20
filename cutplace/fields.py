@@ -10,9 +10,11 @@ import sys
 import time
 import tools
 
+# TODO: Rename `validate`to `validated` to express that it is a function.
+
 class FieldValueError(tools.CutplaceError):
     """
-    Error raised when AbstractFieldFormat.validate detects an error.
+    Error raised when `AbstractFieldFormat.validated` detects an error.
     """
 
 class FieldLookupError(tools.CutplaceError):
@@ -89,7 +91,7 @@ class DecimalFieldFormat(AbstractFieldFormat):
         if rule.strip():
             raise FieldSyntaxError("decimal rule must be empty")
 
-    def validated(self, value):
+    def validate(self, value):
         assert value is not None
         try:
             result = decimal.Decimal(value)
