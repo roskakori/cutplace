@@ -4,15 +4,29 @@ Revision history
 
 This chapter describes improvements compared to earlier versions of cutplace.
 
+Version 0.5.4, 21-Jul-2009
+==========================
+
+* Fixed ``--split``which did not actually write any files. (Ticket #19)
+
+* Fixed encoding error when reading data from Excel files that used cell
+  formats of type data, error or time.
+
+* Fixed validation of Decimal fields, which resulted in a
+  ``NotImplementedError``.
+  
+* Fixed internal handling of ranges with a default, which resulted in a
+  ``NameError``.
+
 Version 0.5.3, 18-Jul-2009
 ==========================
 
-* Added command line option --split to store accepted and rejected data in two
+* Added command line option ``--split`` to store accepted and rejected data in two
   separated files. See also: ticket #17.
 
 * Fixed handling of non ASCII data, which did not work properly with all
   formats. Now cutplace consistently uses Unicode strings to internally
-  represent data items. See also: tickt #18.
+  represent data items. See also: ticket #18.
 
 * Improved error messages and removed stack trace in cases where it does not
   add anything of value such as for I/O errors.
