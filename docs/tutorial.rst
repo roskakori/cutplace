@@ -98,20 +98,19 @@ or :download:`icd_customers_field_names_only.ods <../examples/icd_customers_fiel
 
 Let's take a closer look at this.
 
-Row 1 is a heading that simply describes what the document is a but: the
+Row 1 is a heading that simply describes what the document is about: the
 interface for customer data.
 
 Row 3 is a section heading to point out that the description of the data
 format is about to follow.
 
-Row 4 describes actually the data format by stating that the ``Format``
-is ``CSV``. Did you notice the ``D`` in the first column? This is a hint
-for cutplace that the row contains information about the data format it
-should be able to process.
+Row 4 describes the data format by stating that the ``Format`` is ``CSV``. Did
+you notice the ``D`` in the first column? This is a hint for cutplace that the
+row contains information about the data format it should be able to process.
 
-Row 5 adds another detail to the data format: data files have a header
-row does not contain data yet. In this our case there is only one such
-row. If there would no header at all, you could have omitted this row.
+Row 5 adds another detail to the data format: data files have a header row
+that does not contain data yet. In this case there is only one such row. If
+there would no header at all, you could have omitted this row.
 
 Row 7 again is a section heading, this time pointing out that
 descriptions about the field formats are about to follow.
@@ -193,7 +192,7 @@ changed to this folder (using for example the command ``cd``).
 Running cutplace for the first time
 ===================================
 
-Now that we have both a data and an ICD file, we can finally take a look
+Now that we have both a data file and an ICD file, we can finally take a look
 at how cutplace actually works.
 
 Open a terminal and change into the folder where where the example data
@@ -210,9 +209,8 @@ This should result in an output similar to::
   cutplace.py 0.x.x
   Python 2.5.4, Mac OS 10.5.7 (i386)
 
-The actual numbers of versions may vary. If your version of cutplace is
-older then |release|, consider upgrading to avoid compatibiliy issues
-with this tutorial.
+The actual version numbers may vary. If your version of cutplace is older then
+|release|, consider upgrading to avoid compatibiliy issues with this tutorial.
 
 If instead this results in an error message, refer to the chapter on
 :doc:`installation` about how to setup cutplace.
@@ -245,7 +243,7 @@ Let's recap what we learned so far:
 
 * Rows starting with an empty column will not be parsed by cutplace and
   can contain any information that is helpful for human readers to
-  understand the interface.
+  better understand the interface.
 
 Adding examples
 ===============
