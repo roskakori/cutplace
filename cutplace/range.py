@@ -35,10 +35,10 @@ class Range(object):
         assert default is None or default.strip(), "default=%r" % default
 
         # Find out if a `text` has been specified and if not, use optional `default` instead.
-        hasText = text is not None and text.strip()
+        hasText = (text is not None) and text.strip()
         if not hasText and default is not None:
             text = default
-            hasText = true
+            hasText = True
 
         if not hasText:
             # Use empty range.

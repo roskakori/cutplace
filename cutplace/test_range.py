@@ -21,6 +21,11 @@ class RangeTest(unittest.TestCase):
         self.assertEquals(range.Range("1, 3").items, [(1, 1), (3, 3)])
         self.assertEquals(range.Range("1:2, 5:").items, [(1, 2), (5, None)])
 
+    def testRangesWithDefault(self):
+        self.assertEquals(range.Range("1:2", "2:3").items, [(1, 2)])
+        self.assertEquals(range.Range("", "2:3").items, [(2, 3)])
+        self.assertEquals(range.Range(" ", "2:3").items, [(2, 3)])
+
     def testBrokenOverlappingMultiRange(self):
         self.assertRaises(range.RangeSyntaxError, range.Range, "1:5, 2:3")
         self.assertRaises(range.RangeSyntaxError, range.Range, "1:, 2:3")
@@ -43,7 +48,6 @@ class RangeTest(unittest.TestCase):
         self.assertRaises(range.RangeSyntaxError, range.Range, "2:1")
         self.assertRaises(range.RangeSyntaxError, range.Range, "2:-3")
         self.assertRaises(range.RangeSyntaxError, range.Range, "-1:-3")
-    
     
     def _testNoRange(self, text):
         noRange = range.Range(text)
@@ -81,7 +85,7 @@ class RangeTest(unittest.TestCase):
         multiRange.validate("x", 1)
         multiRange.validate("x", 7)
         multiRange.validate("x", 9)
-        self.assertRaises(range.RangeValueError, multiRange.validate, "x", -3)
+        self.assertRaises(range.RangeValueError, multiRange.validate, "x", - 3)
         self.assertRaises(range.RangeValueError, multiRange.validate, "x", 0)
         self.assertRaises(range.RangeValueError, multiRange.validate, "x", 5)
         self.assertRaises(range.RangeValueError, multiRange.validate, "x", 6)
