@@ -90,7 +90,13 @@ class CutplaceTest(unittest.TestCase):
         dataPath = dev_test.getTestInputPath("valid_customers_fixed.txt")
         cutplace.main([icdPath, dataPath])
         # TODO: Assert number of errors detected in dataPath is 0.
-        
+
+    def testValidNativeExcelFormats(self):
+        icdPath = dev_test.getTestIcdPath("native_excel_formats.ods")
+        dataPath = dev_test.getTestInputPath("valid_native_excel_formats.xls")
+        cutplace.main([icdPath, dataPath])
+        # TODO: Assert number of errors detected in dataPath is 0.
+
     def testBrokenUnknownCommandLineOption(self):
         self.assertRaises(optparse.OptionError, cutplace.main, ["--no-such-option"])
 

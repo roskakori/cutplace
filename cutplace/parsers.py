@@ -79,13 +79,13 @@ def _excelCellValue(cell, datemode):
         assert len(cellTuple) == 6, "cellTuple=%r" % cellTuple
         if cellTuple[:3] == (0, 0, 0):
             timeTuple = cellTuple[3:]
-            result = str(datetime.time(*timeTuple))
+            result = unicode(str(datetime.time(*timeTuple)), "ascii")
         else:
-            result = str(datetime.datetime(*cellTuple))
+            result = unicode(str(datetime.datetime(*cellTuple)), "ascii")
     elif cell.ctype == xlrd.XL_CELL_ERROR:
         defaultErrorText = xlrd.error_text_from_code[0x2a] # same as "#N/A!"
         errorCode = cell.value
-        result = xlrd.error_text_from_code.get(errorCode, defaultErrorText)
+        result = unicode(xlrd.error_text_from_code.get(errorCode, defaultErrorText), "ascii")
     elif isinstance(cell.value, unicode):
         result = cell.value
     else:
