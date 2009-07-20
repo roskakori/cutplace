@@ -86,7 +86,7 @@ def _excelCellValue(cell, datemode):
         defaultErrorText = xlrd.error_text_from_code[0x2a] # same as "#N/A!"
         errorCode = cell.value
         result = xlrd.error_text_from_code.get(errorCode, defaultErrorText)
-    elif isinstance(cell.ctype, unicode):
+    elif isinstance(cell.value, unicode):
         result = cell.value
     else:
         result = unicode(str(cell.value), "ascii")
