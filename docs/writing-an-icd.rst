@@ -281,39 +281,39 @@ Overview
 
 The field format section of the ICD contains rows with the following columns:
 
-# The letter "F" to indicate that the remaining columns describe a field
-  format.
+#. The letter "F" to indicate that the remaining columns describe a field
+   format.
       
-# The name of the field. It must start with an ASCII letter and continue with
-  letters, numbers and underscores (_), for example
-  ``customer_id``.
+#. The name of the field. It must start with an ASCII letter and continue with
+   letters, numbers and underscores (_), for example
+   ``customer_id``.
 
-# An optional example value for the field. This is for documentation purpose
-  only and can be omitted for fields where there is no meaningful example (such
-  as a field containing a BLOB). In case a value is specified though, it must
-  be a valid example conforming to all the rules for this field.
+#. An optional example value for the field. This is for documentation purpose
+   only and can be omitted for fields where there is no meaningful example (such
+   as a field containing a BLOB). In case a value is specified though, it must
+   be a valid example conforming to all the rules for this field.
 
-# A flag that indicates if the field is allowed to be empty. ``X`` means that
-  the field can be empty, no text means that the field always must contain at
-  least some data.
+#. A flag that indicates if the field is allowed to be empty. ``X`` means that
+   the field can be empty, no text means that the field always must contain at
+   least some data.
 
-# The optional length of the field in characters.  For separated formats, this is
-  optional and takes the form ``lower_limit:upper_limit``.  For example,
-  ``10:20`` means that values in this field must contains at least 10
-  characters and at most 20. It is also possible to specify only a lower or
-  upper limit, for example ``10:`` means at least 10 characters ans ``:20``
-  means at least 20 characters.  Furthermore the length can be a single number
-  with any colon (:), meaning that the length must match this number exactly.
-  For fixed formats, this column takes a number that specifies the exact length
-  of the field, for example ``50``.
+#. The optional length of the field in characters.  For separated formats, this is
+   optional and takes the form ``lower_limit:upper_limit``.  For example,
+   ``10:20`` means that values in this field must contains at least 10
+   characters and at most 20. It is also possible to specify only a lower or
+   upper limit, for example ``10:`` means at least 10 characters ans ``:20``
+   means at least 20 characters.  Furthermore the length can be a single number
+   with any colon (:), meaning that the length must match this number exactly.
+   For fixed formats, this column takes a number that specifies the exact length
+   of the field, for example ``50``.
 
-# The optional type of the field, for example ``Text``, ``Integer``, ``DateTime`` and
-  others. Refer to the sections below for detailed descriptions of these types. If you
-  do not specify a type, ``Text`` is used.
+#. The optional type of the field, for example ``Text``, ``Integer``, ``DateTime`` and
+   others. Refer to the sections below for detailed descriptions of these types. If you
+   do not specify a type, ``Text`` is used.
 
-# A rule depending on the type further describing the field.  For example, a
-  field of type DateTime requires an exact date or time format such as
-  ``DD.MM.YYYY``.
+#. A rule depending on the type further describing the field.  For example, a
+   field of type DateTime requires an exact date or time format such as
+   ``DD.MM.YYYY``.
 
 The remaining columns are not parsed by cutplace and can contain any text you
 like, for example a description of the meaning of the field or details about
@@ -476,18 +476,18 @@ data formats and field formats. In general checks validate conditions that can
 be only be met by looking at several fields in a row or the whole document. In
 the ICD, a row describing the check requires the following columns:
 
-1.  A human readable description of the check that will be used in the error
-    message in case the check fails. Most of the time this will be a short
-    sentence of the template "something must/have something". For instance,
-    "``customer must be unique``".
+#. A human readable description of the check that will be used in the error
+   message in case the check fails. Most of the time this will be a short
+   sentence of the template "something must/have something". For instance,
+   "``customer must be unique``".
 
-2.  The type of the check as described in one of the sections below, for
-    example ``DistinctCount`` or ``IsUnique``.
+#. The type of the check as described in one of the sections below, for
+   example ``DistinctCount`` or ``IsUnique``.
 
-3.  A rule describing the actual check to perform. The contents of this field
-    highly depend on the check type specified in the previous column. For
-    example, the IsUnique check requires the field(s) to be checked for
-    uniqueness like "``branch_id, customer_id``"
+#. A rule describing the actual check to perform. The contents of this field
+   highly depend on the check type specified in the previous column. For
+   example, the IsUnique check requires the field(s) to be checked for
+   uniqueness like "``branch_id, customer_id``"
 
 The remainder of this section describes the available checks in detail and
 gives specific examples.
