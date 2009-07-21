@@ -462,7 +462,7 @@ Let's take a closer look at the ``customer_id``. Apparently, it's a
 number. To be more specific, an integer number with no fractional part.
 Let's say the same person who told us that a ``customer_id`` has at
 least two digits now informed us that due a design steming from the 16
-bit era, the highest ``customer_id`` is 65536 (the largest number one
+bit era, the highest ``customer_id`` is 65535 (the largest number one
 can represent with 16 bit). Here's how to express this knowledge with
 cutplace:
 
