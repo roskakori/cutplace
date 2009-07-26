@@ -495,7 +495,7 @@ The column *Type* can contain one of several available types. The column
   
 In case of ``customer_id``, the type is ``Integer``. In this case, the
 rule can specify a valid range. The syntax for the range is the same
-we've been using already for the *Length* column. So ``11:65535`` means
+we've been using already for the *Length* column. So ``10:65535`` means
 "between 10 and 65535".
 
 For ``gender``, the type is ``Choice`` which means that every value in
@@ -508,7 +508,7 @@ the date format using place holders: ``DD`` (day), ``MM`` (month),
 other character must show up literally, for example the ``.`` in the
 rule must show up as ``.`` in the value.
 
-This tutorial showcases just a few of the types availble.
+This tutorial showcases just a few of the types available.
 
 .. seealso::
 
