@@ -4,6 +4,17 @@ Revision history
 
 This chapter describes improvements compared to earlier versions of cutplace.
 
+Version 0.5.5, 26-Jul-2009
+==========================
+
+* Added summary to validation results shown by web interface.
+
+* Fixed validation of Excel data using the web interface.
+
+* Cleaned up reporting of errors not related to validation via web interface.
+  The resulting web page now is less cluttered and the HTTP result is a
+  consistent 40x error.
+
 Version 0.5.4, 21-Jul-2009
 ==========================
 
