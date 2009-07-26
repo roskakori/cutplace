@@ -366,19 +366,24 @@ class InterfaceControlDocument(object):
             raise IcdSyntaxError("ICD must contain a section describing at least one field format (rows starting with %r)"
                                  % InterfaceControlDocument._ID_FIELD_RULE)
             
-    def _obtainReader(self, dataFileToValidatePath):
+    def _obtainReadale(self, dataFileToValidatePath):
+        """
+        A tuple consisting of the following:
+        
+        1. A file like readable object for `dataFileToValidatePath`, which can be a string describing the
+        path to a file, or a `StringIO` to data.
+        2. A flag indicating whether the caller needs to call `close()` on the readable object once he is
+        done reading it.
+        """
         assert self.dataFormat is not None
         assert dataFileToValidatePath is not None
 
-        if self.dataFormat.name == data.FORMAT_CSV:
+        if self.dataFormat.name in [data.FORMAT_CSV, data.FORMAT_EXCEL, data.FORMAT_ODS]:
             needsOpen = isinstance(dataFileToValidatePath, types.StringTypes)
             if needsOpen:
                 dataFile = open(dataFileToValidatePath, "rb")
             else:
                 dataFile = dataFileToValidatePath
-        elif self.dataFormat.name in [data.FORMAT_EXCEL, data.FORMAT_ODS]:
-            needsOpen = True
-            dataFile = open(dataFileToValidatePath, "rb")
         elif self.dataFormat.name == data.FORMAT_FIXED:
             needsOpen = isinstance(dataFileToValidatePath, types.StringTypes)
             if needsOpen:
@@ -412,7 +417,7 @@ class InterfaceControlDocument(object):
         for check in self.checkDescriptions.values():
             check.reset()
 
-        (dataFile, needsOpen) = self._obtainReader(dataFileToValidatePath)
+        (dataFile, needsOpen) = self._obtainReadale(dataFileToValidatePath)
         try:
             if self.dataFormat.name == data.FORMAT_CSV:
                 dialect = parsers.DelimitedDialect()
