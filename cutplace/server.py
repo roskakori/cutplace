@@ -6,9 +6,11 @@ import BaseHTTPServer
 import errno
 import interface
 import logging
+import os
 import select
 import StringIO
 import sys
+import tempfile
 import threading
 import time
 import tools
@@ -161,11 +163,6 @@ Platform: %s</p>
         log = logging.getLogger("cutplace.server")
         log.info("%s %r" % (self.command, self.path))
 
-        self.send_response(200)
-        self.send_header("Content-type", "text/html")
-        self.end_headers()
-        # FIXME: Send 200 only if everything worked out, otherise 4xx error messages look rather messy.
-
         # Parse POST option. Based on code by Pierre Quentel.
         ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
         length = int(self.headers.getheader('content-length'))
@@ -185,8 +182,37 @@ Platform: %s</p>
             dataContent = fileMap["data"][0]
         else:
             dataContent = None
-        
-        self.wfile.write("""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+        if icdContent:
+            try:
+                icdData = StringIO.StringIO(icdContent)
+                icd = interface.InterfaceControlDocument()
+                icd.read(icdData)
+                if dataContent:
+                    validationHtmlFile = tempfile.TemporaryFile(suffix=".html", prefix="cutplace-web-")
+                    try:
+                        log.info("writing html to temporary file: %r" % validationHtmlFile.name)
+                        validationHtmlFile.write("<table><tr>")
+                        # Write table headings.
+                        for title in icd.fieldNames:
+                            validationHtmlFile.write("<th>%s</th>" % cgi.escape(title))
+                        validationHtmlFile.write("</tr>")
+    
+                        # Start listening to validation events.
+                        wfileListener = WfileWritingValidationEventListener(validationHtmlFile, len(icd.fieldNames))
+                        icd.addValidationEventListener(wfileListener)
+                        try:
+                            dataReadable = StringIO.StringIO(dataContent)
+                            icd.validate(dataReadable)
+                            icd.removeValidationEventListener(wfileListener)
+                            validationHtmlFile.write("</table>")
+                            
+                            self.send_response(200)
+                            self.send_header("Content-type", "text/html")
+                            self.end_headers()
+                            
+                            # Write the contents of the temporary HTML file to the web page.
+                            self.wfile.write("""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <html>
 <head>
   <title>Validation results</title>
@@ -195,41 +221,30 @@ Platform: %s</p>
 </head><body>
 <h1>Validation results</h1>
 """ % (Handler._STYLE))
-
-        if icdContent:
-            try:
-                icdData = StringIO.StringIO(icdContent)
-                icd = interface.InterfaceControlDocument()
-                icd.read(icdData)
-                if dataContent:
-                    self.wfile.write("<table><tr>")
-                    # Write table headings.
-                    for title in icd.fieldNames:
-                        self.wfile.write("<th>%s</th>" % cgi.escape(title))
-                    self.wfile.write("</tr>")
-
-                    # Start listening to validation events.
-                    wfileListener = WfileWritingValidationEventListener(self.wfile, len(icd.fieldNames))
-                    icd.addValidationEventListener(wfileListener)
-                    try:
-                        dataReadable = StringIO.StringIO(dataContent)
-                        icd.validate(dataReadable)
-                    except:
-                        self.send_error(400, "cannot validate data: %s\n\n%s" % (cgi.escape(str(sys.exc_info()[1])), cgi.escape(icdContent)))
+                            validationHtmlFile.seek(0)
+                            buffer = validationHtmlFile.read(8192)
+                            while buffer:
+                                self.wfile.write(buffer)
+                                buffer = validationHtmlFile.read(8192)
+                            self.wfile.write(Handler._FOOTER)
+                        except:
+                            self.send_error(400, "cannot validate data: %s\n\n%s" % cgi.escape(str(sys.exc_info()[1])))
                     finally:
-                        self.wfile.write("</table>")
-                        icd.removeValidationEventListener(wfileListener)
-                        self.wfile.write(Handler._FOOTER)
+                        validationHtmlFile.close()
                 else:
                     log.info("ICD is valid")
+                    self.send_response(200)
+                    self.send_header("Content-type", "text/html")
+                    self.end_headers()
                     self.wfile.write("ICD file is valid.")
             except:
                 log.error("cannot parse ICD", exc_info=1)
-                self.send_error(400, "cannot parse ICD: %s\n\n<pre>%s</pre>" % (cgi.escape(str(sys.exc_info()[1])), cgi.escape(icdContent)))
+                self.send_error(400, "cannot parse ICD: %s" % cgi.escape(str(sys.exc_info()[1])))
         else:
             errorMessage = "ICD file must be specified"
             log.error(errorMessage)
             self.send_error(400, "%s." % cgi.escape(errorMessage))
+
 
 class WaitForServerToBeReadyThread(threading.Thread):
     """Thread to wait for server to be ready."""
@@ -252,8 +267,8 @@ class WaitForServerToBeReadyThread(threading.Thread):
         log.info("wait for server to be ready")
         while not self.siteAvailable and (retries < self.maxRetries):
             try:
-                # Attemp to open the validaton form.
-                # Use no proxies because it is a local-only connecton anyway.
+                # Attempt to open the validation form.
+                # Use no proxy because it is a local-only connection anyway.
                 urllib.urlopen(self.site, proxies={}).close()
                 self.siteAvailable = True
             except IOError:
