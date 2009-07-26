@@ -36,6 +36,7 @@ class WfileWritingValidationEventListener(interface.ValidationEventListener):
         self.itemCount = itemCount
         self.acceptedCount = 0
         self.rejectedCount = 0
+        self.checkAtEndFailedCount = 0
 
     def _writeRow(self, row, cssClass):
         self.wfile.write("<tr>\n")
@@ -49,24 +50,21 @@ class WfileWritingValidationEventListener(interface.ValidationEventListener):
         self.wfile.write("</tr>\n")
         
     def acceptedRow(self, row):
+        self.acceptedCount += 1
         self._writeRow(row, "ok")
     
     def rejectedRow(self, row, error):
-        self._writeRow(row, "error")
-        self._writeTextRow("%s" % error)
-    
-    def checkAtRowFailed(self, row, error):
+        self.rejectedCount += 1
         self._writeRow(row, "error")
         self._writeTextRow("%s" % error)
     
     def checkAtEndFailed(self, error):
+        self.checkAtEndFailedCount += 1
         self._writeTextRow("check at end failed: %s" % error)
     
-    def dataFormatFailed(self, error):
-        self._writeTextRow("data format is broken: %s" % error)
-
 class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
     server_version = _SERVER_VERSION
+    _IO_BUFFER_SIZE = 8192
     _STYLE = """
     body {
       background-color: #ffffff;
@@ -221,11 +219,17 @@ Platform: %s</p>
 </head><body>
 <h1>Validation results</h1>
 """ % (Handler._STYLE))
+                            self.wfile.write("""<table>
+  <tr><td>Rows accepted:</td><td>%d</td></tr>
+  <tr><td>Rows rejected:</td><td>%d</td></tr>
+  <tr><td>Checks at end failed:</td><td>%d</td></tr>
+</table>
+""" %(wfileListener.acceptedCount, wfileListener.rejectedCount, wfileListener.checkAtEndFailedCount))
                             validationHtmlFile.seek(0)
-                            buffer = validationHtmlFile.read(8192)
+                            buffer = validationHtmlFile.read(Handler._IO_BUFFER_SIZE)
                             while buffer:
                                 self.wfile.write(buffer)
-                                buffer = validationHtmlFile.read(8192)
+                                buffer = validationHtmlFile.read(Handler._IO_BUFFER_SIZE)
                             self.wfile.write(Handler._FOOTER)
                         except:
                             self.send_error(400, "cannot validate data: %s\n\n%s" % cgi.escape(str(sys.exc_info()[1])))
