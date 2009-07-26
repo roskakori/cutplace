@@ -20,45 +20,56 @@ import webbrowser
 
 # TODO: Rename server.py to web.py.
 
-"""Default port the web server will use unless specified otherwise.
+"""
+Default port the web server will use unless specified otherwise.
 According to <http://www.iana.org/assignments/port-numbers>,
-this number is unassigned."""
+this number is unassigned.
+"""
 DEFAULT_PORT = 8778
 
 _SERVER_VERSION = "cutplace/%s" % version.VERSION_NUMBER
 
-class WfileWritingValidationEventListener(interface.ValidationEventListener):
-    def __init__(self, wfile, itemCount):
-        assert wfile is not None
+class _HtmlWritingValidationEventListener(interface.ValidationEventListener):
+    """
+    `ValidationEventListener` that writes accepted and rejected rows as HTML table.
+    """
+    def __init__(self, htmlTargetFile, itemCount):
+        assert htmlTargetFile is not None
         assert itemCount is not None
-        assert itemCount > 0, "itermCount=%r" % itemCount
-        self.wfile = wfile
-        self.itemCount = itemCount
+        assert itemCount > 0, "itemCount=%r" % itemCount
+        self._htmlTargetFile = htmlTargetFile
+        self._itemCount = itemCount
         self.acceptedCount = 0
         self.rejectedCount = 0
         self.checkAtEndFailedCount = 0
 
     def _writeRow(self, row, cssClass):
-        self.wfile.write("<tr>\n")
+        assert cssClass is not None
+        self._htmlTargetFile.write("<tr>\n")
         for item in row:
-            self.wfile.write("<td class=\"%s\">%s</td>\n" % (cssClass, cgi.escape(item)))
-        self.wfile.write("</tr>\n")
+            self._htmlTargetFile.write("<td class=\"%s\">%s</td>\n" % (cssClass, cgi.escape(item)))
+        self._htmlTargetFile.write("</tr>\n")
         
     def _writeTextRow(self, text):
-        self.wfile.write("<tr>\n")
-        self.wfile.write("<td colspan=\"%d\">%s</td>\n" % (self.itemCount, cgi.escape(text)))
-        self.wfile.write("</tr>\n")
+        assert text is not None
+        self._htmlTargetFile.write("<tr>\n")
+        self._htmlTargetFile.write("<td colspan=\"%d\">%s</td>\n" % (self._itemCount, cgi.escape(text)))
+        self._htmlTargetFile.write("</tr>\n")
         
     def acceptedRow(self, row):
+        assert row is not None
         self.acceptedCount += 1
         self._writeRow(row, "ok")
     
     def rejectedRow(self, row, error):
+        assert row is not None
+        assert error is not None
         self.rejectedCount += 1
         self._writeRow(row, "error")
         self._writeTextRow("%s" % error)
     
     def checkAtEndFailed(self, error):
+        assert error is not None
         self.checkAtEndFailedCount += 1
         self._writeTextRow("check at end failed: %s" % error)
     
@@ -189,7 +200,7 @@ Platform: %s</p>
                 if dataContent:
                     validationHtmlFile = tempfile.TemporaryFile(suffix=".html", prefix="cutplace-web-")
                     try:
-                        log.info("writing html to temporary file: %r" % validationHtmlFile.name)
+                        log.debug("writing html to temporary file: %r" % validationHtmlFile.name)
                         validationHtmlFile.write("<table><tr>")
                         # Write table headings.
                         for title in icd.fieldNames:
@@ -197,12 +208,12 @@ Platform: %s</p>
                         validationHtmlFile.write("</tr>")
     
                         # Start listening to validation events.
-                        wfileListener = WfileWritingValidationEventListener(validationHtmlFile, len(icd.fieldNames))
-                        icd.addValidationEventListener(wfileListener)
+                        htmlListener = _HtmlWritingValidationEventListener(validationHtmlFile, len(icd.fieldNames))
+                        icd.addValidationEventListener(htmlListener)
                         try:
                             dataReadable = StringIO.StringIO(dataContent)
                             icd.validate(dataReadable)
-                            icd.removeValidationEventListener(wfileListener)
+                            icd.removeValidationEventListener(htmlListener)
                             validationHtmlFile.write("</table>")
                             
                             self.send_response(200)
@@ -224,7 +235,7 @@ Platform: %s</p>
   <tr><td>Rows rejected:</td><td>%d</td></tr>
   <tr><td>Checks at end failed:</td><td>%d</td></tr>
 </table>
-""" %(wfileListener.acceptedCount, wfileListener.rejectedCount, wfileListener.checkAtEndFailedCount))
+""" %(htmlListener.acceptedCount, htmlListener.rejectedCount, htmlListener.checkAtEndFailedCount))
                             validationHtmlFile.seek(0)
                             buffer = validationHtmlFile.read(Handler._IO_BUFFER_SIZE)
                             while buffer:
