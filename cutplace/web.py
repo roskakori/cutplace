@@ -18,8 +18,6 @@ import urllib
 import version
 import webbrowser
 
-# TODO: Rename server.py to web.py.
-
 """
 Default port the web server will use unless specified otherwise.
 According to <http://www.iana.org/assignments/port-numbers>,
@@ -150,7 +148,7 @@ Platform: %s</p>
 
     
     def do_GET(self):
-        log = logging.getLogger("cutplace.server")
+        log = logging.getLogger("cutplace.web")
         log.info("%s %r" % (self.command, self.path))
 
         if (self.path == "/"):
@@ -169,7 +167,7 @@ Platform: %s</p>
             self.send_error(404)
 
     def do_POST(self):
-        log = logging.getLogger("cutplace.server")
+        log = logging.getLogger("cutplace.web")
         log.info("%s %r" % (self.command, self.path))
 
         # Parse POST option. Based on code by Pierre Quentel.
@@ -243,7 +241,7 @@ Platform: %s</p>
                                 buffer = validationHtmlFile.read(Handler._IO_BUFFER_SIZE)
                             self.wfile.write(Handler._FOOTER)
                         except:
-                            self.send_error(400, "cannot validate data: %s\n\n%s" % cgi.escape(str(sys.exc_info()[1])))
+                            self.send_error(400, "cannot validate data: %s" % cgi.escape(str(sys.exc_info()[1])))
                     finally:
                         validationHtmlFile.close()
                 else:
@@ -276,7 +274,7 @@ class WaitForServerToBeReadyThread(threading.Thread):
         assert self.maxRetries > 0
         assert self.delayBetweenRetryInSeconds > 0
 
-        log = logging.getLogger("cutplace.server.wait")
+        log = logging.getLogger("cutplace.web.wait")
         self.siteAvailable = False
         retries = 0
         log.info("wait for server to be ready")
@@ -304,7 +302,7 @@ class OpenBrowserThread(WaitForServerToBeReadyThread):
             log.warning("cannot find server at <%s>, giving up; try to connect manually" % self.site)
 
 def main(port=DEFAULT_PORT, isOpenBrowser=False):
-    log = logging.getLogger("cutplace.server")
+    log = logging.getLogger("cutplace.web")
 
     httpd = BaseHTTPServer.HTTPServer(("", port), Handler)
     site = "http://localhost:%d/" % port

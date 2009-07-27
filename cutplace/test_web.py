@@ -2,11 +2,11 @@
 Test for web server.
 """
 import logging
-import server
 import threading
 import time
 import unittest
 import urllib2
+import web
 
 _isWebStarted = False
 
@@ -28,7 +28,7 @@ class WebThread(threading.Thread):
     PORT = 8642
     
     def run(self):
-        server.main(WebThread.PORT)
+        web.main(WebThread.PORT)
         # FIXME: Let exception result in the test case to fail.
         
 class WebTest(unittest.TestCase):
@@ -82,5 +82,5 @@ class WebTest(unittest.TestCase):
 if __name__ == "__main__": # pragma: no cover
     logging.basicConfig()
     logging.getLogger("cutplace").setLevel(logging.INFO)
-    logging.getLogger("cutplace.server").setLevel(logging.INFO)
+    logging.getLogger("cutplace.web").setLevel(logging.INFO)
     unittest.main()

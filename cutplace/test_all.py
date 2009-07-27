@@ -23,9 +23,9 @@ import interface
 import ods
 import parsers
 import range
-import server
 import tools
 import version
+import web
 
 def createTestSuite():
     """
@@ -35,7 +35,7 @@ def createTestSuite():
     loader = unittest.TestLoader()
 
     # TODO: Automatically discover doctest cases.
-    for module in checks, cutplace, data, fields, interface, ods, parsers, range, server, tools, version:
+    for module in checks, cutplace, data, fields, interface, ods, parsers, range, tools, version, web:
         result.addTest(doctest.DocTestSuite(module))    
 
     # TODO: Automatically discover test cases.
