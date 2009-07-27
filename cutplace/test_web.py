@@ -28,7 +28,7 @@ class WebThread(threading.Thread):
     PORT = 8642
     
     def run(self):
-        web.main(WebThread.PORT)
+        web.main(WebThread.PORT, allowShutDown=True)
         # FIXME: Let exception result in the test case to fail.
         
 class WebTest(unittest.TestCase):
@@ -63,6 +63,10 @@ class WebTest(unittest.TestCase):
         text = self._getHtmlText().lower()
         self.assertTrue(text.find("<form") >= 0)
     
+    def testShutDown(self):
+        text = self._getHtmlText("shutdown").lower()
+        self.assertTrue(text.find("cutplace") >= 0)
+
     def testValidateProperData(self):
         # TODO: Implement: testValidateProperData
         pass

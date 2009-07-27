@@ -27,6 +27,9 @@ DEFAULT_PORT = 8778
 
 _SERVER_VERSION = "cutplace/%s" % version.VERSION_NUMBER
 
+_allowShutDown = False
+_readyToShutDown = False
+
 class _HtmlWritingValidationEventListener(interface.ValidationEventListener):
     """
     `ValidationEventListener` that writes accepted and rejected rows as HTML table.
@@ -146,8 +149,22 @@ Platform: %s</p>
 </body></html>
 """ % (_STYLE, version.VERSION_TAG, cgi.escape(tools.pythonVersion()), cgi.escape(tools.platformVersion()), _FOOTER)
 
+    _SHUTDOWN = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+  <title>Cutplace</title>
+  <style type="text/css">%s
+  </style>
+</head><body>
+<h1>Cutplace</h1>
+<p>The cutplace server has been shut down.</p>
+%s
+</body></html>
+""" % (_STYLE, _FOOTER)
+
     
     def do_GET(self):
+        
         log = logging.getLogger("cutplace.web")
         log.info("%s %r" % (self.command, self.path))
 
@@ -163,6 +180,18 @@ Platform: %s</p>
             self.end_headers()
             self.wfile.write(Handler._ABOUT)
             self.wfile.close()
+        elif (self.path == "/shutdown"):
+            global _allowShutDown
+            global _readyToShutDown
+            if _allowShutDown:
+                self.send_response(200)
+                self.send_header("Content-type", "text/html")
+                self.end_headers()
+                self.wfile.write(Handler._SHUTDOWN)
+                self.wfile.close()
+                _readyToShutDown = True
+            else:
+                self.send_error(400, "cannot shutdown server: the shutdown feature must be enabled when starting the server")
         else:
             self.send_error(404)
 
@@ -301,9 +330,13 @@ class OpenBrowserThread(WaitForServerToBeReadyThread):
         else:
             log.warning("cannot find server at <%s>, giving up; try to connect manually" % self.site)
 
-def main(port=DEFAULT_PORT, isOpenBrowser=False):
+def main(port=DEFAULT_PORT, isOpenBrowser=False, allowShutDown=False):
+    # TODO: Get rid of super ugly global `_allowShutDown`.
+    global _allowShutDown
+    global _readyToShutDown
+    
     log = logging.getLogger("cutplace.web")
-
+    _allowShutDown = allowShutDown
     httpd = BaseHTTPServer.HTTPServer(("", port), Handler)
     site = "http://localhost:%d/" % port
     log.info(_SERVER_VERSION)
@@ -315,9 +348,12 @@ def main(port=DEFAULT_PORT, isOpenBrowser=False):
     log.info("Visit <%s> to connect" % site)
     log.info("Press Control-C to shut down")
     try:
-        httpd.serve_forever()
+        while not _readyToShutDown:
+            httpd.handle_request()
     except KeyboardInterrupt:
-        log.info("Shut down")
+        # Ignore Control-C and proceed with shut down.
+        pass
+    log.info("Shut down")
                                      
 if __name__ == '__main__':
     logging.basicConfig()
