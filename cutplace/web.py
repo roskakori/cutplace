@@ -16,7 +16,6 @@ import time
 import tools
 import urllib
 import version
-import webbrowser
 
 """
 Default port the web server will use unless specified otherwise.
@@ -291,8 +290,8 @@ Platform: %s</p>
 class WaitForServerToBeReadyThread(threading.Thread):
     """Thread to wait for server to be ready."""
     def __init__(self, group=None, target=None, name=None,
-                 args=(), kwargs=None, verbose=None):
-        super(WaitForServerToBeReadyThread, self).__init__(group, target, name, args, kwargs, verbose)
+                 args=(), kwargs=None):
+        super(WaitForServerToBeReadyThread, self).__init__(group, target, name, args, kwargs)
         self.site = None
         self.maxRetries = 100
         self.delayBetweenRetryInSeconds = 0.2
@@ -326,7 +325,13 @@ class OpenBrowserThread(WaitForServerToBeReadyThread):
         log = logging.getLogger("cutplace.browser")
         if self.siteAvailable:
             log.info("open web browser")
-            webbrowser.open(self.site)
+            try:
+                # HACK: Attempt to import webbrowser only here because this module is not available
+                # for Jython 2.5.
+                import webbrowser
+                webbrowser.open(self.site)
+            except ImportError, error:
+                log.warning("cannot browse site %r: %s" % (self.site, error))
         else:
             log.warning("cannot find server at <%s>, giving up; try to connect manually" % self.site)
 
