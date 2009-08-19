@@ -51,7 +51,7 @@ class AbstractFieldFormat(object):
         # Do we have some data at all?
         if self.length is not None and not (self.isAllowedToBeEmpty and value == ""):
             try:
-                self.length.validate(self.fieldName, len(value))
+                self.length.validate("length of '%s' with value %r" % (self.fieldName, value), len(value))
             except range.RangeValueError, error:
                 raise FieldValueError(str(error))
          
