@@ -1,26 +1,83 @@
 """
 Test for web server.
 """
+import dev_test
+import itertools
 import logging
+import mimetools
+import mimetypes
+import os.path
+import StringIO
 import threading
 import time
 import unittest
+import urllib
 import urllib2
 import web
 
-_isWebStarted = False
+class MultiPartForm(object):
+    """Accumulate the data to be used when posting a form."""
+    # For details, see <http://broadcast.oreilly.com/2009/07/pymotw-urllib2.html>.
 
-def _ifNecessaryStartWeb():
-    global _isWebStarted
-    
-    if not _isWebStarted:
-        web = WebThread()
-        web.start()
-        # FIXME: Wait for server to be ready properly.
-        time.sleep(1)
-        _isWebStarted = True
+    def __init__(self):
+        self.form_fields = []
+        self.files = []
+        self.boundary = mimetools.choose_boundary()
+        return
 
-# FIXME: Shut down server when test is done.
+    def get_content_type(self):
+        return 'multipart/form-data; boundary=%s' % self.boundary
+
+    def add_field(self, name, value):
+        """Add a simple field to the form data."""
+        self.form_fields.append((name, value))
+        return
+
+    def add_file(self, fieldname, filename, fileHandle, mimetype=None):
+        """Add a file to be uploaded."""
+        body = fileHandle.read()
+        if mimetype is None:
+            mimetype = mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+            self.files.append((fieldname, filename, mimetype, body))
+        return
+
+    def __str__(self):
+        """Return a string representing the form data, including attached files."""
+        # Build a list of lists, each containing "lines" of the
+        # request. Each part is separated by a boundary string.
+        # Once the list is built, return a string where each
+        # line is separated by '\r\n'.
+        parts = []
+        part_boundary = '--' + self.boundary
+        
+        # Add the form fields
+        parts.extend(
+            [ part_boundary,
+                'Content-Disposition: form-data; name="%s"' % name,
+                '',
+                value,
+            ]
+            for name, value in self.form_fields
+            )
+        
+        # Add the files to upload
+        parts.extend(
+            [ part_boundary,
+                'Content-Disposition: file; name="%s"; filename="%s"' % \
+                (field_name, filename),
+                'Content-Type: %s' % content_type,
+                '',
+                body,
+            ]
+            for field_name, filename, content_type, body in self.files
+            )
+        
+        # Flatten the list and add closing boundary marker,
+        # then return CR+LF separated data
+        flattened = list(itertools.chain(*parts))
+        flattened.append('--' + self.boundary + '--')
+        flattened.append('')
+        return '\r\n'.join(flattened)
 
 class WebThread(threading.Thread):
     """Thread to run the test web server in."""
@@ -33,27 +90,65 @@ class WebThread(threading.Thread):
         
 class WebTest(unittest.TestCase):
     """TestCase for web module."""
-    
-    def _fetch(self, url):
+    def _createOpener(self):
         # Disable proxies.
         proxy_support = urllib2.ProxyHandler({})
-        opener = urllib2.build_opener(proxy_support)
-        # Fetch response from server.
-        try:
-            result = opener.open(url)
-        except IOError:
-            _ifNecessaryStartWeb()
-            result = opener.open(url)
+        result = urllib2.build_opener(proxy_support)
+        return result
+        
+    def _get(self, url):
+        opener = self._createOpener()
+        result = opener.open(url)
+        return result
+
+    def _post(self, icdPath, dataPath=None):
+        assert icdPath is not None
+
+        form = MultiPartForm()
+        form.add_file("icd", os.path.split(icdPath)[1], open(icdPath, "rb"))
+        
+        # Build the request
+        request = urllib2.Request("http://localhost:%d/cutplace" % (WebThread.PORT))
+        request.add_header("User-agent", "test_web.py")
+        body = str(form)
+        request.add_header("Content-type", form.get_content_type())
+        request.add_header("Content-length", len(body))
+        request.add_data(body)
+        
+        print
+        print "OUTGOING DATA:"
+        print request.get_data()
+        
+        print
+        print "SERVER RESPONSE:"
+        opener = self._createOpener()
+        result = opener.open(request)
+        print result.read()
         return result
     
     def _getHtmlText(self, relativeUrl=""):
-        response = self._fetch("http://localhost:%d/%s" % (WebThread.PORT, relativeUrl))
+        assert relativeUrl is not None
+        response = self._get("http://localhost:%d/%s" % (WebThread.PORT, relativeUrl))
         try:
             self.assertEquals(response.info()["Content-type"], "text/html")
             result = response.read()
         finally:
             response.close()
         return result
+        
+    def setUp(self):
+        self._webThread = WebThread()
+        self._webThread.start()
+        waitForServerThread = web.WaitForServerToBeReadyThread()
+        waitForServerThread.site = "http://localhost:%d/" % WebThread.PORT
+        waitForServerThread.start()
+        waitForServerThread.join()
+
+    def tearDown(self):
+        text = self._getHtmlText("shutdown").lower()
+        self.assertTrue(text.find("cutplace") >= 0)
+        self._webThread.join()
+        self._webThread = None
         
     def testAbout(self):
         text = self._getHtmlText("about").lower()
@@ -63,23 +158,18 @@ class WebTest(unittest.TestCase):
         text = self._getHtmlText().lower()
         self.assertTrue(text.find("<form") >= 0)
     
-    def testShutDown(self):
-        text = self._getHtmlText("shutdown").lower()
-        self.assertTrue(text.find("cutplace") >= 0)
-
-    def testValidateProperData(self):
+    def _testValidateProperData(self):
         # TODO: Implement: testValidateProperData
         pass
 
-    def testValidateBrokenData(self):
+    def _testValidateBrokenData(self):
         # TODO: Implement: testValidateBrokenData
         pass
 
-    def testValidateProperIcd(self):
-        # TODO: Implement: testValidateProperIcd
-        pass
+    def _testValidateProperIcd(self):
+        self._post(dev_test.getTestIcdPath("customers.csv"))
 
-    def testValidateBrokenIcd(self):
+    def _testValidateBrokenIcd(self):
         # TODO: Implement: testValidateBrokenIcd
         pass
 
