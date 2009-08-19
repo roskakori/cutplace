@@ -4,6 +4,22 @@ Revision history
 
 This chapter describes improvements compared to earlier versions of cutplace.
 
+Version 0.5.6, 19-Aug-2009
+==========================
+
+* Added a short summary at the end of validation. Depending on the result,
+  this can be either for instance ``eggs.csv: accepted 123 rows`` or 
+  ``eggs.csv: rejected 7 of 123 rows. 2 final checks failed.``.
+
+* Changed default for ``--log`` from``info`` to ``warning``.
+
+* Improved confusing error message when a field value is rejected because
+  of improper length.
+  
+* Fixed ``ImportError`` when run using Jython 2.5, which does not support the
+  Python standard module ``webbrowser``. Attempting to use ``--browser`` will
+  result in an error message nevertheless.
+
 Version 0.5.5, 26-Jul-2009
 ==========================
 
@@ -18,7 +34,7 @@ Version 0.5.5, 26-Jul-2009
 Version 0.5.4, 21-Jul-2009
 ==========================
 
-* Fixed ``--split``which did not actually write any files. (Ticket #19)
+* Fixed ``--split`` which did not actually write any files. (Ticket #19)
 
 * Fixed encoding error when reading data from Excel files that used cell
   formats of type data, error or time.
@@ -202,7 +218,7 @@ Version 0.3.0, 28-Apr-2009
 * Changed syntax to specify ranges like field lengths or rules for ``Integer``
   fields formats. Use ":" instead of "...".
 
-* There are basically two reasons for this change: Firstly, this looks more
+  There are basically two reasons for this change: Firstly, this looks more
   Python-like and thus more consistent with other parts of the ICD like the
   "Checks" section which also uses Python syntax in various places. Secondly,
   this avoids issues with Excel which under certain circumstances changes the 3
