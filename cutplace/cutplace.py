@@ -64,12 +64,16 @@ class CutplaceValidationEventListener(interface.ValidationEventListener):
     Listener for ICD events that writes accepted and rejected rows to the files specified in the
     command line options.
     """
-    def __init__(self, acceptedCsvWriter, rejectedTextFile):
+    def __init__(self, acceptedCsvWriter=None, rejectedTextFile=None):
         self.acceptedFile = acceptedCsvWriter
         self.rejectedFile = rejectedTextFile
+        self.acceptedRowCount = 0
+        self.rejectedRowCount = 0
+        self.checksAtEndFailedCount = 0
         self.log = logging.getLogger("cutplace")
 
     def acceptedRow(self, row):
+        self.acceptedRowCount += 1
         if self.acceptedFile is None:
             self.log.info("accepted: %r" % row)
         else:
@@ -77,6 +81,7 @@ class CutplaceValidationEventListener(interface.ValidationEventListener):
             self.acceptedFile.writerow(row)
     
     def rejectedRow(self, row, error):
+        self.rejectedRowCount += 1
         rowText = "items: %r" % row
         errorText = "field error: %s" % error
         if self.rejectedFile is None:
@@ -89,6 +94,7 @@ class CutplaceValidationEventListener(interface.ValidationEventListener):
     
     def checkAtEndFailed(self, error):
         errorText = "check at end failed: %s" % error
+        self.checksAtEndFailedCount += 1
         if self.rejectedFile is None:
             self.log.error(errorText)
         else:
@@ -129,7 +135,7 @@ class CutPlace(object):
     launch web server providing a web interface for validation"""
 
         parser = NoExitOptionParser(usage=usage, version="%prog " + version.VERSION_NUMBER)
-        parser.set_defaults(icdEncoding=DEFAULT_ICD_ENCODING, isLogTrace=False, isOpenBrowser=False, logLevel="info", port=web.DEFAULT_PORT)
+        parser.set_defaults(icdEncoding=DEFAULT_ICD_ENCODING, isLogTrace=False, isOpenBrowser=False, logLevel="warning", port=web.DEFAULT_PORT)
         parser.add_option("--list-encodings", action="store_true", dest="isShowEncodings", help="show list of available character encodings and exit")
         validationGroup = optparse.OptionGroup(parser, "Validation options", "Specify how to validate data and how to report the results")
         validationGroup.add_option("-e", "--icd-encoding", metavar="ENCODING", dest="icdEncoding",
@@ -194,9 +200,19 @@ class CutPlace(object):
                 rejectedTextFile = _openForWriteUsingUtf8(rejectedTextPath)
                 validationSplitListener = CutplaceValidationEventListener(tools.UnicodeCsvWriter(acceptedCsvFile), rejectedTextFile)
             else:
-                validationSplitListener = None
+                validationSplitListener = CutplaceValidationEventListener()
             try:
                 self.icd.validate(dataFilePath, validationSplitListener)
+                shortDataFilePath = os.path.basename(dataFilePath)
+                acceptedRowCount = validationSplitListener.acceptedRowCount
+                rejectedRowCount = validationSplitListener.rejectedRowCount
+                checksAtEndFailedCount = validationSplitListener.checksAtEndFailedCount
+                totalRowCount = acceptedRowCount + rejectedRowCount
+                if rejectedRowCount + checksAtEndFailedCount == 0:
+                    print "%s: accepted %d rows" % (shortDataFilePath, acceptedRowCount)
+                else:
+                    print "%s: rejected %d of %d rows. %d final checks failed." \
+                         % (shortDataFilePath, rejectedRowCount, totalRowCount, checksAtEndFailedCount)
             finally:
                 if isWriteSplit:
                     rejectedTextFile.close()
