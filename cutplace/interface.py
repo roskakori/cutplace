@@ -474,9 +474,9 @@ class InterfaceControlDocument(object):
                             while itemIndex < maxItemCount:
                                 item = row[itemIndex]
                                 assert not isinstance(item, str), "item at row %d, column %d must be Unicode string instead of plain string: %r" % (rowNumber, itemIndex + 1, item)
-                                if __debug__ and self._log.isEnabledFor(logging.DEBUG):
-                                    self._log.debug("validate item %d/%d: %r <- %r" % (itemIndex + 1, len(self.fieldFormats), item, row))  
                                 fieldFormat = self.fieldFormats[itemIndex]
+                                if __debug__ and self._log.isEnabledFor(logging.DEBUG):
+                                    self._log.debug("validate item %d/%d: %r with %s <- %r" % (itemIndex + 1, len(self.fieldFormats), item, fieldFormat, row))  
                                 # Validate characters.
                                 if validCharacterRange is not None:
                                     for character in item:
