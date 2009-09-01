@@ -136,6 +136,7 @@ class ChoiceFieldFormatTest(unittest.TestCase):
         format.validate("blue")
         # Disregard upper/lower case.
         format.validate("gReen")
+        self.assertRaises(fields.FieldValueError, format.validate, "")
         
     def testImproperChoice(self):
         format = fields.ChoiceFieldFormat("color", False, None, "red,green, blue ")
@@ -151,6 +152,11 @@ class ChoiceFieldFormatTest(unittest.TestCase):
         format.validate(u"Männlich")
         self.assertRaises(fields.FieldValueError, format.validate, u"unbekannt")
 
+    def testPossiblyEmptyFieldWithLength(self):
+        format = fields.ChoiceFieldFormat("optional_color", True, ":5", "red, green, blue")
+        self.assertEqual(format.validate("red"), "red")
+        self.assertEqual(format.validate(""), "")
+        
     def testBrokenEmptyChoice(self):
         self.assertRaises(fields.FieldSyntaxError, fields.ChoiceFieldFormat, "color", False, None, "")
         self.assertRaises(fields.FieldSyntaxError, fields.ChoiceFieldFormat, "color", False, None, " ")

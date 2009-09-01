@@ -80,9 +80,10 @@ class ChoiceFieldFormat(AbstractFieldFormat):
             self.choices.append(choice)
     
     def validate(self, value):
-        if value.lower() not in self.choices:
-            raise FieldValueError("value is %r but must be one of: %s"
-                                   % (value, tools.humanReadableList(self.choices)))
+        if value or not self.isAllowedToBeEmpty:
+            if value.lower() not in self.choices:
+                raise FieldValueError("value is %r but must be one of: %s"
+                                       % (value, tools.humanReadableList(self.choices)))
         return value
 
 class DecimalFieldFormat(AbstractFieldFormat):
