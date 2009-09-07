@@ -517,20 +517,9 @@ class InterfaceControlDocument(object):
                                 listener.acceptedRow(row)
                         except data.DataFormatValueError:
                             raise
-                        except Exception, error:
-                            # Handle failed check and other errors.
-                            # HACK: This should work using "except CutplaceError", but for some reason
-                            #     when run using ``python setup.py test`` a ``FieldValueError`` raised
-                            #     by ``validateEmpty()`` is not considered a ``CutplaceError``. I have
-                            #     no idea why because running ``python cutplace/test_all.py`` works
-                            #     fine. Even slightly less ugly code using
-                            #     ``isinstance(error, fields.FieldValue)`` does not work because it
-                            #     yields ``False``. 
-                            isFieldValueError = error.__class__.__name__ == 'FieldValueError'
-                            isCutplaceError = ("CutplaceError" in [clazz.__name__ for clazz in error.__class__.__bases__])
-                            if not isCutplaceError:
-                                raise
-                            elif isFieldValueError:
+                        except tools.CutplaceError, error:
+                            isFieldValueError = isinstance(error, fields.FieldValueError)
+                            if isFieldValueError:
                                 fieldName = self.fieldNames[itemIndex]
                                 reason = "field %r must match format: %s" % (fieldName, error)
                             else:
