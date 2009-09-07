@@ -69,7 +69,11 @@ For Python 2.6, use::
 
 After that you can proceed as describe above and run::
 
-  easy_install cutplace
+  easy_install-2.5 cutplace
+
+respectively
+
+  easy_install-2.6 cutplace
 
 Download and install using the Subversion repository
 ====================================================
