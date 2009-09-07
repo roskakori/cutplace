@@ -4,6 +4,15 @@ Revision history
 
 This chapter describes improvements compared to earlier versions of cutplace.
 
+Version 0.5.7, 07-Sep-2009
+==========================
+
+* Fixed validation of empty Choice fields that according to the ICD were
+  allowed to be empty but nevertheless were rejected.
+
+* Fixed a strange error when run using Jython 2.5.0 on certain platforms.
+  The exact message was: ``TypeError: 'type' object is not iterable``.
+
 Version 0.5.6, 19-Aug-2009
 ==========================
 
