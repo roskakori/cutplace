@@ -23,12 +23,15 @@ ez_setup.use_setuptools()
 
 from setuptools import setup, find_packages, Command
 
+# Set up logging early on so import warnings can be logged.
+import logging
+logging.basicConfig()
+
 from cutplace import dev_reports
 from cutplace import ods
 from cutplace import tools
 from cutplace import version
 
-import logging
 import os.path
 import re
 import shutil
@@ -41,8 +44,6 @@ buildSiteFolder = os.path.join(buildFolder, "site")
 docsFolder = "docs"
 examplesFolder = "examples"
 tutorialFolder = examplesFolder
-
-logging.basicConfig()
 
 def _copyFilesToFolder(sourceFolder, targetFolder, pattern=".*"):
     """

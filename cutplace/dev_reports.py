@@ -2,8 +2,6 @@
 Development reports for cutplace.
 """
 import cgi
-import coverage
-import cProfile
 import dev_colorize
 import keyword
 import logging
@@ -16,6 +14,14 @@ import tools
 import unittest
 
 _log = logging.getLogger("cutplace.dev_reports")
+
+try:
+    import coverage
+    import cProfile
+except ImportError, error:
+    _log.warning("developer reports will not work: %s" % error)
+    
+
 
 def _testLotsOfCustomers():
     import test_cutplace
