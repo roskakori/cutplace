@@ -42,7 +42,11 @@ class CutplaceTest(unittest.TestCase):
     def testSplitBrokenData(self):
         icdPath = dev_test.getTestIcdPath("customers.ods")
         dataPath = dev_test.getTestInputPath("broken_customers.csv")
-        cutplace.main(["--split", icdPath, dataPath])
+        try:
+            cutplace.main(["--split", icdPath, dataPath])
+            self.fail("expected SystemExit error")
+        except SystemExit, error:
+            self.assertEquals(error.code, 1)
         acceptedDataPath = dev_test.getTestInputPath("broken_customers_accepted.csv")
         rejectedDataPath = dev_test.getTestInputPath("broken_customers_rejected.txt")
         self.assertNotEqual(os.path.getsize(acceptedDataPath), 0)

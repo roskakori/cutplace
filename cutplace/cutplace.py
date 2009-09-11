@@ -121,6 +121,7 @@ class CutPlace(object):
         self.icdPath = None
         self.isSplit = False
         self.dataToValidatePaths = None
+        self.lastValidationWasOk = False
 
     def setOptions(self, argv):
         """Reset options and set them again from argument list such as sys.argv[1:]."""
@@ -188,6 +189,7 @@ class CutPlace(object):
         assert dataFilePath is not None
         assert self.icd is not None
         
+        self.lastValidationWasOk = False
         isWriteSplit = self.isSplit
         if isWriteSplit:
             splitTargetFolder, splitBaseName = os.path.split(dataFilePath)
@@ -209,6 +211,7 @@ class CutPlace(object):
                 checksAtEndFailedCount = validationSplitListener.checksAtEndFailedCount
                 totalRowCount = acceptedRowCount + rejectedRowCount
                 if rejectedRowCount + checksAtEndFailedCount == 0:
+                    self.lastValidationWasOk = True
                     print "%s: accepted %d rows" % (shortDataFilePath, acceptedRowCount)
                 else:
                     print "%s: rejected %d of %d rows. %d final checks failed." \
@@ -258,11 +261,16 @@ def main(options):
     elif cutPlace.isWebServer:
         web.main(cutPlace.port, cutPlace.isOpenBrowser)
     elif cutPlace.dataToValidatePaths:
+        allValidationsOk = True
         for path in cutPlace.dataToValidatePaths:
             try:
                 cutPlace.validate(path)
+                if not cutPlace.lastValidationWasOk:
+                    allValidationsOk = False
             except EnvironmentError, error:
                 raise EnvironmentError("cannot read data file %r: %s" % (path, error))
+        if not allValidationsOk:
+            sys.exit(1)
 
 def _exitWithError(exitCode, error):
     """
