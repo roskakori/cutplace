@@ -44,7 +44,7 @@ class UTF8Recoder:
         try:
             result = self.reader.next().encode("utf-8")
         except UnicodeError, error:
-            raise CutplaceUnicodeError("cannot decode input: %s" % str(error))
+            raise CutplaceUnicodeError("cannot decode input: %s" % error)
         return result
 
 class UnicodeCsvReader:

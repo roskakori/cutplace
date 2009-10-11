@@ -27,6 +27,7 @@ import platform
 import os
 import sys
 import tools
+import traceback
 import version
 import web
 
@@ -292,12 +293,18 @@ def mainForScript():
     except EnvironmentError, error:
         _exitWithError(3, error)
     except tools.CutplaceUnicodeError, error:
-        _exitWithError(1, str(error))
+        _exitWithError(1, error)
     except tools.CutplaceError, error:
         _exitWithError(1, "cannot process Excel format: %s" % error)
     except optparse.OptionError, error:
         if not isinstance(error, ExitQuietlyOptionError):
             _exitWithError(2, "cannot process command line options: %s" % error)
-    
+    except optparse.OptionError, error:
+        if not isinstance(error, ExitQuietlyOptionError):
+            _exitWithError(2, "cannot process command line options: %s" % error)
+    except Exception, error:
+        traceback.print_exc()
+        _exitWithError(4, "cannot handle unexpected error: %s" % error)
+        
 if __name__ == '__main__':
     mainForScript()

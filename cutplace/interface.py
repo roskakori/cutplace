@@ -403,6 +403,14 @@ class InterfaceControlDocument(object):
         result = value.strip()
         return result
     
+    def _reject_row(self, row, reason):
+        assert reason
+        self._log.debug("rejected: %s" % row)
+        self._log.debug(reason, exc_info=self.logTrace)
+        self.rejectedCount += 1
+        for listener in self.ValidationEventListeners:
+            listener.rejectedRow(row, reason)
+
     def validate(self, dataFileToValidatePath, validationListener=None):
         """
         Validate that all rows and items in `dataFileToValidatePath` conform to this interface.
@@ -462,73 +470,73 @@ class InterfaceControlDocument(object):
                 if validationListener is not None:
                     self.addValidationEventListener(validationListener)
                 rowNumber = 0
-                for row in reader:
-                    itemIndex = 0
-                    rowNumber += 1
-                    
-                    if rowNumber > firstRowToValidateFieldsIn:
-                        try:
-                            # Validate all items of the current row and collect their values in `rowMap`.
-                            maxItemCount = min(len(row), len(self.fieldFormats))
-                            rowMap = {}
-                            while itemIndex < maxItemCount:
-                                item = row[itemIndex]
-                                assert not isinstance(item, str), "item at row %d, column %d must be Unicode string instead of plain string: %r" % (rowNumber, itemIndex + 1, item)
-                                fieldFormat = self.fieldFormats[itemIndex]
-                                if __debug__ and self._log.isEnabledFor(logging.DEBUG):
-                                    self._log.debug("validate item %d/%d: %r with %s <- %r" % (itemIndex + 1, len(self.fieldFormats), item, fieldFormat, row))  
-                                # Validate characters.
-                                if validCharacterRange is not None:
-                                    for character in item:
-                                        try:
-                                            validCharacterRange.validate("character", ord(character))
-                                        except range.RangeValueError, error:
-                                            raise fields.FieldValueError("value for fields %r must contain only valid characters: %s"
-                                                                         % (fieldFormat.fieldName, error))
-                                        
-                                # Validate field format
-                                if self.dataFormat.name == data.FORMAT_FIXED:
-                                    item = self._strippedOfBlanks(item)
-                                    fieldFormat.validateEmpty(item)
-                                    # Note: No need to validate the length with fixed length items.
-                                else:
-                                    fieldFormat.validateEmpty(item)
-                                    fieldFormat.validateLength(item)
-                                rowMap[fieldFormat.fieldName] = fieldFormat.validate(item) 
-                                itemIndex += 1
-                            if itemIndex != len(row):
-                                itemIndex -= 1
-                                raise checks.CheckError("unexpected data must be removed after item %d" % (itemIndex))
-                            elif len(row) < len(self.fieldFormats):
-                                missingFieldNames = self.fieldNames[(len(row) - 1):]
-                                raise checks.CheckError("row must contain items for the following fields: %r" % missingFieldNames)
-        
-                            # Validate row checks.
-                            for description, check in self.checkDescriptions.items():
-                                try:
+                try:
+                    for row in reader:
+                        itemIndex = 0
+                        rowNumber += 1
+                        
+                        if rowNumber > firstRowToValidateFieldsIn:
+                            try:
+                                # Validate all items of the current row and collect their values in `rowMap`.
+                                maxItemCount = min(len(row), len(self.fieldFormats))
+                                rowMap = {}
+                                while itemIndex < maxItemCount:
+                                    item = row[itemIndex]
+                                    assert not isinstance(item, str), "item at row %d, column %d must be Unicode string instead of plain string: %r" % (rowNumber, itemIndex + 1, item)
+                                    fieldFormat = self.fieldFormats[itemIndex]
                                     if __debug__ and self._log.isEnabledFor(logging.DEBUG):
-                                        self._log.debug("check row: %s" % check)  
-                                    check.checkRow(rowNumber, rowMap)
-                                except checks.CheckError, error:
-                                    raise checks.CheckError("row check failed: %r: %s" % (check.description, error))
-                            self._log.debug("accepted: %s" % row)
-                            self.acceptedCount += 1
-                            for listener in self.ValidationEventListeners:
-                                listener.acceptedRow(row)
-                        except data.DataFormatValueError:
-                            raise
-                        except tools.CutplaceError, error:
-                            isFieldValueError = isinstance(error, fields.FieldValueError)
-                            if isFieldValueError:
-                                fieldName = self.fieldNames[itemIndex]
-                                reason = "field %r must match format: %s" % (fieldName, error)
-                            else:
-                                reason = str(error)
-                            self._log.debug("rejected: %s" % row)
-                            self._log.debug(reason, exc_info=self.logTrace)
-                            self.rejectedCount += 1
-                            for listener in self.ValidationEventListeners:
-                                listener.rejectedRow(row, reason)
+                                        self._log.debug("validate item %d/%d: %r with %s <- %r" % (itemIndex + 1, len(self.fieldFormats), item, fieldFormat, row))  
+                                    # Validate characters.
+                                    if validCharacterRange is not None:
+                                        for character in item:
+                                            try:
+                                                validCharacterRange.validate("character", ord(character))
+                                            except range.RangeValueError, error:
+                                                raise fields.FieldValueError("value for fields %r must contain only valid characters: %s"
+                                                                             % (fieldFormat.fieldName, error))
+                                            
+                                    # Validate field format
+                                    if self.dataFormat.name == data.FORMAT_FIXED:
+                                        item = self._strippedOfBlanks(item)
+                                        fieldFormat.validateEmpty(item)
+                                        # Note: No need to validate the length with fixed length items.
+                                    else:
+                                        fieldFormat.validateEmpty(item)
+                                        fieldFormat.validateLength(item)
+                                    rowMap[fieldFormat.fieldName] = fieldFormat.validate(item) 
+                                    itemIndex += 1
+                                if itemIndex != len(row):
+                                    itemIndex -= 1
+                                    raise checks.CheckError("unexpected data must be removed after item %d" % (itemIndex))
+                                elif len(row) < len(self.fieldFormats):
+                                    missingFieldNames = self.fieldNames[(len(row) - 1):]
+                                    raise checks.CheckError("row must contain items for the following fields: %r" % missingFieldNames)
+            
+                                # Validate row checks.
+                                for description, check in self.checkDescriptions.items():
+                                    try:
+                                        if __debug__ and self._log.isEnabledFor(logging.DEBUG):
+                                            self._log.debug("check row: %s" % check)  
+                                        check.checkRow(rowNumber, rowMap)
+                                    except checks.CheckError, error:
+                                        raise checks.CheckError("row check failed: %r: %s" % (check.description, error))
+                                self._log.debug("accepted: %s" % row)
+                                self.acceptedCount += 1
+                                for listener in self.ValidationEventListeners:
+                                    listener.acceptedRow(row)
+                            except data.DataFormatValueError:
+                                raise
+                            except tools.CutplaceError, error:
+                                isFieldValueError = isinstance(error, fields.FieldValueError)
+                                if isFieldValueError:
+                                    fieldName = self.fieldNames[itemIndex]
+                                    reason = "field %r must match format: %s" % (fieldName, error)
+                                else:
+                                    reason = str(error)
+                                self._reject_row(row, reason)
+                except tools.CutplaceUnicodeError, error:
+                    self._reject_row([], error)
+                    # raise data.DataFormatValueError("cannot read row %d: %s" % (rowNumber + 2, error))
             finally:
                 if validationListener is not None:
                     self.removeValidationEventListener(validationListener)
