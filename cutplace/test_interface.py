@@ -16,17 +16,25 @@ import unittest
 _log = logging.getLogger("cutplace.test_interface")
 
 class _SimpleErrorLoggingValidationEventListener(interface.ValidationEventListener):
+    def __init__(self):
+        self.acceptedRowCount = 0
+        self.rejectedRowCount = 0
+        self.checksAtEndFailedCount = 0
+
     def _logError(self, row, error):
         _log.warning("error during validation: %s %r" % (error, row))
 
     def acceptedRow(self, row):
+        self.acceptedRowCount += 1
         _log.info("accepted: %r" % row)
 
     def rejectedRow(self, row, error):
+        self.rejectedRowCount += 1
         self._logError(row, error)
         super(_SimpleErrorLoggingValidationEventListener, self).rejectedRow(row, error)
     
     def checkAtEndFailed(self, error):
+        self.checksAtEndFailedCount += 1
         self._logError(None, error)
         super(_SimpleErrorLoggingValidationEventListener, self).checkAtEndFailed(error)
     
@@ -232,7 +240,9 @@ F,first_name,John,X,15,Text
 38000,23,"Mike","Webster","male","23.12.1974"
 """
         dataReadable = StringIO.StringIO(dataText)
-        self.assertRaises(tools.CutplaceUnicodeError, icd.validate, dataReadable)
+        icd.validate(dataReadable, _defaultIcdListener)
+        self.assertEqual(_defaultIcdListener.acceptedRowCount, 0)
+        self.assertEqual(_defaultIcdListener.rejectedRowCount, 1)
 
     def testLatin1(self):
         icd = createDefaultTestIcd(data.FORMAT_CSV)
