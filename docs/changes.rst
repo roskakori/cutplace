@@ -4,6 +4,20 @@ Revision history
 
 This chapter describes improvements compared to earlier versions of cutplace.
 
+Version 0.5.8, 12-Oct-2009
+==========================
+
+* Changed Unicode encoding errors to result in the row to be rejected similar
+  to a row with an invalid field instead of a simple message in the console.
+
+* Changed command line exit code to 1 instead of 0 in case validation errors
+  were found in any data file specified.
+
+* Changed command line exit code to 4 instead of 0 for errors that could not
+  be handled or reported otherwise (usually hinting at a bug in the code).
+  This case also results in a stack trace to be printed.
+
+
 Version 0.5.7, 07-Sep-2009
 ==========================
 
