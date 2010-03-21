@@ -37,17 +37,6 @@ class Range(object):
     A range that can be used to validate that that a value is within it.
     """
 
-    """
-    Symbolic names that can be used to improve the legibility of the ICD.
-    """
-    _SYMBOL_MAP = {
-        "cr": 13,
-        "ff": 12,
-        "lf": 10,
-        "tab": 9,
-        "vt": 11
-    }
-
     def __init__(self, text, default=None):
         """
         Setup a range as specified by `text`.
@@ -73,6 +62,7 @@ class Range(object):
         else:
             self.description = text
             self.items = []
+            # TODO: Consolidate code with `DelimitedDataFormat._validatedCharacter()`.
             tokens = tokenize.generate_tokens(StringIO.StringIO(text).readline)
             endReached = False
             while not endReached:
@@ -100,10 +90,10 @@ class Range(object):
                                 afterHyphen = False
                         elif nextType == token.NAME:
                             try:
-                                longValue = Range._SYMBOL_MAP[nextValue.lower()]
+                                longValue = tools.SYMBOLIC_NAMES_MAP[nextValue.lower()]
                             except KeyError:
-                                validSymbols = tools.humanReadableList(sorted(Range._SYMBOL_MAP.keys()))
-                                raise RangeSyntaxError("symbolic name %r must be be one of: %s" % (nextValue, validSymbols))
+                                validSymbols = tools.humanReadableList(sorted(tools.SYMBOLIC_NAMES_MAP.keys()))
+                                raise RangeSyntaxError("symbolic name %r must be one of: %s" % (nextValue, validSymbols))
                         elif nextType == token.STRING:
                             if len(nextValue) != 3:
                                 raise RangeSyntaxError("text for range must contain a single character but is: %r" % nextValue)

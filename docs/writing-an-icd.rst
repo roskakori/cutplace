@@ -13,7 +13,13 @@ ICD's for cutplace focus on the data specific parts and hence only describe:
    character encoding, quote character and so on. These properties concern the
    whole file and each data item in it.
 
-2. Fields:
+2. Fields: These are the smallest unit of information in a data file. A file
+   consists 0, 1 or many lines. Each line is devided into 1 or more fields,
+   which carry the actual information. For files with structured data, a
+   certain field retains its meaning even when inspected in a different line.
+   For example, if the third field in line 1 is a phone number, so has to be
+   the third field in line 2, 3, 17, 23459 and so on. Nevertheless, the
+   actual phone number can differ from line to line.
 
 3. Optional Checks, which are rules that have to be met across the whole
    document or several fields. For example, a customer ID is supposed to be
@@ -102,9 +108,17 @@ Line delimiter
 
 Item delimiter
     The character used to separated data items from each other, for example:
-    comma (,), semicolon (;), colon (:).
 
-    TODO: How to specify tab?
+	==  ==================  ========  ===============================
+	..  Property            Value     Note
+	==  ==================  ========  ===============================
+	D   Item delimiter      ``","``
+	D   Item delimiter      ``44``    ASCII code of ``","``
+	D   Item delimiter      ``0x2c``  ASCII code of ``","`` in hex format
+	D   Item delimiter      ``,``     Deprecated syntax, enclose in double quotes instead
+	D   Item delimiter      ``"\t"``  Escaped text indicating a tabulator
+	D   Item delimiter      ``Tab``   Same as ``"\t"`` but using a more legible symbolic name
+	==  ==================  ========  ===============================
 
 Quote character
     The character used to surround items with that contain delimiters or while
@@ -575,16 +589,16 @@ meaning.
 
 Example ranges.
 
-============  =======================================================================================================================================
-Example       Description
-============  =======================================================================================================================================
-5:20          Between 5 and 20
-6:            At least 6
-:7            At most 7. Sample accepted values are -5, 0, 4 or 7.  Sample rejected values would be 8, 17, or 723.
-8             Exactly 8, which is the only accepted value. Anything else is rejected.
-2, 4, 6, 8    One of the values specified, meaning 2, 4, 6 or 8.  Anything else is rejected, including 3, 5 and 7.
-20:30, 40:50  Everything between 20 and 30 or between 40 and 50. Sample accepted values are 20, 27, 43 and 50. Sample rejected values are 19, 31, 55.
-============  =======================================================================================================================================
+================  =======================================================================================================================================
+Example           Description
+================  =======================================================================================================================================
+``5:20``          Between 5 and 20
+``6:``            At least 6
+``:7``            At most 7. Sample accepted values are -5, 0, 4 or 7.  Sample rejected values would be 8, 17, or 723.
+``8``             Exactly 8, which is the only accepted value. Anything else is rejected.
+``2, 4, 6, 8``    One of the values specified, meaning 2, 4, 6 or 8.  Anything else is rejected, including 3, 5 and 7.
+``20:30, 40:50``  Everything between 20 and 30 or between 40 and 50. Sample accepted values are 20, 27, 43 and 50. Sample rejected values are 19, 31, 55.
+================  =======================================================================================================================================
 
 Essentially ranges are one or more values (separated by a comma (,)) that are
 either numeric constant or a lower and upper limit separated by a colon (:).
@@ -597,15 +611,15 @@ rule of ``:20`` will use the largest negative number possible on your computer
 It is possible to use hexadecimal notation by starting the number with ``0x``,
 for instance:
 
-===============  ================
-Example          Same as
-===============  ================
-0x0f             15
-0x10             16
-0xabcd           43981
-10:0x10          10:16
-:-0xDeadBeef     :-3735928559
-===============  ================
+================  ================
+Example           Same as
+================  ================
+``0x0f``          ``15``
+``0x10``          ``16``
+``0xabcd``        ``43981``
+``10:0x10``       ``10:16``
+``:-0xDeadBeef``  ``:-3735928559``
+================  ================
 
 You can also use single letters to specify range values, which are treated
 same as the numeric ASCII or Unicode value:
@@ -613,15 +627,15 @@ same as the numeric ASCII or Unicode value:
 ====================  ================
 Example               Same as
 ====================  ================
-``"A":"Z"``           65:90 
-``"A":"Z", "a":"z"``  65:90, 97:122
+``"A":"Z"``           ``65:90``
+``"A":"Z", "a":"z"``  ``65:90, 97:122``
 ====================  ================
 
 For unprintable letters and Unicode characters you can use Python escape
 sequences:
 
 ====================  =============================================================
-Example escaped text       Same as
+Example escaped text  Same as
 ====================  =============================================================
 ``"\t"``              ``9`` (tabulator)
 ``"\\"``              ``92`` (backslash)
@@ -636,11 +650,11 @@ rather cryptic escape sequences using a backslash:
 =============  ============  ======
 Symbolic name  Escaped text  Number
 =============  ============  ======
-Cr             ``"\r"``      13
-Ff             ``"\f"``      12
-Lf             ``"\n"``      10
-Tab            ``"\t"``      9
-Vt             ``"\v"``      11
+``Cr``         ``"\r"``      13
+``Ff``         ``"\f"``      12
+``Lf``         ``"\n"``      10
+``Tab``        ``"\t"``      9
+``Vt``         ``"\v"``      11
 =============  ============  ======
 
 .. rubric:: Footnotes

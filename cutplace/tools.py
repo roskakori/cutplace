@@ -29,6 +29,17 @@ import tokenize
 from datetime import timedelta, datetime
 from random import randrange
 
+"""
+Symbolic names that can be used to improve the legibility of the ICD.
+"""
+SYMBOLIC_NAMES_MAP = {
+    "cr": 13,
+    "ff": 12,
+    "lf": 10,
+    "tab": 9,
+    "vt": 11
+}
+
 class CutplaceError(Exception):
     """
     Error detected by cutplace caused by issues in the ICD or data.

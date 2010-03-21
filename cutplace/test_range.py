@@ -51,9 +51,9 @@ class RangeTest(unittest.TestCase):
 
     def testSymbolicRange(self):
         self.assertEquals(range.Range("TAB").items, [(9, 9)])
-        self.assertEquals(range.Range("Esc").items, [(27, 27)])
-        self.assertEquals(range.Range("Tab:Esc").items, [(9, 27)])
-        self.assertEquals(range.Range("Tab:27").items, [(9, 27)])
+        self.assertEquals(range.Range("vt").items, [(11, 11)])
+        self.assertEquals(range.Range("Tab:Vt").items, [(9, 11)])
+        self.assertEquals(range.Range("Tab:11").items, [(9, 11)])
 
     def testTextRange(self):
         self.assertEquals(range.Range("\"a\"").items, [(97, 97)])

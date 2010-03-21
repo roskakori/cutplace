@@ -17,8 +17,12 @@ Data formats that describe the general structure of the data.
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import codecs
 import logging
-import range
 import string
+import StringIO
+import token
+import tokenize
+
+import range
 import tools
 
 ANY = "any"
@@ -220,7 +224,7 @@ class _BaseDataFormat(object):
         >>> format.set(KEY_ALLOWED_CHARACTERS, "spam")
         Traceback (most recent call last):
             ...
-        DataFormatValueError: value for property 'allowed characters' must be a valid range: symbolic name 'spam' must be be one of: 'cr', 'esc', 'ff', 'lf', 'tab' or 'vt'
+        DataFormatValueError: value for property 'allowed characters' must be a valid range: symbolic name 'spam' must be one of: 'cr', 'ff', 'lf', 'tab' or 'vt'
         """
         normalizedKey = self._normalizedKey(key)
         if normalizedKey in self.properties:
@@ -322,14 +326,119 @@ class DelimitedDataFormat(_BaseTextDataFormat):
                                                KEY_ITEM_DELIMITER: itemDelimiter,
                                                KEY_QUOTE_CHARACTER:None})
         self.optionalKeyValueMap[KEY_LINE_DELIMITER] = lineDelimiter
+        self._log = logging.getLogger("cutplace")
+
         
+    def _validatedCharacter(self, key, value):
+        r"""
+        A single character intended as value for data format property `key`
+        derived from `value`, which can be:
+        
+        * a decimal or hex number (prefixed with "0x") referring to the ASCII/Unicode of the character
+        * a string containing a single character such as "\t".
+        * a symbolic name such as `Tab`.
+        
+        Anything else yields a `DataFormatSyntaxError`.
+        
+        >>> format = DelimitedDataFormat()
+        >>> format._validatedCharacter("x", "34")
+        '"'
+        >>> format._validatedCharacter("x", "9")
+        '\t'
+        >>> format._validatedCharacter("x", "0x9")
+        '\t'
+        >>> format._validatedCharacter("x", "Tab")
+        '\t'
+        >>> format._validatedCharacter("x", "\t")
+        '\t'
+        >>> format._validatedCharacter("x", "")
+        Traceback (most recent call last):
+            ...
+        DataFormatSyntaxError: value for data format property 'x' must be specified
+        >>> format._validatedCharacter("x", "Tab Tab")
+        Traceback (most recent call last):
+            ...
+        DataFormatSyntaxError: value for data format property 'x' must describe a single character but is: 'Tab Tab'
+        >>> format._validatedCharacter("x", "17.23")
+        Traceback (most recent call last):
+            ...
+        DataFormatSyntaxError: numeric value for data format property 'x' must be an integer but is: '17.23'
+        >>> format._validatedCharacter("x", "Hugo")
+        Traceback (most recent call last):
+            ...
+        DataFormatSyntaxError: symbolic name 'Hugo' for data format property 'x' must be one of: 'cr', 'ff', 'lf', 'tab' or 'vt'
+        >>> format._validatedCharacter("x", "( ")
+        Traceback (most recent call last):
+            ...
+        DataFormatSyntaxError: value for data format property 'x' must a number, a single character or a symbolic name but is: '( '
+        >>> format._validatedCharacter("x", "\"\\")
+        Traceback (most recent call last):
+            ...
+        DataFormatSyntaxError: value for data format property 'x' must a number, a single character or a symbolic name but is: '"\\'
+        >>> format._validatedCharacter("x", "\"abc\"")
+        Traceback (most recent call last):
+            ...
+        DataFormatSyntaxError: text for data format property 'x' must be a single character but is: '"abc"'
+        """
+        # TODO: Consolidate code with `Range.__init__()`.
+        assert key
+        assert value is not None
+        if len(value) == 1 and (value < "0" or value > "9"):
+            # TODO: Remove support for deprecated syntax.
+            result = value
+            self._log.warning("value %r for data format property %r should be put between double quotes: \"%s\"" % (value, key, value))
+        else:
+            result = None
+            tokens = tokenize.generate_tokens(StringIO.StringIO(value).readline)
+            next = tokens.next()
+            if tools.isEofToken(next):
+                raise DataFormatSyntaxError("value for data format property %r must be specified" % key)
+            nextType = next[0]
+            nextValue = next[1]
+            if nextType == token.NUMBER:
+                try:
+                    if nextValue[:2].lower() == "0x":
+                        nextValue = nextValue[2:]
+                        base = 16
+                    else:
+                        base = 10
+                    longValue = long(nextValue, base)
+                except ValueError, error:
+                    raise DataFormatSyntaxError("numeric value for data format property %r must be an integer but is: %r" % (key, value))
+            elif nextType == token.NAME:
+                try:
+                    longValue = tools.SYMBOLIC_NAMES_MAP[nextValue.lower()]
+                except KeyError:
+                    validSymbols = tools.humanReadableList(sorted(tools.SYMBOLIC_NAMES_MAP.keys()))
+                    raise DataFormatSyntaxError("symbolic name %r for data format property %r must be one of: %s" % (value, key, validSymbols))
+            elif nextType == token.STRING:
+                if len(nextValue) != 3:
+                    raise DataFormatSyntaxError("text for data format property %r must be a single character but is: %r" % (key, value))
+                leftQuote = nextValue[0]
+                rightQuote = nextValue[2]
+                assert leftQuote in "\"\'", "leftQuote=%r" % leftQuote 
+                assert rightQuote in "\"\'", "rightQuote=%r" % rightQuote
+                longValue = ord(nextValue[1])
+            else:
+                raise DataFormatSyntaxError("value for data format property %r must a number, a single character or a symbolic name but is: %r" % (key, value))
+            # Ensure there are no further tokens.
+            next = tokens.next()
+            if not tools.isEofToken(next):
+                raise DataFormatSyntaxError("value for data format property %r must describe a single character but is: %r" % (key, value))
+
+            assert longValue is not None
+            assert longValue >= 0
+            result = chr(longValue)
+        assert result is not None
+        return result
+
     def validated(self, key, value):
         assert key == self._normalizedKey(key)
         
         if key == KEY_ESCAPE_CHARACTER:
             result = self._validatedChoice(key, value, _VALID_ESCAPE_CHARACTERS)
         elif key == KEY_ITEM_DELIMITER:
-            result = value
+            result = self._validatedCharacter(key, value)
         elif key == KEY_QUOTE_CHARACTER:
             result = self._validatedChoice(key, value, _VALID_QUOTE_CHARACTERS)
         else:

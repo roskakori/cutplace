@@ -96,7 +96,7 @@ def createDefaultTestIcd(format, lineDelimiter="\n"):
 """ % format
     if format.lower() == data.FORMAT_CSV:
         spec += u""""D","Line delimiter","LF"
-"D","Item delimiter",","
+"D","Item delimiter",44
 "D","Encoding","ISO-8859-1"
 "D","Allowed characters","32:"
 """
