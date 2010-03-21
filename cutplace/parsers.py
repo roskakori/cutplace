@@ -249,13 +249,19 @@ class _DelimitedParser(object):
         else:
             actualLineDelimiter = dialect.lineDelimiter
         if dialect.itemDelimiter == AUTO:
-            commaCount = sniffedText.count(",")
-            semicolonCount = sniffedText.count(";")
-            if commaCount > semicolonCount:
-                actualItemDelimiter = ","
-            else:
-                actualItemDelimiter = ";"
-            self._log.debug(" detected item delimiter: %r" % actualItemDelimiter)
+            itemDelimiterToCountMap = {",":sniffedText.count(","), 
+                ";":sniffedText.count(";"),
+                ":":sniffedText.count(":"),
+                "\t":sniffedText.count("\t"),
+                "|":sniffedText.count("|")
+            }
+            actualItemDelimiter = ','
+            delimiterCount = itemDelimiterToCountMap[","]
+            for possibleItemDelimiter in itemDelimiterToCountMap:
+                if itemDelimiterToCountMap[possibleItemDelimiter] > delimiterCount:
+                    delimiterCount = itemDelimiterToCountMap[possibleItemDelimiter]
+                    actualItemDelimiter = possibleItemDelimiter
+                self._log.debug(" detected item delimiter: %r" % actualItemDelimiter)
         else:
             actualItemDelimiter = dialect.itemDelimiter
         
