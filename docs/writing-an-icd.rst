@@ -78,7 +78,7 @@ D   Allowed characters  32:128, 1024:1280
 In case Format is Delimited, the following properties have to be specified:
 
 Encoding
-    The character encoding. The most common values will be ASCII, ISO-8859-1
+    The character encoding. The most common values will be ASCII, ISO-8859-15
     (for many western countries), UTF-8 (for Unicode), CP-850 (used by MS DOS
     in many western countries).
 
@@ -86,14 +86,14 @@ Line delimiter
     Thus describes which character or character sequence is used to mark the
     end of a line. Possible values are:
 
-    * CR - "carriage return", ASCII code 13, used by Mac OS Classic.
-
     * LF - "line feed", ASCII code 10, used by Unix based platforms and others,
       for example Mac OS X, Linux, Solaris BSD-variants and Amiga OS.
     
     * CRLF - "carriage return linefeed", two characters with ASCII code 13 and
       10, used for example by Windows and MS DOS.
     
+    * CR - "carriage return", ASCII code 13, used by Mac OS Classic.
+
     * Any - Do an analysis of the input and automatically choose the line
       delimiter from it based on the one used most often with the first few
       lines. Note that this still requires that the line delimiter is used
@@ -593,6 +593,55 @@ sensible default depending on the context. For instance, a length of ``:20``
 will use 0 as lower limit, whereas a field format of type ``Integer`` with a
 rule of ``:20`` will use the largest negative number possible on your computer
 (which depends on the amount of memory available).
+
+It is possible to use hexadecimal notation by starting the number with ``0x``,
+for instance:
+
+===============  ================
+Example          Same as
+===============  ================
+0x0f             15
+0x10             16
+0xabcd           43981
+10:0x10          10:16
+:-0xDeadBeef     :-3735928559
+===============  ================
+
+You can also use single letters to specify range values, which are treated
+same as the numeric ASCII or Unicode value:
+
+====================  ================
+Example               Same as
+====================  ================
+``"A":"Z"``           65:90 
+``"A":"Z", "a":"z"``  65:90, 97:122
+====================  ================
+
+For unprintable letters and Unicode characters you can use Python escape
+sequences:
+
+====================  =============================================================
+Example escaped text       Same as
+====================  =============================================================
+``"\t"``              ``9`` (tabulator)
+``"\\"``              ``92`` (backslash)
+``"\'"``              ``39`` (single quote)
+``"\""``              ``34`` (double quote)
+``u"\u00dc"``         ``220`` (the Unicode character 220, also known as "Umlaut U")
+====================  =============================================================
+
+Additonally there are a few symbolic names that are easier to read than the
+rather cryptic escape sequences using a backslash:
+
+=============  ============  ======
+Symbolic name  Escaped text  Number
+=============  ============  ======
+Cr             ``"\r"``      13
+Ff             ``"\f"``      12
+Lf             ``"\n"``      10
+Tab            ``"\t"``      9
+Vt             ``"\v"``      11
+=============  ============  ======
 
 .. rubric:: Footnotes
 

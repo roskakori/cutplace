@@ -36,6 +36,18 @@ class Range(object):
     """
     A range that can be used to validate that that a value is within it.
     """
+
+    """
+    Symbolic names that can be used to improve the legibility of the ICD.
+    """
+    _SYMBOL_MAP = {
+        "cr": 13,
+        "ff": 12,
+        "lf": 10,
+        "tab": 9,
+        "vt": 11
+    }
+
     def __init__(self, text, default=None):
         """
         Setup a range as specified by `text`.
@@ -72,14 +84,34 @@ class Range(object):
                 while not tools.isEofToken(next) and not tools.isCommaToken(next):
                     nextType = next[0]
                     nextValue = next[1]
-                    if nextType == token.NUMBER:
-                        try:
-                            longValue = long(nextValue)
-                        except ValueError, error:
-                            raise RangeSyntaxError("number must be an integer but is: %r" % nextValue)
-                        if afterHyphen:
-                            longValue = - 1 * longValue
-                            afterHyphen = False
+                    if nextType in (token.NAME, token.NUMBER, token.STRING):
+                        if nextType == token.NUMBER:
+                            try:
+                                if nextValue[:2].lower() == "0x":
+                                    nextValue = nextValue[2:]
+                                    base = 16
+                                else:
+                                    base = 10
+                                longValue = long(nextValue, base)
+                            except ValueError, error:
+                                raise RangeSyntaxError("number must be an integer but is: %r" % nextValue)
+                            if afterHyphen:
+                                longValue = - 1 * longValue
+                                afterHyphen = False
+                        elif nextType == token.NAME:
+                            try:
+                                longValue = Range._SYMBOL_MAP[nextValue.lower()]
+                            except KeyError:
+                                validSymbols = tools.humanReadableList(sorted(Range._SYMBOL_MAP.keys()))
+                                raise RangeSyntaxError("symbolic name %r must be be one of: %s" % (nextValue, validSymbols))
+                        elif nextType == token.STRING:
+                            if len(nextValue) != 3:
+                                raise RangeSyntaxError("text for range must contain a single character but is: %r" % nextValue)
+                            leftQuote = nextValue[0]
+                            rightQuote = nextValue[2]
+                            assert leftQuote in "\"\'", "leftQuote=%r" % leftQuote 
+                            assert rightQuote in "\"\'", "rightQuote=%r" % rightQuote
+                            longValue = ord(nextValue[1])
                         if colonFound:
                             if upper is None:
                                 upper = longValue
@@ -98,8 +130,8 @@ class Range(object):
                             raise RangeSyntaxError("range item must contain at most one colon (:)")
                         colonFound = True
                     else:
-                        message = "range must be specified using integer numbers and colon (:) but found: %r" % nextValue
-                        raise RangeSyntaxError("range must be specified using integer numbers and colon (:) but found: %r [token type: %r]" % (nextValue, nextType))
+                        message = "range must be specified using integer numbers, text, symbols and colon (:) but found: %r [token type: %r]" % (nextValue, nextType)
+                        raise RangeSyntaxError(message)
                     next = tokens.next()
                 if afterHyphen:
                     raise RangeSyntaxError("hyphen (-) at end must be followed by number")
@@ -138,7 +170,7 @@ class Range(object):
 
     def _repr_item(self, item):
         """
-        Human readable description of a range  item.
+        Human readable description of a range item.
         """
         if item is not None:
             result = ""

@@ -23,17 +23,40 @@ class RangeTest(unittest.TestCase):
     Test cases for Range.
     """
     def testProperRanges(self):
-        self.assertEquals(range.Range("").items, None)
-        self.assertEquals(range.Range(" ").items, None)
         self.assertEquals(range.Range("1").items, [(1, 1)])
         self.assertEquals(range.Range("1:").items, [(1, None)])
         self.assertEquals(range.Range(":1").items, [(None, 1)])
         self.assertEquals(range.Range("1:2").items, [(1, 2)])
         self.assertEquals(range.Range("-1:2").items, [(-1, 2)])
 
+    def testEmptyRange(self):
+        self.assertEquals(range.Range("").items, None)
+        self.assertEquals(range.Range(" ").items, None)
+
+        # Another way to express an empty range.
+        emptyRange = range.Range(None)
+        self.assertEquals(emptyRange.items, None)
+        
+        # Range validation still works even with empty ranges. 
+        self.assertFalse(emptyRange.validate("name", 1))
+        self.assertFalse(emptyRange.validate("name", -1))
+        
+    def testProperHexRanges(self):
+        self.assertEquals(range.Range("0x7f").items, [(127, 127)])
+        self.assertEquals(range.Range("0x7F").items, [(127, 127)])
+
     def testProperMultiRanges(self):
         self.assertEquals(range.Range("1, 3").items, [(1, 1), (3, 3)])
         self.assertEquals(range.Range("1:2, 5:").items, [(1, 2), (5, None)])
+
+    def testSymbolicRange(self):
+        self.assertEquals(range.Range("TAB").items, [(9, 9)])
+        self.assertEquals(range.Range("Esc").items, [(27, 27)])
+        self.assertEquals(range.Range("Tab:Esc").items, [(9, 27)])
+        self.assertEquals(range.Range("Tab:27").items, [(9, 27)])
+
+    def testTextRange(self):
+        self.assertEquals(range.Range("\"a\"").items, [(97, 97)])
 
     def testRangesWithDefault(self):
         self.assertEquals(range.Range("1:2", "2:3").items, [(1, 2)])
@@ -62,6 +85,24 @@ class RangeTest(unittest.TestCase):
         self.assertRaises(range.RangeSyntaxError, range.Range, "2:1")
         self.assertRaises(range.RangeSyntaxError, range.Range, "2:-3")
         self.assertRaises(range.RangeSyntaxError, range.Range, "-1:-3")
+        try:
+            range.Range("?")
+            self.fail("test must fail with RangeSyntaxError")
+        except range.RangeSyntaxError, error:
+            self.assertEqual(str(error), "range must be specified using integer numbers, text, symbols and colon (:) but found: '?' [token type: 52]")
+        try:
+            range.Range("1.23")
+            self.fail("test must fail with RangeSyntaxError")
+        except range.RangeSyntaxError, error:
+            self.assertEqual(str(error), "number must be an integer but is: '1.23'")
+
+    def testBrokenSymbolicNames(self):
+        self.assertRaises(range.RangeSyntaxError, range.Range, "spam")
+        self.assertRaises(range.RangeSyntaxError, range.Range, "Esc:Tab")
+    
+    def testBrokenTextRange(self):
+        self.assertRaises(range.RangeSyntaxError, range.Range, "\"ab\"")
+        self.assertRaises(range.RangeSyntaxError, range.Range, "\"\"")
     
     def _testNoRange(self, text):
         noRange = range.Range(text)

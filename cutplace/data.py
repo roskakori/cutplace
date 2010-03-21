@@ -220,7 +220,7 @@ class _BaseDataFormat(object):
         >>> format.set(KEY_ALLOWED_CHARACTERS, "spam")
         Traceback (most recent call last):
             ...
-        DataFormatValueError: value for property 'allowed characters' must be a valid range: range must be specified using integer numbers and colon (:) but found: 'spam' [token type: 1]
+        DataFormatValueError: value for property 'allowed characters' must be a valid range: symbolic name 'spam' must be be one of: 'cr', 'esc', 'ff', 'lf', 'tab' or 'vt'
         """
         normalizedKey = self._normalizedKey(key)
         if normalizedKey in self.properties:
