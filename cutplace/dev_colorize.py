@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+# -*- coding: iso-8859-15 -*-
 #
 # Visit <http://code.activestate.com/recipes/491274/> for details.
 #
