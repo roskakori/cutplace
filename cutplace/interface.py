@@ -380,7 +380,7 @@ class InterfaceControlDocument(object):
             raise IcdSyntaxError("ICD must contain a section describing at least one field format (rows starting with %r)"
                                  % InterfaceControlDocument._ID_FIELD_RULE)
             
-    def _obtainReadale(self, dataFileToValidatePath):
+    def _obtainReadable(self, dataFileToValidatePath):
         """
         A tuple consisting of the following:
         
@@ -439,7 +439,7 @@ class InterfaceControlDocument(object):
         for check in self.checkDescriptions.values():
             check.reset()
 
-        (dataFile, needsOpen) = self._obtainReadale(dataFileToValidatePath)
+        (dataFile, needsOpen) = self._obtainReadable(dataFileToValidatePath)
         try:
             if self.dataFormat.name == data.FORMAT_CSV:
                 dialect = parsers.DelimitedDialect()
