@@ -45,16 +45,18 @@ class AbstractFieldFormat(object):
     """
     Format description of a field in a data file to validate.
     """
-    def __init__(self, fieldName, isAllowedToBeEmpty, lengthText, rule):
+    def __init__(self, fieldName, isAllowedToBeEmpty, lengthText, rule, dataFormat):
         assert fieldName is not None
         assert fieldName, "fieldName must not be empty"
         assert isAllowedToBeEmpty is not None
         assert rule is not None, "no rule must be expressed as \"\" instead of None" 
+        assert dataFormat is not None
 
         self.fieldName = fieldName
         self.isAllowedToBeEmpty = isAllowedToBeEmpty
         self.length = range.Range(lengthText)
         self.rule = rule
+        self.dataFormat = dataFormat
     
     def validateEmpty(self, value):
         if not self.isAllowedToBeEmpty:
@@ -80,8 +82,8 @@ class AbstractFieldFormat(object):
         return "%s(%r, %r, %r, %r)" % (self.__class__.__name__, self.fieldName, self.isAllowedToBeEmpty, self.length, self.rule)
     
 class ChoiceFieldFormat(AbstractFieldFormat):
-    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule):
-        super(ChoiceFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule)
+    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
+        super(ChoiceFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat)
         self.choices = []
         choiceIndex = 0
         # TODO: Parse choice  rule properly using tokenizer and accept strings too.
@@ -101,8 +103,8 @@ class ChoiceFieldFormat(AbstractFieldFormat):
         return value
 
 class DecimalFieldFormat(AbstractFieldFormat):
-    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule):
-        super(DecimalFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule)
+    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
+        super(DecimalFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat)
         if rule.strip():
             raise FieldSyntaxError("decimal rule must be empty")
 
@@ -118,8 +120,8 @@ class DecimalFieldFormat(AbstractFieldFormat):
 class IntegerFieldFormat(AbstractFieldFormat):
     _DEFAULT_RANGE = "%d:%d" % (-2 ** 31, 2 ** 31 - 1)
 
-    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule):
-        super(IntegerFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule)
+    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
+        super(IntegerFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat)
         # The default range is 32 bit. If the user wants a bigger range, he has to specify it. 
         # Python's long scales to any range as long there is enough memory available to represent
         # it. 
@@ -140,8 +142,9 @@ class DateTimeFieldFormat(AbstractFieldFormat):
     # We can't use a dictionary here because checks for patterns need to be in order. In
     # particular, "%" need to be checked first, and "YYYY" needs to be checked before "YY".
     _humanReadableToStrptimeMap = ["%:%%", "DD:%d", "MM:%m", "YYYY:%Y", "YY:%y", "hh:%H", "mm:%M", "ss:%S"]
-    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule):
-        super(DateTimeFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule)
+
+    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
+        super(DateTimeFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat)
         self.humanReadableFormat = rule
         # Create an actual copy of the rule string so `replace()` will not modify the original..
         strptimeFormat = "".join(rule)
@@ -159,8 +162,8 @@ class DateTimeFieldFormat(AbstractFieldFormat):
         return result
                 
 class RegExFieldFormat(AbstractFieldFormat):
-    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule):
-        super(RegExFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule)
+    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
+        super(RegExFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat)
         self.regex = re.compile(rule, re.IGNORECASE | re.MULTILINE)
         self.rule = rule
 
@@ -170,8 +173,8 @@ class RegExFieldFormat(AbstractFieldFormat):
         return value
 
 class PatternFieldFormat(AbstractFieldFormat):        
-    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule):
-        super(PatternFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule)
+    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
+        super(PatternFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat)
         pattern = ""
         for character in rule:
             if character == "?":
@@ -190,8 +193,8 @@ class PatternFieldFormat(AbstractFieldFormat):
         return value
             
 class TextFieldFormat(AbstractFieldFormat):
-    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule):
-        super(TextFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule)
+    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
+        super(TextFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat)
    
     def validate(self, value):
         # TODO: Validate Text with rules like: 32..., a...z and so on.

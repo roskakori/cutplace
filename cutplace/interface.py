@@ -256,7 +256,7 @@ class InterfaceControlDocument(object):
             fieldClass = self._createFieldFormatClass(fieldType);
             self._log.debug("create field: %s(%r, %r, %r)" % (fieldClass.__name__, fieldName, fieldType, fieldRule))
             fieldFormat = fieldClass.__new__(fieldClass, fieldName, fieldIsAllowedToBeEmpty, fieldLength, fieldRule)
-            fieldFormat.__init__(fieldName, fieldIsAllowedToBeEmpty, fieldLength, fieldRule)
+            fieldFormat.__init__(fieldName, fieldIsAllowedToBeEmpty, fieldLength, fieldRule, self.dataFormat)
 
             # Validate example in case there is one.
             if fieldExample:
