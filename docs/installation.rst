@@ -71,7 +71,7 @@ After that you can proceed as describe above and run::
 
   easy_install-2.5 cutplace
 
-respectively
+respectively::
 
   easy_install-2.6 cutplace
 
@@ -88,12 +88,9 @@ Jython is an implementation of Python written in 100% Pure Java, and seamlessly
 integrated with the Java platform. It thus allows you to run Python on any Java
 platform. To find out more, visit http://www.jython.org/.
 
-At the time of this writing, the most recent stable version of Jython is 2.2.1,
-which resembles mostly Python 2.2 and therefor is too dated to run cutplace.
-
-However, there is a 2.5 beta available which seems to work pretty well. It does
-not integrate with ``setuptools``, so you need to use the Subversion repository
-and then run it using something like::
+You need Jython 2.5 which at the time of this writing does not integrate with
+``setuptools``, so you need to use the Subversion repository and then run it
+using something like::
 
   jython .../path/to/cutplace/cutplace/cutplace.py --help
 
