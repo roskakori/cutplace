@@ -33,6 +33,8 @@ _VALID_LINE_DELIMITER_TEXTS = [ANY, CR, CRLF, LF]
 _VALID_LINE_DELIMITERS = [ANY, "\r", "\r\n", "\n"]
 _VALID_QUOTE_CHARACTERS = ["\"", "\'"]
 _VALID_ESCAPE_CHARACTERS = ["\"", "\\"]
+_VALID_DECIMAL_SEPARATORS = [".", ","]
+_VALID_THOUSANDS_SEPARATORS = [",", ".", ""]
 
 FORMAT_CSV = "csv"
 FORMAT_DELIMITED = "delimited"
@@ -50,9 +52,8 @@ KEY_LINE_DELIMITER = "line delimiter"
 KEY_QUOTE_CHARACTER = "quote character"
 KEY_SHEET = "sheet"
 KEY_SPACE_AROUND_DELIMITER = "blanks around delimiter"
-
-# TODO: Add KEY_DECIMAL_SEPARATOR = "decimalSeparator"
-# TODO: Add KEY_THOUSANDS_SEPARATOR = "thousandsSeparator"
+KEY_DECIMAL_SEPARATOR = "decimal separator"
+KEY_THOUSANDS_SEPARATOR = "thousands separator"
 
 def createDataFormat(name):
     """
@@ -114,7 +115,12 @@ class _BaseDataFormat(object):
         values describe default values that should be used in case the property is never set.
         """
         self.requiredKeys = []
-        self.optionalKeyValueMap = {KEY_ALLOWED_CHARACTERS:None, KEY_HEADER: 0}
+        self.optionalKeyValueMap = {
+            KEY_ALLOWED_CHARACTERS:None,
+            KEY_DECIMAL_SEPARATOR:".",
+            KEY_THOUSANDS_SEPARATOR:",",
+            KEY_HEADER: 0
+        }
         if requiredKeys is not None:
             self.requiredKeys.extend(requiredKeys)
         if optionalKeyValueMap is not None:
@@ -190,8 +196,14 @@ class _BaseDataFormat(object):
                 result = range.Range(value)
             except range.RangeSyntaxError, error:
                 raise DataFormatValueError("value for property %r must be a valid range: %s" % (key, error))
+        elif key == KEY_DECIMAL_SEPARATOR:
+            result = self._validatedChoice(key, value, _VALID_DECIMAL_SEPARATORS);
+            # FIXME: If thousands separator has been set already, check that its value differs from decimal separator.
         elif key == KEY_HEADER:
             result = self._validatedLong(key, value, 0)
+        elif key == KEY_THOUSANDS_SEPARATOR:
+            result = self._validatedChoice(key, value, _VALID_THOUSANDS_SEPARATORS);
+            # FIXME: If decimal separator has been set already, check that its value differs from thousands separator.
         else:  # pragma: no cover
             assert False, "_normalizedKey() must detect broken property name %r" % key
         return result

@@ -69,6 +69,15 @@ class DataFormatTest(unittest.TestCase):
         format.set(data.KEY_HEADER, 17)
         newHeader = format.get(data.KEY_HEADER)
         self.assertEquals(17, newHeader)
+        
+    def testDecimalAndThousandsSeparator(self):
+        format = data.CsvDataFormat()
+        self.assertEquals(".", format.get(data.KEY_DECIMAL_SEPARATOR))
+        self.assertEquals(",", format.get(data.KEY_THOUSANDS_SEPARATOR))
+        format.set(data.KEY_DECIMAL_SEPARATOR, ",")
+        self.assertEquals(",", format.get(data.KEY_DECIMAL_SEPARATOR))
+        format.set(data.KEY_THOUSANDS_SEPARATOR, ".")
+        self.assertEquals(".", format.get(data.KEY_THOUSANDS_SEPARATOR))
                           
     def testBrokenEncoding(self):
         format = data.CsvDataFormat()
@@ -85,6 +94,14 @@ class DataFormatTest(unittest.TestCase):
     def testBrokenQuoteCharacter(self):
         format = data.CsvDataFormat()
         self.assertRaises(data.DataFormatValueError, format.set, data.KEY_QUOTE_CHARACTER, "broken-quote-character")
+        
+    def testBrokenDecimalSeparator(self):
+        format = data.CsvDataFormat()
+        self.assertRaises(data.DataFormatValueError, format.set, data.KEY_DECIMAL_SEPARATOR, "broken-decimal-separator")
+        
+    def testBrokenThousandsSeparator(self):
+        format = data.CsvDataFormat()
+        self.assertRaises(data.DataFormatValueError, format.set, data.KEY_THOUSANDS_SEPARATOR, "broken-thousands-separator")
         
     def testBrokenPropertyName(self):
         format = data.CsvDataFormat()

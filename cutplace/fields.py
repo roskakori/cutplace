@@ -148,6 +148,8 @@ class DecimalFieldFormat(AbstractFieldFormat):
         super(DecimalFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat)
         if rule.strip():
             raise FieldSyntaxError("decimal rule must be empty")
+        self.decimalSeparator = dataFormat.get(data.KEY_DECIMAL_SEPARATOR)
+        self.thousandsSeparator = dataFormat.get(data.KEY_THOUSANDS_SEPARATOR)
 
     def validatedValue(self, value):
         assert value
