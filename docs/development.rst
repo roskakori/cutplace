@@ -59,6 +59,9 @@ The source code consists of:
 
 * ``docs/*`` is the reStructuredText for the web site and user guide
 
+* ``examples/*`` contains the example date used in the :doc:`tutorial` and
+  code examples on how to use the cutplace Python module in you own code.
+
 * ``tests/*`` contains test data; use for example `OpenOffice.org
   <http://www.openoffice.org/>`_'s calc to edit the ``*.ods`` and ``*.csv``
   files
@@ -71,7 +74,7 @@ The source code consists of:
 
 If Eclipse and PyDev are your developer environment of choice, you can check
 out the repository directly from Eclipse using
-:menuselection:`File --> New --> Other...` and select 
+:menuselection:`File --> New --> Other...` and select
 :menuselection:`SVN --> Checkout projects from SVN`.
 
 If you prefer the command line, you need any Subversion client and the build
@@ -117,12 +120,12 @@ Cutplace already ships with several field formats that should cover most needs.
 If however you have some very special requirements, you can write your own
 formats.
 
-The easiest way to do so is by adding your format to
-``cutplace/fields.py``. Simply inherit from ``AbstractFieldFormat`` and
-provide a constructor to parse the ``rule`` parameter. Next, implement
-``validate(self, item)`` that validates that the text in ``item`` conforms to
-``rule``. If not, raise an ``FieldValueError`` with a descriptive error
-message. For examples see any of the ``*FieldFormat`` classes in ``fields.py``.
+The easiest way to do so is by adding your format to ``cutplace/fields.py``.
+Simply inherit from ``AbstractFieldFormat`` and provide a constructor to parse
+the ``rule`` parameter. Next, implement ``validatedValue(self, value)`` that
+validates that the text in ``value`` conforms to ``rule``. If not, raise an
+``FieldValueError`` with a descriptive error message. For examples see any of
+the ``*FieldFormat`` classes in ``fields.py``.
 
 The drawback of this approach is that when you install a new version of
 cutplace, your changes in ``fields.py`` will be lost.
@@ -133,7 +136,7 @@ Writing checks
 ==============
 
 Writing checks is quite similar to writing field formats. The standard checks
-are stored in ``cutplace/fields.py``. Inherit from ``AbstractCheck`` and
+are stored in ``cutplace/checks.py``. Inherit from ``AbstractCheck`` and
 provide a constructor. You might want to implement at least one of the
 following methods:
 

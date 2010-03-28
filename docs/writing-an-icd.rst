@@ -44,19 +44,19 @@ The data format describes general properties of the input. Here is an example:
 
 Example data format
 
-==  ==============  ==========
+==  ==============  ===========
 ..  Property        Value
-==  ==============  ==========
+==  ==============  ===========
 D   Format          CSV
-D   Encoding        ISO-8859-1
+D   Encoding        ISO-8859-15
 D   Line delimiter  LF
 D   Item delimiter  ,
-==  ==============  ==========
+==  ==============  ===========
 
-This basically says that the data are provided as comma separated values (CSV)
-and the character encoding is ISO-8859-1 (also known as Latin-1). Rows are
-separated using linefeed characters (ASCII code 10) and columns are separated
-using a comma (,).
+This basically says that the data are provided as comma separated values
+(CSV) and the character encoding is ISO-8859-15 (is similar to Latin-1 but
+also includes the Euro sign). Rows are separated using linefeed characters
+(ASCII code 10) and columns are separated using a comma (,).
 
 The remainder of this section describes the supported formats and available
 properties for them.
@@ -94,10 +94,10 @@ Line delimiter
 
     * LF - "line feed", ASCII code 10, used by Unix based platforms and others,
       for example Mac OS X, Linux, Solaris BSD-variants and Amiga OS.
-    
+
     * CRLF - "carriage return linefeed", two characters with ASCII code 13 and
       10, used for example by Windows and MS DOS.
-    
+
     * CR - "carriage return", ASCII code 13, used by Mac OS Classic.
 
     * Any - Do an analysis of the input and automatically choose the line
@@ -175,13 +175,13 @@ Many of these values will be fine for all practical purpose.  Most frequently
 
 Example for CSV data common in many European regions
 
-==  ==============  ==========
+==  ==============  ===========
 ..  Property        Value
-==  ==============  ==========
+==  ==============  ===========
 F   Format          CSV
-F   Encoding        ISO-8859-1
+F   Encoding        ISO-8859-15
 F   Item delimiter  ;
-==  ==============  ==========
+==  ==============  ===========
 
 .. _format-excel:
 
@@ -247,14 +247,14 @@ necessary.
 
 Example for fixed data format
 
-==  ==================  ==========
+==  ==================  ===========
 ..  Property            Value
-==  ==================  ==========
+==  ==================  ===========
 F   Format              Fixed
-F   Encoding            ISO-8859-1
+F   Encoding            ISO-8859-15
 F   Line delimiter      LF
 F   Allowed characters  0:
-==  ==================  ==========
+==  ==================  ===========
 
 ODS data (open document spreadsheet)
 ------------------------------------
@@ -297,7 +297,7 @@ The field format section of the ICD contains rows with the following columns:
 
 #. The letter "F" to indicate that the remaining columns describe a field
    format.
-      
+
 #. The name of the field. It must start with an ASCII letter and continue with
    letters, numbers and underscores (_), for example
    ``customer_id``.
@@ -339,7 +339,7 @@ Simple examples for various field formats
 ..  Name           Example     Empty   Length      Type      Rule
 ==  =============  ==========  ======  ==========  ========  ==========
 F   customer_id    123456                          Integer   1:999999
-F   surname        Miller              1:60        Text      
+F   surname        Miller              1:60        Text
 F   date_of_birth  1969-11-03  X                   DateTime  YYYY-MM-DD
 ==  =============  ==========  ======  ==========  ========  ==========
 
@@ -354,7 +354,7 @@ Examples for Text fields
 ==  =======  =======  =====  ======  ====  ====
 ..  Name     Example  Empty  Length  Type  Rule
 ==  =======  =======  =====  ======  ====  ====
-F   surname  Miller          1..60   Text  
+F   surname  Miller          1..60   Text
 ==  =======  =======  =====  ======  ====  ====
 
 Integer

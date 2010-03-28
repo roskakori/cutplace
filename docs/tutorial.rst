@@ -124,23 +124,23 @@ So far we only describe the name of the field, for example
   (_). So blanks, foreigen characters such as umlauts and
   interpuntuations are not allowed and will result in an error message
   when cutplace attempts to read the ICD.
-  
+
   Some examples for valid field names:
-  
+
   * ``customer_id``
-  
+
   * ``iso_5218_gender``
-  
+
   * ``CustomerId``
 
   For comparison, here are a few broken field names
-  
+
   * ``customer-id`` - error: contains interpunctuation character "``-``";
     use "``_``" instead.
-  
+
   * ``customer id``  - error: contains a blank; use "``_``" instead.
-  
-  * ``123easy`` - error: starts with a numeric digits; use a letter as
+
+  * ``123easy`` - error: starts with a numeric digit; use a letter as
     first character.
 
 Using comments
@@ -175,7 +175,7 @@ How and where to store the ICD
 
 So how do you store this information? Cutplace is quite flexible here.
 The easiest way would be to use a spreadsheet application such as Excel
-or OpenOffice.org's Calc and store it as a ``*.ods`` or ``*.xls`` file.
+or OpenOffice.org's Calc and store it as ``*.xls`` or ``*.ods`` file.
 Alternatively you can use the text editor or your choice and store it as
 ``*.csv``, where columns are separated with a comma (,) and data items
 with blanks or commas are embedded between double quotes (").
@@ -186,7 +186,7 @@ requirements on you
 .. TODO: Recommendations how to name the ICD files.
 
 For this tutorial, we assume both the data and ICD files are stored in
-the same folder which and your current console terminal session already
+the same folder which and that your current console terminal session already
 changed to this folder (using for example the command ``cd``).
 
 Running cutplace for the first time
@@ -203,11 +203,11 @@ and ICD files are located::
 Next let's try if cutplace has been installed properly::
 
   cutplace --version
-  
+
 This should result in an output similar to::
 
-  cutplace.py 0.x.x
-  Python 2.5.4, Mac OS 10.5.7 (i386)
+  cutplace.py 0.x.x (2010-xx-xx, rxxx)
+  Python 2.5.5, Mac OS 10.5.8 (i386)
 
 The actual version numbers may vary. If your version of cutplace is older then
 |release|, consider upgrading to avoid compatibiliy issues with this tutorial.
@@ -286,7 +286,7 @@ Allowing fields to be empty
 ===========================
 
 So far, every data item had an actual value and none of it was empty.
-But what if for instance we do not know the date of birth for one of 
+But what if for instance we do not know the date of birth for one of
 our customers? Consider the following example data file:
 
 +---------+-----------+----------+-------+------+-------------+
@@ -423,10 +423,10 @@ the colon (:) in some of the description of the lengths.
 * The ``first_name`` and ``surname`` can take at most 60 characters, maybe
   because someone said so way back in the 70'ies when COBOL ruled the
   world. To express this as length, use ``:60``.
-  
+
 * The ``gender`` can be ``male`` or ``female``, so its length is between
   4 and 6, which reads as ``4:6``.
-  
+
 * And finally, ``date_of_birth`` always takes exactly 10 characters
   because apparently we require it to use leading zeros. This is
   similar to ``brach_id``, which also used an exact length.
@@ -441,7 +441,7 @@ To summarize: lenghts are either extact values (like ``5``) or ranges
 with an lower and upper limit separated by a colon (like ``4:6``).
 Either the lower or upper limit can be omitted (like ``2:`` or ``:60``).
 
-In case you cannot decide yet on a reasonale limit on a certain field,
+In case you cannot decide yet on a reasonable limit on a certain field,
 just leave its entry in the *Length* column empty.
 
 Now lets try again with the new ICD::
@@ -492,7 +492,7 @@ The column *Type* can contain one of several available types. The column
 
   Type names are case sensitive. So when you specify a type, make sure
   the letters match exactly concerning upper and lower case.
-  
+
 In case of ``customer_id``, the type is ``Integer``. In this case, the
 rule can specify a valid range. The syntax for the range is the same
 we've been using already for the *Length* column. So ``10:65535`` means
