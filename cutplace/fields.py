@@ -15,6 +15,7 @@ Standard field formats supported by cutplace.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import data
 import decimal
 import locale
 import logging
@@ -57,12 +58,22 @@ class AbstractFieldFormat(object):
         self.length = range.Range(lengthText)
         self.rule = rule
         self.dataFormat = dataFormat
+
+    def validateCharacters(self, value):
+        validCharacterRange = self.dataFormat.get(data.KEY_ALLOWED_CHARACTERS)
+        if validCharacterRange is not None:
+            for character in value:
+                try:
+                    validCharacterRange.validate("character", ord(character))
+                except range.RangeValueError, error:
+                    raise FieldValueError("value for fields %r must contain only valid characters: %s"
+                                                 % (self.fieldName, error))
     
     def validateEmpty(self, value):
         if not self.isAllowedToBeEmpty:
             if not value:
                 raise FieldValueError("value must not be empty")
-    
+
     def validateLength(self, value):
         # Do we have some data at all?
         if self.length is not None and not (self.isAllowedToBeEmpty and value == ""):
@@ -70,7 +81,7 @@ class AbstractFieldFormat(object):
                 self.length.validate("length of '%s' with value %r" % (self.fieldName, value), len(value))
             except range.RangeValueError, error:
                 raise FieldValueError(str(error))
-         
+
     def validate(self, value):
         """
         Validate that value complies with field description and return the value in its "native"

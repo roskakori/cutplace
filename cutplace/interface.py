@@ -477,7 +477,6 @@ class InterfaceControlDocument(object):
             firstRowToValidateFieldsIn = self.dataFormat.get(data.KEY_HEADER)
             assert firstRowToValidateFieldsIn is not None
             assert firstRowToValidateFieldsIn >= 0
-            validCharacterRange = self.dataFormat.get(data.KEY_ALLOWED_CHARACTERS)
 
             # Validate data row by row.
             try:
@@ -500,16 +499,8 @@ class InterfaceControlDocument(object):
                                     fieldFormat = self.fieldFormats[itemIndex]
                                     if __debug__ and self._log.isEnabledFor(logging.DEBUG):
                                         self._log.debug("validate item %d/%d: %r with %s <- %r" % (itemIndex + 1, len(self.fieldFormats), item, fieldFormat, row))  
-                                    # Validate characters.
-                                    if validCharacterRange is not None:
-                                        for character in item:
-                                            try:
-                                                validCharacterRange.validate("character", ord(character))
-                                            except range.RangeValueError, error:
-                                                raise fields.FieldValueError("value for fields %r must contain only valid characters: %s"
-                                                                             % (fieldFormat.fieldName, error))
-                                            
                                     # Validate field format
+                                    fieldFormat.validateCharacters(item)
                                     if self.dataFormat.name == data.FORMAT_FIXED:
                                         item = self._strippedOfBlanks(item)
                                         fieldFormat.validateEmpty(item)
