@@ -4,6 +4,25 @@ Revision history
 
 This chapter describes improvements compared to earlier versions of cutplace.
 
+Version 0.6.0, 29-Mar-2010
+==========================
+
+* Changed license from GPL to LGPL so closed source application can import
+  the cutplace Python module.
+
+* Fixed validation of empty dates with DateTime fields.
+
+* Added support for letters, hex numbers and symbolic names in ranges.
+
+* Added support for letters, escaped characters, hex numbers and symbolic
+  names in item delimiters for data formats.
+
+* Added auto detection of item delimiters tab ("\t", ASCII 9) and vertical 
+  bar (|). [Josef Wolte]
+
+* Cleaned up code for field validation.
+
+
 Version 0.5.8, 12-Oct-2009
 ==========================
 
