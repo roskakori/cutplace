@@ -261,7 +261,7 @@ class InterfaceControlDocument(object):
             # Validate example in case there is one.
             if fieldExample:
                 try:
-                    fieldFormat.validate(fieldExample)
+                    fieldFormat.validated(fieldExample)
                 except fields.FieldValueError, error:
                     raise IcdSyntaxError("cannot validate example for field %r: %s" % (fieldName, error))
 
@@ -409,14 +409,6 @@ class InterfaceControlDocument(object):
         
         return (dataFile, needsOpen)
         
-    def _strippedOfBlanks(self, value):
-        """
-        `value` but with leading and trailing blanks removed.
-        """
-        # FIXME: Take ICD property "blanks" (or whatever it is named) into account.
-        result = value.strip()
-        return result
-    
     def _reject_row(self, row, reason):
         assert reason
         self._log.debug("rejected: %s" % row)
@@ -499,16 +491,7 @@ class InterfaceControlDocument(object):
                                     fieldFormat = self.fieldFormats[itemIndex]
                                     if __debug__ and self._log.isEnabledFor(logging.DEBUG):
                                         self._log.debug("validate item %d/%d: %r with %s <- %r" % (itemIndex + 1, len(self.fieldFormats), item, fieldFormat, row))  
-                                    # Validate field format
-                                    fieldFormat.validateCharacters(item)
-                                    if self.dataFormat.name == data.FORMAT_FIXED:
-                                        item = self._strippedOfBlanks(item)
-                                        fieldFormat.validateEmpty(item)
-                                        # Note: No need to validate the length with fixed length items.
-                                    else:
-                                        fieldFormat.validateEmpty(item)
-                                        fieldFormat.validateLength(item)
-                                    rowMap[fieldFormat.fieldName] = fieldFormat.validate(item) 
+                                    rowMap[fieldFormat.fieldName] = fieldFormat.validated(item) 
                                     itemIndex += 1
                                 if itemIndex != len(row):
                                     itemIndex -= 1

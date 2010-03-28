@@ -466,6 +466,30 @@ class FixedDataFormat(_BaseTextDataFormat):
     """
     def __init__(self):
         super(FixedDataFormat, self).__init__(FORMAT_FIXED, None)
+        
+    def strippedOfBlanks(self, value):
+        """
+        `value` but with leading and trailing blanks removed.
+        
+        >>> format = FixedDataFormat()
+        >>> format.strippedOfBlanks(" before")
+        'before'
+        >>> format.strippedOfBlanks("after  ")
+        'after'
+        >>> format.strippedOfBlanks("   both \t ")
+        'both'
+        >>> format.strippedOfBlanks("")
+        ''
+
+        Note: For this test, there is not way to make doctest preserve the
+        "\t" in the output, though the result still contains it.
+        >>> format.strippedOfBlanks("nothing to\t strip")
+        'nothing to  strip'
+        """
+        assert value is not None
+        # FIXME: Take data format property "blanks" (or whatever it is named) into account.
+        result = value.strip()
+        return result
 
 class OdsDataFormat(_BaseSpreadsheetDataFormat):
     """
