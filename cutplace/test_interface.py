@@ -158,6 +158,60 @@ F,first_name,John,X,15,Text
         icd = interface.InterfaceControlDocument()
         self._testBroken(spec, fields.FieldSyntaxError)
 
+    def testBrokenFixedFieldWithLowerAndUpperLength(self):
+        spec = u""",Broken interface with a fixed field with a lower and upper length
+,
+,Data format
+,
+D,Format,Fixed
+D,Line delimiter,any
+,
+,Fields
+,
+,Name,Example,Empty,Length,Type,Rule
+F,branch_id,38123,,5,RegEx,38\d\d\d
+F,customer_id,12345,,1:5,Integer,0:99999
+F,first_name,John,X,15,Text
+"""
+        icd = interface.InterfaceControlDocument()
+        self._testBroken(spec, fields.FieldSyntaxError)
+
+    def testBrokenFixedFieldWithZeroLength(self):
+        spec = u""",Broken interface with a fixed field with a length of 0
+,
+,Data format
+,
+D,Format,Fixed
+D,Line delimiter,any
+,
+,Fields
+,
+,Name,Example,Empty,Length,Type,Rule
+F,branch_id,38123,,5,RegEx,38\d\d\d
+F,customer_id,12345,,0,Integer,0:99999
+F,first_name,John,X,15,Text
+"""
+        icd = interface.InterfaceControlDocument()
+        self._testBroken(spec, fields.FieldSyntaxError)
+
+    def testBrokenDuplicateFieldName(self):
+        spec = u""",Broken interface with a duplicate field name
+,
+,Data format
+,
+D,Format,Fixed
+D,Line delimiter,any
+,
+,Fields
+,
+,Name,Example,Empty,Length,Type,Rule
+F,branch_id,38123,,5,RegEx,38\d\d\d
+F,branch_id,38123,,5,RegEx,38\d\d\d
+F,first_name,John,X,15,Text
+"""
+        icd = interface.InterfaceControlDocument()
+        self._testBroken(spec, fields.FieldSyntaxError)
+
     def testSimpleIcd(self):
         createDefaultTestIcd(data.FORMAT_CSV, "\n")
         createDefaultTestIcd(data.FORMAT_CSV, "\r")

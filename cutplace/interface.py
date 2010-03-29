@@ -244,12 +244,6 @@ class InterfaceControlDocument(object):
             if itemCount >= 6:
                 fieldRule = items[5].strip()
 
-            # Validate fixed fields.
-            if isinstance(self.dataFormat, data.FixedDataFormat):
-                if not fieldLength:
-                    raise fields.FieldSyntaxError("field length must be specified with fixed data format")
-                # FIXME: Validate that field length is fixed size.
-
             # Obtain class for field type.
             if not fieldType:
                 fieldType = "Text"
@@ -274,6 +268,21 @@ class InterfaceControlDocument(object):
                 self._log.info("defined field: %s" % fieldFormat)
             else:
                 raise fields.FieldSyntaxError("field name must be used for only one field: %s" % fieldName)
+
+            # Validate field length for fixed format.
+            if isinstance(self.dataFormat, data.FixedDataFormat):
+                if fieldFormat.length.items:
+                    fieldLengthIsBroken = True
+                    if len(fieldFormat.length.items) == 1:
+                        (lower, upper) = fieldFormat.length.items[0]
+                        if lower == upper:
+                            if lower < 1:
+                                raise fields.FieldSyntaxError("length of field %r for fixed data format must be at least 1 but is : %s" % (fieldName, fieldFormat.length))
+                            fieldLengthIsBroken = False
+                    if fieldLengthIsBroken:
+                        raise fields.FieldSyntaxError("length of field %r for fixed data format must be a single value but is: %s" % (fieldName, fieldFormat.length))
+                else:
+                    raise fields.FieldSyntaxError("length of field %r must be specified with fixed data format" % fieldName)
         else:
             raise fields.FieldSyntaxError("field format row (marked with %r) must at least contain a field name" % InterfaceControlDocument._ID_FIELD_RULE)
 
