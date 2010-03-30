@@ -396,9 +396,7 @@ class DelimitedDataFormat(_BaseTextDataFormat):
         assert key
         assert value is not None
         if len(value) == 1 and (value < "0" or value > "9"):
-            # TODO: Remove support for deprecated syntax.
             result = value
-            self._log.warning("value %r for data format property %r should be put between double quotes: \"%s\"" % (value, key, value))
         else:
             result = None
             tokens = tokenize.generate_tokens(StringIO.StringIO(value).readline)
