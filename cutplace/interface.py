@@ -22,7 +22,7 @@ import fields
 import logging
 import os
 import parsers
-import range
+import ranges
 import sys
 import tools
 import types
@@ -368,10 +368,13 @@ class InterfaceControlDocument(object):
                 if len(row) >= 1:
                     rowId = str(row[0]).lower() 
                     if rowId == InterfaceControlDocument._ID_CHECK:
+                        # FIXME: Validate data format (required properties, contradictions)
                         self.addCheck(row[1:])
                     elif rowId == InterfaceControlDocument._ID_DATA_FORMAT:
+                        # FIXME: Check that no fields or checks have been specified yet.
                         self.addDataFormat(row[1:])
                     elif rowId == InterfaceControlDocument._ID_FIELD_RULE:
+                        # FIXME: Validate data format (required properties, contradictions)
                         self.addFieldFormat(row[1:])
                     elif rowId.strip():
                         raise IcdSyntaxError("first item in row %d is %r but must be empty or one of: %s"

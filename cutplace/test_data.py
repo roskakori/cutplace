@@ -78,6 +78,16 @@ class DataFormatTest(unittest.TestCase):
         self.assertEquals(",", format.get(data.KEY_DECIMAL_SEPARATOR))
         format.set(data.KEY_THOUSANDS_SEPARATOR, ".")
         self.assertEquals(".", format.get(data.KEY_THOUSANDS_SEPARATOR))
+
+    def testTransitionallySameDecimalSeparator(self):
+        format = data.CsvDataFormat()
+        thousandsSeparator = format.get(data.KEY_THOUSANDS_SEPARATOR)
+        format.set(data.KEY_DECIMAL_SEPARATOR, thousandsSeparator)
+
+    def testTransitionallySameThousandsSeparator(self):
+        format = data.CsvDataFormat()
+        decimalSeparator = format.get(data.KEY_DECIMAL_SEPARATOR)
+        format.set(data.KEY_THOUSANDS_SEPARATOR, decimalSeparator)
                           
     def testBrokenEncoding(self):
         format = data.CsvDataFormat()
@@ -98,14 +108,26 @@ class DataFormatTest(unittest.TestCase):
     def testBrokenDecimalSeparator(self):
         format = data.CsvDataFormat()
         self.assertRaises(data.DataFormatValueError, format.set, data.KEY_DECIMAL_SEPARATOR, "broken-decimal-separator")
+
+        # Attempt to set decimal separator to the same value as thousands separator.
+        thousandsSeparator = format.get(data.KEY_THOUSANDS_SEPARATOR)
+        format.set(data.KEY_THOUSANDS_SEPARATOR, thousandsSeparator)
+        self.assertRaises(data.DataFormatValueError, format.set, data.KEY_DECIMAL_SEPARATOR, thousandsSeparator)
+        
         
     def testBrokenThousandsSeparator(self):
         format = data.CsvDataFormat()
         self.assertRaises(data.DataFormatValueError, format.set, data.KEY_THOUSANDS_SEPARATOR, "broken-thousands-separator")
         
+        # Attempt to set thousands separator to the same value as decimal separator.
+        decimalSeparator = format.get(data.KEY_DECIMAL_SEPARATOR)
+        format.set(data.KEY_DECIMAL_SEPARATOR, decimalSeparator)
+        self.assertRaises(data.DataFormatValueError, format.set, data.KEY_THOUSANDS_SEPARATOR, decimalSeparator)
+        
     def testBrokenPropertyName(self):
         format = data.CsvDataFormat()
         self.assertRaises(data.DataFormatSyntaxError, format.set, "broken-property-name", "")
+
         
 if __name__ == '__main__':
     logging.basicConfig()

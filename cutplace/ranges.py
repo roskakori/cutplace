@@ -1,5 +1,5 @@
 """
-Range to check if certain values are within it. This is used in several places of the ICD, in 
+Range to check if certain values are within it. This is used in several places of the ICD, in
 particular to specify the length limits for field values and the characters allowed for a data
 format.
 """
@@ -29,7 +29,7 @@ class RangeSyntaxError(tools.CutplaceError):
 
 class RangeValueError(tools.CutplaceError):
     """
-    Error raised when Range.validate() detects that a value is outside the expected range.
+    Error raised when ranges.validate() detects that a value is outside the expected ranges.
     """
 
 class Range(object):
@@ -40,11 +40,11 @@ class Range(object):
     def __init__(self, text, default=None):
         """
         Setup a range as specified by `text`.
-        
+
         `text` must be of the form "lower:upper" or "limit". In case `text` is empty (""), any
         value will be accepted by `validate()`. For example, "1:40" accepts values between 1 and
         40.
-        
+
         `default`is an alternative text to use in case `text` is `None` or empty.
         """
         assert default is None or default.strip(), "default=%r" % default
@@ -56,7 +56,7 @@ class Range(object):
             hasText = True
 
         if not hasText:
-            # Use empty range.
+            # Use empty ranges.
             self.description = None
             self.items = None
         else:
@@ -99,7 +99,7 @@ class Range(object):
                                 raise RangeSyntaxError("text for range must contain a single character but is: %r" % nextValue)
                             leftQuote = nextValue[0]
                             rightQuote = nextValue[2]
-                            assert leftQuote in "\"\'", "leftQuote=%r" % leftQuote 
+                            assert leftQuote in "\"\'", "leftQuote=%r" % leftQuote
                             assert rightQuote in "\"\'", "rightQuote=%r" % rightQuote
                             longValue = ord(nextValue[1])
                         if colonFound:
@@ -125,7 +125,7 @@ class Range(object):
                     next = tokens.next()
                 if afterHyphen:
                     raise RangeSyntaxError("hyphen (-) at end must be followed by number")
-                
+
                 # Decide upon the result.
                 if (lower is None):
                     if (upper is None):
@@ -177,7 +177,7 @@ class Range(object):
         else:
             result = str(None)
         return result
-        
+
     def __repr__(self):
         """
         Human readable description of the range similar to a Python tuple.
@@ -195,7 +195,7 @@ class Range(object):
         else:
             result = str(None)
         return result
-    
+
     def _itemsOverlap(self, some, other):
         assert some is not None
         assert other is not None
@@ -203,7 +203,7 @@ class Range(object):
         upper = other[1]
         result = self._itemContains(some, lower) or self._itemContains(some, upper)
         return result
-        
+
     def _itemContains(self, item, value):
         assert item is not None
         result = False
@@ -224,7 +224,7 @@ class Range(object):
                 # Handle "x:y"
                 result = (value >= lower) and (value <= upper)
         return result
-    
+
     def validate(self, name, value):
         """
         Validate that value is within the specified range and in case it is not, raise a `RangeValueError`.
@@ -250,4 +250,4 @@ class Range(object):
                 itemIndex += 1
             if not isValid:
                 raise RangeValueError("%s is %r but must be within range: %r" % (name, value, self))
-        
+

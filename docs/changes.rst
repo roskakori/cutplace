@@ -4,6 +4,23 @@ Revision history
 
 This chapter describes improvements compared to earlier versions of cutplace.
 
+
+Version 0.6.1, 04-Apr-2010
+==========================
+
+* Added data format properties "decimal delimiter" (default: ".") and
+  "thousands delimiter" (default: none). Fields of type `Decimal` take them
+  into account.
+
+* Renamed module `cutplace.range` to `cutplace.ranges` to avoid name clash with
+  the built in Python function `range()`. In case you have an older version of
+  cutplace installed and plan to import the cutplace Python module using::
+
+    from cutplace import * # ugly, avoid anyway
+
+  you will have to manually remove the files "cutplace/range.py" and
+  "cutplace/range.pyc" (in case it exists).
+
 Version 0.6.0, 29-Mar-2010
 ==========================
 
@@ -17,7 +34,7 @@ Version 0.6.0, 29-Mar-2010
 * Added support for letters, escaped characters, hex numbers and symbolic
   names in item delimiters for data formats.
 
-* Added auto detection of item delimiters tab ("\t", ASCII 9) and vertical 
+* Added auto detection of item delimiters tab ("\t", ASCII 9) and vertical
   bar (|). [Josef Wolte]
 
 * Cleaned up code for field validation.
@@ -50,14 +67,14 @@ Version 0.5.6, 19-Aug-2009
 ==========================
 
 * Added a short summary at the end of validation. Depending on the result,
-  this can be either for instance ``eggs.csv: accepted 123 rows`` or 
+  this can be either for instance ``eggs.csv: accepted 123 rows`` or
   ``eggs.csv: rejected 7 of 123 rows. 2 final checks failed.``.
 
 * Changed default for ``--log`` from``info`` to ``warning``.
 
 * Improved confusing error message when a field value is rejected because
   of improper length.
-  
+
 * Fixed ``ImportError`` when run using Jython 2.5, which does not support the
   Python standard module ``webbrowser``. Attempting to use ``--browser`` will
   result in an error message nevertheless.
@@ -83,7 +100,7 @@ Version 0.5.4, 21-Jul-2009
 
 * Fixed validation of Decimal fields, which resulted in a
   ``NotImplementedError``.
-  
+
 * Fixed internal handling of ranges with a default, which resulted in a
   ``NameError``.
 
@@ -114,7 +131,7 @@ Version 0.5.1, 11-Jun-2009
 
 * Changed representation of integer number read from Excel data: instead
   of for example "123.0" this now renders as "123".
-  
+
 * Improved memory usage for data and ICDs in ODS format.
 
 * Fixed reading of ICDs in Excel and ODS format.
@@ -127,9 +144,9 @@ Version 0.5.0, 02-Jun-2009
 
 * Fixed handling of Excel numbers, dates and times. Refer to the
   section on Excel data format for details.
-  
-* Changed order for field format (again): It now is 
-  name/example/empty/length/type/rule instead of 
+
+* Changed order for field format (again): It now is
+  name/example/empty/length/type/rule instead of
   name/example/empty/type/length/rule.
 
 * Changed optional items for field format: now the field name is the

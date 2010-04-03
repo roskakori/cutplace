@@ -22,7 +22,7 @@ import StringIO
 import token
 import tokenize
 
-import range
+import ranges
 import tools
 
 ANY = "any"
@@ -81,7 +81,7 @@ def createDataFormat(name):
 def _isKey(possibleKey, keyToCompareWith):
     """
     True if `possibleKey` and `keyToCompareWith` match, ignoring case and blanks between words.
-    """ 
+    """
     possibleKeyWords = possibleKey.lower().split()
     keyToCompareWithWords = keyToCompareWith.lower().split()
     return possibleKeyWords == keyToCompareWithWords
@@ -105,7 +105,7 @@ class DataFormatSyntaxError(tools.CutplaceError):
 class _BaseDataFormat(object):
     """
     Data format acting as base for other data formats.
-    
+
     The only function you really need to overwrite is `validated()`.
     """
     def __init__(self, requiredKeys, optionalKeyValueMap):
@@ -131,10 +131,10 @@ class _BaseDataFormat(object):
         self._allKeys.extend(self.optionalKeyValueMap.keys())
         for key in self._allKeys:
             assert key == self._normalizedKey(key), "key must be normalized: %r" % (key)
-    
+
     def _normalizedKey(self, key):
         assert key is not None
-        
+
         # Normalize key.
         keyParts = key.lower().split()
         result = ""
@@ -142,7 +142,7 @@ class _BaseDataFormat(object):
             if result:
                 result += " "
             result += keyPart
-            
+
         # Validate key.
         if result not in self._allKeys:
             raise DataFormatSyntaxError("data format property is %r but must be one of: %s"
@@ -158,10 +158,10 @@ class _BaseDataFormat(object):
         assert key
         assert choices
         if value not in choices:
-            raise DataFormatValueError("value for data format property %r is %r but must be one of: %s" 
+            raise DataFormatValueError("value for data format property %r is %r but must be one of: %s"
                                        % (key, value, tools.humanReadableList(choices)))
         return value
-    
+
     def _validatedLong(self, key, value, lowerLimit=None):
         """
         Validate that `value`is a long number with a value of at least `lowerLimit` (if specified)
@@ -169,7 +169,7 @@ class _BaseDataFormat(object):
         """
         assert key
         assert value is not None
-        
+
         try:
             result = long(value)
         except ValueError, error:
@@ -178,11 +178,15 @@ class _BaseDataFormat(object):
             if result < lowerLimit:
                 raise DataFormatValueError("value for data format property %r is %d but must be at least %d" % (key, result, lowerLimit))
         return result
-            
+
+    def _raiseDecimalThousandsSeparatorClash(self, propertyToBeSet, propertyExisting, clashingValue):
+        raise DataFormatValueError("value for property %r is %r but must differ from property %r"
+            % (propertyToBeSet, propertyExisting, clashingValue))
+                
     def validated(self, key, value):
         """
        `Value` in its native type.
-       
+
        If `key` can not be handled, raise `DataFormaSyntaxError`.
 
        If `value` can not be handled, raise `DataFormaValueError`.
@@ -193,17 +197,21 @@ class _BaseDataFormat(object):
         """
         if key == KEY_ALLOWED_CHARACTERS:
             try:
-                result = range.Range(value)
-            except range.RangeSyntaxError, error:
+                result = ranges.Range(value)
+            except ranges.RangeSyntaxError, error:
                 raise DataFormatValueError("value for property %r must be a valid range: %s" % (key, error))
         elif key == KEY_DECIMAL_SEPARATOR:
             result = self._validatedChoice(key, value, _VALID_DECIMAL_SEPARATORS);
-            # FIXME: If thousands separator has been set already, check that its value differs from decimal separator.
+            thousandsSeparatorSoFar = self.get(KEY_THOUSANDS_SEPARATOR, False)
+            if result == thousandsSeparatorSoFar:
+                self._raiseDecimalThousandsSeparatorClash(KEY_DECIMAL_SEPARATOR, KEY_THOUSANDS_SEPARATOR, result)
         elif key == KEY_HEADER:
             result = self._validatedLong(key, value, 0)
         elif key == KEY_THOUSANDS_SEPARATOR:
             result = self._validatedChoice(key, value, _VALID_THOUSANDS_SEPARATORS);
-            # FIXME: If decimal separator has been set already, check that its value differs from thousands separator.
+            decimalSeparatorSetSoFar = self.get(KEY_DECIMAL_SEPARATOR, False)
+            if result == decimalSeparatorSetSoFar:
+                self._raiseDecimalThousandsSeparatorClash(KEY_THOUSANDS_SEPARATOR, KEY_DECIMAL_SEPARATOR, result)
         else:  # pragma: no cover
             assert False, "_normalizedKey() must detect broken property name %r" % key
         return result
@@ -216,21 +224,21 @@ class _BaseDataFormat(object):
         for requiredKey in self.requiredKeys:
             if requiredKey not in self.properties:
                 raise DataFormatSyntaxError("required data format property must be set: %r" % requiredKey)
-            
+
     def set(self, key, value):
         r"""
         Attempt to set `key`to `value`.
 
         >>> format = createDataFormat(FORMAT_CSV)
         >>> format.set(KEY_LINE_DELIMITER, LF)
-        
+
         In case the key has already been set, raise a `DataValueError`.
 
         >>> format.set(KEY_LINE_DELIMITER, CR)
         Traceback (most recent call last):
             ...
         DataFormatValueError: data format property 'line delimiter' has already been set: '\n'
-        
+
         In case `value` can not be used for `key`, reraise the error raised by `validated()`.
 
         >>> format.set(KEY_ALLOWED_CHARACTERS, "spam")
@@ -242,36 +250,56 @@ class _BaseDataFormat(object):
         if normalizedKey in self.properties:
             raise DataFormatValueError("data format property %r has already been set: %r" % (key, self.properties[normalizedKey]))
         self.properties[normalizedKey] = self.validated(normalizedKey, value)
-    
-    def get(self, key):
+
+    def get(self, key, useDefault=True):
         r"""
         The value of `key`, or its default value (as specified with `__init__()`) in case it has
         not be set yet, or `None` if no default value exists.
-        
+
         Note that the result does not have to be the same value that has been passed to `set()`
         because for some keys the value for `set()` is in a human readable representation whereas
         the result of `get()` can be an internal representation.
-        
+
         >>> format = createDataFormat(FORMAT_CSV)
         >>> format.set(KEY_LINE_DELIMITER, LF)
         >>> print "%r" % format.get(KEY_LINE_DELIMITER)
         '\n'
+        
+        Many properties have default values in case no value has been set yet:
+        
+        >>> print "%r" % format.get(KEY_ITEM_DELIMITER)
+        'any'
+        
+        You can query them ignoring the default, which yields `None` for properties that have
+        not been set yet:
+
+        >>> print "%r" % format.get(KEY_ITEM_DELIMITER, False)
+        None
+        
+        Once a value is provided, the default is ignored in any case:
+        
+        >>> format.set(KEY_ITEM_DELIMITER, ";")
+        >>> print "%r" % format.get(KEY_ITEM_DELIMITER, False)
+        ';'
         """
         normalizedKey = self._normalizedKey(key)
-        defaultValue = self.optionalKeyValueMap.get(normalizedKey)
+        if useDefault:
+            defaultValue = self.optionalKeyValueMap.get(normalizedKey)
+        else:
+            defaultValue = None
         return self.properties.get(normalizedKey, defaultValue)
 
     def _getEncoding(self):
         return self.get(KEY_ENCODING)
-        
+
     def _setEncoding(self, value):
          self.set(KEY_ENCODING, value)
-         
+
     encoding = property(_getEncoding, _setEncoding)
 
     def __str__(self):
         return "DataFormat(%r, %r)" % (self.name, self.properties)
-    
+
 class _BaseTextDataFormat(_BaseDataFormat):
     """
     Base data format that supports an "encoding" and "line delimiter" property.
@@ -286,7 +314,7 @@ class _BaseTextDataFormat(_BaseDataFormat):
 
     def validated(self, key, value):
         assert key == self._normalizedKey(key)
-        
+
         if key == KEY_ENCODING:
             try:
                 # Validate encoding name.
@@ -309,13 +337,13 @@ class _BaseSpreadsheetDataFormat(_BaseDataFormat):
     """
     def __init__(self, name):
         assert name
-        
+
         super(_BaseSpreadsheetDataFormat, self).__init__(None, {KEY_SHEET: 1})
         self.name = name
-        
+
     def validated(self, key, value):
         assert key == self._normalizedKey(key)
-        
+
         if key == KEY_SHEET:
             result = self._validatedLong(key, value, 1)
         else:
@@ -331,7 +359,7 @@ class DelimitedDataFormat(_BaseTextDataFormat):
         assert lineDelimiter is not None
         assert lineDelimiter in  _VALID_LINE_DELIMITERS
         assert (itemDelimiter == ANY) or (len(itemDelimiter) == 1)
-        
+
         super(DelimitedDataFormat, self).__init__(
                                               FORMAT_DELIMITED,
                                               {KEY_ESCAPE_CHARACTER: None,
@@ -340,18 +368,18 @@ class DelimitedDataFormat(_BaseTextDataFormat):
         self.optionalKeyValueMap[KEY_LINE_DELIMITER] = lineDelimiter
         self._log = logging.getLogger("cutplace")
 
-        
+
     def _validatedCharacter(self, key, value):
         r"""
         A single character intended as value for data format property `key`
         derived from `value`, which can be:
-        
+
         * a decimal or hex number (prefixed with "0x") referring to the ASCII/Unicode of the character
         * a string containing a single character such as "\t".
         * a symbolic name such as `Tab`.
-        
+
         Anything else yields a `DataFormatSyntaxError`.
-        
+
         >>> format = DelimitedDataFormat()
         >>> format._validatedCharacter("x", "34")
         '"'
@@ -392,7 +420,7 @@ class DelimitedDataFormat(_BaseTextDataFormat):
             ...
         DataFormatSyntaxError: text for data format property 'x' must be a single character but is: '"abc"'
         """
-        # TODO: Consolidate code with `Range.__init__()`.
+        # TODO: Consolidate code with `ranges.__init__()`.
         assert key
         assert value is not None
         if len(value) == 1 and (value < "0" or value > "9"):
@@ -426,7 +454,7 @@ class DelimitedDataFormat(_BaseTextDataFormat):
                     raise DataFormatSyntaxError("text for data format property %r must be a single character but is: %r" % (key, value))
                 leftQuote = nextValue[0]
                 rightQuote = nextValue[2]
-                assert leftQuote in "\"\'", "leftQuote=%r" % leftQuote 
+                assert leftQuote in "\"\'", "leftQuote=%r" % leftQuote
                 assert rightQuote in "\"\'", "rightQuote=%r" % rightQuote
                 longValue = ord(nextValue[1])
             else:
@@ -444,7 +472,7 @@ class DelimitedDataFormat(_BaseTextDataFormat):
 
     def validated(self, key, value):
         assert key == self._normalizedKey(key)
-        
+
         if key == KEY_ESCAPE_CHARACTER:
             result = self._validatedChoice(key, value, _VALID_ESCAPE_CHARACTERS)
         elif key == KEY_ITEM_DELIMITER:
@@ -476,11 +504,11 @@ class FixedDataFormat(_BaseTextDataFormat):
     """
     def __init__(self):
         super(FixedDataFormat, self).__init__(FORMAT_FIXED, None)
-        
+
     def strippedOfBlanks(self, value):
         """
         `value` but with leading and trailing blanks removed.
-        
+
         >>> format = FixedDataFormat()
         >>> format.strippedOfBlanks(" before")
         'before'

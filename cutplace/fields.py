@@ -19,8 +19,9 @@ import data
 import decimal
 import locale
 import logging
-import range
+import ranges
 import re
+import string
 import sys
 import time
 import tools
@@ -53,7 +54,7 @@ class AbstractFieldFormat(object):
 
         self.fieldName = fieldName
         self.isAllowedToBeEmpty = isAllowedToBeEmpty
-        self.length = range.Range(lengthText)
+        self.length = ranges.Range(lengthText)
         self.rule = rule
         self.dataFormat = dataFormat
         self.emptyValue = emptyValue
@@ -64,7 +65,7 @@ class AbstractFieldFormat(object):
             for character in value:
                 try:
                     validCharacterRange.validate("character", ord(character))
-                except range.RangeValueError, error:
+                except ranges.RangeValueError, error:
                     raise FieldValueError("value for fields %r must contain only valid characters: %s"
                                                  % (self.fieldName, error))
 
@@ -78,7 +79,7 @@ class AbstractFieldFormat(object):
         if self.length is not None and not (self.isAllowedToBeEmpty and value == ""):
             try:
                 self.length.validate("length of '%s' with value %r" % (self.fieldName, value), len(value))
-            except range.RangeValueError, error:
+            except ranges.RangeValueError, error:
                 raise FieldValueError(str(error))
 
     def validatedValue(self, value):
@@ -151,14 +152,34 @@ class DecimalFieldFormat(AbstractFieldFormat):
         self.decimalSeparator = dataFormat.get(data.KEY_DECIMAL_SEPARATOR)
         self.thousandsSeparator = dataFormat.get(data.KEY_THOUSANDS_SEPARATOR)
 
+        # TODO: In module data, check for same decimal/thousandsSeparator.
+        assert self.decimalSeparator != self.thousandsSeparator
+
     def validatedValue(self, value):
         assert value
 
+        translatedValue = ""
+        foundDecimalSeparator = False
+        for valueIndex in range(len(value)):
+            characterToProcess = value[valueIndex]
+            if characterToProcess == self.decimalSeparator:
+                if foundDecimalSeparator:
+                    raise FieldValueError("decimal field must contain only one decimal separator (%r): %r" % (self.decimalSeparator, value))
+                translatedValue += "."
+                foundDecimalSeparator = True
+            elif self.thousandsSeparator and (characterToProcess == self.thousandsSeparator):
+                if foundDecimalSeparator:
+                    raise FieldValueError("decimal field must contain thousands separator (%r) only before decimal separator (%r): %r (position %d)"
+                        % (self.thousandsSeparator, self.decimalSeparator, value, valueIndex + 1))
+            else:
+                translatedValue += characterToProcess
         try:
-            result = decimal.Decimal(value)
+            result = decimal.Decimal(translatedValue)
         except Exception, error:
             message = "value is %r but must be a decimal number: %s" % (value, error)
             raise FieldValueError(message)
+
+        result = decimal.Decimal(translatedValue)
         return result
 
 class IntegerFieldFormat(AbstractFieldFormat):
@@ -169,7 +190,7 @@ class IntegerFieldFormat(AbstractFieldFormat):
         # The default range is 32 bit. If the user wants a bigger range, he has to specify it.
         # Python's long scales to any range as long there is enough memory available to represent
         # it.
-        self.rangeRule = range.Range(rule, IntegerFieldFormat._DEFAULT_RANGE)
+        self.rangeRule = ranges.Range(rule, IntegerFieldFormat._DEFAULT_RANGE)
 
     def validatedValue(self, value):
         assert value
@@ -180,7 +201,7 @@ class IntegerFieldFormat(AbstractFieldFormat):
             raise FieldValueError("value must be an integer number: %r" % value)
         try:
             self.rangeRule.validate("value", longValue)
-        except range.RangeValueError, error:
+        except ranges.RangeValueError, error:
             raise FieldValueError(str(error))
         return longValue
 

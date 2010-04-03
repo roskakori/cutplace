@@ -23,7 +23,14 @@ import logging
 import unittest
 
 _anyFormat = data.createDataFormat(data.FORMAT_CSV)
-_fixedFormat = data.createDataFormat(data.FORMAT_ODS)
+_fixedFormat = data.createDataFormat(data.FORMAT_FIXED)
+
+def _createGermanDecimalFormat():
+    germanFormat = data.createDataFormat(data.FORMAT_CSV)
+    germanFormat.set(data.KEY_DECIMAL_SEPARATOR, ",")
+    germanFormat.set(data.KEY_THOUSANDS_SEPARATOR, ".")
+    result = fields.DecimalFieldFormat("x", False, None, "", germanFormat)
+    return result
 
 class AbstractFieldFormatTest(unittest.TestCase):
     """
@@ -92,11 +99,23 @@ class DecimalFieldFormatTest(unittest.TestCase):
         self.assertEqual(decimal.Decimal("17.23"), format.validated("17.23"))
         self.assertEqual(decimal.Decimal("17.123456789"), format.validated("17.123456789"))
 
+    def testValidGermanDecimals(self):
+        germanFormat = data.createDataFormat(data.FORMAT_CSV)
+        germanFormat.set(data.KEY_DECIMAL_SEPARATOR, ",")
+        germanFormat.set(data.KEY_THOUSANDS_SEPARATOR, ".")
+        format =_createGermanDecimalFormat()
+        self.assertEqual(decimal.Decimal("17.23"), format.validated("17,23"))
+        self.assertEqual(decimal.Decimal("171234567.89"), format.validated("171.234.567,89"))
+
     def testBrokenDecimals(self):
         format = fields.DecimalFieldFormat("x", False, None, "", _anyFormat)
         self.assertRaises(fields.FieldValueError, format.validated, "")
         self.assertRaises(fields.FieldValueError, format.validated, "eggs")
         self.assertRaises(fields.FieldValueError, format.validated, "12.345,678")
+
+        germanFormat = _createGermanDecimalFormat()
+        self.assertRaises(fields.FieldValueError, format.validated, "12.345,678")
+        self.assertRaises(fields.FieldValueError, format.validated, "12.345.678")
         
     def testBrokenDecimalSyntax(self):
         self.assertRaises(fields.FieldSyntaxError, fields.DecimalFieldFormat, "x", False, None, "eggs", _anyFormat)
