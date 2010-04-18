@@ -15,15 +15,19 @@ Standard field formats supported by cutplace.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import data
 import decimal
 import locale
 import logging
-import ranges
 import re
 import string
+import StringIO
 import sys
 import time
+import token
+import tokenize
+
+import data
+import ranges
 import tools
 
 class FieldValueError(tools.CutplaceError):
@@ -126,20 +130,40 @@ class ChoiceFieldFormat(AbstractFieldFormat):
     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
         super(ChoiceFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue="")
         self.choices = []
-        choiceIndex = 0
-        # TODO: Parse choice  rule properly using tokenizer and accept strings too.
-        for choice in rule.lower().split(","):
-            choiceIndex += 1
-            choice = choice.strip()
+        
+        # Split rule into tokens, ignoring white space.
+        tokens = tools.tokenizeWithoutSpace(rule)
+
+        # Extract choices from rule tokens.
+        previousToky = None
+        toky = tokens.next()
+        while not tools.isEofToken(toky):
+            if tools.isCommaToken(toky):
+                # Handle comma after comma without choice.
+                if previousToky:
+                    previousTokyText = previousToky[1]
+                else:
+                    previousTokyText = None
+                raise FieldSyntaxError("choice value must precede a comma (,) but found: %r" % previousTokyText)
+            choice = tools.tokenText(toky)
             if not choice:
-                raise FieldSyntaxError("rule for a field of type %r must be a comma separated list of choices but choice #%d is empty"
-                                       % ("choice", choiceIndex))
+                raise FieldSyntaxError("choice field must be allowed to be empty instead of containing an empty choice")
             self.choices.append(choice)
+            toky = tokens.next()
+            if not tools.isEofToken(toky):
+                if not tools.isCommaToken(toky):
+                    raise FieldSyntaxError("comma (,) must follow choice value %r but found: %r" % (choice, toky[1]))
+                # Process next choice after comma.
+                toky = tokens.next()
+                if tools.isEofToken(toky):
+                    raise FieldSyntaxError("trailing comma (,) must be removed")
+        if not self.isAllowedToBeEmpty and not self.choices:
+            raise FieldSyntaxError("choice field without any choices must be allowed to be empty")
 
     def validatedValue(self, value):
         assert value
 
-        if value.lower() not in self.choices:
+        if value not in self.choices:
             raise FieldValueError("value is %r but must be one of: %s"
                                    % (value, tools.humanReadableList(self.choices)))
         return value

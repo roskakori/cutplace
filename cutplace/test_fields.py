@@ -178,7 +178,7 @@ class ChoiceFieldFormatTest(unittest.TestCase):
         # Value with blanks around it.
         self.assertEquals(format.validated("blue"), "blue")
         # Disregard upper/lower case.
-        self.assertEquals(format.validated("gReen"), "gReen")
+        self.assertRaises(fields.FieldValueError, format.validated, "gReen")
         self.assertRaises(fields.FieldValueError, format.validated, "")
         
     def testImproperChoice(self):
@@ -190,9 +190,8 @@ class ChoiceFieldFormatTest(unittest.TestCase):
         self.assertEquals(format.validated("red"), "red")
 
     def testMatchWithUmlaut(self):
-        format = fields.ChoiceFieldFormat("geschlecht", False, None, u"männlich, weiblich", _anyFormat)
+        format = fields.ChoiceFieldFormat("geschlecht", False, None, u"\"männlich\", \"weiblich\"", _anyFormat)
         self.assertEquals(format.validated(u"männlich"), u"männlich")
-        self.assertEquals(format.validated(u"Männlich"), u"Männlich")
         self.assertRaises(fields.FieldValueError, format.validated, u"unbekannt")
 
     def testPossiblyEmptyFieldWithLength(self):

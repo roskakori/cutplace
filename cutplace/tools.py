@@ -277,6 +277,27 @@ def humanReadableList(items):
     assert result is not None
     return result
 
+def tokenizeWithoutSpace(text):
+    """
+    `text`split into token with any white space tokens removed.
+    """
+    assert text is not None
+    for toky in tokenize.generate_tokens(StringIO.StringIO(text).readline):
+        tokyType = toky[0]
+        tokyText = toky[1]
+        if ((tokyType != token.INDENT) and tokyText.strip()) or (tokyType == token.ENDMARKER):
+            yield toky
+
+def tokenText(toky):
+    assert toky is not None
+    tokyType = toky[0]
+    tokyText = toky[1]
+    if tokyType == token.STRING:
+        result = tokyText[1:-1]
+    else:
+        result = tokyText
+    return result
+
 def isEofToken(someToken):
     """
     True if `someToken` is a token that represents an "end of file". 
