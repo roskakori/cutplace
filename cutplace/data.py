@@ -519,8 +519,9 @@ class FixedDataFormat(_BaseTextDataFormat):
         >>> format.strippedOfBlanks("")
         ''
 
-        Note: For this test, there is not way to make doctest preserve the
+        Note: For the next test, there is no way to make `doctest` preserve the
         "\t" in the output, though the result still contains it.
+
         >>> format.strippedOfBlanks("nothing to\t strip")
         'nothing to  strip'
         """
