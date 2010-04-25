@@ -17,6 +17,7 @@ Tests for checks module.
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import checks
 import fields
+import logging
 import unittest
 
 def _createFieldMap(fieldNames, fieldValues):
@@ -41,13 +42,18 @@ class _AbstractCheckTest(unittest.TestCase):
         check = checks.AbstractCheck("test check", "", fieldNames)
         self.assertTrue(check.__str__())
         
+    def testLocation(self):
+        fieldNames = _getTestFieldNames()
+        check = checks.AbstractCheck("test check", "", fieldNames)
+        self.assertTrue(check.location is not None)
+        
     def testMissingFieldNames(self):
         try:
             check = checks.AbstractCheck("missing fields", "", [])
         except fields.FieldLookupError, error:
             # Ignore expected error
             pass
-        
+
     def testCheckRow(self):
         # HACK: This is just here to make coverage happy because "# pragma: no cover" does not work
         # on methods that consist of nothing but a single "pass".
