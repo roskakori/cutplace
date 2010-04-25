@@ -2,7 +2,10 @@
 Writing an Interface Control Document
 =====================================
 
-This chapter describes how to ... TODO: introduction overview.
+This chapter describes all aspects of writing an ICD and can be used as
+reference. In case you are looking for a more gently introduction, see the
+:ref:`tutorial`.
+
 
 Parts of an ICD
 ===============
@@ -69,17 +72,19 @@ For data, both lines and columns are delimited by certain characters.
 Example for delimited data using visible ASCII characters and Cyrillic (Unicode
 0x0400-0x4ff)
 
-==  ==================  =================
-..  Property            Value
-==  ==================  =================
-D   Format              Delimited
-D   Encoding            UTF-8
-D   Line delimiter      CRLF
-D   Item delimiter      ,
-D   Quote character     "
-D   Escape character    "
-D   Allowed characters  32:128, 1024:1280
-==  ==================  =================
+==  ===================  =================
+..  Property             Value
+==  ===================  =================
+D   Format               Delimited
+D   Encoding             UTF-8
+D   Line delimiter       CRLF
+D   Item delimiter       ,
+D   Quote character      "
+D   Escape character     "
+D   Decimal separator    .
+D   Thousands separator  ,
+D   Allowed characters   32:128, 1024:1280
+==  ===================  =================
 
 In case Format is Delimited, the following properties have to be specified:
 
@@ -131,6 +136,20 @@ Escape character
     Possible values are: double quote (").
 
     TODO: Consider supporting backslash (\) for C-like escapes
+
+.. _decimal-separator:
+
+Decimal separator
+	The character to separate the fractional part of a number, for example
+	in `17.23`. Typical values are: dot (.) and comma (,). The default is dot
+	(.).
+
+.. _thousands-separator:
+
+Thousands separator
+    The character to optionally group digits in large numbers, for example in
+    `12,345,678`. Typical values are: comma (,), dot (.) and the space
+    character. By default, no character can be used to group digits.
 
 Allowed characters
     This range describing the characters allowed for data items. Each number
@@ -354,7 +373,7 @@ Examples for Text fields
 ==  =======  =======  =====  ======  ====  ====
 ..  Name     Example  Empty  Length  Type  Rule
 ==  =======  =======  =====  ======  ====  ====
-F   surname  Miller          1..60   Text
+F   surname  Miller          1:60    Text
 ==  =======  =======  =====  ======  ====  ====
 
 Integer
@@ -390,6 +409,19 @@ F   amount  17.3                    Decimal
 F   size    28.34                   Decimal
 ==  ======  =======  =====  ======  =======  =======
 
+In case the numbers use a comma (",") or any other character to separate the
+fractional part, set the data format property
+decimal separator accordingly.
+
+..
+  TODO: Get this working: :ref:`decimal separator decimal-separator`
+
+In case the numbers use an additional separator to group digits, set the data
+format property decimal separator accordingly.
+
+..
+  TODO: Get this working: :ref:`thousands separator thousands-separator`
+
 Choice
 ------
 
@@ -398,13 +430,13 @@ possibly values.
 
 Examples for Choice fields
 
-==  ==========  =======  =====  ======  ======  ========================================
+==  ==========  =======  =====  ======  ======  ================================================
 ..  Name        Example  Empty  Length  Type    Rule
-==  ==========  =======  =====  ======  ======  ========================================
-F   color       red                     Choice  red, green, blue
-F   iso_gender  male                    Choice  male, female, unknown, other
-F   department  sales                   Choice  accounting, development, sales, shipping
-==  ==========  =======  =====  ======  ======  ========================================
+==  ==========  =======  =====  ======  ======  ================================================
+F   color       red                     Choice  "red", "green", "blue"
+F   iso_gender  male                    Choice  "male", "female", "unknown", "other"
+F   department  sales                   Choice  "accounting", "development", "sales", "shipping"
+==  ==========  =======  =====  ======  ======  ================================================
 
 DateTime
 --------

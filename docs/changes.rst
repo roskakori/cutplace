@@ -4,22 +4,34 @@ Revision history
 
 This chapter describes improvements compared to earlier versions of cutplace.
 
-
-Version 0.6.1, 04-Apr-2010
+Version 0.6.1, 25-Apr-2010
 ==========================
 
 * Added data format properties "decimal delimiter" (default: ".") and
   "thousands delimiter" (default: none). Fields of type `Decimal` take them
-  into account.
+  into account. See also: Ticket #24.
 
-* Renamed module `cutplace.range` to `cutplace.ranges` to avoid name clash with
-  the built in Python function `range()`. In case you have an older version of
-  cutplace installed and plan to import the cutplace Python module using::
+* Added detailed error locations to some errors detected when reading the
+  ICD.
+
+* Changed choice fields to be case sensitive.
+
+* Changed choice fields to support values in quotes. That way it is also
+  possible to use escape sequences within values. Values with non ASCII
+  characters (such as umlauts) have to be quotes now. See also: Ticket #25.
+
+* Renamed module `cutplace.range` to `cutplace.ranges` to avoid name clash
+  with the built in Python function `range()`. In case you have an older
+  version of cutplace installed and plan to import the cutplace Python
+  module using::
 
     from cutplace import * # ugly, avoid anyway
 
-  you will have to manually remove the files "cutplace/range.py" and
-  "cutplace/range.pyc" (in case it exists).
+  you will have to manually remove the files :file:`cutplace/range.py`
+  and :file:`cutplace/range.pyc` (in case it exists).
+
+* Added API documentation available from
+  <http://cutplace.sourceforge.net/api/>.
 
 Version 0.6.0, 29-Mar-2010
 ==========================
@@ -34,7 +46,7 @@ Version 0.6.0, 29-Mar-2010
 * Added support for letters, escaped characters, hex numbers and symbolic
   names in item delimiters for data formats.
 
-* Added auto detection of item delimiters tab ("\t", ASCII 9) and vertical
+* Added auto detection of item delimiters tab ("\\t", ASCII 9) and vertical
   bar (|). [Josef Wolte]
 
 * Cleaned up code for field validation.
