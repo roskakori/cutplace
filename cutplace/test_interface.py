@@ -467,7 +467,13 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 C,distinct branches must be within limit,DistinctCount,branch_id <= 3
 C,customer must be unique,IsUnique,"branch_id, customer_id"
 """
-        self._testBroken(spec, checks.CheckSyntaxError)
+        icd = interface.InterfaceControlDocument()
+        try:
+            icd.read(StringIO.StringIO(spec), "iso-8859-15")
+        except checks.CheckSyntaxError, error:
+            errorText = str(error)
+            self.assertTrue("check description must be used only once" in errorText, "unexpected error text: %r" % errorText)
+            self.assertTrue("see also:" in errorText, "unexpected error text: %r" % errorText)
     
     def testBrokenCheckTooFewItems(self):
         baseSpec = ""","Broken Interface with duplicate check description"

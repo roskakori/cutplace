@@ -53,13 +53,17 @@ class AbstractCheck(object):
     Abstract check to be used as base class for other checks. The constructor should be called by
     descendants, the other methods do nothing and can be left untouched.
     """
-    def __init__(self, description, rule, fieldNames):
+    def __init__(self, description, rule, fieldNames, location=None):
         assert description
         assert rule is not None
         assert fieldNames is not None
         self.description = description
         self.rule = rule
         self.fieldNames = fieldNames
+        if location is None:
+            self.location = tools.createCallerInputLocation(["checks"])
+        else:
+            self.location = location
     
     def reset(self):
         """
@@ -97,8 +101,8 @@ class IsUniqueCheck(AbstractCheck):
     """
     Check to ensure that all rows are unique concerning certain key fields.
     """
-    def __init__(self, description, rule, availableFieldNames):
-        super(IsUniqueCheck, self).__init__(description, rule, availableFieldNames)
+    def __init__(self, description, rule, availableFieldNames, location=None):
+        super(IsUniqueCheck, self).__init__(description, rule, availableFieldNames, location)
         
         self.fieldNamesToCheck = []
 
@@ -148,8 +152,8 @@ class DistinctCountCheck(AbstractCheck):
     """
     _COUNT_NAME = "count"
     
-    def __init__(self, description, rule, availableFieldNames):
-        super(DistinctCountCheck, self).__init__(description, rule, availableFieldNames)
+    def __init__(self, description, rule, availableFieldNames, location=None):
+        super(DistinctCountCheck, self).__init__(description, rule, availableFieldNames, location)
         ruleReadLine = StringIO.StringIO(rule).readline
         tokens = tokenize.generate_tokens(ruleReadLine)
         firstToken = tokens.next()

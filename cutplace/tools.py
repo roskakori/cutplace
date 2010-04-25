@@ -25,6 +25,7 @@ import re
 import StringIO
 import token
 import tokenize
+import traceback
 import types
 
 from datetime import timedelta, datetime
@@ -91,16 +92,45 @@ class InputLocation(object):
         result += ")"
         return result
 
+def createCallerInputLocation(modulesToIgnore=None):
+    """
+    ``InputLocation`` referring to the calling Python source code.
+    """
+    actualModulesToIgnore = ["tools"]
+    if modulesToIgnore:
+        actualModulesToIgnore.extend(modulesToIgnore)
+    sourcePath = None
+    sourceLine = 0
+    for trace in traceback.extract_stack():
+        ignoreTrace = False
+        if modulesToIgnore:
+            for moduleToIgnore in actualModulesToIgnore:
+                # TODO: Minor optimization: end loop once ``ignoreTrace`` is ``True``.
+                tracedModuleName = os.path.basename(trace[0])
+                if tracedModuleName == (moduleToIgnore + ".py"):
+                    ignoreTrace = True
+            if not ignoreTrace:
+                sourcePath = trace[0]
+                sourceLine = trace[1] - 1
+        if not sourcePath:
+            sourcePath = "<source>"
+    result = InputLocation(sourcePath)
+    result.line = sourceLine
+    return result
+
 class _BaseCutplaceError(Exception):
     """
     Exception that supports a `message` describing the error and an optional
     `location` in the input where the error happened.
     """
-    def __init__(self, message, location=None):
+    def __init__(self, message, location=None, seeAlsoMessage=None, seeAlsoLocation=None):
         assert message
+        assert (seeAlsoLocation and seeAlsoMessage) or not seeAlsoLocation
         # Note: We cannot use `super` because `Exception` is an old style class.
         Exception.__init__(self, message)
         self.location = location
+        self.seeAlsoMessage = seeAlsoMessage
+        self.seeAlsoLocation = seeAlsoLocation
 
     def __str__(self):
         result = ""
@@ -108,6 +138,11 @@ class _BaseCutplaceError(Exception):
             result += str(self.location) + ": "
         # Note: We cannot use `super` because `Exception` is an old style class.
         result += Exception.__str__(self)
+        if self.seeAlsoMessage:
+            result += " (see also: "
+            if self.seeAlsoLocation:
+                result += str(self.seeAlsoLocation) + ": "
+            result += self.seeAlsoMessage + ")"
         return result
 
 class CutplaceError(_BaseCutplaceError):

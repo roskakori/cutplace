@@ -309,24 +309,25 @@ class InterfaceControlDocument(object):
     def addCheck(self, items):
         assert items is not None
         itemCount = len(items)
-        if itemCount >= 2:
-            checkDescription = items[0]
-            checkType = items[1]
-            if itemCount >= 3:
-                checkRule = items[2]
-            else:
-                checkRule = ""
-            self._log.debug("create check: %s(%r, %r)" % (checkType, checkDescription, checkRule))
-            checkClass = self._createCheckClass(checkType)
-            check = checkClass.__new__(checkClass, checkDescription, checkRule, self.fieldNames)
-            check.__init__(checkDescription, checkRule, self.fieldNames)
-            if not checkDescription in self.checkDescriptions:
-                # TODO: Remember location where check was defined to later include it in error message.
-                self.checkDescriptions[checkDescription] = check
-            else:
-                raise checks.CheckSyntaxError("check description must be used only once: %r" % (checkDescription)) 
+        if itemCount < 2:
+            raise checks.CheckSyntaxError("check row (marked with %r) must contain at least 2 columns" % InterfaceControlDocument._ID_FIELD_RULE,
+                                          self._location)
+        checkDescription = items[0]
+        checkType = items[1]
+        if itemCount >= 3:
+            checkRule = items[2]
         else:
-            raise checks.CheckSyntaxError("check row (marked with %r) must contain at least 2 columns" % InterfaceControlDocument._ID_FIELD_RULE)
+            checkRule = ""
+        self._log.debug("create check: %s(%r, %r)" % (checkType, checkDescription, checkRule))
+        checkClass = self._createCheckClass(checkType)
+        check = checkClass.__new__(checkClass, checkDescription, checkRule, self.fieldNames, self._location)
+        check.__init__(checkDescription, checkRule, self.fieldNames, self._location)
+        self._location.setCell(1)
+        existingCheck = self.checkDescriptions.get(checkDescription)
+        if existingCheck:
+            raise checks.CheckSyntaxError("check description must be used only once: %r" % (checkDescription),
+                                          self._location, "initial declaration", existingCheck.location) 
+        self.checkDescriptions[checkDescription] = check
 
     def _fittingReader(self, icdReadable, encoding):
         """
@@ -370,11 +371,11 @@ class InterfaceControlDocument(object):
         assert encoding is not None
 
         needsOpen = isinstance(icdFilePath, types.StringTypes)
-        self._location = tools.InputLocation(icdFilePath, hasColumn=True, hasCell=True)
         if needsOpen:
             icdFile = open(icdFilePath, "rb")
         else:
             icdFile = icdFilePath
+        self._location = tools.InputLocation(icdFilePath, hasColumn=True, hasCell=True)
         try:
             reader = self._fittingReader(icdFile, encoding)
             rowNumber = 0
@@ -407,7 +408,8 @@ class InterfaceControlDocument(object):
         if not self.fieldFormats:
             raise IcdSyntaxError("ICD must contain a section describing at least one field format (rows starting with %r)"
                                  % InterfaceControlDocument._ID_FIELD_RULE)
-            
+        # FIXME: In the end of read(), the following needs to be set: self._location = None
+
     def _obtainReadable(self, dataFileToValidatePath):
         """
         A tuple consisting of the following:
