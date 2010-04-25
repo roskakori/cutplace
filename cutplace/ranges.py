@@ -42,8 +42,8 @@ class Range(object):
         Setup a range as specified by `text`.
 
         `text` must be of the form "lower:upper" or "limit". In case `text` is empty (""), any
-        value will be accepted by `validate()`. For example, "1:40" accepts values between 1 and
-        40.
+        value will be accepted by `validate()`. For example, "1:40" accepts values between 1
+        and 40.
 
         `default`is an alternative text to use in case `text` is `None` or empty.
         """

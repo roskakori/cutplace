@@ -185,11 +185,11 @@ class _BaseDataFormat(object):
                 
     def validated(self, key, value):
         """
-       `Value` in its native type.
+        `Value` in its native type.
 
-       If `key` can not be handled, raise `DataFormaSyntaxError`.
+        If `key` can not be handled, raise `DataFormaSyntaxError`.
 
-       If `value` can not be handled, raise `DataFormaValueError`.
+        If `value` can not be handled, raise `DataFormaValueError`.
 
         This function should be overwritten by child classes, but also be called by them via
         `super` in case the child cannot handle `key` in order to consistently handle the

@@ -362,9 +362,9 @@ class InterfaceControlDocument(object):
         """"
         Read the ICD as specified in `icdFilePath`.
         
-        - `icdPath` - either the path of a file or a `StringIO`
-        - `encoding` - the name of the encoding to use when reading the ICD; depending the the
-        file type this might be ignored 
+          - `icdPath` - either the path of a file or a `StringIO`
+          - `encoding` - the name of the encoding to use when reading the ICD; depending the the
+          file type this might be ignored 
         """
         assert icdFilePath is not None
         assert encoding is not None
@@ -412,10 +412,10 @@ class InterfaceControlDocument(object):
         """
         A tuple consisting of the following:
         
-        1. A file like readable object for `dataFileToValidatePath`, which can be a string describing the
-        path to a file, or a `StringIO` to data.
-        2. A flag indicating whether the caller needs to call `close()` on the readable object once he is
-        done reading it.
+          1. A file like readable object for `dataFileToValidatePath`, which can be a string describing the
+          path to a file, or a `StringIO` to data.
+          2. A flag indicating whether the caller needs to call `close()` on the readable object once he is
+          done reading it.
         """
         assert self.dataFormat is not None
         assert dataFileToValidatePath is not None

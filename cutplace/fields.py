@@ -92,9 +92,9 @@ class AbstractFieldFormat(object):
 
         By the time this is called it is already ensured that:
 
-        - `value` is not an empty string
-        - `value` contains only valid characters
-        - trailing blanks have been removed from `value`for fixed format data
+          - `value` is not an empty string
+          - `value` contains only valid characters
+          - trailing blanks have been removed from `value` for fixed format data
 
         Concrete fields formats must override this because the default
         implementation just raises a `NotImplementedError`.
