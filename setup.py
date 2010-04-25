@@ -44,6 +44,7 @@ buildSiteFolder = os.path.join(buildFolder, "site")
 docsFolder = "docs"
 examplesFolder = "examples"
 tutorialFolder = examplesFolder
+epydocSettings = os.path.join(".settings", "epydoc.config")
 
 def _copyFilesToFolder(sourceFolder, targetFolder, pattern=".*"):
     """
@@ -62,7 +63,25 @@ def _copyFilesToFolder(sourceFolder, targetFolder, pattern=".*"):
                 targetFilePath = os.path.join(targetFolder, fileName)
                 print "copying %r to %r" % (sourceFilePath, targetFilePath)
                 shutil.copy(sourceFilePath, targetFilePath)
-            
+
+class _ApiCommand(Command):
+    """
+    Command for setuptools to build API documentation.
+    """
+    description = "build API documentation"
+    user_options = []
+
+    def initialize_options(self):
+        pass
+    
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        epydocCall = ["epydoc", "--config", epydocSettings]
+        print " ".join(epydocCall)
+        subprocess.check_call(epydocCall)
+
 class _DocsCommand(Command):
     """
     Command for setuptools to build the documentation.
@@ -167,6 +186,7 @@ thinking. It acts as "executable specification" which cutplace can use to valida
           "Topic :: Software Development :: Testing"
       ],
       cmdclass={
+          "api": _ApiCommand,
           "docs": _DocsCommand,
           "reports":_ReportsCommand
       }
