@@ -17,6 +17,7 @@ Test for `tools` module.
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import dev_test
 import os.path
+import StringIO
 import tools
 import unittest
 
@@ -71,5 +72,34 @@ class ToolsTest(unittest.TestCase):
         self._testWithSuffix("hugo.txt", "hugo", ".txt")
         self._testWithSuffix(os.path.join("eggs", "hugo.pas"), os.path.join("eggs", "hugo.txt"), ".pas")
         
+    def testInputLocation(self):
+        location = tools.InputLocation("eggs.txt", hasColumn=True)
+        self.assertEqual(location.line, 0)
+        self.assertEqual(location.column, 0)
+        self.assertEqual(str(location), "eggs.txt (1;1)")
+        location.advanceColumn(3)
+        self.assertEqual(location.column, 3)
+        location.advanceColumn()
+        self.assertEqual(location.column, 4)
+        location.advanceLine()
+        self.assertEqual(location.line, 1)
+        self.assertEqual(location.column, 0)
+        self.assertEqual(str(location), "eggs.txt (2;1)")
+        
+        # Test input with cells.
+        location = tools.InputLocation("eggs.csv", hasCell=True)
+        self.assertEqual(location.line, 0)
+        self.assertEqual(location.cell, 0)
+        self.assertEqual(str(location), "eggs.csv (1@1)")
+        location.advanceLine()
+        location.advanceCell(17)
+        self.assertEqual(str(location), "eggs.csv (2@18)")
+
+        # Test StringIO input
+        input = StringIO.StringIO("hugo was here")
+        location = tools.InputLocation(input)
+        self.assertEqual(str(location), "<io> (1)")
+        
+
 if __name__ == "__main__": # pragma: no cover
     unittest.main()

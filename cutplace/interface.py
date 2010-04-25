@@ -97,6 +97,7 @@ class InterfaceControlDocument(object):
         # TODO: Add logTrace as property and let setter check for True or False.
         self.logTrace = False
         self._resetCounts()
+        self._location = None
         
     def _resetCounts(self):
         self.acceptedCount = 0
@@ -186,6 +187,7 @@ class InterfaceControlDocument(object):
         Any errors detected result in a `fields.FieldSyntaxError`.
         """
         assert items is not None
+        assert self._location is not None
 
         if self.dataFormat is None:
             raise IcdSyntaxError("data format must be specified before first field")
@@ -207,12 +209,14 @@ class InterfaceControlDocument(object):
 
             # Obtain example.
             if itemCount >= 2:
+                self._location.advanceCell()
                 fieldExample = items[1]
             else:
                 fieldExample = ""
 
             # Obtain "empty" flag. 
             if itemCount >= 3:
+                self._location.advanceCell()
                 fieldIsAllowedToBeEmptyText = items[2].strip().lower()
                 if fieldIsAllowedToBeEmptyText == InterfaceControlDocument._EMPTY_INDICATOR:
                     fieldIsAllowedToBeEmpty = True
@@ -223,10 +227,12 @@ class InterfaceControlDocument(object):
 
             # Obtain length.
             if itemCount >= 4:
+                self._location.advanceCell()
                 fieldLength = items[3].strip()
 
             # Obtain field type.
             if itemCount >= 5:
+                self._location.advanceCell()
                 fieldTypeItem = items[4].strip()
                 if fieldTypeItem:
                     fieldType = ""
@@ -242,6 +248,7 @@ class InterfaceControlDocument(object):
 
             # Obtain rule.
             if itemCount >= 6:
+                self._location.advanceCell()
                 fieldRule = items[5].strip()
 
             # Obtain class for field type.
@@ -254,37 +261,45 @@ class InterfaceControlDocument(object):
 
             # Validate example in case there is one.
             if fieldExample:
+                self._location.setCell(2)
                 try:
                     fieldFormat.validated(fieldExample)
                 except fields.FieldValueError, error:
-                    raise IcdSyntaxError("cannot validate example for field %r: %s" % (fieldName, error))
+                    raise IcdSyntaxError("cannot validate example for field %r: %s" % (fieldName, error), self._location)
 
             # Validate that field name is unique.
             if not self.fieldNameToFormatMap.has_key(fieldName):
+                self._location.setCell(1)
                 self.fieldNames.append(fieldName)
                 self.fieldFormats.append(fieldFormat)
                 # TODO: Remember location where field format was defined to later include it in error message
                 self.fieldNameToFormatMap[fieldName] = fieldFormat
-                self._log.info("defined field: %s" % fieldFormat)
+                self._log.info("%s: defined field: %s" % (self._location, fieldFormat))
             else:
-                raise fields.FieldSyntaxError("field name must be used for only one field: %s" % fieldName)
+                raise fields.FieldSyntaxError("field name must be used for only one field: %s" % fieldName,
+                                              self._location)
 
             # Validate field length for fixed format.
             if isinstance(self.dataFormat, data.FixedDataFormat):
+                self._location.setCell(4)
                 if fieldFormat.length.items:
                     fieldLengthIsBroken = True
                     if len(fieldFormat.length.items) == 1:
                         (lower, upper) = fieldFormat.length.items[0]
                         if lower == upper:
                             if lower < 1:
-                                raise fields.FieldSyntaxError("length of field %r for fixed data format must be at least 1 but is : %s" % (fieldName, fieldFormat.length))
+                                raise fields.FieldSyntaxError("length of field %r for fixed data format must be at least 1 but is : %s" % (fieldName, fieldFormat.length),
+                                                              self._location)
                             fieldLengthIsBroken = False
                     if fieldLengthIsBroken:
-                        raise fields.FieldSyntaxError("length of field %r for fixed data format must be a single value but is: %s" % (fieldName, fieldFormat.length))
+                        raise fields.FieldSyntaxError("length of field %r for fixed data format must be a single value but is: %s" % (fieldName, fieldFormat.length),
+                                                      self._location)
                 else:
-                    raise fields.FieldSyntaxError("length of field %r must be specified with fixed data format" % fieldName)
+                    raise fields.FieldSyntaxError("length of field %r must be specified with fixed data format" % fieldName,
+                                                  self._location)
         else:
-            raise fields.FieldSyntaxError("field format row (marked with %r) must at least contain a field name" % InterfaceControlDocument._ID_FIELD_RULE)
+            raise fields.FieldSyntaxError("field format row (marked with %r) must at least contain a field name" % InterfaceControlDocument._ID_FIELD_RULE,
+                                          self._location)
 
         assert fieldName
         assert fieldExample is not None
@@ -355,6 +370,7 @@ class InterfaceControlDocument(object):
         assert encoding is not None
 
         needsOpen = isinstance(icdFilePath, types.StringTypes)
+        self._location = tools.InputLocation(icdFilePath, hasColumn=True, hasCell=True)
         if needsOpen:
             icdFile = open(icdFilePath, "rb")
         else:
@@ -363,10 +379,9 @@ class InterfaceControlDocument(object):
             reader = self._fittingReader(icdFile, encoding)
             rowNumber = 0
             for row in reader:
-                rowNumber += 1
-                self._log.debug("parse icd row%5d: %r" % (rowNumber, row))
+                self._log.debug("%s: parse %r" % (self._location, row))
                 if len(row) >= 1:
-                    rowId = str(row[0]).lower() 
+                    rowId = str(row[0]).lower()
                     if rowId == InterfaceControlDocument._ID_CHECK:
                         # FIXME: Validate data format (required properties, contradictions)
                         self.addCheck(row[1:])
@@ -377,9 +392,10 @@ class InterfaceControlDocument(object):
                         # FIXME: Validate data format (required properties, contradictions)
                         self.addFieldFormat(row[1:])
                     elif rowId.strip():
-                        raise IcdSyntaxError("first item in row %d is %r but must be empty or one of: %s"
-                                             % (rowNumber, row[0],
-                                                tools.humanReadableList(InterfaceControlDocument._VALID_IDS)))
+                        raise IcdSyntaxError("first item in row is %r but must be empty or one of: %s"
+                                             % (row[0], tools.humanReadableList(InterfaceControlDocument._VALID_IDS)),
+                                             self._location)
+                self._location.advanceLine()
         except tools.CutplaceUnicodeError, error:
             raise tools.CutplaceUnicodeError("ICD must conform to encoding %r: %s" % (encoding, error))
         finally:

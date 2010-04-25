@@ -25,6 +25,7 @@ import re
 import StringIO
 import token
 import tokenize
+import types
 
 from datetime import timedelta, datetime
 from random import randrange
@@ -40,12 +41,81 @@ SYMBOLIC_NAMES_MAP = {
     "vt": 11
 }
 
-class CutplaceError(Exception):
+class InputLocation(object):
+    """
+    Location in an input file, consisting of `line`, an optional `column` (pointing at a
+    single character) and an optional cell (pointing a cell in a structured input such as CSV).  
+    """
+    def __init__(self, filePath, hasColumn=False, hasCell=False):
+        assert filePath
+        if isinstance(filePath, types.StringTypes):
+            self.filePath = filePath
+        else:
+            self.filePath = "<io>"
+        self.line = 0
+        self.column = 0
+        self.cell = 0
+        self._hasColumn = hasColumn
+        self._hasCell = hasCell
+
+    def advanceColumn(self, amount=1):
+        assert amount is not None
+        assert amount > 0
+        assert self._hasColumn
+        self.column += amount
+
+    def advanceCell(self, amount=1):
+        assert amount is not None
+        assert amount > 0
+        assert self._hasCell
+        self.cell += amount
+
+    def setCell(self, newCell):
+        assert newCell is not None
+        assert newCell >= 0
+        assert self._hasCell
+        self.cell = newCell
+
+    def advanceLine(self):
+        self.line += 1
+        self.column = 0
+        self.cell = 0
+
+    def __str__(self):
+        result = os.path.basename(self.filePath)
+        result += " (%d" % (self.line + 1)
+        if self._hasColumn:
+            result += ";%d" % (self.column + 1)
+        if self._hasCell:
+            result += "@%d" % (self.cell + 1)
+        result += ")"
+        return result
+
+class _BaseCutplaceError(Exception):
+    """
+    Exception that supports a `message` describing the error and an optional
+    `location` in the input where the error happened.
+    """
+    def __init__(self, message, location=None):
+        assert message
+        # Note: We cannot use `super` because `Exception` is an old style class.
+        Exception.__init__(self, message)
+        self.location = location
+
+    def __str__(self):
+        result = ""
+        if self.location:
+            result += str(self.location) + ": "
+        # Note: We cannot use `super` because `Exception` is an old style class.
+        result += Exception.__str__(self)
+        return result
+
+class CutplaceError(_BaseCutplaceError):
     """
     Error detected by cutplace caused by issues in the ICD or data.
     """
 
-class CutplaceUnicodeError(Exception):
+class CutplaceUnicodeError(_BaseCutplaceError):
     """
     Error detected by cutplace caused by improperly encoded ICD or data.
     
