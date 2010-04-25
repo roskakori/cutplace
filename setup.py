@@ -41,6 +41,7 @@ import glob
 # Various properties that control the build process.
 buildFolder = "build"
 buildSiteFolder = os.path.join(buildFolder, "site")
+buildSiteReportsFolder = os.path.join(buildSiteFolder, "reports")
 docsFolder = "docs"
 examplesFolder = "examples"
 tutorialFolder = examplesFolder
@@ -133,8 +134,11 @@ class _ReportsCommand(Command):
         pass
 
     def run(self):
-        targetFolder = os.path.join("dist", "site", "reports")
-        dev_reports.createReports(targetFolder)
+        # FIXME: Report generation from setup.py is broke: instead of creating
+        # "build/site/reports/coverage_<module>.py.html", all reports go to
+        # "build/site/reports/coverage___init__.py.html". As workaround, use
+        # "ant reports" for now.
+        dev_reports.createReports(buildSiteReportsFolder)
 
 setup(
       name="cutplace",
