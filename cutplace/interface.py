@@ -139,7 +139,7 @@ class InterfaceControlDocument(object):
         try:
             result = getattr(module, className)
         except AttributeError:
-            raise fields.FieldSyntaxError("cannot find %s: %s" % (typeName, str(type)))
+            raise fields.FieldSyntaxError("cannot find %s: %s" % (typeName, str(type)), self._location)
         return result
 
     def _createFieldFormatClass(self, fieldType):
@@ -163,13 +163,13 @@ class InterfaceControlDocument(object):
                 if self.dataFormat is None:
                     self.dataFormat = data.createDataFormat(value)
                 else:
-                    raise data.DataFormatSyntaxError("data format must be set only once, but has been set already to: %r" % self.dataFormat.name)
+                    raise data.DataFormatSyntaxError("data format must be set only once, but has been set already to: %r" % self.dataFormat.name, self._location)
             elif self.dataFormat is not None: 
                 self.dataFormat.set(key, value)
             else:
-                raise data.DataFormatSyntaxError("first data format property name is %r but must be %r" % (key, data.KEY_FORMAT))
+                raise data.DataFormatSyntaxError("first data format property name is %r but must be %r" % (key, data.KEY_FORMAT), self._location)
         else:
-            raise data.DataFormatSyntaxError("data format line (marked with %r) must contain at least 2 columns" % InterfaceControlDocument._ID_DATA_FORMAT)
+            raise data.DataFormatSyntaxError("data format line (marked with %r) must contain at least 2 columns" % InterfaceControlDocument._ID_DATA_FORMAT, self._location)
 
     def addFieldFormat(self, items):
         """
@@ -190,7 +190,7 @@ class InterfaceControlDocument(object):
         assert self._location is not None
 
         if self.dataFormat is None:
-            raise IcdSyntaxError("data format must be specified before first field")
+            raise IcdSyntaxError("data format must be specified before first field", self._location)
 
         fieldName = None
         fieldExample = None
@@ -205,7 +205,7 @@ class InterfaceControlDocument(object):
             try:
                 fieldName = tools.validatedPythonName("field name", items[0])
             except NameError, error:
-                raise fields.FieldSyntaxError(str(error))
+                raise fields.FieldSyntaxError(str(error), self._location)
 
             # Obtain example.
             if itemCount >= 2:
@@ -223,7 +223,7 @@ class InterfaceControlDocument(object):
                 elif fieldIsAllowedToBeEmptyText:
                     raise fields.FieldSyntaxError("mark for empty field must be %r or empty but is %r" 
                                                   % (InterfaceControlDocument._EMPTY_INDICATOR,
-                                                     fieldIsAllowedToBeEmptyText))
+                                                     fieldIsAllowedToBeEmptyText), self._location)
 
             # Obtain length.
             if itemCount >= 4:
@@ -244,7 +244,7 @@ class InterfaceControlDocument(object):
                             fieldType += tools.validatedPythonName("field type part", part)
                         assert fieldType, "empty field type must be detected by validatedPythonName()"
                     except NameError, error:
-                        raise fields.FieldSyntaxError(str(error))
+                        raise fields.FieldSyntaxError(str(error), self._location)
 
             # Obtain rule.
             if itemCount >= 6:
