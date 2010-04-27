@@ -17,15 +17,18 @@ Interface control document (ICD) describing all aspects of a data driven interfa
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import checks
 import codecs
-import data
-import fields
+import keyword
 import logging
 import os
+import sys
+import token
+import types
+
+import data
+import fields
 import parsers
 import ranges
-import sys
 import tools
-import types
 
 class ValidationEventListener(object):
     """
@@ -202,10 +205,18 @@ class InterfaceControlDocument(object):
         itemCount = len(items)
         if itemCount >= 1:
             # Obtain field name.
-            try:
-                fieldName = tools.validatedPythonName("field name", items[0])
-            except NameError, error:
-                raise fields.FieldSyntaxError(str(error), self._location)
+            fieldNameText = items[0]
+            tokens = tools.tokenizeWithoutSpace(fieldNameText)
+            tokenType, tokenText, _, _, _ = tokens.next()
+            if tokenType != token.NAME:
+                raise fields.FieldSyntaxError("field name must be a valid Python name consisting of ASCII letters, underscore (%r) and digits but is: %r" % ("_", tokenText),
+                                              self._location)
+            if keyword.iskeyword(tokenText):
+                raise fields.FieldSyntaxError("field name must not be a Python keyword but is: %r" %  tokenText, self._location)
+            fieldName = tokenText
+            toky = tokens.next()
+            if not tools.isEofToken(toky):
+                raise fields.FieldSyntaxError("field name must be a single word but is: %r" % fieldNameText, self._location)
 
             # Obtain example.
             if itemCount >= 2:

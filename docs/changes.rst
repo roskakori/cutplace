@@ -7,6 +7,13 @@ This chapter describes improvements compared to earlier versions of cutplace.
 Version 0.6.1, 25-Apr-2010
 ==========================
 
+* Added error message if a field name is a Python keyword such as
+  ``class`` or ``if``. The helps to avoid strange errors later if
+  the field is referred to later from a `ísUnique`` check.
+
+Version 0.6.1, 25-Apr-2010
+==========================
+
 * Added data format properties "decimal delimiter" (default: ".") and
   "thousands delimiter" (default: none). Fields of type `Decimal` take them
   into account. See also: Ticket #24.

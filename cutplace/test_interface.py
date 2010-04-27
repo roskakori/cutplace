@@ -681,6 +681,19 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 """
         self._testBroken(spec, fields.FieldSyntaxError)
 
+    def testBrokenFieldNameWithPythonKeyword(self):
+        spec = ""","Broken Interface with field name that is a Python keyword"
+"D","Format","CSV"
+"D","Line delimiter","LF"
+"D","Item delimiter",","
+"D","Encoding","ISO-8859-1"
+,
+,"Name","Example","Type","Empty","Length","Rule","Example"
+"F","first_name",,"Text","X"
+"F","if",,"Integer",,,"0:99999"
+"""
+        self._testBroken(spec, fields.FieldSyntaxError)
+
     def testBrokenFieldNameUsedTwice(self):
         spec = ""","Broken Interface with field name containing invalid characters"
 "D","Format","CSV"
