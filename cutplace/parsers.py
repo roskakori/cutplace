@@ -17,14 +17,12 @@ containing the columns.
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import csv
-import data
 import datetime
-import decimal
 import logging
-import ods
-import os
 import Queue
-import tempfile
+
+import data
+import ods
 import tools
 
 AUTO = data.ANY
@@ -305,8 +303,8 @@ class _DelimitedParser(object):
 
         self.itemNumber += 1
         if self.itemNumber - 1 >= len(self.rows[self.lineNumber - 1]):
-             self.itemNumber = 1
-             self.lineNumber += 1
+            self.itemNumber = 1
+            self.lineNumber += 1
         if self.lineNumber <= len(self.rows):
             row = self.rows[self.lineNumber - 1]
             if len(row):

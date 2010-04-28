@@ -17,17 +17,16 @@ Cutplace - Validate flat data according to an interface control document.
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import codecs
-import csv
 import encodings
 import glob
-import interface
 import logging
 import optparse
-import platform
 import os
 import sys
-import tools
 import traceback
+
+import interface
+import tools
 import version
 import web
 

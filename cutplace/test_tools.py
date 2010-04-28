@@ -25,13 +25,13 @@ class ToolsTest(unittest.TestCase):
     """TestCase for tools module."""
 
     def testCreateTestDateTime(self):
-        for i in range(15):
+        for _ in range(15):
             dateTime = tools.createTestDateTime()
             self.assertTrue(dateTime is not None)
             self.assertNotEqual(dateTime, "")
 
     def testCreateTestName(self):
-        for i in range(15):
+        for _ in range(15):
             name = tools.createTestName()
             self.assertTrue(name is not None)
             self.assertNotEqual(name, "")

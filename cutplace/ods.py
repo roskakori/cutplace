@@ -20,15 +20,14 @@ import csv
 import xml.dom.minidom
 import logging
 import optparse
-import os
-import Queue
 import StringIO
 import sys
 import threading
-import tools
 import types
 import xml.sax
 import zipfile
+
+import tools
 
 class AbstractOdsContentHandler(xml.sax.ContentHandler):
     """
@@ -74,7 +73,7 @@ class AbstractOdsContentHandler(xml.sax.ContentHandler):
             self._log.debug("%s</%s>" % (" " * 2 * self.indent, name))
             assert self.cellText is not None
             self.insideCell = False
-            for i in range(self.numberColumnsRepeated):
+            for _ in range(self.numberColumnsRepeated):
                 cellType = type(self.cellText)
                 assert cellType == types.UnicodeType, "type(%r)=%r" % (self.cellText, cellType)
                 self.row.append(self.cellText)
@@ -259,7 +258,7 @@ def toRst(odsFilePath, rstTargetPath, firstRowIsHeading=True, sheet=1):
     
     if not lengths:
         raise ValueError("file must contain columns: %r" % odsFilePath)
-    for columnsIndex in range(len(lengths)):
+    for columnIndex in range(len(lengths)):
         if lengths[columnIndex] == 0:
             raise ValueError("column %d in file %r must not always be empty" % (columnIndex + 1, odsFilePath))
 

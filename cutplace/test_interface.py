@@ -16,16 +16,16 @@ Tests for interface control documents.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import logging
+import StringIO
+import unittest
+
 import checks
 import data
 import dev_test
 import fields
 import interface
-import logging
 import parsers
-import StringIO
-import tools
-import unittest
 
 _log = logging.getLogger("cutplace.test_interface")
 
@@ -155,7 +155,6 @@ F,branch_id,38123,,5,RegEx,38\d\d\d
 F,customer_id,12345,,,Integer,0:99999
 F,first_name,John,X,15,Text
 """
-        icd = interface.InterfaceControlDocument()
         self._testBroken(spec, fields.FieldSyntaxError)
 
     def testBrokenFixedFieldWithLowerAndUpperLength(self):
@@ -173,7 +172,6 @@ F,branch_id,38123,,5,RegEx,38\d\d\d
 F,customer_id,12345,,1:5,Integer,0:99999
 F,first_name,John,X,15,Text
 """
-        icd = interface.InterfaceControlDocument()
         self._testBroken(spec, fields.FieldSyntaxError)
 
     def testBrokenFixedFieldWithZeroLength(self):
@@ -191,7 +189,6 @@ F,branch_id,38123,,5,RegEx,38\d\d\d
 F,customer_id,12345,,0,Integer,0:99999
 F,first_name,John,X,15,Text
 """
-        icd = interface.InterfaceControlDocument()
         self._testBroken(spec, fields.FieldSyntaxError)
 
     def testBrokenDuplicateFieldName(self):
@@ -209,7 +206,6 @@ F,branch_id,38123,,5,RegEx,38\d\d\d
 F,branch_id,38123,,5,RegEx,38\d\d\d
 F,first_name,John,X,15,Text
 """
-        icd = interface.InterfaceControlDocument()
         self._testBroken(spec, fields.FieldSyntaxError)
 
     def testSimpleIcd(self):
@@ -295,7 +291,6 @@ F,first_name,John,X,15,Text
 
     def testBrokenAsciiIcd(self):
         spec = u",Broken ASCII interface with with non ASCII character: \0xfd" 
-        icd = interface.InterfaceControlDocument()
         # FIXME: Currently causes "Error: line contains NULL byte" but should cause some kind of encoding error.
         # self._testBroken(spec, UnicodeError)
 

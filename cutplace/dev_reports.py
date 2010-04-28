@@ -16,16 +16,16 @@ Development reports for cutplace.
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import cgi
-import dev_colorize
-import keyword
 import logging
 import optparse
 import os
 import pstats
 import StringIO
 import sys
-import tools
 import unittest
+
+import dev_colorize
+import tools
 
 _log = logging.getLogger("cutplace.dev_reports")
 
@@ -82,7 +82,6 @@ def createTasksReport(targetBasePath):
 
     modulePaths = [os.path.join(_getSourceFolder(), fileName) for fileName in _listdirPythonSource()]
     taskTypeToTexts = {}
-    taskTypeCount = {}
     # Collect tasks in module source codes
     for modulePath in modulePaths:
         moduleName = os.path.split(modulePath)[1]
@@ -132,7 +131,6 @@ def createCoverageReport(targetBasePath):
     print "collecting coverage data"
     coverage.erase()
     coverage.start()
-    import tools
     modules = []
     # Note: in order for this to work the script must run from project folder.
     moduleFilesNames = _listdirPythonSource()
@@ -166,7 +164,7 @@ def createCoverageReport(targetBasePath):
           <tr><th>Module</th><th>Statements</th><th>Covered</th><th>Coverage</th></tr>
 """
     for module in modules:
-        f, s, m, mf = coverage.analysis(module)
+        f, _, _, mf = coverage.analysis(module)
         # print "%r, %r, %r, %r" % (f, s, m, mf)
         coverageHtmlName = "coverage_" + os.path.basename(f) + ".html"
         targetHtmlPath = os.path.join(targetBasePath, coverageHtmlName)

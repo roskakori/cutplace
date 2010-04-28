@@ -16,14 +16,13 @@ Tests for parsers.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import dev_test
 import logging
-import os
-import parsers
 import StringIO
-import tools
 import types
 import unittest
+
+import dev_test
+import parsers
 
 _log = logging.getLogger("cutplace.test_parsers")
         
@@ -148,7 +147,7 @@ class DelimitedParserTest(AbstractParserTest):
     # TODO: Add test cases for preservation of blanks between unquoted items.
        
     def testBrokenMissingQuote(self):
-       self._assertRaisesParserSyntaxError("\"")
+        self._assertRaisesParserSyntaxError("\"")
        
     def testSingleCharCsv(self):
         self._assertRowsEqual([["x"]], "x")
@@ -192,7 +191,6 @@ class DelimitedParserTest(AbstractParserTest):
         self._assertRowsEqual([], "")
     
     def testAutoDelimiters(self):
-        lineDelimiter = parsers.CRLF
         dialect = self._createDefaultDialect()
         dialect.lineDelimiter = parsers.AUTO
         dialect.itemDelimiter = parsers.AUTO

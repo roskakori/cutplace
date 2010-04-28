@@ -15,18 +15,17 @@ Test for web server.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import dev_test
 import itertools
 import logging
 import mimetools
 import mimetypes
 import os.path
-import StringIO
 import threading
 import time
 import unittest
-import urllib
 import urllib2
+
+import dev_test
 import web
 
 class MultiPartForm(object):

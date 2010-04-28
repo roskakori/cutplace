@@ -19,7 +19,6 @@ import checks
 import codecs
 import keyword
 import logging
-import os
 import sys
 import token
 import types
@@ -27,7 +26,6 @@ import types
 import data
 import fields
 import parsers
-import ranges
 import tools
 
 class ValidationEventListener(object):
@@ -389,7 +387,6 @@ class InterfaceControlDocument(object):
         self._location = tools.InputLocation(icdFilePath, hasColumn=True, hasCell=True)
         try:
             reader = self._fittingReader(icdFile, encoding)
-            rowNumber = 0
             for row in reader:
                 self._log.debug("%s: parse %r" % (self._location, row))
                 if len(row) >= 1:
@@ -542,10 +539,10 @@ class InterfaceControlDocument(object):
                                     raise checks.CheckError("row must contain items for the following fields: %r" % missingFieldNames)
             
                                 # Validate row checks.
-                                for description, check in self.checkDescriptions.items():
+                                for check in self.checkDescriptions.values():
                                     try:
-                                        if __debug__ and self._log.isEnabledFor(logging.DEBUG):
-                                            self._log.debug("check row: %s" % check)  
+                                        if __debug__:
+                                            self._log.debug("check row: ", check)  
                                         check.checkRow(rowNumber, rowMap)
                                     except checks.CheckError, error:
                                         raise checks.CheckError("row check failed: %r: %s" % (check.description, error))
@@ -574,7 +571,7 @@ class InterfaceControlDocument(object):
                 dataFile.close()
 
         # Validate checks at end of data.
-        for description, check in self.checkDescriptions.items():
+        for check in self.checkDescriptions.values():
             try:
                 self._log.debug("checkAtEnd: %s" % (check))
                 check.checkAtEnd()

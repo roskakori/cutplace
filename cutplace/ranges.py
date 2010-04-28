@@ -20,6 +20,7 @@ format.
 import StringIO
 import token
 import tokenize
+
 import tools
 
 class RangeSyntaxError(tools.CutplaceError):
@@ -83,7 +84,7 @@ class Range(object):
                                 else:
                                     base = 10
                                 longValue = long(nextValue, base)
-                            except ValueError, error:
+                            except ValueError:
                                 raise RangeSyntaxError("number must be an integer but is: %r" % nextValue)
                             if afterHyphen:
                                 longValue = - 1 * longValue

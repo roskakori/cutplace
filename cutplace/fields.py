@@ -16,15 +16,9 @@ Standard field formats supported by cutplace.
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import decimal
-import locale
-import logging
 import re
-import string
-import StringIO
 import sys
 import time
-import token
-import tokenize
 
 import data
 import ranges
@@ -203,7 +197,6 @@ class DecimalFieldFormat(AbstractFieldFormat):
             message = "value is %r but must be a decimal number: %s" % (value, error)
             raise FieldValueError(message)
 
-        result = decimal.Decimal(translatedValue)
         return result
 
 class IntegerFieldFormat(AbstractFieldFormat):
@@ -251,7 +244,7 @@ class DateTimeFieldFormat(AbstractFieldFormat):
         try:
             result = time.strptime(value, self.strptimeFormat)
         except ValueError:
-            raise FieldValueError("date must match format %s (%s) but is: %r (%s)" % (self.humanReadableFormat, self.strptimeFormat, value, sys.exc_value))
+            raise FieldValueError("date must match format %s (%s) but is: %r (%s)" % (self.humanReadableFormat, self.strptimeFormat, value, sys.exc_info()[1]))
         return result
 
 class RegExFieldFormat(AbstractFieldFormat):

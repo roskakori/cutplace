@@ -17,7 +17,6 @@ Data formats that describe the general structure of the data.
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import codecs
 import logging
-import string
 import StringIO
 import token
 import tokenize
@@ -172,8 +171,8 @@ class _BaseDataFormat(object):
 
         try:
             result = long(value)
-        except ValueError, error:
-            raise DataFormatValueError("value for data format property %r is %r but must be an integer number" % (key, value))
+        except ValueError:
+            raise DataFormatValueError("value for data format property %r must be an integer number but is: %r" % (key, value))
         if lowerLimit is not None:
             if result < lowerLimit:
                 raise DataFormatValueError("value for data format property %r is %d but must be at least %d" % (key, result, lowerLimit))
@@ -293,7 +292,7 @@ class _BaseDataFormat(object):
         return self.get(KEY_ENCODING)
 
     def _setEncoding(self, value):
-         self.set(KEY_ENCODING, value)
+        self.set(KEY_ENCODING, value)
 
     encoding = property(_getEncoding, _setEncoding)
 
@@ -441,7 +440,7 @@ class DelimitedDataFormat(_BaseTextDataFormat):
                     else:
                         base = 10
                     longValue = long(nextValue, base)
-                except ValueError, error:
+                except ValueError:
                     raise DataFormatSyntaxError("numeric value for data format property %r must be an integer but is: %r" % (key, value))
             elif nextType == token.NAME:
                 try:

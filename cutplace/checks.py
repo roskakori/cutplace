@@ -57,6 +57,9 @@ class AbstractCheck(object):
         assert description
         assert rule is not None
         assert fieldNames is not None
+        
+        if not fieldNames:
+            raise fields.FieldLookupError("field names must be specified", location)
         self.description = description
         self.rule = rule
         self.fieldNames = fieldNames

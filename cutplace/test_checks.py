@@ -48,11 +48,7 @@ class _AbstractCheckTest(unittest.TestCase):
         self.assertTrue(check.location is not None)
         
     def testMissingFieldNames(self):
-        try:
-            check = checks.AbstractCheck("missing fields", "", [])
-        except fields.FieldLookupError, error:
-            # Ignore expected error
-            pass
+        self.assertRaises(fields.FieldLookupError, checks.AbstractCheck, "missing fields", "", [])
 
     def testCheckRow(self):
         # HACK: This is just here to make coverage happy because "# pragma: no cover" does not work
@@ -99,7 +95,7 @@ class IsUniqueCheckTest(_AbstractCheckTest):
 class DistinctCountCheckTest(unittest.TestCase):
     def testDistinctCountCheck(self):
         fieldNames = _getTestFieldNames()
-        check = checks.DistinctCountCheck("test check", "branch_id<3", fieldNames)
+        checks.DistinctCountCheck("test check", "branch_id<3", fieldNames)
         check = checks.DistinctCountCheck("test check", "branch_id < 3", fieldNames)
         check.checkRow(1, _createFieldMap(fieldNames, [38000, 23, "John", "Doe", "male", "08.03.1957"]))
         check.checkRow(2, _createFieldMap(fieldNames, [38001, 59, "Jane", "Miller", "female", "04.10.1946"]))
