@@ -21,7 +21,6 @@ import mimetools
 import mimetypes
 import os.path
 import threading
-import time
 import unittest
 import urllib2
 

@@ -114,8 +114,8 @@ class DecimalFieldFormatTest(unittest.TestCase):
         self.assertRaises(fields.FieldValueError, format.validated, "12.345,678")
 
         germanFormat = _createGermanDecimalFormat()
-        self.assertRaises(fields.FieldValueError, format.validated, "12.345,678")
-        self.assertRaises(fields.FieldValueError, format.validated, "12.345.678")
+        self.assertRaises(fields.FieldValueError, germanFormat.validated, "12.345,678")
+        self.assertRaises(fields.FieldValueError, germanFormat.validated, "12.345.678")
         
     def testBrokenDecimalSyntax(self):
         self.assertRaises(fields.FieldSyntaxError, fields.DecimalFieldFormat, "x", False, None, "eggs", _anyFormat)
@@ -158,7 +158,7 @@ class RegExFieldFormatTest(unittest.TestCase):
     
     def testBrokenRegEx(self):
         try:
-            format = fields.RegExFieldFormat("x", False, None, "*", _anyFormat)
+            fields.RegExFieldFormat("x", False, None, "*", _anyFormat)
             self.fail("broken pattern must raise error")
         except:
             # Ignore error caused by broken pattern. It would be better to use assertFails but

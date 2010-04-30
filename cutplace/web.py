@@ -17,18 +17,16 @@ Web server to provide a simple GUI for cutplace.
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import cgi
 import BaseHTTPServer
-import errno
-import interface
 import logging
-import os
-import select
 import StringIO
 import sys
 import tempfile
 import threading
 import time
-import tools
 import urllib
+
+import interface
+import tools
 import version
 
 """
