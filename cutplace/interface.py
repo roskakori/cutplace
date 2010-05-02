@@ -94,7 +94,7 @@ class InterfaceControlDocument(object):
         self.fieldFormats = []
         self.fieldNameToFormatMap = {}
         self.checkDescriptions = {}
-        self.ValidationEventListeners = []
+        self._validationEventListeners = []
         # TODO: Add logTrace as property and let setter check for True or False.
         self.logTrace = False
         self._resetCounts()
@@ -457,7 +457,7 @@ class InterfaceControlDocument(object):
         self._log.debug("rejected: %s" % row)
         self._log.debug(reason, exc_info=self.logTrace)
         self.rejectedCount += 1
-        for listener in self.ValidationEventListeners:
+        for listener in self._validationEventListeners:
             # TODO: Add location.
             listener.rejectedRow(row, reason)
 
@@ -550,7 +550,7 @@ class InterfaceControlDocument(object):
                                         raise checks.CheckError("row check failed: %r: %s" % (check.description, error), location)
                                 self._log.debug("accepted: %s" % row)
                                 self.acceptedCount += 1
-                                for listener in self.ValidationEventListeners:
+                                for listener in self._validationEventListeners:
                                     # TODO: Add location.
                                     listener.acceptedRow(row)
                             except data.DataFormatValueError, error:
@@ -586,15 +586,15 @@ class InterfaceControlDocument(object):
                 reason = "check at end of data failed: %r: %s" % (check.description, message)
                 self._log.error(reason)
                 self.failedChecksAtEndCount += 1
-                for listener in self.ValidationEventListeners:
+                for listener in self._validationEventListeners:
                     listener.checkAtEndFailed(reason)
         
     def addValidationEventListener(self, listener):
         assert listener is not None
-        assert listener not in self.ValidationEventListeners
-        self.ValidationEventListeners.append(listener)
+        assert listener not in self._validationEventListeners
+        self._validationEventListeners.append(listener)
         
     def removeValidationEventListener(self, listener):
         assert listener is not None
-        assert listener in self.ValidationEventListeners
-        self.ValidationEventListeners.remove(listener)
+        assert listener in self._validationEventListeners
+        self._validationEventListeners.remove(listener)
