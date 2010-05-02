@@ -42,11 +42,6 @@ SYMBOLIC_NAMES_MAP = {
     "vt": 11
 }
 
-def _rowPartAsExcel(rowPart):
-    assert rowPart >= 0
-    assert rowPart < 26
-    return chr(ord("A") + rowPart)
-
 class InputLocation(object):
     """
     Location in an input file, consisting of `line`, an optional `column` (pointing at a
