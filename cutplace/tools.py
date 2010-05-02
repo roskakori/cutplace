@@ -123,7 +123,16 @@ class _BaseCutplaceError(Exception):
     Exception that supports a `message` describing the error and an optional
     `location` in the input where the error happened.
     """
-    def __init__(self, message, location=None, seeAlsoMessage=None, seeAlsoLocation=None):
+    def __init__(self, message, location=None, seeAlsoMessage=None, seeAlsoLocation=None, cause=None):
+        """
+        Create exception that supports a `message` describing the error and an optional
+        `location` in the input where the error happened. If the message is related
+         to another location (for example when attempting to redefine a field with
+         the same name), `seeAlsoMessage` should describe the meaning of the other
+         location and `seeAlsoLocation` should point to the location. If the exception is the
+         result of another exception that happened earlier (for example a `UnicodeError`, 
+         `cause` should contain this exception to simplify debugging.
+        """
         assert message
         assert (seeAlsoLocation and seeAlsoMessage) or not seeAlsoLocation
         # Note: We cannot use `super` because `Exception` is an old style class.
@@ -131,6 +140,7 @@ class _BaseCutplaceError(Exception):
         self.location = location
         self.seeAlsoMessage = seeAlsoMessage
         self.seeAlsoLocation = seeAlsoLocation
+        self.cause = cause
 
     def __str__(self):
         result = ""
@@ -165,6 +175,7 @@ class UTF8Recoder:
     Iterator that reads an encoded stream and reencodes the input to UTF-8
     """
     def __init__(self, f, encoding):
+        # FIXME: This line raises UnicodeError describe in test_interface.testBrokenAsciiIcd().
         self.reader = codecs.getreader(encoding)(f)
 
     def __iter__(self):
@@ -174,7 +185,7 @@ class UTF8Recoder:
         try:
             result = self.reader.next().encode("utf-8")
         except UnicodeError, error:
-            raise CutplaceUnicodeError("cannot decode input: %s" % error)
+            raise CutplaceUnicodeError("cannot decode input: %s" % error, cause=error)
         return result
 
 class UnicodeCsvReader:

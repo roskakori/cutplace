@@ -26,6 +26,7 @@ import dev_test
 import fields
 import interface
 import parsers
+import tools
 
 _log = logging.getLogger("cutplace.test_interface")
 
@@ -290,9 +291,27 @@ F,first_name,John,X,15,Text
         self.assertEqual(icd.failedChecksAtEndCount, 0)
 
     def testBrokenAsciiIcd(self):
-        spec = u",Broken ASCII interface with with non ASCII character: \0xfd" 
-        # FIXME: Currently causes "Error: line contains NULL byte" but should cause some kind of encoding error.
-        # self._testBroken(spec, UnicodeError)
+        spec = u",Broken ASCII interface with with non ASCII character\n,\u00fd" 
+        icd = interface.InterfaceControlDocument()
+        readable = StringIO.StringIO(spec)
+        self.assertRaises(tools.CutplaceUnicodeError, icd.read, readable)
+        
+        # FIXME: When called from eclipse, this just works, but when called from console it failes with:
+        # ERROR:tools:'ascii' codec can't encode character u'\xfd' in position 55: ordinal not in range(128)
+        # Traceback (most recent call last):
+        #   File "/Users/agi/workspace/cutplace/cutplace/tools.py", line 177, in next
+        #     result = self.reader.next().encode("utf-8")
+        #   File "/opt/local/Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/codecs.py", line 562, in next
+        #     line = self.readline()
+        #   File "/opt/local/Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/codecs.py", line 477, in readline
+        #     data = self.read(readsize, firstline=True)
+        #   File "/opt/local/Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/codecs.py", line 424, in read
+        #     newchars, decodedbytes = self.decode(data, self.errors)
+        #   File "/opt/local/Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/encodings/iso8859_15.py", line 15, in decode
+        #     return codecs.charmap_decode(input,errors,decoding_table)
+        # UnicodeEncodeError: 'ascii' codec can't encode character u'\xfd' in position 55: ordinal not in range(128)
+
+        # FIXME: self.assertRaises(interface.IcdSyntaxError, icd.read, readable, "iso-8859-15")
 
     def testBrokenAsciiData(self):
         icd = createDefaultTestIcd(data.FORMAT_CSV)

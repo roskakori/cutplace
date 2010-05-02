@@ -41,7 +41,7 @@ def delimitedReader(readable, dialect, encoding="ascii"):
     assert readable is not None
     assert dialect is not None
     assert encoding is not None
-    
+
     parser = _DelimitedParser(readable, dialect, encoding)
     columns = []
     while not parser.atEndOfFile:
@@ -271,7 +271,7 @@ class _DelimitedParser(object):
         self.blanksAroundItemDelimiter = dialect.blanksAroundItemDelimiter
 
         self.item = None
-
+        
         # FIXME: Read delimited items without holding the whole file into memory.
         self.rows = []
         # HACK: Convert delimiters using `str()` because `csv.reader()` cannot handle Unicode strings,
