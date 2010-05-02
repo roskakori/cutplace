@@ -4,12 +4,21 @@ Revision history
 
 This chapter describes improvements compared to earlier versions of cutplace.
 
-Version 0.6.1, 25-Apr-2010
+Version 0.6.2, xx-May-2010
 ==========================
 
+* Added input location for error messages caused by failed checks.
+  (Ticket #26, #27 and #28)
+
 * Added error message if a field name is a Python keyword such as
-  ``class`` or ``if``. The helps to avoid strange errors later if
+  ``class`` or ``if``. The helps to avoid strange error messages if
   the field is referred to later from a `ísUnique`` check.
+  (Ticket #20)
+
+* Changed style for error messages referring to locations in CSV, ODS
+  and Excel data to R1C1. For example, "R17C23" points to row 15,
+  column 23.
+
 
 Version 0.6.1, 25-Apr-2010
 ==========================

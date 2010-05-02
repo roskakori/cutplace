@@ -42,12 +42,17 @@ SYMBOLIC_NAMES_MAP = {
     "vt": 11
 }
 
+def _rowPartAsExcel(rowPart):
+    assert rowPart >= 0
+    assert rowPart < 26
+    return chr(ord("A") + rowPart)
+
 class InputLocation(object):
     """
     Location in an input file, consisting of `line`, an optional `column` (pointing at a
     single character) and an optional cell (pointing a cell in a structured input such as CSV).  
     """
-    def __init__(self, filePath, hasColumn=False, hasCell=False):
+    def __init__(self, filePath, hasColumn=False, hasCell=False, hasSheet=False):
         assert filePath
         if isinstance(filePath, types.StringTypes):
             self.filePath = filePath
@@ -56,8 +61,10 @@ class InputLocation(object):
         self.line = 0
         self.column = 0
         self.cell = 0
+        self.sheet = 0
         self._hasColumn = hasColumn
         self._hasCell = hasCell
+        self._hasSheet = hasSheet
 
     def advanceColumn(self, amount=1):
         assert amount is not None
@@ -82,13 +89,22 @@ class InputLocation(object):
         self.column = 0
         self.cell = 0
 
+    def advanceSheet(self):
+        self.sheet += 1
+        self.line = 0
+        self.column = 0
+        self.cell = 0
+
     def __str__(self):
-        result = os.path.basename(self.filePath)
-        result += " (%d" % (self.line + 1)
+        result = os.path.basename(self.filePath) + " ("
+        if self._hasCell:
+            if self._hasSheet:
+                result += "Sheet%d!" % (self.sheet + 1)
+            result += "R%dC%d" % (self.line + 1, self.cell + 1)
+        else:
+            result += "%d" % (self.line + 1)
         if self._hasColumn:
             result += ";%d" % (self.column + 1)
-        if self._hasCell:
-            result += "@%d" % (self.cell + 1)
         result += ")"
         return result
 

@@ -90,10 +90,18 @@ class ToolsTest(unittest.TestCase):
         location = tools.InputLocation("eggs.csv", hasCell=True)
         self.assertEqual(location.line, 0)
         self.assertEqual(location.cell, 0)
-        self.assertEqual(str(location), "eggs.csv (1@1)")
+        self.assertEqual(str(location), "eggs.csv (R1C1)")
         location.advanceLine()
         location.advanceCell(17)
-        self.assertEqual(str(location), "eggs.csv (2@18)")
+        self.assertEqual(str(location), "eggs.csv (R2C18)")
+
+        # Test input with sheet.
+        location = tools.InputLocation("eggs.ods", hasCell=True, hasSheet=True)
+        self.assertEqual(str(location), "eggs.ods (Sheet1!R1C1)")
+        location.advanceSheet()
+        location.advanceLine()
+        location.advanceCell(17)
+        self.assertEqual(str(location), "eggs.ods (Sheet2!R2C18)")
 
         # Test StringIO input
         input = StringIO.StringIO("hugo was here")

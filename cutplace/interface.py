@@ -373,8 +373,8 @@ class InterfaceControlDocument(object):
         Read the ICD as specified in `icdFilePath`.
         
           - `icdPath` - either the path of a file or a `StringIO`
-          - `encoding` - the name of the encoding to use when reading the ICD; depending the the
-          file type this might be ignored 
+          - `encoding` - the name of the encoding to use when reading the ICD; depending  on the
+            file type this might be ignored 
         """
         assert icdFilePath is not None
         assert encoding is not None
@@ -384,7 +384,7 @@ class InterfaceControlDocument(object):
             icdFile = open(icdFilePath, "rb")
         else:
             icdFile = icdFilePath
-        self._location = tools.InputLocation(icdFilePath, hasColumn=True, hasCell=True)
+        self._location = tools.InputLocation(icdFilePath, hasCell=True)
         try:
             reader = self._fittingReader(icdFile, encoding)
             for row in reader:
@@ -432,12 +432,15 @@ class InterfaceControlDocument(object):
 
         if self.dataFormat.name in [data.FORMAT_CSV, data.FORMAT_EXCEL, data.FORMAT_ODS]:
             needsOpen = isinstance(dataFileToValidatePath, types.StringTypes)
+            hasSheet = (self.dataFormat.name != data.FORMAT_CSV)
+            location = tools.InputLocation(dataFileToValidatePath, hasCell=True, hasSheet=hasSheet)
             if needsOpen:
                 dataFile = open(dataFileToValidatePath, "rb")
             else:
                 dataFile = dataFileToValidatePath
         elif self.dataFormat.name == data.FORMAT_FIXED:
             needsOpen = isinstance(dataFileToValidatePath, types.StringTypes)
+            location = tools.InputLocation(dataFileToValidatePath, hasColumn=True, hasCell=True)
             if needsOpen:
                 dataFile = codecs.open(dataFileToValidatePath, "rb", self.dataFormat.encoding)
             else:
@@ -445,14 +448,17 @@ class InterfaceControlDocument(object):
         else: # pragma: no cover
             raise NotImplementedError("data format: %r" % self.dataFormat.name)
         
-        return (dataFile, needsOpen)
+        return (dataFile, location, needsOpen)
         
-    def _reject_row(self, row, reason):
+    def _rejectRow(self, row, reason, location):
+        # TODO: assert row is not None???
         assert reason
+        assert location
         self._log.debug("rejected: %s" % row)
         self._log.debug(reason, exc_info=self.logTrace)
         self.rejectedCount += 1
         for listener in self.ValidationEventListeners:
+            # TODO: Add location.
             listener.rejectedRow(row, reason)
 
     def validate(self, dataFileToValidatePath, validationListener=None):
@@ -469,7 +475,7 @@ class InterfaceControlDocument(object):
         for check in self.checkDescriptions.values():
             check.reset()
 
-        (dataFile, needsOpen) = self._obtainReadable(dataFileToValidatePath)
+        (dataFile, location, needsOpen) = self._obtainReadable(dataFileToValidatePath)
         try:
             if self.dataFormat.name == data.FORMAT_CSV:
                 dialect = parsers.DelimitedDialect()
@@ -512,56 +518,54 @@ class InterfaceControlDocument(object):
             try:
                 if validationListener is not None:
                     self.addValidationEventListener(validationListener)
-                rowNumber = 0
+                # FIXME: Set location.sheet to actual sheet to validate
                 try:
                     for row in reader:
-                        itemIndex = 0
-                        rowNumber += 1
-                        
-                        if rowNumber > firstRowToValidateFieldsIn:
+                        if location.line >= firstRowToValidateFieldsIn:
                             try:
                                 # Validate all items of the current row and collect their values in `rowMap`.
                                 maxItemCount = min(len(row), len(self.fieldFormats))
                                 rowMap = {}
-                                while itemIndex < maxItemCount:
-                                    item = row[itemIndex]
-                                    assert not isinstance(item, str), "item at row %d, column %d must be Unicode string instead of plain string: %r" % (rowNumber, itemIndex + 1, item)
-                                    fieldFormat = self.fieldFormats[itemIndex]
+                                while location.cell < maxItemCount:
+                                    item = row[location.cell]
+                                    assert not isinstance(item, str), "%s: item must be Unicode string instead of plain string: %r" % (location, item)
+                                    fieldFormat = self.fieldFormats[location.cell]
                                     if __debug__ and self._log.isEnabledFor(logging.DEBUG):
-                                        self._log.debug("validate item %d/%d: %r with %s <- %r" % (itemIndex + 1, len(self.fieldFormats), item, fieldFormat, row))  
+                                        self._log.debug("validate item %d/%d: %r with %s <- %r" % (location.cell + 1, len(self.fieldFormats), item, fieldFormat, row))  
                                     rowMap[fieldFormat.fieldName] = fieldFormat.validated(item) 
-                                    itemIndex += 1
-                                if itemIndex != len(row):
-                                    itemIndex -= 1
-                                    raise checks.CheckError("unexpected data must be removed after item %d" % (itemIndex))
+                                    location.advanceCell()
+                                if location.cell != len(row):
+                                    raise checks.CheckError("unexpected data must be removed after item %d" % (location.cell), location)
                                 elif len(row) < len(self.fieldFormats):
                                     missingFieldNames = self.fieldNames[(len(row) - 1):]
-                                    raise checks.CheckError("row must contain items for the following fields: %r" % missingFieldNames)
+                                    raise checks.CheckError("row must contain items for the following fields: %r" % missingFieldNames, location)
             
                                 # Validate row checks.
                                 for check in self.checkDescriptions.values():
                                     try:
                                         if __debug__:
-                                            self._log.debug("check row: ", check)  
-                                        check.checkRow(rowNumber, rowMap)
+                                            self._log.debug("check row: ", check)
+                                        check.checkRow(rowMap, location)
                                     except checks.CheckError, error:
-                                        raise checks.CheckError("row check failed: %r: %s" % (check.description, error))
+                                        raise checks.CheckError("row check failed: %r: %s" % (check.description, error), location)
                                 self._log.debug("accepted: %s" % row)
                                 self.acceptedCount += 1
                                 for listener in self.ValidationEventListeners:
+                                    # TODO: Add location.
                                     listener.acceptedRow(row)
-                            except data.DataFormatValueError:
-                                raise
+                            except data.DataFormatValueError, error:
+                                raise data.DataFormatValueError("cannot process data format", location, cause=error)
                             except tools.CutplaceError, error:
                                 isFieldValueError = isinstance(error, fields.FieldValueError)
                                 if isFieldValueError:
-                                    fieldName = self.fieldNames[itemIndex]
+                                    fieldName = self.fieldNames[location.cell]
                                     reason = "field %r must match format: %s" % (fieldName, error)
                                 else:
                                     reason = str(error)
-                                self._reject_row(row, reason)
+                                self._rejectRow(row, reason, location)
+                        location.advanceLine()
                 except tools.CutplaceUnicodeError, error:
-                    self._reject_row([], error)
+                    self._rejectRow([], error, location)
                     # raise data.DataFormatValueError("cannot read row %d: %s" % (rowNumber + 2, error))
             finally:
                 if validationListener is not None:
@@ -571,10 +575,12 @@ class InterfaceControlDocument(object):
                 dataFile.close()
 
         # Validate checks at end of data.
+        # FIXME: Move inside code where `validationListener` is active.
+        # TODO: For checks at end, reset location to beginning of file and sheet
         for check in self.checkDescriptions.values():
             try:
                 self._log.debug("checkAtEnd: %s" % (check))
-                check.checkAtEnd()
+                check.checkAtEnd(location)
                 self.passedChecksAtEndCount += 1
             except checks.CheckError, message:
                 reason = "check at end of data failed: %r: %s" % (check.description, message)

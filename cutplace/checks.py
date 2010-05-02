@@ -80,13 +80,13 @@ class AbstractCheck(object):
         """
         pass
 
-    def checkRow(self, rowNumber, row):
+    def checkRow(self, row, location):
         """"
         Check row and in case it is invalid raise CheckError. By default do nothing.
         """
         pass
     
-    def checkAtEnd(self):
+    def checkAtEnd(self, location):
         """
         Check at at end of document when all rows have been read and in case something is wrong
         raise CheckError. By default do nothing.
@@ -138,16 +138,18 @@ class IsUniqueCheck(AbstractCheck):
     def reset(self):
         self.uniqueValues = {}
         
-    def checkRow(self, rowNumber, rowMap):
+    def checkRow(self, rowMap, location):
         key = []
         for fieldName in self.fieldNamesToCheck:
             item = rowMap[fieldName]
             key.append(item)
         keyText = repr(key)
-        if  keyText in self.uniqueValues:
-            raise CheckError("unique %r has already occurred in row %d: %s" % (self.fieldNamesToCheck, self.uniqueValues[keyText], keyText))
+        seeAlsoLocation = self.uniqueValues.get(keyText)
+        if seeAlsoLocation is not None:
+            raise CheckError("unique %r has already occurred: %s" % (self.fieldNamesToCheck, keyText),
+                location, seeAlsoMessage="location of previous occurrence", seeAlsoLocation=seeAlsoLocation)
         else:
-            self.uniqueValues[keyText] = rowNumber
+            self.uniqueValues[keyText] = location
 
 class DistinctCountCheck(AbstractCheck):
     """
@@ -191,13 +193,13 @@ class DistinctCountCheck(AbstractCheck):
             raise CheckSyntaxError("count expression %r must result in %r or %r, but test resulted in: %r" % (self.expression, True, False, result))
         return result
         
-    def checkRow(self, rowNumber, rowMap):
+    def checkRow(self, rowMap, location):
         value = rowMap[self.fieldNameToCount]
         try:
             self.distinctValuesToCountMap[value] += 1
         except KeyError:
             self.distinctValuesToCountMap[value] = 1
 
-    def checkAtEnd(self):
+    def checkAtEnd(self, location):
         if not self._eval():
-            raise CheckError("distinct count is %d but check requires: %r" % (self._distinctCount(), self.expression))
+            raise CheckError("distinct count is %d but check requires: %r" % (self._distinctCount(), self.expression), location)

@@ -20,6 +20,8 @@ import fields
 import logging
 import unittest
 
+import tools
+
 def _createFieldMap(fieldNames, fieldValues):
     assert fieldNames
     assert fieldValues
@@ -55,19 +57,23 @@ class _AbstractCheckTest(unittest.TestCase):
         # on methods that consist of nothing but a single "pass".
         fieldNames = _getTestFieldNames()
         check = checks.AbstractCheck("test check", "", fieldNames)
-        check.checkRow(1, [])
+        location = tools.InputLocation(self.testCheckRow, hasCell=True)
+        check.checkRow([], location)
         
 class IsUniqueCheckTest(_AbstractCheckTest):
     def testIsUniqueCheck(self):
         fieldNames = _getTestFieldNames()
         check = checks.IsUniqueCheck("test check", "branch_id, customer_id", fieldNames)
-        check.checkRow(1, _createFieldMap(fieldNames, [38000, 23, "John", "Doe", "male", "08.03.1957"]))
-        check.checkRow(2, _createFieldMap(fieldNames, [38000, 59, "Jane", "Miller", "female", "04.10.1946"]))
-        self.assertRaises(checks.CheckError, check.checkRow, 3,
-                          _createFieldMap(fieldNames, [38000, 59, "Jane", "Miller", "female", "04.10.1946"]))
+        location = tools.InputLocation(self.testIsUniqueCheck, hasCell=True)
+        check.checkRow(_createFieldMap(fieldNames, [38000, 23, "John", "Doe", "male", "08.03.1957"]), location)
+        location.advanceLine()
+        check.checkRow(_createFieldMap(fieldNames, [38000, 59, "Jane", "Miller", "female", "04.10.1946"]), location)
+        location.advanceLine()
+        self.assertRaises(checks.CheckError, check.checkRow,
+                          _createFieldMap(fieldNames, [38000, 59, "Jane", "Miller", "female", "04.10.1946"]), location)
 
         # These methods should not do anything, but call them anyway for test sake.
-        check.checkAtEnd()
+        check.checkAtEnd(location)
         check.cleanup()
 
     def testBrokenUniqueCheckWithMissingFields(self):
@@ -97,11 +103,14 @@ class DistinctCountCheckTest(unittest.TestCase):
         fieldNames = _getTestFieldNames()
         checks.DistinctCountCheck("test check", "branch_id<3", fieldNames)
         check = checks.DistinctCountCheck("test check", "branch_id < 3", fieldNames)
-        check.checkRow(1, _createFieldMap(fieldNames, [38000, 23, "John", "Doe", "male", "08.03.1957"]))
-        check.checkRow(2, _createFieldMap(fieldNames, [38001, 59, "Jane", "Miller", "female", "04.10.1946"]))
-        check.checkAtEnd()
-        check.checkRow(2, _createFieldMap(fieldNames, [38003, 59, "Jane", "Miller", "female", "04.10.1946"]))
-        self.assertRaises(checks.CheckError, check.checkAtEnd)
+        location = tools.InputLocation(self.testDistinctCountCheck, hasCell=True)
+        check.checkRow(_createFieldMap(fieldNames, [38000, 23, "John", "Doe", "male", "08.03.1957"]), location)
+        location.advanceLine()
+        check.checkRow(_createFieldMap(fieldNames, [38001, 59, "Jane", "Miller", "female", "04.10.1946"]), location)
+        check.checkAtEnd(location)
+        location.advanceLine()
+        check.checkRow(_createFieldMap(fieldNames, [38003, 59, "Jane", "Miller", "female", "04.10.1946"]), location)
+        self.assertRaises(checks.CheckError, check.checkAtEnd, location)
 
     def testBrokenExpressions(self):
         fieldNames = _getTestFieldNames()
@@ -113,6 +122,5 @@ class DistinctCountCheckTest(unittest.TestCase):
         self.assertRaises(checks.CheckSyntaxError, checks.DistinctCountCheck, "broken", "branch_id + 123", fieldNames)
 
 if __name__ == "__main__": # pragma: no cover
-    logging.basicConfig()
-    logging.getLogger("cutplace").setLevel(logging.INFO)
+    logging.basicConfig(level=logging.INFO)
     unittest.main()
