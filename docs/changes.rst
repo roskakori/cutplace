@@ -19,6 +19,13 @@ Version 0.6.2, xx-May-2010
   and Excel data to R1C1. For example, "R17C23" points to row 15,
   column 23.
 
+* Changed interface for listeners of validation events:
+
+  * Renamed `ValidationListener` to `BaseValidationListener`.
+
+  * Added parameter `location` to `acceptedRow()` which is of type
+    `tools.InputLocation`.
+
 
 Version 0.6.1, 25-Apr-2010
 ==========================

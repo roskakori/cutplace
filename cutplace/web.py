@@ -41,9 +41,9 @@ _SERVER_VERSION = "cutplace/%s" % version.VERSION_NUMBER
 _allowShutDown = False
 _readyToShutDown = False
 
-class _HtmlWritingValidationEventListener(interface.ValidationEventListener):
+class _HtmlWritingValidationEventListener(interface.BaseValidationEventListener):
     """
-    `ValidationEventListener` that writes accepted and rejected rows as HTML table.
+    `BaseValidationEventListener` that writes accepted and rejected rows as HTML table.
     """
     def __init__(self, htmlTargetFile, itemCount):
         assert htmlTargetFile is not None
@@ -68,7 +68,7 @@ class _HtmlWritingValidationEventListener(interface.ValidationEventListener):
         self._htmlTargetFile.write("<td colspan=\"%d\">%s</td>\n" % (self._itemCount, cgi.escape(text)))
         self._htmlTargetFile.write("</tr>\n")
         
-    def acceptedRow(self, row):
+    def acceptedRow(self, row, location):
         assert row is not None
         self.acceptedCount += 1
         self._writeRow(row, "ok")

@@ -59,7 +59,7 @@ class NoExitOptionParser(optparse.OptionParser):
         if self.version:
             print >> file, "Python %s, %s" % (tools.pythonVersion(), tools.platformVersion()) 
 
-class CutplaceValidationEventListener(interface.ValidationEventListener):
+class CutplaceValidationEventListener(interface.BaseValidationEventListener):
     """
     Listener for ICD events that writes accepted and rejected rows to the files specified in the
     command line options.
@@ -72,7 +72,7 @@ class CutplaceValidationEventListener(interface.ValidationEventListener):
         self.checksAtEndFailedCount = 0
         self.log = logging.getLogger("cutplace")
 
-    def acceptedRow(self, row):
+    def acceptedRow(self, row, location):
         self.acceptedRowCount += 1
         if self.acceptedFile is None:
             self.log.info("accepted: %r" % row)

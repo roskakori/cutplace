@@ -28,14 +28,14 @@ import fields
 import parsers
 import tools
 
-class ValidationEventListener(object):
+class BaseValidationEventListener(object):
     """
     Listener to process events during `InterfaceControlDocument.validate()`.
     
-    To act on events, define a class inheriting from `ValidationEventListener` and overwrite the
-    methods for those events you are interested in:
+    To act on events, define a class inheriting from `BaseValidationEventListener` and overwrite the
+    methods for the events you are interested in:
 
-    >>> class MyValidationEventListener(ValidationEventListener):
+    >>> class MyValidationEventListener(BaseValidationEventListener):
     ...     def rejectedRow(self, row, error):
     ...         print "%r" % row
     ...         print "error: %s" % error
@@ -55,15 +55,23 @@ class ValidationEventListener(object):
     
     >>> icd.removeValidationEventListener(listener)
     """
-    # TODO: Rename to `BaseValidationEventListener`.
-    # FIXME: Add error positions: rowNumber, itemNumber, indexInItem
-    def acceptedRow(self, row):
+    def acceptedRow(self, row, location):
+        """Called in case `row` at `tools.InputLocation` `location` has been accepted."""
         pass
     
     def rejectedRow(self, row, error):
+        """
+        Called in case `row` has been rejected due to `error`, which is of type
+        `tools.CutplaceError`. To learn the location in the input, query
+        `error.location`.
+        """
         pass
     
     def checkAtEndFailed(self, error):
+        """
+        Called in case any of the checks performed at the end of processing
+         the data due to `error`, which is of type `tools.CutplaceError`.
+        """
         pass
     
     # TODO: Ponder: Would there be any point in `dataFormatFailed(self, error)`?
@@ -464,7 +472,7 @@ class InterfaceControlDocument(object):
     def validate(self, dataFileToValidatePath, validationListener=None):
         """
         Validate that all rows and items in `dataFileToValidatePath` conform to this interface.
-        The optional `validationListener` is a  `ValidationEventListener` which is informed
+        The optional `validationListener` is a  `BaseValidationEventListener` which is informed
         about detailed results of the validation. 
         """
         # FIXME: Split up `validate()` in several smaller methods.
@@ -552,7 +560,7 @@ class InterfaceControlDocument(object):
                                 self.acceptedCount += 1
                                 for listener in self._validationEventListeners:
                                     # TODO: Add location.
-                                    listener.acceptedRow(row)
+                                    listener.acceptedRow(row, location)
                             except data.DataFormatValueError, error:
                                 raise data.DataFormatValueError("cannot process data format", location, cause=error)
                             except tools.CutplaceError, error:

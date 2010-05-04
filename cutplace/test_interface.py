@@ -30,7 +30,7 @@ import tools
 
 _log = logging.getLogger("cutplace.test_interface")
 
-class _SimpleErrorLoggingValidationEventListener(interface.ValidationEventListener):
+class _SimpleErrorLoggingValidationEventListener(interface.BaseValidationEventListener):
     def __init__(self):
         self.acceptedRowCount = 0
         self.rejectedRowCount = 0
@@ -39,7 +39,7 @@ class _SimpleErrorLoggingValidationEventListener(interface.ValidationEventListen
     def _logError(self, row, error):
         _log.warning("error during validation: %s %r" % (error, row))
 
-    def acceptedRow(self, row):
+    def acceptedRow(self, row, location):
         self.acceptedRowCount += 1
         _log.info("accepted: %r" % row)
 
