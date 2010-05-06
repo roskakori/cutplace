@@ -30,11 +30,11 @@ class CutplaceTest(unittest.TestCase):
     """Test cases for cutplace command line interface."""
 
     def testVersion(self):
-        self.assertRaises(cutplace.ExitQuietlyOptionError, cutplace.main, ["--version"])
+        self.assertRaises(cutplace._ExitQuietlyOptionError, cutplace.main, ["--version"])
         
     def testHelp(self):
-        self.assertRaises(cutplace.ExitQuietlyOptionError, cutplace.main, ["--help"])
-        self.assertRaises(cutplace.ExitQuietlyOptionError, cutplace.main, ["-h"])
+        self.assertRaises(cutplace._ExitQuietlyOptionError, cutplace.main, ["--help"])
+        self.assertRaises(cutplace._ExitQuietlyOptionError, cutplace.main, ["-h"])
 
     def testListEncodings(self):
         cutplace.main(["--list-encodings"])

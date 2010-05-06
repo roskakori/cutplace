@@ -36,19 +36,19 @@ def _openForWriteUsingUtf8(targetPath):
     assert targetPath is not None
     return codecs.open(targetPath, encoding="utf-8", mode="w")
 
-class ExitQuietlyOptionError(optparse.OptionError):
+class _ExitQuietlyOptionError(optparse.OptionError):
     """
     Pseudo error to indicate the program should exit quietly, for example when --help or --verbose
     was specified.
     """
     pass
 
-class NoExitOptionParser(optparse.OptionParser):
+class _NoExitOptionParser(optparse.OptionParser):
     def exit(self, status=0, msg=None):
         if status:
             raise optparse.OptionError(msg, "")
         else:
-            raise ExitQuietlyOptionError(msg, "")
+            raise _ExitQuietlyOptionError(msg, "")
 
     def error(self, msg):
         raise optparse.OptionError(msg, "")
@@ -135,7 +135,7 @@ class CutPlace(object):
   %prog --web [options]
     launch web server providing a web interface for validation"""
 
-        parser = NoExitOptionParser(usage=usage, version="%prog " + version.VERSION_TAG)
+        parser = _NoExitOptionParser(usage=usage, version="%prog " + version.VERSION_TAG)
         parser.set_defaults(icdEncoding=DEFAULT_ICD_ENCODING, isLogTrace=False, isOpenBrowser=False, logLevel="warning", port=web.DEFAULT_PORT)
         parser.add_option("--list-encodings", action="store_true", dest="isShowEncodings", help="show list of available character encodings and exit")
         validationGroup = optparse.OptionGroup(parser, "Validation options", "Specify how to validate data and how to report the results")
@@ -204,7 +204,11 @@ class CutPlace(object):
             else:
                 validationSplitListener = CutplaceValidationEventListener()
             try:
-                self.icd.validate(dataFilePath, validationSplitListener)
+                self.icd.addValidationEventListener(validationSplitListener)
+                try:
+                    self.icd.validate(dataFilePath)
+                finally:
+                    self.icd.removeValidationEventListener(validationSplitListener)
                 shortDataFilePath = os.path.basename(dataFilePath)
                 acceptedRowCount = validationSplitListener.acceptedRowCount
                 rejectedRowCount = validationSplitListener.rejectedRowCount
@@ -296,10 +300,10 @@ def mainForScript():
     except tools.CutplaceError, error:
         _exitWithError(1, "cannot process Excel format: %s" % error)
     except optparse.OptionError, error:
-        if not isinstance(error, ExitQuietlyOptionError):
+        if not isinstance(error, _ExitQuietlyOptionError):
             _exitWithError(2, "cannot process command line options: %s" % error)
     except optparse.OptionError, error:
-        if not isinstance(error, ExitQuietlyOptionError):
+        if not isinstance(error, _ExitQuietlyOptionError):
             _exitWithError(2, "cannot process command line options: %s" % error)
     except Exception, error:
         traceback.print_exc()

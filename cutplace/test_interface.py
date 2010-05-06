@@ -31,6 +31,9 @@ import tools
 _log = logging.getLogger("cutplace.test_interface")
 
 class _SimpleErrorLoggingValidationEventListener(interface.BaseValidationEventListener):
+    """
+    Listener for validation events that simply logs and counts the delivered events.
+    """
     def __init__(self):
         self.acceptedRowCount = 0
         self.rejectedRowCount = 0
@@ -322,7 +325,11 @@ F,first_name,John,X,15,Text
 38000,23,"Mike","Webster","male","23.12.1974"
 """
         dataReadable = StringIO.StringIO(dataText)
-        icd.validate(dataReadable, _defaultIcdListener)
+        icd.addValidationEventListener(_defaultIcdListener)
+        try:
+            icd.validate(dataReadable)
+        finally:
+            icd.removeValidationEventListener(_defaultIcdListener)
         self.assertEqual(_defaultIcdListener.acceptedRowCount, 0)
         self.assertEqual(_defaultIcdListener.rejectedRowCount, 1)
 

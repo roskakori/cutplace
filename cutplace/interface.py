@@ -70,7 +70,7 @@ class BaseValidationEventListener(object):
     def checkAtEndFailed(self, error):
         """
         Called in case any of the checks performed at the end of processing
-         the data due to `error`, which is of type `tools.CutplaceError`.
+        the data due to `error`, which is of type `tools.CutplaceError`.
         """
         pass
     
@@ -459,21 +459,20 @@ class InterfaceControlDocument(object):
         return (dataFile, location, needsOpen)
         
     def _rejectRow(self, row, reason, location):
-        # TODO: assert row is not None???
+        # TODO: Add "assert row is not None"?
         assert reason
         assert location
         self._log.debug("rejected: %s" % row)
         self._log.debug(reason, exc_info=self.logTrace)
         self.rejectedCount += 1
         for listener in self._validationEventListeners:
-            # TODO: Add location.
             listener.rejectedRow(row, reason)
 
-    def validate(self, dataFileToValidatePath, validationListener=None):
+    def validate(self, dataFileToValidatePath):
         """
         Validate that all rows and items in `dataFileToValidatePath` conform to this interface.
-        The optional `validationListener` is a  `BaseValidationEventListener` which is informed
-        about detailed results of the validation. 
+        If a validation listener has been attached using `addValidationListener`, it will be
+        notified about any event occurring during validation. 
         """
         # FIXME: Split up `validate()` in several smaller methods.
         assert dataFileToValidatePath is not None
@@ -517,67 +516,60 @@ class InterfaceControlDocument(object):
                 raise NotImplementedError("data format: %r" % self.dataFormat.name)
             # TODO: Replace rowNumber by position in parser.
             
-            # Obtain various values from the data format that will be used to various checks.
+            # Obtain values from the data format that will be used by various checks.
             firstRowToValidateFieldsIn = self.dataFormat.get(data.KEY_HEADER)
             assert firstRowToValidateFieldsIn is not None
             assert firstRowToValidateFieldsIn >= 0
 
             # Validate data row by row.
+            # FIXME: Set location.sheet to actual sheet to validate
             try:
-                if validationListener is not None:
-                    self.addValidationEventListener(validationListener)
-                # FIXME: Set location.sheet to actual sheet to validate
-                try:
-                    for row in reader:
-                        if location.line >= firstRowToValidateFieldsIn:
-                            try:
-                                # Validate all items of the current row and collect their values in `rowMap`.
-                                maxItemCount = min(len(row), len(self.fieldFormats))
-                                rowMap = {}
-                                while location.cell < maxItemCount:
-                                    item = row[location.cell]
-                                    assert not isinstance(item, str), "%s: item must be Unicode string instead of plain string: %r" % (location, item)
-                                    fieldFormat = self.fieldFormats[location.cell]
-                                    if __debug__ and self._log.isEnabledFor(logging.DEBUG):
-                                        self._log.debug("validate item %d/%d: %r with %s <- %r" % (location.cell + 1, len(self.fieldFormats), item, fieldFormat, row))  
-                                    rowMap[fieldFormat.fieldName] = fieldFormat.validated(item) 
-                                    location.advanceCell()
-                                if location.cell != len(row):
-                                    raise checks.CheckError("unexpected data must be removed after item %d" % (location.cell), location)
-                                elif len(row) < len(self.fieldFormats):
-                                    missingFieldNames = self.fieldNames[(len(row) - 1):]
-                                    raise checks.CheckError("row must contain items for the following fields: %r" % missingFieldNames, location)
-            
-                                # Validate row checks.
-                                for check in self.checkDescriptions.values():
-                                    try:
-                                        if __debug__:
-                                            self._log.debug("check row: ", check)
-                                        check.checkRow(rowMap, location)
-                                    except checks.CheckError, error:
-                                        raise checks.CheckError("row check failed: %r: %s" % (check.description, error), location)
-                                self._log.debug("accepted: %s" % row)
-                                self.acceptedCount += 1
-                                for listener in self._validationEventListeners:
-                                    # TODO: Add location.
-                                    listener.acceptedRow(row, location)
-                            except data.DataFormatValueError, error:
-                                raise data.DataFormatValueError("cannot process data format", location, cause=error)
-                            except tools.CutplaceError, error:
-                                isFieldValueError = isinstance(error, fields.FieldValueError)
-                                if isFieldValueError:
-                                    fieldName = self.fieldNames[location.cell]
-                                    reason = "field %r must match format: %s" % (fieldName, error)
-                                else:
-                                    reason = str(error)
-                                self._rejectRow(row, reason, location)
-                        location.advanceLine()
-                except tools.CutplaceUnicodeError, error:
-                    self._rejectRow([], error, location)
-                    # raise data.DataFormatValueError("cannot read row %d: %s" % (rowNumber + 2, error))
-            finally:
-                if validationListener is not None:
-                    self.removeValidationEventListener(validationListener)
+                for row in reader:
+                    if location.line >= firstRowToValidateFieldsIn:
+                        try:
+                            # Validate all items of the current row and collect their values in `rowMap`.
+                            maxItemCount = min(len(row), len(self.fieldFormats))
+                            rowMap = {}
+                            while location.cell < maxItemCount:
+                                item = row[location.cell]
+                                assert not isinstance(item, str), "%s: item must be Unicode string instead of plain string: %r" % (location, item)
+                                fieldFormat = self.fieldFormats[location.cell]
+                                if __debug__ and self._log.isEnabledFor(logging.DEBUG):
+                                    self._log.debug("validate item %d/%d: %r with %s <- %r" % (location.cell + 1, len(self.fieldFormats), item, fieldFormat, row))  
+                                rowMap[fieldFormat.fieldName] = fieldFormat.validated(item) 
+                                location.advanceCell()
+                            if location.cell != len(row):
+                                raise checks.CheckError("unexpected data must be removed after item %d" % (location.cell), location)
+                            elif len(row) < len(self.fieldFormats):
+                                missingFieldNames = self.fieldNames[(len(row) - 1):]
+                                raise checks.CheckError("row must contain items for the following fields: %r" % missingFieldNames, location)
+        
+                            # Validate row checks.
+                            for check in self.checkDescriptions.values():
+                                try:
+                                    if __debug__:
+                                        self._log.debug("check row: ", check)
+                                    check.checkRow(rowMap, location)
+                                except checks.CheckError, error:
+                                    raise checks.CheckError("row check failed: %r: %s" % (check.description, error), location)
+                            self._log.debug("accepted: %s" % row)
+                            self.acceptedCount += 1
+                            for listener in self._validationEventListeners:
+                                listener.acceptedRow(row, location)
+                        except data.DataFormatValueError, error:
+                            raise data.DataFormatValueError("cannot process data format", location, cause=error)
+                        except tools.CutplaceError, error:
+                            isFieldValueError = isinstance(error, fields.FieldValueError)
+                            if isFieldValueError:
+                                fieldName = self.fieldNames[location.cell]
+                                reason = "field %r must match format: %s" % (fieldName, error)
+                            else:
+                                reason = str(error)
+                            self._rejectRow(row, reason, location)
+                    location.advanceLine()
+            except tools.CutplaceUnicodeError, error:
+                self._rejectRow([], error, location)
+                # raise data.DataFormatValueError("cannot read row %d: %s" % (rowNumber + 2, error))
         finally:
             if needsOpen:
                 dataFile.close()
