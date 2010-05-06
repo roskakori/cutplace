@@ -138,24 +138,48 @@ class _BaseCutplaceError(Exception):
         """
         Create exception that supports a `message` describing the error and an optional
         `location` in the input where the error happened. If the message is related
-         to another location (for example when attempting to redefine a field with
-         the same name), `seeAlsoMessage` should describe the meaning of the other
-         location and `seeAlsoLocation` should point to the location. If the exception is the
-         result of another exception that happened earlier (for example a `UnicodeError`, 
-         `cause` should contain this exception to simplify debugging.
+        to another location (for example when attempting to redefine a field with
+        the same name), `seeAlsoMessage` should describe the meaning of the other
+        location and `seeAlsoLocation` should point to the location. If the exception is the
+        result of another exception that happened earlier (for example a `UnicodeError`, 
+        `cause` should contain this exception to simplify debugging.
         """
         assert message
         assert (seeAlsoLocation and seeAlsoMessage) or not seeAlsoLocation
         # Note: We cannot use `super` because `Exception` is an old style class.
         Exception.__init__(self, message)
-        self.location = location
-        self.seeAlsoMessage = seeAlsoMessage
-        self.seeAlsoLocation = seeAlsoLocation
-        self.cause = cause
+        self._location = location
+        self._seeAlsoMessage = seeAlsoMessage
+        self._seeAlsoLocation = seeAlsoLocation
+        self._cause = cause
 
+    @property
+    def location(self):
+        """Location in the input that cause the error or `None`."""
+        return self._location
+
+    @property
+    def seeAlsoMessage(self):
+        """
+        A message further explaining the actual message by referring to another location in the
+        input.
+        """
+        return self._seeAlsoMessage
+    
+    @property
+    def seeAlsoLocation(self):
+        """The location in the input related to the `seeAlsoMessage` or `None`."""
+        return self._seeAlsoLocation
+    
+    @property
+    def cause(self):
+        """The `Exception` that cause this error or `None`."""
+        return self._cause
+    
+    
     def __str__(self):
         result = ""
-        if self.location:
+        if self._location:
             result += str(self.location) + ": "
         # Note: We cannot use `super` because `Exception` is an old style class.
         result += Exception.__str__(self)
