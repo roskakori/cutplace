@@ -26,13 +26,13 @@ class ToolsTest(unittest.TestCase):
 
     def testCreateTestDateTime(self):
         for _ in range(15):
-            dateTime = tools.createTestDateTime()
+            dateTime = dev_test.createTestDateTime()
             self.assertTrue(dateTime is not None)
             self.assertNotEqual(dateTime, "")
 
     def testCreateTestName(self):
         for _ in range(15):
-            name = tools.createTestName()
+            name = dev_test.createTestName()
             self.assertTrue(name is not None)
             self.assertNotEqual(name, "")
 
