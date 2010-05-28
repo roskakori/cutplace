@@ -151,7 +151,7 @@ class ProducerThread(threading.Thread):
     """
     Thread to produce the contents of an ODS readable to a queue where a consumer can get it.
     
-    Consumers should call `Queue.get()` until it returns `None`. Possible exceptions raised
+    Consumers should call `Queue.get()` until it returns ``None``. Possible exceptions raised
     in the background during `run()` are raised again when calling `join()` so no special means
     are necessary for the consumer to handle exceptions in the producer thread. 
     """

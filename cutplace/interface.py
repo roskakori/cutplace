@@ -184,12 +184,12 @@ class InterfaceControlDocument(object):
         """
         Add field as described by `items`. The meanings of the items are:
         
-        0) field name
-        1) optional: example value (can be empty)
+        1) field name
+        2) optional: example value (can be empty)
         3) optional: empty flag ("X"=field is allowed to be empty)
         4) optional: length ("lower:upper")
-        2) optional: field type
-        5) optional: rule to validate field (depending on type)
+        5) optional: field type
+        6) optional: rule to validate field (depending on type)
         
         Further values in `items` are ignored.
         
@@ -377,11 +377,11 @@ class InterfaceControlDocument(object):
         return result
     
     def read(self, icdFilePath, encoding="ascii"):
-        """"
-        Read the ICD as specified in `icdFilePath`.
+        """
+        Read the ICD as specified in ``icdFilePath``.
         
-          - `icdPath` - either the path of a file or a `StringIO`
-          - `encoding` - the name of the encoding to use when reading the ICD; depending  on the
+          - ``icdPath`` - either the path of a file or a ``StringIO``
+          - ``encoding`` - the name of the encoding to use when reading the ICD; depending  on the
             file type this might be ignored 
         """
         assert icdFilePath is not None
@@ -431,9 +431,9 @@ class InterfaceControlDocument(object):
         A tuple consisting of the following:
         
           1. A file like readable object for `dataFileToValidatePath`, which can be a string describing the
-          path to a file, or a `StringIO` to data.
-          2. A flag indicating whether the caller needs to call `close()` on the readable object once he is
-          done reading it.
+             path to a file, or a ``StringIO`` to data.
+          2. A flag indicating whether the caller needs to call ``close()`` on the readable object
+             once it is done reading it.
         """
         assert self.dataFormat is not None
         assert dataFileToValidatePath is not None

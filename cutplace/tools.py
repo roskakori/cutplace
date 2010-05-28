@@ -385,7 +385,7 @@ def humanReadableList(items):
 
 def tokenizeWithoutSpace(text):
     """
-    `text`split into token with any white space tokens removed.
+    ``text`` split into token with any white space tokens removed.
     """
     assert text is not None
     for toky in tokenize.generate_tokens(StringIO.StringIO(text).readline):

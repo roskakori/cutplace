@@ -41,7 +41,11 @@ class FieldSyntaxError(tools.CutplaceError):
 
 class AbstractFieldFormat(object):
     """
-    Format description of a field in a data file to validate.
+    Abstract format description of a field in a data file to validate which acts as base for all
+    other field formats. To implement another field format, it is usually sufficient to:
+    
+      1. Overload `__init__()` but call ``super(..., self).__init__(...)`` from it.
+      2. Implement `validatedValue()`.
     """
     def __init__(self, fieldName, isAllowedToBeEmpty, lengthText, rule, dataFormat, emptyValue=None):
         assert fieldName is not None
@@ -121,6 +125,9 @@ class AbstractFieldFormat(object):
         return "%s(%r, %r, %r, %r)" % (self.__class__.__name__, self.fieldName, self.isAllowedToBeEmpty, self.length, self.rule)
 
 class ChoiceFieldFormat(AbstractFieldFormat):
+    """
+    Field format accepting only values from a pool of choices. 
+    """
     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
         super(ChoiceFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue="")
         self.choices = []
@@ -163,6 +170,10 @@ class ChoiceFieldFormat(AbstractFieldFormat):
         return value
 
 class DecimalFieldFormat(AbstractFieldFormat):
+    """
+    Field format accepting decimal numeric values, taking the data format properties
+    `data.KEY_DECIMAL_SEPARATOR` and `data.KEY_THOUSANDS_SEPARATOR` into account. 
+    """
     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
         super(DecimalFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat)
         if rule.strip():
@@ -200,6 +211,9 @@ class DecimalFieldFormat(AbstractFieldFormat):
         return result
 
 class IntegerFieldFormat(AbstractFieldFormat):
+    """
+    Field format accepting numeric integer values with fractional part.
+    """
     _DEFAULT_RANGE = "%d:%d" % (-2 ** 31, 2 ** 31 - 1)
 
     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
@@ -223,6 +237,9 @@ class IntegerFieldFormat(AbstractFieldFormat):
         return longValue
 
 class DateTimeFieldFormat(AbstractFieldFormat):
+    """
+    Field format accepting values that represent dates or times.
+    """
     # We can't use a dictionary here because checks for patterns need to be in order. In
     # particular, "%" need to be checked first, and "YYYY" needs to be checked before "YY".
     _humanReadableToStrptimeMap = ["%:%%", "DD:%d", "MM:%m", "YYYY:%Y", "YY:%y", "hh:%H", "mm:%M", "ss:%S"]
@@ -248,6 +265,9 @@ class DateTimeFieldFormat(AbstractFieldFormat):
         return result
 
 class RegExFieldFormat(AbstractFieldFormat):
+    """
+    Field format accepting values that match a specified regular expression.
+    """
     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
         super(RegExFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue="")
         self.regex = re.compile(rule, re.IGNORECASE | re.MULTILINE)
@@ -261,6 +281,9 @@ class RegExFieldFormat(AbstractFieldFormat):
         return value
 
 class PatternFieldFormat(AbstractFieldFormat):
+    """
+    Field format accepting values that match a pattern using "*" and "?" as place holders.
+    """
     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
         super(PatternFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue="")
         pattern = ""
@@ -283,6 +306,9 @@ class PatternFieldFormat(AbstractFieldFormat):
         return value
 
 class TextFieldFormat(AbstractFieldFormat):
+    """
+    Field format accepting any text.
+    """
     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
         super(TextFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue="")
 

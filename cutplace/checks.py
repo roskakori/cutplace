@@ -81,8 +81,8 @@ class AbstractCheck(object):
         pass
 
     def checkRow(self, row, location):
-        """"
-        Check row and in case it is invalid raise CheckError. By default do nothing.
+        """
+        Check row and in case it is invalid raise ``CheckError``. By default do nothing.
         """
         pass
     

@@ -163,8 +163,8 @@ class _BaseDataFormat(object):
 
     def _validatedLong(self, key, value, lowerLimit=None):
         """
-        Validate that `value`is a long number with a value of at least `lowerLimit` (if specified)
-        and raise `DataFormatSyntaxError` if not.
+        Validate that ``value`` is a long number with a value of at least ``lowerLimit`` (if
+        specified) and raise `DataFormatSyntaxError` if not.
         """
         assert key
         assert value is not None
@@ -184,14 +184,14 @@ class _BaseDataFormat(object):
                 
     def validated(self, key, value):
         """
-        `Value` in its native type.
+        ``Value`` in its native type.
 
-        If `key` can not be handled, raise `DataFormaSyntaxError`.
+        If ``key`` can not be handled, raise `DataFormatSyntaxError`.
 
-        If `value` can not be handled, raise `DataFormaValueError`.
+        If ``value`` can not be handled, raise `DataFormatValueError`.
 
         This function should be overwritten by child classes, but also be called by them via
-        `super` in case the child cannot handle `key` in order to consistently handle the
+        ``super`` in case the child cannot handle `key` in order to consistently handle the
         standard keys.
         """
         if key == KEY_ALLOWED_CHARACTERS:
@@ -226,19 +226,19 @@ class _BaseDataFormat(object):
 
     def set(self, key, value):
         r"""
-        Attempt to set `key`to `value`.
+        Attempt to set ``key`` to ``value``.
 
         >>> format = createDataFormat(FORMAT_CSV)
         >>> format.set(KEY_LINE_DELIMITER, LF)
 
-        In case the key has already been set, raise a `DataValueError`.
+        In case the ``key`` has already been set, raise a `DataFormatValueError`.
 
         >>> format.set(KEY_LINE_DELIMITER, CR)
         Traceback (most recent call last):
             ...
         DataFormatValueError: data format property 'line delimiter' has already been set: '\n'
 
-        In case `value` can not be used for `key`, reraise the error raised by `validated()`.
+        In case `value` can not be used for ``key``, reraise the error raised by `validated()`.
 
         >>> format.set(KEY_ALLOWED_CHARACTERS, "spam")
         Traceback (most recent call last):
