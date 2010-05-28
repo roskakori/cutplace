@@ -297,7 +297,7 @@ class _DelimitedParser(object):
 
     def advance(self):
         """
-        Advance one item and make it available in `self.item`.
+        Advance one item and make it available in the attribute ``item``.
         """
         assert not self.atEndOfFile
 

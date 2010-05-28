@@ -250,10 +250,10 @@ class CutPlace(object):
             
 def main(options):
     """
-    Main routine that might raise errors but won't `sys.exit()`.
+    Main routine that might raise errors but won't ``sys.exit()``.
     
-    `options` is string array containing the command line options to process, for example
-    `sys.argv[1:]`.
+    ``options`` is string array containing the command line options to process, for example
+    ``sys.argv[1:]``.
     """
     logging.basicConfig()
     logging.getLogger("cutplace").setLevel(logging.INFO)
@@ -278,7 +278,7 @@ def main(options):
 
 def _exitWithError(exitCode, error):
     """
-    Print `error` and `sys.exit()` with `exitCode`.
+    Print ``error`` and ``sys.exit()`` with ``exitCode``.
     """
     assert exitCode is not None
     assert exitCode > 0
@@ -289,7 +289,7 @@ def _exitWithError(exitCode, error):
     
 def mainForScript():
     """
-    Main routine that reports errors in options to `sys.stderr` and does `sys.exit()`.
+    Main routine that reports errors in options to ``sys.stderr`` and does ``sys.exit()``.
     """
     try:
         main(sys.argv[1:])

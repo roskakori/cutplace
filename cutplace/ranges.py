@@ -40,13 +40,13 @@ class Range(object):
 
     def __init__(self, text, default=None):
         """
-        Setup a range as specified by `text`.
+        Setup a range as specified by ``text``.
 
-        `text` must be of the form "lower:upper" or "limit". In case `text` is empty (""), any
+        ``text`` must be of the form "lower:upper" or "limit". In case ``text`` is empty (""), any
         value will be accepted by `validate()`. For example, "1:40" accepts values between 1
         and 40.
 
-        `default`is an alternative text to use in case `text` is `None` or empty.
+        ``default`` is an alternative text to use in case ``text`` is ``None`` or empty.
         """
         assert default is None or default.strip(), "default=%r" % default
 

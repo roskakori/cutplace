@@ -40,7 +40,7 @@ SYMBOLIC_NAMES_MAP = {
 
 class InputLocation(object):
     """
-    Location in an input file, consisting of `line`, an optional `column` (pointing at a
+    Location in an input file, consisting of ``line``, an optional ``column`` (pointing at a
     single character) and an optional cell (pointing a cell in a structured input such as CSV).  
     """
     def __init__(self, filePath, hasColumn=False, hasCell=False, hasSheet=False):
@@ -101,7 +101,7 @@ class InputLocation(object):
 
 def createCallerInputLocation(modulesToIgnore=None):
     """
-    ``InputLocation`` referring to the calling Python source code.
+    `InputLocation` referring to the calling Python source code.
     """
     actualModulesToIgnore = ["tools"]
     if modulesToIgnore:
@@ -135,10 +135,10 @@ class _BaseCutplaceError(Exception):
         Create exception that supports a `message` describing the error and an optional
         `location` in the input where the error happened. If the message is related
         to another location (for example when attempting to redefine a field with
-        the same name), `seeAlsoMessage` should describe the meaning of the other
-        location and `seeAlsoLocation` should point to the location. If the exception is the
+        the same name), ``seeAlsoMessage`` should describe the meaning of the other
+        location and ``seeAlsoLocation`` should point to the location. If the exception is the
         result of another exception that happened earlier (for example a `UnicodeError`, 
-        `cause` should contain this exception to simplify debugging.
+        ``cause`` should contain this exception to simplify debugging.
         """
         assert message
         assert (seeAlsoLocation and seeAlsoMessage) or not seeAlsoLocation
@@ -164,7 +164,7 @@ class _BaseCutplaceError(Exception):
     
     @property
     def seeAlsoLocation(self):
-        """The location in the input related to the `seeAlsoMessage` or `None`."""
+        """The location in the input related to the ``seeAlsoMessage`` or ``None``."""
         return self._seeAlsoLocation
     
     @property
@@ -289,7 +289,7 @@ def listdirMatching(folder, pattern):
 
 def mkdirs(folder):
     """
-    Like `os.mkdirs()` but does not raise an `OSError` if `folder` already exists. 
+    Like ``os.mkdirs()`` but does not raise an `OSError` if ``folder`` already exists. 
     """
     assert folder is not None
 
@@ -301,7 +301,7 @@ def mkdirs(folder):
 
 def attemptToRemove(filePath):
     """
-    Like `os.remove()` but does not raise an `OSError` if `filePath` does not exist. 
+    Like ``os.remove()`` but does not raise an `OSError` if ``filePath`` does not exist. 
     """
     assert filePath is not None
 
@@ -314,8 +314,8 @@ def attemptToRemove(filePath):
 def validatedPythonName(name, value):
     """
     Validated and cleaned up `value` that represents a Python name with any whitespace removed.
-    If validation fails, raise `NameError` with mentioning `name` as the name under which `value`
-    is known to the user.
+    If validation fails, raise `NameError` with mentioning ``name`` as the name under which
+    ``value``  is known to the user.
     """
     assert name
     assert value is not None

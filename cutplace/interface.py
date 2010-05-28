@@ -61,9 +61,9 @@ class BaseValidationEventListener(object):
     
     def rejectedRow(self, row, error):
         """
-        Called in case `row` has been rejected due to `error`, which is of type
+        Called in case ``row`` has been rejected due to ``error``, which is of type
         `tools.CutplaceError`. To learn the location in the input, query
-        `error.location`.
+        ``error.location``.
         """
         pass
     
@@ -470,8 +470,8 @@ class InterfaceControlDocument(object):
 
     def validate(self, dataFileToValidatePath):
         """
-        Validate that all rows and items in `dataFileToValidatePath` conform to this interface.
-        If a validation listener has been attached using `addValidationListener`, it will be
+        Validate that all rows and items in ``dataFileToValidatePath`` conform to this interface.
+        If a validation listener has been attached using `addValidationEventListener`, it will be
         notified about any event occurring during validation. 
         """
         # FIXME: Split up `validate()` in several smaller methods.

@@ -109,8 +109,8 @@ class _BaseDataFormat(object):
     """
     def __init__(self, requiredKeys, optionalKeyValueMap):
         """
-        Setup new format with `requiredKeys`being a list of property names that must be set, and
-        `optionalKeyValueMap` being a dictionary where they keys denote property names and the
+        Setup new format with ``requiredKeys`` being a list of property names that must be set, and
+        ``optionalKeyValueMap`` being a dictionary where they keys denote property names and the
         values describe default values that should be used in case the property is never set.
         """
         self.requiredKeys = []
@@ -370,12 +370,12 @@ class DelimitedDataFormat(_BaseTextDataFormat):
 
     def _validatedCharacter(self, key, value):
         r"""
-        A single character intended as value for data format property `key`
-        derived from `value`, which can be:
+        A single character intended as value for data format property ``key``
+        derived from ``value``, which can be:
 
         * a decimal or hex number (prefixed with "0x") referring to the ASCII/Unicode of the character
         * a string containing a single character such as "\t".
-        * a symbolic name such as `Tab`.
+        * a symbolic name such as "Tab".
 
         Anything else yields a `DataFormatSyntaxError`.
 
@@ -506,7 +506,7 @@ class FixedDataFormat(_BaseTextDataFormat):
 
     def strippedOfBlanks(self, value):
         """
-        `value` but with leading and trailing blanks removed.
+        Same as ``value`` but with leading and trailing blanks removed.
 
         >>> format = FixedDataFormat()
         >>> format.strippedOfBlanks(" before")
@@ -518,7 +518,7 @@ class FixedDataFormat(_BaseTextDataFormat):
         >>> format.strippedOfBlanks("")
         ''
 
-        Note: For the next test, there is no way to make `doctest` preserve the
+        Note: For the next test, there is no way to make ``doctest`` preserve the
         "\t" in the output, though the result still contains it.
 
         >>> format.strippedOfBlanks("nothing to\t strip")
