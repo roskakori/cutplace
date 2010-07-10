@@ -11,6 +11,7 @@ Table of contents
    tutorial
    writing-an-icd
    command-line-usage
-   development
+   api
    support
+   development
    changes
