@@ -147,8 +147,7 @@ setup(
       author="Thomas Aglassinger",
       author_email="roskakori@users.sourceforge.net",
       url="http://cutplace.sourceforge.net/",
-      # TODO: Actually coverage is only required for the development reports. How to express this here?
-      install_requires=["coverage", "xlrd"],
+      install_requires=["xlrd"],
       packages=["cutplace"],
       data_files=[
           ("", ["setup.py"]),
