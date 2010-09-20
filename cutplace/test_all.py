@@ -15,8 +15,17 @@ Test suite for all test cases.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import doctest
 import logging
 import sys
+import unittest
+
+import checks
+import data
+import fields
+import interface
+import ranges
+import version
 import test_checks
 import test_cutplace
 import test_data
@@ -27,19 +36,11 @@ import test_parsers
 import test_ranges
 import test_tools
 import test_web
-import unittest
-import checks
-import cutplace
-import data
-import doctest
-import fields
-import interface
-import ods
-import parsers
-import ranges
-import tools
-import version
-import web
+import _cutplace
+import _ods
+import _parsers
+import _tools
+import _web
 
 def createTestSuite():
     """
@@ -49,7 +50,7 @@ def createTestSuite():
     loader = unittest.TestLoader()
 
     # TODO: Automatically discover doctest cases.
-    for module in checks, cutplace, data, fields, interface, ods, parsers, ranges, tools, version, web:
+    for module in checks, data, fields, interface, ranges, version, _cutplace, _ods, _parsers, _tools, _web:
         result.addTest(doctest.DocTestSuite(module))
 
     # TODO: Automatically discover test cases.

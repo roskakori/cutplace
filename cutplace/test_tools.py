@@ -15,11 +15,13 @@ Test for `tools` module.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import dev_test
 import os.path
 import StringIO
-import tools
 import unittest
+
+import dev_test
+import tools
+import _tools
 
 class ToolsTest(unittest.TestCase):
     """TestCase for tools module."""
@@ -44,25 +46,25 @@ class ToolsTest(unittest.TestCase):
 
     def testVersion(self):
         # Simply exercise these functions, their results do not really matter.
-        tools.platformVersion()
-        tools.pythonVersion()
+        _tools.platformVersion()
+        _tools.pythonVersion()
         
     def testValidatedPythonName(self):
-        self.assertEqual(tools.validatedPythonName("x", "abc_123"), "abc_123")
-        self.assertEqual(tools.validatedPythonName("x", " abc_123 "), "abc_123")
-        self.assertRaises(NameError, tools.validatedPythonName, "x", "1337")
-        self.assertRaises(NameError, tools.validatedPythonName, "x", "")
-        self.assertRaises(NameError, tools.validatedPythonName, "x", " ")
-        self.assertRaises(NameError, tools.validatedPythonName, "x", "a.b")
+        self.assertEqual(_tools.validatedPythonName("x", "abc_123"), "abc_123")
+        self.assertEqual(_tools.validatedPythonName("x", " abc_123 "), "abc_123")
+        self.assertRaises(NameError, _tools.validatedPythonName, "x", "1337")
+        self.assertRaises(NameError, _tools.validatedPythonName, "x", "")
+        self.assertRaises(NameError, _tools.validatedPythonName, "x", " ")
+        self.assertRaises(NameError, _tools.validatedPythonName, "x", "a.b")
         
     def testHumanReadableList(self):
-        self.assertEqual(tools.humanReadableList([]), "")
-        self.assertEqual(tools.humanReadableList(["a"]), "'a'")
-        self.assertEqual(tools.humanReadableList(["a", "b"]), "'a' or 'b'")
-        self.assertEqual(tools.humanReadableList(["a", "b", "c"]), "'a', 'b' or 'c'")
+        self.assertEqual(_tools.humanReadableList([]), "")
+        self.assertEqual(_tools.humanReadableList(["a"]), "'a'")
+        self.assertEqual(_tools.humanReadableList(["a", "b"]), "'a' or 'b'")
+        self.assertEqual(_tools.humanReadableList(["a", "b", "c"]), "'a', 'b' or 'c'")
 
     def _testWithSuffix(self, expectedPath, pathToTest, suffixToTest):
-        actualPath = tools.withSuffix(pathToTest, suffixToTest)
+        actualPath = _tools.withSuffix(pathToTest, suffixToTest)
         self.assertEqual(expectedPath, actualPath)
 
     def testWithSuffix(self):

@@ -23,6 +23,7 @@ import time
 import data
 import ranges
 import tools
+import _tools
 
 class FieldValueError(tools.CutplaceError):
     """
@@ -133,30 +134,30 @@ class ChoiceFieldFormat(AbstractFieldFormat):
         self.choices = []
         
         # Split rule into tokens, ignoring white space.
-        tokens = tools.tokenizeWithoutSpace(rule)
+        tokens = _tools.tokenizeWithoutSpace(rule)
 
         # Extract choices from rule tokens.
         previousToky = None
         toky = tokens.next()
-        while not tools.isEofToken(toky):
-            if tools.isCommaToken(toky):
+        while not _tools.isEofToken(toky):
+            if _tools.isCommaToken(toky):
                 # Handle comma after comma without choice.
                 if previousToky:
                     previousTokyText = previousToky[1]
                 else:
                     previousTokyText = None
                 raise FieldSyntaxError("choice value must precede a comma (,) but found: %r" % previousTokyText)
-            choice = tools.tokenText(toky)
+            choice = _tools.tokenText(toky)
             if not choice:
                 raise FieldSyntaxError("choice field must be allowed to be empty instead of containing an empty choice")
             self.choices.append(choice)
             toky = tokens.next()
-            if not tools.isEofToken(toky):
-                if not tools.isCommaToken(toky):
+            if not _tools.isEofToken(toky):
+                if not _tools.isCommaToken(toky):
                     raise FieldSyntaxError("comma (,) must follow choice value %r but found: %r" % (choice, toky[1]))
                 # Process next choice after comma.
                 toky = tokens.next()
-                if tools.isEofToken(toky):
+                if _tools.isEofToken(toky):
                     raise FieldSyntaxError("trailing comma (,) must be removed")
         if not self.isAllowedToBeEmpty and not self.choices:
             raise FieldSyntaxError("choice field without any choices must be allowed to be empty")
@@ -166,7 +167,7 @@ class ChoiceFieldFormat(AbstractFieldFormat):
 
         if value not in self.choices:
             raise FieldValueError("value is %r but must be one of: %s"
-                                   % (value, tools.humanReadableList(self.choices)))
+                                   % (value, _tools.humanReadableList(self.choices)))
         return value
 
 class DecimalFieldFormat(AbstractFieldFormat):

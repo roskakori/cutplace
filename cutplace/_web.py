@@ -26,8 +26,8 @@ import time
 import urllib
 
 import interface
-import tools
 import version
+import _tools
 
 """
 Default port the web server will use unless specified otherwise.
@@ -158,7 +158,7 @@ Python: Version %s<br>
 Platform: %s</p>
 %s
 </body></html>
-""" % (_STYLE, version.VERSION_TAG, cgi.escape(tools.pythonVersion()), cgi.escape(tools.platformVersion()), _FOOTER)
+""" % (_STYLE, version.VERSION_TAG, cgi.escape(_tools.pythonVersion()), cgi.escape(_tools.platformVersion()), _FOOTER)
 
     _SHUTDOWN = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <html>

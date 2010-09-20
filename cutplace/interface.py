@@ -25,8 +25,9 @@ import types
 
 import data
 import fields
-import parsers
 import tools
+import _parsers
+import _tools
 
 class BaseValidationEventListener(object):
     """
@@ -212,7 +213,7 @@ class InterfaceControlDocument(object):
         if itemCount >= 1:
             # Obtain field name.
             fieldNameText = items[0]
-            tokens = tools.tokenizeWithoutSpace(fieldNameText)
+            tokens = _tools.tokenizeWithoutSpace(fieldNameText)
             tokenType, tokenText, _, _, _ = tokens.next()
             if tokenType != token.NAME:
                 raise fields.FieldSyntaxError("field name must be a valid Python name consisting of ASCII letters, underscore (%r) and digits but is: %r" % ("_", tokenText),
@@ -221,7 +222,7 @@ class InterfaceControlDocument(object):
                 raise fields.FieldSyntaxError("field name must not be a Python keyword but is: %r" %  tokenText, self._location)
             fieldName = tokenText
             toky = tokens.next()
-            if not tools.isEofToken(toky):
+            if not _tools.isEofToken(toky):
                 raise fields.FieldSyntaxError("field name must be a single word but is: %r" % fieldNameText, self._location)
 
             # Obtain example.
@@ -258,7 +259,7 @@ class InterfaceControlDocument(object):
                         for part in fieldTypeParts:
                             if fieldType:
                                 fieldType += "."
-                            fieldType += tools.validatedPythonName("field type part", part)
+                            fieldType += _tools.validatedPythonName("field type part", part)
                         assert fieldType, "empty field type must be detected by validatedPythonName()"
                     except NameError, error:
                         raise fields.FieldSyntaxError(str(error), self._location)
@@ -359,21 +360,21 @@ class InterfaceControlDocument(object):
         if icdHeader == InterfaceControlDocument._ODS_HEADER:
             # Consider ICD to be ODS.
             icdReadable.seek(0)
-            result = parsers.odsReader(icdReadable)
+            result = _parsers.odsReader(icdReadable)
         else:
             icdHeader += icdReadable.read(4)
             icdReadable.seek(0)
             if icdHeader == InterfaceControlDocument._EXCEL_HEADER:
                 # Consider ICD to be Excel.
-                result = parsers.excelReader(icdReadable)
+                result = _parsers.excelReader(icdReadable)
             else:
                 # Consider ICD to be CSV.
-                dialect = parsers.DelimitedDialect()
-                dialect.lineDelimiter = parsers.AUTO
-                dialect.itemDelimiter = parsers.AUTO
+                dialect = _parsers.DelimitedDialect()
+                dialect.lineDelimiter = _parsers.AUTO
+                dialect.itemDelimiter = _parsers.AUTO
                 dialect.quoteChar = "\""
                 dialect.escapeChar = "\""
-                result = parsers.delimitedReader(icdReadable, dialect, encoding)
+                result = _parsers.delimitedReader(icdReadable, dialect, encoding)
         return result
     
     def read(self, icdFilePath, encoding="ascii"):
@@ -410,7 +411,7 @@ class InterfaceControlDocument(object):
                         self.addFieldFormat(row[1:])
                     elif rowId.strip():
                         raise IcdSyntaxError("first item in row is %r but must be empty or one of: %s"
-                                             % (row[0], tools.humanReadableList(InterfaceControlDocument._VALID_IDS)),
+                                             % (row[0], _tools.humanReadableList(InterfaceControlDocument._VALID_IDS)),
                                              self._location)
                 self._location.advanceLine()
         except tools.CutplaceUnicodeError, error:
@@ -474,7 +475,7 @@ class InterfaceControlDocument(object):
         If a validation listener has been attached using `addValidationEventListener`, it will be
         notified about any event occurring during validation. 
         """
-        # FIXME: Split up `validate()` in several smaller methods.
+        # FIXME: Split up `validate()` in several smaller meth_ods.
         assert dataFileToValidatePath is not None
         
         self._log.info("validate \"%s\"" % (dataFileToValidatePath))
@@ -485,15 +486,15 @@ class InterfaceControlDocument(object):
         (dataFile, location, needsOpen) = self._obtainReadable(dataFileToValidatePath)
         try:
             if self.dataFormat.name == data.FORMAT_CSV:
-                dialect = parsers.DelimitedDialect()
+                dialect = _parsers.DelimitedDialect()
                 dialect.lineDelimiter = self.dataFormat.get(data.KEY_LINE_DELIMITER)
                 dialect.itemDelimiter = self.dataFormat.get(data.KEY_ITEM_DELIMITER)
                 dialect.quoteChar = self.dataFormat.get(data.KEY_QUOTE_CHARACTER)
                 # FIXME: Set escape char according to ICD.
-                reader = parsers.delimitedReader(dataFile, dialect, encoding=self.dataFormat.encoding)
+                reader = _parsers.delimitedReader(dataFile, dialect, encoding=self.dataFormat.encoding)
             elif self.dataFormat.name == data.FORMAT_EXCEL:
                 sheet = self.dataFormat.get(data.KEY_SHEET)
-                reader = parsers.excelReader(dataFile, sheet)
+                reader = _parsers.excelReader(dataFile, sheet)
             elif self.dataFormat.name == data.FORMAT_FIXED:
                 fieldLengths = []
                 for fieldFormat in self.fieldFormats:
@@ -508,10 +509,10 @@ class InterfaceControlDocument(object):
                     assert fixedLength == firstLengthItem[1]
                     longFixedLength = long(fixedLength)
                     fieldLengths.append(longFixedLength)
-                reader = parsers.fixedReader(dataFile, fieldLengths)
+                reader = _parsers.fixedReader(dataFile, fieldLengths)
             elif self.dataFormat.name == data.FORMAT_ODS:
                 sheet = self.dataFormat.get(data.KEY_SHEET)
-                reader = parsers.odsReader(dataFile, sheet)
+                reader = _parsers.odsReader(dataFile, sheet)
             else: # pragma: no cover
                 raise NotImplementedError("data format: %r" % self.dataFormat.name)
             # TODO: Replace rowNumber by position in parser.

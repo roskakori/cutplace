@@ -4,20 +4,23 @@ Revision history
 
 This chapter describes improvements compared to earlier versions of cutplace.
 
-Version 0.6.2, xx-Jul-2010
+Version 0.6.2, xx-Sep-2010
 ==========================
 
 * Added input location for error messages caused by failed checks.
   (Ticket #26, #27 and #28)
 
 * Added error message if a field name is a Python keyword such as
-  ``class`` or ``if``. The helps to avoid strange error messages if
-  the field is referred to later from a ``IsUnique`` check.
-  (Ticket #20)
+  ``class`` or ``if``. This avoids strange error messages if later an
+  ``IsUnique`` check refers to such a field. (Ticket #20)
 
 * Changed style for error messages referring to locations in CSV, ODS
   and Excel data to R1C1. For example, "R17C23" points to row 15,
   column 23.
+
+* Changed internal modules to use "_" as prefix in name. This removes them
+  from the API documentation. Furthermore, module ``tools`` has been split into
+  public ``tools`` and internal ``_tools``.
 
 * Changed interface for listeners of validation events:
 
@@ -28,8 +31,6 @@ Version 0.6.2, xx-Jul-2010
 
 * Cleaned up API documentation, using reStructured Text as output format
   and moving it to chapter `api`_.
-
-
 
 
 Version 0.6.1, 25-Apr-2010

@@ -17,17 +17,17 @@ Read and convert ODS files created by OpenOffice.org's Calc.
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import csv
-import xml.dom.minidom
 import logging
 import optparse
 import StringIO
 import sys
 import threading
 import types
+import xml.dom.minidom
 import xml.sax
 import zipfile
 
-import tools
+import _tools
 
 class AbstractOdsContentHandler(xml.sax.ContentHandler):
     """
@@ -373,7 +373,7 @@ def main(arguments):
     parser = optparse.OptionParser(usage)
     parser.set_defaults(format=_FORMAT_CSV, id="insert-id", sheet=1, title="Insert Title")
     parser.add_option("-f", "--format", metavar="FORMAT", type="choice", choices=_FORMATS, dest="format",
-                      help="output format: %s (default: %%default)" % tools.humanReadableList(_FORMATS))
+                      help="output format: %s (default: %%default)" % _tools.humanReadableList(_FORMATS))
     parser.add_option("-i", "--id", metavar="ID", dest="id", help="XML ID table can be referenced with (default: %default)")
     parser.add_option("-1", "--heading", action="store_true", dest="firstRowIsHeading", help="render first row as heading")
     parser.add_option("-s", "--sheet", metavar="SHEET", type="long", dest="sheet", help="sheet to convert (default: %default)")
@@ -392,7 +392,7 @@ def main(arguments):
         else:
             assert options.format in _FORMAT_TO_SUFFIX_MAP
             suffix = _FORMAT_TO_SUFFIX_MAP[options.format]
-            targetFilePath = tools.withSuffix(sourceFilePath, suffix)
+            targetFilePath = _tools.withSuffix(sourceFilePath, suffix)
         log.info("convert %r to %r using format %r" % (sourceFilePath, targetFilePath, options.format))
         try:
             if options.format == _FORMAT_CSV:

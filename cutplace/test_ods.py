@@ -15,49 +15,50 @@ Tests for ODS.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import dev_test
 import logging
 import Queue
-import ods
 import unittest
+
+import dev_test
+import _ods
 
 class OdsTest(unittest.TestCase):
 
     def testConvertToCsv(self):
         testInPath = dev_test.getTestInputPath("valid_customers.ods")
-        testOutPath = dev_test.getTestOutputPath("valid_customers_from_ods.csv")
-        ods.main([testInPath, testOutPath])
+        testOutPath = dev_test.getTestOutputPath("valid_customers_from__ods.csv")
+        _ods.main([testInPath, testOutPath])
 
     def testConvertToDocBook(self):
         testInPath = dev_test.getTestInputPath("valid_customers.ods")
-        testOutPath = dev_test.getTestOutputPath("valid_customers_from_ods.xml")
-        ods.main(["--format=docbook", testInPath, testOutPath])
+        testOutPath = dev_test.getTestOutputPath("valid_customers_from__ods.xml")
+        _ods.main(["--format=docbook", testInPath, testOutPath])
 
     def testConvertToRst(self):
         testInPath = dev_test.getTestInputPath("valid_customers.ods")
-        testOutPath = dev_test.getTestOutputPath("valid_customers_from_ods.rst")
-        ods.main(["--format=rst", testInPath, testOutPath])
+        testOutPath = dev_test.getTestOutputPath("valid_customers_from__ods.rst")
+        _ods.main(["--format=rst", testInPath, testOutPath])
 
     def testBrokenKinkyFileName(self):
         testInPath = dev_test.getTestInputPath("valid_customers.ods")
         testOutPath = dev_test.getTestOutputPath("kinky_file_name//\\:^$\\::/")
-        self.assertRaises(SystemExit, ods.main, [testInPath, testOutPath])
+        self.assertRaises(SystemExit, _ods.main, [testInPath, testOutPath])
 
     def testBrokenNoOptionsAtAll(self):
-        self.assertRaises(SystemExit, ods.main, [])
+        self.assertRaises(SystemExit, _ods.main, [])
 
     def testBrokenSheet(self):
         testInPath = dev_test.getTestInputPath("valid_customers.ods")
-        testOutPath = dev_test.getTestOutputPath("valid_customers_from_ods.csv")
-        self.assertRaises(SystemExit, ods.main, ["--sheet=x", testInPath, testOutPath])
-        self.assertRaises(SystemExit, ods.main, ["--sheet=0", testInPath, testOutPath])
-        # FIXME: Report error when sheet is out of range: self.assertRaises(SystemExit, ods.main, ["--sheet=17", testInPath, testOutPath])
+        testOutPath = dev_test.getTestOutputPath("valid_customers_from__ods.csv")
+        self.assertRaises(SystemExit, _ods.main, ["--sheet=x", testInPath, testOutPath])
+        self.assertRaises(SystemExit, _ods.main, ["--sheet=0", testInPath, testOutPath])
+        # FIXME: Report error when sheet is out of range: self.assertRaises(SystemExit, _ods.main, ["--sheet=17", testInPath, testOutPath])
 
     def testConsumerProducer(self):
         testInPath = dev_test.getTestInputPath("valid_customers.ods")
-        contentXmlReadable = ods.odsContent(testInPath)
+        contentXmlReadable = _ods.odsContent(testInPath)
         rowQueue = Queue.Queue()
-        producer = ods.ProducerThread(contentXmlReadable, rowQueue)
+        producer = _ods.ProducerThread(contentXmlReadable, rowQueue)
         producer.start()
         hasRow = True
         while hasRow:

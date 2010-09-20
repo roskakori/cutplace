@@ -23,6 +23,7 @@ import tokenize
 
 import ranges
 import tools
+import _tools
 
 ANY = "any"
 CR = "cr"
@@ -73,7 +74,7 @@ def createDataFormat(name):
         dataFormatNames = _NAME_TO_FORMAT_MAP.keys()
         dataFormatNames.sort()
         raise DataFormatSyntaxError("data format is %r but must be one of: %r"
-                                    % (actualName, tools.humanReadableList(dataFormatNames)))
+                                    % (actualName, _tools.humanReadableList(dataFormatNames)))
     result = formatClass()
     return result
 
@@ -145,7 +146,7 @@ class _BaseDataFormat(object):
         # Validate key.
         if result not in self._allKeys:
             raise DataFormatSyntaxError("data format property is %r but must be one of: %s"
-                                        % (result, tools.humanReadableList(self._allKeys)))
+                                        % (result, _tools.humanReadableList(self._allKeys)))
 
         return result
 
@@ -158,7 +159,7 @@ class _BaseDataFormat(object):
         assert choices
         if value not in choices:
             raise DataFormatValueError("value for data format property %r is %r but must be one of: %s"
-                                       % (key, value, tools.humanReadableList(choices)))
+                                       % (key, value, _tools.humanReadableList(choices)))
         return value
 
     def _validatedLong(self, key, value, lowerLimit=None):
@@ -428,7 +429,7 @@ class DelimitedDataFormat(_BaseTextDataFormat):
             result = None
             tokens = tokenize.generate_tokens(StringIO.StringIO(value).readline)
             next = tokens.next()
-            if tools.isEofToken(next):
+            if _tools.isEofToken(next):
                 raise DataFormatSyntaxError("value for data format property %r must be specified" % key)
             nextType = next[0]
             nextValue = next[1]
@@ -446,7 +447,7 @@ class DelimitedDataFormat(_BaseTextDataFormat):
                 try:
                     longValue = tools.SYMBOLIC_NAMES_MAP[nextValue.lower()]
                 except KeyError:
-                    validSymbols = tools.humanReadableList(sorted(tools.SYMBOLIC_NAMES_MAP.keys()))
+                    validSymbols = _tools.humanReadableList(sorted(tools.SYMBOLIC_NAMES_MAP.keys()))
                     raise DataFormatSyntaxError("symbolic name %r for data format property %r must be one of: %s" % (value, key, validSymbols))
             elif nextType == token.STRING:
                 if len(nextValue) != 3:
@@ -460,7 +461,7 @@ class DelimitedDataFormat(_BaseTextDataFormat):
                 raise DataFormatSyntaxError("value for data format property %r must a number, a single character or a symbolic name but is: %r" % (key, value))
             # Ensure there are no further tokens.
             next = tokens.next()
-            if not tools.isEofToken(next):
+            if not _tools.isEofToken(next):
                 raise DataFormatSyntaxError("value for data format property %r must describe a single character but is: %r" % (key, value))
 
             assert longValue is not None

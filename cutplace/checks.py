@@ -15,10 +15,12 @@ Standard checks that can cover a whole row or data set.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import fields
 import StringIO
 import tokenize
+
+import fields
 import tools
+import _tools
 
 class CheckError(tools.CutplaceError):
     """
@@ -45,7 +47,7 @@ def _getFieldNameIndex(supposedFieldName, availableFieldNames):
         fieldIndex = availableFieldNames.index(fieldName)
     except ValueError:
         raise fields.FieldLookupError("unknown field name %r must be replaced by one of: %s"
-                                      % (fieldName, tools.humanReadableList(availableFieldNames)))
+                                      % (fieldName, _tools.humanReadableList(availableFieldNames)))
     return fieldIndex
     
 class AbstractCheck(object):
@@ -114,7 +116,7 @@ class IsUniqueCheck(AbstractCheck):
         toky = tokenize.generate_tokens(ruleReadLine)
         afterComma = True
         nextToken = toky.next()
-        while not tools.isEofToken(nextToken):
+        while not _tools.isEofToken(nextToken):
             tokenType = nextToken[0]
             tokenValue = nextToken[1]
             if afterComma:
@@ -127,7 +129,7 @@ class IsUniqueCheck(AbstractCheck):
                 except fields.FieldLookupError, error:
                     raise CheckSyntaxError(str(error))
                 self.fieldNamesToCheck.append(tokenValue)
-            elif not tools.isCommaToken(nextToken):
+            elif not _tools.isCommaToken(nextToken):
                 raise CheckSyntaxError("after field name a comma (,) must follow but found: %r" % (tokenValue))
             afterComma = not afterComma
             nextToken = toky.next()

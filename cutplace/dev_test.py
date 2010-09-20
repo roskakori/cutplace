@@ -24,7 +24,7 @@ import sys
 from datetime import timedelta, datetime
 from random import randrange
 
-import ods
+import _ods
 
 _log = logging.getLogger("cutplace.dev_test")
 
@@ -149,7 +149,7 @@ def createIcdsCustomerCsv():
     """
     sourceOdsPath = getTestIcdPath("customers.ods")
     targetCsvPath = getTestIcdPath("customers.csv")
-    ods.toCsv(sourceOdsPath, targetCsvPath)
+    _ods.toCsv(sourceOdsPath, targetCsvPath)
 
 def createLotsOfCustomersCsv(targetCsvPath):
     # TODO: Use a random seed to generate the same data every time.

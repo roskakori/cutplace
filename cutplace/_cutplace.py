@@ -28,7 +28,8 @@ import traceback
 import interface
 import tools
 import version
-import web
+import _tools
+import _web
 
 DEFAULT_ICD_ENCODING = "ascii"
 
@@ -57,7 +58,7 @@ class _NoExitOptionParser(optparse.OptionParser):
         # No super() due to old style class.
         optparse.OptionParser.print_version(self, file)
         if self.version:
-            print >> file, "Python %s, %s" % (tools.pythonVersion(), tools.platformVersion()) 
+            print >> file, "Python %s, %s" % (_tools.pythonVersion(), _tools.platformVersion()) 
 
 class CutplaceValidationEventListener(interface.BaseValidationEventListener):
     """
@@ -136,7 +137,7 @@ class CutPlace(object):
     launch web server providing a web interface for validation"""
 
         parser = _NoExitOptionParser(usage=usage, version="%prog " + version.VERSION_TAG)
-        parser.set_defaults(icdEncoding=DEFAULT_ICD_ENCODING, isLogTrace=False, isOpenBrowser=False, logLevel="warning", port=web.DEFAULT_PORT)
+        parser.set_defaults(icdEncoding=DEFAULT_ICD_ENCODING, isLogTrace=False, isOpenBrowser=False, logLevel="warning", port=_web.DEFAULT_PORT)
         parser.add_option("--list-encodings", action="store_true", dest="isShowEncodings", help="show list of available character encodings and exit")
         validationGroup = optparse.OptionGroup(parser, "Validation options", "Specify how to validate data and how to report the results")
         validationGroup.add_option("-e", "--icd-encoding", metavar="ENCODING", dest="icdEncoding",
@@ -200,7 +201,7 @@ class CutPlace(object):
         try:
             if isWriteSplit:
                 rejectedTextFile = _openForWriteUsingUtf8(rejectedTextPath)
-                validationSplitListener = CutplaceValidationEventListener(tools.UnicodeCsvWriter(acceptedCsvFile), rejectedTextFile)
+                validationSplitListener = CutplaceValidationEventListener(_tools.UnicodeCsvWriter(acceptedCsvFile), rejectedTextFile)
             else:
                 validationSplitListener = CutplaceValidationEventListener()
             try:
@@ -263,7 +264,7 @@ def main(options):
     if cutPlace.isShowEncodings:
         cutPlace._printAvailableEncodings()
     elif cutPlace.isWebServer:
-        web.main(cutPlace.port, cutPlace.isOpenBrowser)
+        _web.main(cutPlace.port, cutPlace.isOpenBrowser)
     elif cutPlace.dataToValidatePaths:
         allValidationsOk = True
         for path in cutPlace.dataToValidatePaths:

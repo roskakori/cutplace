@@ -1,6 +1,6 @@
 # -*- coding: iso-8859-15 -*-
 """
-Tests for parsers.
+Tests for _parsers.
 """
 # Copyright (C) 2009-2010 Thomas Aglassinger
 #
@@ -22,7 +22,7 @@ import types
 import unittest
 
 import dev_test
-import parsers
+import _parsers
 
 _log = logging.getLogger("cutplace.test_parsers")
         
@@ -51,10 +51,10 @@ class ExcelReaderTest(unittest.TestCase):
         icdCustomersIcdXlsPath = dev_test.getTestIcdPath("customers.xls")
         readable = open(icdCustomersIcdXlsPath, "rb")
         try:
-            for row in parsers.excelReader(readable):
+            for row in _parsers.excelReader(readable):
                 self.assertTrue(row is not None)
                 self.assertTrue(len(row))
-        except parsers.CutplaceXlrdImportError:
+        except _parsers.CutplaceXlrdImportError:
             _log.warning("ignored ImportError caused by missing xlrd")
         finally:
             readable.close()
@@ -64,14 +64,14 @@ class ExcelReaderTest(unittest.TestCase):
         readable = open(fieldTypesXlsPath, "rb")
         try:
             titleRowSkipped = False
-            for row in parsers.excelReader(readable):
+            for row in _parsers.excelReader(readable):
                 self.assertTrue(row is not None)
                 self.assertTrue(len(row) == 3, "row=%r" % row)
                 if titleRowSkipped:
                     self.assertEqual(row[1], row[2], "row=%r" % row)
                 else:
                     titleRowSkipped = True
-        except parsers.CutplaceXlrdImportError:
+        except _parsers.CutplaceXlrdImportError:
             _log.warning("ignored ImportError caused by missing xlrd")
         finally:
             readable.close()
@@ -85,7 +85,7 @@ class FixedParserTest(AbstractParserTest):
         assert fieldLengths is not None
         
         actualReadable = self.possiblyStringIoedReadable(readable)
-        reader = parsers.fixedReader(actualReadable, fieldLengths)
+        reader = _parsers.fixedReader(actualReadable, fieldLengths)
         self.readAndAssertEquals(expectedRows, reader)
 
     def testEmpty(self):
@@ -95,15 +95,15 @@ class FixedParserTest(AbstractParserTest):
         self._testParse([[u"38000", u" 123", u"Doe       "]], u"38000 123Doe       ")
         
     def testBrokenEndingTooSoon(self):
-        self.assertRaises(parsers.ParserSyntaxError, self._testParse, [], u"38000 123Doe  ")
+        self.assertRaises(_parsers.ParserSyntaxError, self._testParse, [], u"38000 123Doe  ")
     
 class DelimitedParserTest(AbstractParserTest):
     """
     TestCase for DelimitedParser.
     """
     def _createDefaultDialect(self):
-        result = parsers.DelimitedDialect()
-        result.lineDelimiter = parsers.LF
+        result = _parsers.DelimitedDialect()
+        result.lineDelimiter = _parsers.LF
         result.itemDelimiter = ","
         result.quoteChar = "\""
         return result
@@ -120,12 +120,12 @@ class DelimitedParserTest(AbstractParserTest):
             actualDialect = self._createDefaultDialect()
         else:
             actualDialect = dialect
-        reader = parsers.delimitedReader(actualReadable, actualDialect)
+        reader = _parsers.delimitedReader(actualReadable, actualDialect)
         self.readAndAssertEquals(expectedRows, reader)
         
     def _assertRaisesParserSyntaxError(self, readable, dialect=None):
         """
-        Attempt to parse all items of `readable` using `dialect` and assert that this raises _`parsers.ParserSyntaxError`.
+        Attempt to parse all items of `readable` using `dialect` and assert that this raises _`_parsers.ParserSyntaxError`.
         """
         assert readable is not None
         
@@ -135,11 +135,11 @@ class DelimitedParserTest(AbstractParserTest):
         else:
             actualDialect = dialect
         try:
-            reader = parsers.delimitedReader(actualReadable, actualDialect)
+            reader = _parsers.delimitedReader(actualReadable, actualDialect)
             for dummy in reader:
                 pass
-            # FIXME: self.fail("readable must raise %s" % parsers.ParserSyntaxError.__name__)
-        except parsers.ParserSyntaxError:
+            # FIXME: self.fail("readable must raise %s" % _parsers.ParserSyntaxError.__name__)
+        except _parsers.ParserSyntaxError:
             # Ignore expected error.
             pass
         
@@ -163,7 +163,7 @@ class DelimitedParserTest(AbstractParserTest):
         pass
 
     def testEmptyItemDelimiterBeforeLineDelimiterCsv(self):
-        self._assertRowsEqual([["", ""], ["x"]], "," + parsers.LF + "x")
+        self._assertRowsEqual([["", ""], ["x"]], "," + _parsers.LF + "x")
 
     def testSingleQuotedCharCsv(self):
         self._assertRowsEqual([["x"]], "\"x\"")
@@ -175,14 +175,14 @@ class DelimitedParserTest(AbstractParserTest):
         self._assertRowsEqual([["hugo", "was", "here"]], "hugo,was,here")
 
     def testTwoLineCsv(self):
-        self._assertRowsEqual([["a"], ["b", "c"]], "a" + parsers.LF + "b,c")
-        self._assertRowsEqual([["hugo", "was"], ["here", "again"]], "hugo,was" + parsers.LF + "here,again")
+        self._assertRowsEqual([["a"], ["b", "c"]], "a" + _parsers.LF + "b,c")
+        self._assertRowsEqual([["hugo", "was"], ["here", "again"]], "hugo,was" + _parsers.LF + "here,again")
 
     def testMiddleEmptyLineCsv(self):
-        self._assertRowsEqual([["a"], [], ["b", "c"]], "a" + parsers.LF + parsers.LF + "b,c")
+        self._assertRowsEqual([["a"], [], ["b", "c"]], "a" + _parsers.LF + _parsers.LF + "b,c")
 
     def testTwoLineQuotedCsv(self):
-        self._assertRowsEqual([["hugo", "was"], ["here", "again"]], "\"hugo\",\"was\"" + parsers.LF + "\"here\",\"again\"")
+        self._assertRowsEqual([["hugo", "was"], ["here", "again"]], "\"hugo\",\"was\"" + _parsers.LF + "\"here\",\"again\"")
 
     def testMixedQuotedLineCsv(self):
         self._assertRowsEqual([["hugo", "was", "here"]], "hugo,\"was\",here")
@@ -192,27 +192,27 @@ class DelimitedParserTest(AbstractParserTest):
     
     def testAutoDelimiters(self):
         dialect = self._createDefaultDialect()
-        dialect.lineDelimiter = parsers.AUTO
-        dialect.itemDelimiter = parsers.AUTO
-        self._assertRowsEqual([["a", "b"], ["c", "d", "e"]], "a,b" + parsers.CRLF + "c,d,e" + parsers.CRLF, dialect)
+        dialect.lineDelimiter = _parsers.AUTO
+        dialect.itemDelimiter = _parsers.AUTO
+        self._assertRowsEqual([["a", "b"], ["c", "d", "e"]], "a,b" + _parsers.CRLF + "c,d,e" + _parsers.CRLF, dialect)
         
     def testEmptyLineWithLfCsv(self):
-        self._assertRowsEqual([], parsers.LF)
+        self._assertRowsEqual([], _parsers.LF)
     
     def testEmptyLineWithCrCsv(self):
         dialect = self._createDefaultDialect()
-        dialect.lineDelimiter = parsers.CR
-        self._assertRowsEqual([], parsers.CR, dialect)
+        dialect.lineDelimiter = _parsers.CR
+        self._assertRowsEqual([], _parsers.CR, dialect)
     
     def testEmptyLineWithCrLfCsv(self):
         dialect = self._createDefaultDialect()
-        dialect.lineDelimiter = parsers.CRLF
-        self._assertRowsEqual([], parsers.CRLF, dialect)
+        dialect.lineDelimiter = _parsers.CRLF
+        self._assertRowsEqual([], _parsers.CRLF, dialect)
         
     def testReader(self):
         dialect = self._createDefaultDialect()
-        dataStream = StringIO.StringIO("hugo,was" + parsers.LF + "here,again")
-        csvReader = parsers.delimitedReader(dataStream, dialect)
+        dataStream = StringIO.StringIO("hugo,was" + _parsers.LF + "here,again")
+        csvReader = _parsers.delimitedReader(dataStream, dialect)
         rowCount = 0
         for row in csvReader:
             rowCount += 1
@@ -221,9 +221,9 @@ class DelimitedParserTest(AbstractParserTest):
 
     def testAutoItemDelimiter(self):
         dialect = self._createDefaultDialect()
-        dialect.itemDelimiter = parsers.AUTO
+        dialect.itemDelimiter = _parsers.AUTO
         dataStream = StringIO.StringIO("some;items;using;a;semicolon;as;separator")
-        csvReader = parsers.delimitedReader(dataStream, dialect)
+        csvReader = _parsers.delimitedReader(dataStream, dialect)
         rowCount = 0
         for row in csvReader:
             rowCount += 1

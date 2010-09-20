@@ -25,7 +25,7 @@ import unittest
 import urllib2
 
 import dev_test
-import web
+import _web
 
 class MultiPartForm(object):
     """Accumulate the data to be used when posting a form."""
@@ -97,7 +97,7 @@ class WebThread(threading.Thread):
     PORT = 8642
     
     def run(self):
-        web.main(WebThread.PORT, allowShutDown=True)
+        _web.main(WebThread.PORT, allowShutDown=True)
         # FIXME: Let exception result in the test case to fail.
         
 class WebTest(unittest.TestCase):
@@ -151,7 +151,7 @@ class WebTest(unittest.TestCase):
     def setUp(self):
         self._webThread = WebThread()
         self._webThread.start()
-        waitForServerThread = web.WaitForServerToBeReadyThread()
+        waitForServerThread = _web.WaitForServerToBeReadyThread()
         waitForServerThread.site = "http://localhost:%d/" % WebThread.PORT
         waitForServerThread.start()
         waitForServerThread.join()

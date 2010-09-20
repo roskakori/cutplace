@@ -25,7 +25,7 @@ import sys
 import unittest
 
 import dev_colorize
-import tools
+import _tools
 
 _log = logging.getLogger("cutplace.dev_reports")
 
@@ -47,7 +47,7 @@ def _getSourceFolder():
     return "cutplace"
 
 def _listdirPythonSource():
-    return tools.listdirMatching(_getSourceFolder(), ".*\\.py")
+    return _tools.listdirMatching(_getSourceFolder(), ".*\\.py")
 
 def _addToKeyList(map, key, valueToAdd):
     if map.has_key(key):
@@ -204,7 +204,7 @@ def createCoverageReport(targetBasePath):
 def createReports(targetFolder):
     assert targetFolder is not None
     
-    tools.mkdirs(targetFolder)
+    _tools.mkdirs(targetFolder)
     createCoverageReport(targetFolder)
     createTasksReport(targetFolder)
         

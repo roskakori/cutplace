@@ -29,8 +29,8 @@ logging.basicConfig()
 
 from cutplace import dev_reports
 from cutplace import ods
-from cutplace import tools
 from cutplace import version
+from cutplace import _tools
 
 import os.path
 import re
@@ -99,8 +99,8 @@ class _DocsCommand(Command):
                     
     def _convertOdsToCsvAndRst(self, odsSourcePath):
         assert odsSourcePath is not None
-        csvTargetPath = tools.withSuffix(odsSourcePath, ".csv")
-        rstTargetPath = tools.withSuffix(odsSourcePath, ".rst")
+        csvTargetPath = _tools.withSuffix(odsSourcePath, ".csv")
+        rstTargetPath = _tools.withSuffix(odsSourcePath, ".rst")
         print "generating %r and %r" % (csvTargetPath, rstTargetPath)
         ods.toCsv(odsSourcePath, csvTargetPath)
         ods.toRst(odsSourcePath, rstTargetPath, firstRowIsHeading=False)
@@ -157,7 +157,7 @@ setup(
           ("examples", glob.glob("examples/*.csv") + glob.glob("examples/*.ods"))
       ],
       entry_points={
-        "console_scripts": ["cutplace = cutplace.cutplace:mainForScript"]
+        "console_scripts": ["cutplace = cutplace._cutplace:mainForScript"]
       },
       license="GNU General Public License 3 or later",
       test_suite="cutplace.test_all.createTestSuite",

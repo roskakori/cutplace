@@ -22,6 +22,7 @@ import token
 import tokenize
 
 import tools
+import _tools
 
 class RangeSyntaxError(tools.CutplaceError):
     """
@@ -72,7 +73,7 @@ class Range(object):
                 colonFound = False
                 afterHyphen = False
                 next = tokens.next()
-                while not tools.isEofToken(next) and not tools.isCommaToken(next):
+                while not _tools.isEofToken(next) and not _tools.isCommaToken(next):
                     nextType = next[0]
                     nextValue = next[1]
                     if nextType in (token.NAME, token.NUMBER, token.STRING):
@@ -93,7 +94,7 @@ class Range(object):
                             try:
                                 longValue = tools.SYMBOLIC_NAMES_MAP[nextValue.lower()]
                             except KeyError:
-                                validSymbols = tools.humanReadableList(sorted(tools.SYMBOLIC_NAMES_MAP.keys()))
+                                validSymbols = _tools.humanReadableList(sorted(tools.SYMBOLIC_NAMES_MAP.keys()))
                                 raise RangeSyntaxError("symbolic name %r must be one of: %s" % (nextValue, validSymbols))
                         elif nextType == token.STRING:
                             if len(nextValue) != 3:
@@ -156,7 +157,7 @@ class Range(object):
                             raise RangeSyntaxError("range items must not overlap: %r and %r"
                                                    % (self._repr_item(item), self._repr_item(result)))
                     self.items.append(result)
-                if tools.isEofToken(next):
+                if _tools.isEofToken(next):
                     endReached = True
 
     def _repr_item(self, item):

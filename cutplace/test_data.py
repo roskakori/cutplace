@@ -15,9 +15,10 @@ Tests for data formats.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import data
 import logging
 import unittest
+
+import data
 
 class DataFormatTest(unittest.TestCase):
     """

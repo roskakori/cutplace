@@ -15,14 +15,15 @@ Tests  for cutplace application.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import cutplace
-import dev_test
 import logging
 import optparse
 import os.path
-import parsers
-import tools
 import unittest
+
+import dev_test
+import _cutplace
+import _parsers
+import _tools
 
 _log = logging.getLogger("cutplace")
 
@@ -30,14 +31,14 @@ class CutplaceTest(unittest.TestCase):
     """Test cases for cutplace command line interface."""
 
     def testVersion(self):
-        self.assertRaises(cutplace._ExitQuietlyOptionError, cutplace.main, ["--version"])
+        self.assertRaises(_cutplace._ExitQuietlyOptionError, _cutplace.main, ["--version"])
         
     def testHelp(self):
-        self.assertRaises(cutplace._ExitQuietlyOptionError, cutplace.main, ["--help"])
-        self.assertRaises(cutplace._ExitQuietlyOptionError, cutplace.main, ["-h"])
+        self.assertRaises(_cutplace._ExitQuietlyOptionError, _cutplace.main, ["--help"])
+        self.assertRaises(_cutplace._ExitQuietlyOptionError, _cutplace.main, ["-h"])
 
     def testListEncodings(self):
-        cutplace.main(["--list-encodings"])
+        _cutplace.main(["--list-encodings"])
 
     # TODO: Add tests for broken CSV files.
     # TODO: Add test for continued processing of multiple data files in case the first has a Unicode encoding error.
@@ -45,7 +46,7 @@ class CutplaceTest(unittest.TestCase):
     def testSplitValidData(self):
         icdPath = dev_test.getTestIcdPath("customers.ods")
         dataPath = dev_test.getTestInputPath("valid_customers_iso-8859-1.csv")
-        cutplace.main(["--split", icdPath, dataPath])
+        _cutplace.main(["--split", icdPath, dataPath])
         acceptedDataPath = dev_test.getTestInputPath("valid_customers_iso-8859-1_accepted.csv")
         rejectedDataPath = dev_test.getTestInputPath("valid_customers_iso-8859-1_rejected.txt")
         self.assertNotEqual(os.path.getsize(acceptedDataPath), 0)
@@ -57,7 +58,7 @@ class CutplaceTest(unittest.TestCase):
         icdPath = dev_test.getTestIcdPath("customers.ods")
         dataPath = dev_test.getTestInputPath("broken_customers.csv")
         try:
-            cutplace.main(["--split", icdPath, dataPath])
+            _cutplace.main(["--split", icdPath, dataPath])
             self.fail("expected SystemExit error")
         except SystemExit, error:
             self.assertEquals(error.code, 1)
@@ -71,7 +72,7 @@ class CutplaceTest(unittest.TestCase):
     def _testValidIcd(self, suffix):
         assert suffix is not None
         icdPath = dev_test.getTestIcdPath("customers." + suffix)
-        cutPlace = cutplace.CutPlace()
+        cutPlace = _cutplace.CutPlace()
         cutPlace.setIcdFromFile(icdPath)
     
     def testValidIcdInCsvFormat(self):
@@ -83,13 +84,13 @@ class CutplaceTest(unittest.TestCase):
     def testValidIcdInXlsFormat(self):
         try:
             self._testValidIcd("xls")
-        except parsers.CutplaceXlrdImportError:
+        except _parsers.CutplaceXlrdImportError:
             _log.warning("skipped test due lack of xlrd module")
 
     def testValidCsvs(self):
         VALID_PREFIX = "valid_"
         testsInputFolder = dev_test.getTestFolder("input")
-        validCsvFileNames = tools.listdirMatching(testsInputFolder, VALID_PREFIX + ".*\\.csv")
+        validCsvFileNames = _tools.listdirMatching(testsInputFolder, VALID_PREFIX + ".*\\.csv")
         validCsvPaths = list(os.path.join(testsInputFolder, fileName) for fileName in validCsvFileNames)
         for dataPath in validCsvPaths:
             # Compute the base name of the related ICD.
@@ -100,33 +101,33 @@ class CutplaceTest(unittest.TestCase):
             icdBaseName = baseFileNameWithoutValidPrefixAndCsvSuffix.split("_")[0]
             icdPath = dev_test.getTestIcdPath(icdBaseName + ".csv")
             # Now validate the data.
-            cutplace.main([icdPath, dataPath])
+            _cutplace.main([icdPath, dataPath])
             # TODO: Assert number of errors detected in dataPath is 0.
 
     def testValidFixedTxt(self):
         icdPath = dev_test.getTestIcdPath("customers_fixed.ods")
         dataPath = dev_test.getTestInputPath("valid_customers_fixed.txt")
-        cutplace.main([icdPath, dataPath])
+        _cutplace.main([icdPath, dataPath])
         # TODO: Assert number of errors detected in dataPath is 0.
 
     def testValidNativeExcelFormats(self):
         icdPath = dev_test.getTestIcdPath("native_excel_formats.ods")
         dataPath = dev_test.getTestInputPath("valid_native_excel_formats.xls")
-        cutplace.main([icdPath, dataPath])
+        _cutplace.main([icdPath, dataPath])
         # TODO: Assert number of errors detected in dataPath is 0.
 
     def testBrokenUnknownCommandLineOption(self):
-        self.assertRaises(optparse.OptionError, cutplace.main, ["--no-such-option"])
+        self.assertRaises(optparse.OptionError, _cutplace.main, ["--no-such-option"])
 
     def testBrokenNoCommandLineOptions(self):
-        self.assertRaises(optparse.OptionError, cutplace.main, [])
+        self.assertRaises(optparse.OptionError, _cutplace.main, [])
 
     def testBrokenNonExistentIcdPath(self):
-        self.assertRaises(IOError, cutplace.main, ["no-such-icd.nix"])
+        self.assertRaises(IOError, _cutplace.main, ["no-such-icd.nix"])
         
     def testBrokenNonExistentDataPath(self):
         icdPath = dev_test.getTestIcdPath("customers.ods")
-        self.assertRaises(EnvironmentError, cutplace.main, [icdPath, "no-such-data.nix"])
+        self.assertRaises(EnvironmentError, _cutplace.main, [icdPath, "no-such-data.nix"])
 
 class LotsOfCustomersTest(unittest.TestCase):
     """Test case for performance profiling."""
@@ -135,7 +136,7 @@ class LotsOfCustomersTest(unittest.TestCase):
         icdOdsPath = dev_test.getTestIcdPath("customers.ods")
         locCsvPath = dev_test.getTestFile("input", "lots_of_customers.csv")
         dev_test.createLotsOfCustomersCsv(locCsvPath)
-        cutplace.main([icdOdsPath, locCsvPath])
+        _cutplace.main([icdOdsPath, locCsvPath])
         # TODO: Assert number of errors detected in dataPath is 0.
         
 if __name__ == '__main__': # pragma: no cover

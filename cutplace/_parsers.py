@@ -22,8 +22,9 @@ import logging
 import Queue
 
 import data
-import ods
 import tools
+import _ods
+import _tools
 
 AUTO = data.ANY
 CR = "\r"
@@ -140,9 +141,9 @@ def odsReader(readable, sheetIndex=1):
     assert sheetIndex >= 1
 
     rowQueue = Queue.Queue()
-    contentXmlReadable = ods.odsContent(readable)
+    contentXmlReadable = _ods.odsContent(readable)
     try:
-        producer = ods.ProducerThread(contentXmlReadable, rowQueue, sheetIndex)
+        producer = _ods.ProducerThread(contentXmlReadable, rowQueue, sheetIndex)
         producer.start()
         hasRow = True
         while hasRow:
@@ -203,7 +204,7 @@ class ParserSyntaxError(tools.CutplaceError):
         self.columnNumberInLine = columnNumberInLine
         
     def __str__(self):
-        result = "(" + tools.valueOr("%d" % (self.lineNumber + 1), "?")
+        result = "(" + _tools.valueOr("%d" % (self.lineNumber + 1), "?")
         if self.columnNumberInLine is not None:
             result += ";%d" % self.columnNumberInLine
         if self.itemNumberInLine is not None:
@@ -276,7 +277,7 @@ class _DelimitedParser(object):
         self.rows = []
         # HACK: Convert delimiters using `str()` because `csv.reader()` cannot handle Unicode strings,
         # thus u"," becomes "," which can be processed.
-        reader = tools.UnicodeCsvReader(readable, delimiter=str(self.itemDelimiter), lineterminator=str(self.lineDelimiter),
+        reader = _tools.UnicodeCsvReader(readable, delimiter=str(self.itemDelimiter), lineterminator=str(self.lineDelimiter),
                               quotechar=str(self.quoteChar), doublequote=(self.quoteChar == self.escapeChar), encoding=encoding)
         for row in reader:
             # TODO: Convert all items in row to Unicode.

@@ -16,11 +16,12 @@ Tests  for field formats.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import data
 import decimal
-import fields
 import logging
 import unittest
+
+import data
+import fields
 
 _anyFormat = data.createDataFormat(data.FORMAT_CSV)
 _fixedFormat = data.createDataFormat(data.FORMAT_FIXED)

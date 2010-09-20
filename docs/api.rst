@@ -14,50 +14,44 @@ Module reference
 
 .. automodule:: __init__
 
-checks
-------
+Checks - check conditions across rows and files
+-----------------------------------------------
 
 .. automodule:: checks
   :members:
   :undoc-members:
 
-data
-----
+Data - read data from various formats
+-------------------------------------
 
 .. automodule:: data
   :members:
   :undoc-members:
 
-fields
-------
+Fields - validate fields
+------------------------
 
 .. automodule:: fields
   :members:
   :undoc-members:
 
-interface
----------
+Interface - describe and process sets of data
+---------------------------------------------
 
 .. automodule:: interface
   :members:
   :undoc-members:
 
-ranges
-------
+Ranges - sets of numbers and characters
+---------------------------------------
+
 .. automodule:: ranges
   :members:
   :undoc-members:
 
-tools
------
+Tools - various utility classes and functions
+---------------------------------------------
 
 .. automodule:: tools
-  :members:
-  :undoc-members:
-
-web
----
-
-.. automodule:: web
   :members:
   :undoc-members:

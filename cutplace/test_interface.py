@@ -25,8 +25,8 @@ import data
 import dev_test
 import fields
 import interface
-import parsers
 import tools
+import _parsers
 
 _log = logging.getLogger("cutplace.test_interface")
 
@@ -302,7 +302,7 @@ F,first_name,John,X,15,Text
         # FIXME: When called from eclipse, this just works, but when called from console it failes with:
         # ERROR:tools:'ascii' codec can't encode character u'\xfd' in position 55: ordinal not in range(128)
         # Traceback (most recent call last):
-        #   File "/Users/agi/workspace/cutplace/cutplace/tools.py", line 177, in next
+        #   File "/Users/agi/workspace/cutplace/cutplace/_tools.py", line 177, in next
         #     result = self.reader.next().encode("utf-8")
         #   File "/opt/local/Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/codecs.py", line 562, in next
         #     line = self.readline()
@@ -397,7 +397,7 @@ F,first_name,John,X,15,Text
             icd.validate(dataPath)
             self.assertEqual(icd.rejectedCount, 0)
             self.assertEqual(icd.acceptedCount, 3)
-        except parsers.CutplaceXlrdImportError:
+        except _parsers.CutplaceXlrdImportError:
             _log.warning("ignored ImportError caused by missing xlrd")
         finally:
             icd.removeValidationEventListener(_defaultIcdListener)
@@ -410,7 +410,7 @@ F,first_name,John,X,15,Text
             icd.validate(dataPath)
             self.assertEqual(icd.rejectedCount, 0)
             self.assertEqual(icd.acceptedCount, 4)
-        except parsers.CutplaceXlrdImportError:
+        except _parsers.CutplaceXlrdImportError:
             _log.warning("ignored ImportError caused by missing xlrd")
         finally:
             icd.removeValidationEventListener(_defaultIcdListener)
