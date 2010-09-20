@@ -4,7 +4,7 @@ Revision history
 
 This chapter describes improvements compared to earlier versions of cutplace.
 
-Version 0.6.2, xx-May-2010
+Version 0.6.2, xx-Jul-2010
 ==========================
 
 * Added input location for error messages caused by failed checks.
@@ -12,7 +12,7 @@ Version 0.6.2, xx-May-2010
 
 * Added error message if a field name is a Python keyword such as
   ``class`` or ``if``. The helps to avoid strange error messages if
-  the field is referred to later from a `ísUnique`` check.
+  the field is referred to later from a ``IsUnique`` check.
   (Ticket #20)
 
 * Changed style for error messages referring to locations in CSV, ODS
@@ -25,6 +25,11 @@ Version 0.6.2, xx-May-2010
 
   * Added parameter `location` to `acceptedRow()` which is of type
     `tools.InputLocation`.
+
+* Cleaned up API documentation, using reStructured Text as output format
+  and moving it to chapter `api`_.
+
+
 
 
 Version 0.6.1, 25-Apr-2010

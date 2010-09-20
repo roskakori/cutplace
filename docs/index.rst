@@ -10,16 +10,18 @@ conform to an interface control document (ICD).
 
 * :doc:`Read the tutorial <tutorial>` to find out what cutplace can do for
   you and how it works.
- 
+
 * `Visit the forums <http://apps.sourceforge.net/phpbb/cutplace/>`_ to ask
   questions and exchanged experiences with other users.
-  
+
 * Take a look at the
   `roadmap <https://apps.sourceforge.net/trac/cutplace/roadmap>`_ to find out
   what the future has in store.
 
 * Read the :doc:`developer guide <development>` to learn how to obtain the
-  source code and extend cutplace to fit your own needs.
+  source code and extend cutplace to fit your own needs. To learn all the
+  details about a certain class or function take a look at the
+  `API documentatin <http://cutplace.sourceforge.net/api/>`_.
 
 To find out more, take a look at the :doc:`table of contents <contents>` or
 visit the `project site <https://apps.sourceforge.net/trac/cutplace/>`_.

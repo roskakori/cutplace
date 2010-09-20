@@ -7,6 +7,7 @@ inspect, extend and play around with. This chapter describes where to get it,
 how to change and test the application, how to write your own field formats and
 how to contribute to the project.
 
+
 Obtaining additional tools and Python packages
 ==============================================
 
