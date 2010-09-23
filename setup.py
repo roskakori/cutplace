@@ -28,8 +28,8 @@ import logging
 logging.basicConfig()
 
 from cutplace import dev_reports
-from cutplace import ods
 from cutplace import version
+from cutplace import _ods
 from cutplace import _tools
 
 import os.path
@@ -50,9 +50,9 @@ epydocSettings = os.path.join(".settings", "epydoc.config")
 def _copyFilesToFolder(sourceFolder, targetFolder, pattern=".*"):
     """
     Copy those files in `sourceFolder` to `targetFolder` whose name matches the regex `pattern`.
-    
+
     If the target file already exists, overwrite it.
-    
+
     If an error occurs, no cleanup is performed and a partially copied target file might remain.
     """
     # TODO: Support recursive copy.
@@ -74,7 +74,7 @@ class _ApiCommand(Command):
 
     def initialize_options(self):
         pass
-    
+
     def finalize_options(self):
         pass
 
@@ -96,7 +96,7 @@ class _DocsCommand(Command):
             for fileName in fileNames:
                 if os.path.splitext(fileName)[1].lower() == ".ods":
                     self._convertOdsToCsvAndRst(os.path.join(baseFolder, fileName))
-                    
+
     def _convertOdsToCsvAndRst(self, odsSourcePath):
         assert odsSourcePath is not None
         csvTargetPath = _tools.withSuffix(odsSourcePath, ".csv")
@@ -107,7 +107,7 @@ class _DocsCommand(Command):
 
     def initialize_options(self):
         pass
-    
+
     def finalize_options(self):
         pass
 
@@ -129,7 +129,7 @@ class _ReportsCommand(Command):
 
     def initialize_options(self):
         pass
-    
+
     def finalize_options(self):
         pass
 
