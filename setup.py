@@ -184,6 +184,7 @@ thinking. It acts as "executable specification" which cutplace can use to valida
           # TODO: Test with Python 2.4. Who knows, it might actually work.
           "Programming Language :: Python :: 2.5",
           "Programming Language :: Python :: 2.6",
+          "Programming Language :: Python :: 2.7",
           "Topic :: Documentation",
           "Topic :: Software Development :: Quality Assurance",
           "Topic :: Software Development :: Testing"
