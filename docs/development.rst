@@ -17,19 +17,44 @@ First there are a couple of Python packages:
 
 * coverage
 
+* epydoc
+
 * profiler
 
 * sphinx
 
 The easiest way to install them is running::
 
-  easy_install coverage profiler sphinx
+  easy_install coverage epydoc profiler sphinx
 
 If you are using Ubuntu, you should instead use ``apt-get``::
 
   sudo apt-get install python-setuptools
   sudo apt-get install python-profiler
-  sudo easy_install coverage sphinx
+  sudo easy_install coverage epydoc sphinx
+
+Sadly, epydoc 3.0.1 does not work with docutils 0.6, so in case you are using
+a reasonably modern Python version, it will fail with::
+
+  'Text' object has no attribute 'data'
+
+In order to fix this, open ``epydoc/markup/restructuredtext.py``, locate
+``_SummaryExtractor.visit_paragraph()`` and change the lines below marked
+with ``# FIXED`` comments::
+
+  for child in node:
+     if isinstance(child, docutils.nodes.Text):
+         # FIXED: m = self._SUMMARY_RE.match(child.data)
+         text = child.astext()
+         m = self._SUMMARY_RE.match(text)
+         if m:
+             summary_pieces.append(docutils.nodes.Text(m.group(1)))
+             # FIXED: other = child.data[m.end():]
+             other = text[m.end():]
+             if other and not other.isspace():
+                 self.other_docs = True
+             break
+     summary_pieces.append(child)
 
 And finally you might need `ant <http://ant.apache.org/>`_,  a build tool popular in the Java world.
 Although most of the build process is covered by ``setup.py`` and a some custom
