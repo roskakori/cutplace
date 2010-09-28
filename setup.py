@@ -102,8 +102,8 @@ class _DocsCommand(Command):
         csvTargetPath = _tools.withSuffix(odsSourcePath, ".csv")
         rstTargetPath = _tools.withSuffix(odsSourcePath, ".rst")
         print "generating %r and %r" % (csvTargetPath, rstTargetPath)
-        ods.toCsv(odsSourcePath, csvTargetPath)
-        ods.toRst(odsSourcePath, rstTargetPath, firstRowIsHeading=False)
+        _ods.toCsv(odsSourcePath, csvTargetPath)
+        _ods.toRst(odsSourcePath, rstTargetPath, firstRowIsHeading=False)
 
     def initialize_options(self):
         pass
