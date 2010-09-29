@@ -1,5 +1,3 @@
-.. _api:
-
 ================================
 Application programmer interface
 ================================
@@ -8,18 +6,42 @@ Overview
 ========
 
 Additionally to the command line tool ``cutplace`` all functions are available
-as Python API. A reference is available from
-<http://cutplace.sourceforge.net/api/>, describing all classes and functions
-in detail.
+as Python API. For a complete reference about all public classes and functions,
+visit <http://cutplace.sourceforge.net/api/>.
 
-The remainder of this section focuses on describing how to achieve certain
-tasks using the API.
+The remainder of this chapter focuses on describing how to perform a basic
+validation of a simple CSV file containing data about some customers.
+
+Set up logging
+==============
+
+Cutplace uses Python's standard logging module. This provides a familiar and
+powerful way to watch what cutplace is doing. However, it also requires to
+setup the logging properly in order to gain most from it.
+
+For a quick start, set up your application's log messages to go to the console
+and show only information, warning and errors, but no debug messages:
+
+>>> import logging
+>>> logging.basicConfig(level=logging.INFO)
+
+Next trim cutplace's logging to show only warnings and errors as you might not
+be particularly interested in whatever it is cutplace does during a
+validation:
+
+>>> logging.getLogger("cutplace").setLevel(logging.WARNING)
+
+This should be enough to get you going. To learn more about logging, take a
+look at `logging chapter <http://docs.python.org/library/logging.html>`_ of
+the Python library documentation.
 
 Read or build an ICD
 ====================
 
-The class ``interface.InterfaceControlDocument`` represents an ICD. In case
-you have an ICD stored in a file and want to read it, use:
+The class
+`interface.InterfaceControlDocument <api/cutplace.interface.InterfaceControlDocument-class.html>`_
+represents an ICD. In case you have an ICD stored in a file and want to read
+it, use:
 
 >>> import os.path
 >>> from cutplace import interface
@@ -84,7 +106,7 @@ CheckSyntaxError: <source> (R1C2): check row (marked with 'f') must contain at l
 Validate data
 =============
 
-Once the ICD is set up, you can validate data using ``validate()``::
+Once the ICD is set up, you can validate data using ``validate()``:
 
 >>> icdPath = os.path.join("tests", "input", "icds", "customers.csv")
 >>> icd = interface.InterfaceControlDocument()
@@ -93,7 +115,7 @@ Once the ICD is set up, you can validate data using ``validate()``::
 >>> validCsvPath = os.path.join("tests", "input", "valid_customers.csv")
 >>> icd.validate(validCsvPath)
 
-So what happens if the data contain error? Let's give it a try::
+So what happens if the data contain errors? Let's give it a try:
 
 >>> brokenCsvPath = os.path.join("tests", "input", "broken_customers.csv")
 >>> icd.validate(brokenCsvPath)
@@ -104,14 +126,13 @@ indication that something is wrong.
 The reason for that is that cutplace should be able to continue in case a data
 row is rejected. Raining an ``Exception`` would defeat that. So instead, it
 informs interested listeners about validation events. To act on events, define
-a class inheriting from `BaseValidationListener` and overwrite the methods
+a class inheriting from ``BaseValidationListener`` and overwrite the methods
 for the events you are interested in:
 
 >>> class ErrorPrintingValidationListener(interface.BaseValidationListener):
 ...     def rejectedRow(self, row, error):
 ...         print "%r" % row
 ...         print "error: %s" % error
-...
 
 This is a very simple listener which is only interested about rejected rows. In
 case this happens, it simply prints the row and the error that was detected in it.
