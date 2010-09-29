@@ -17,6 +17,7 @@ Test suite for all test cases.
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import doctest
 import logging
+import os.path
 import sys
 import unittest
 
@@ -52,6 +53,7 @@ def createTestSuite():
     # TODO: Automatically discover doctest cases.
     for module in checks, data, fields, interface, ranges, version, _cutplace, _ods, _parsers, _tools, _web:
         result.addTest(doctest.DocTestSuite(module))
+    result.addTest(doctest.DocFileSuite(os.path.join("docs", "api.rst"), module_relative=False))
 
     # TODO: Automatically discover test cases.
     allTests = [

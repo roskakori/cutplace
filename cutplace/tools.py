@@ -91,7 +91,7 @@ class InputLocation(object):
         result += ")"
         return result
 
-def createCallerInputLocation(modulesToIgnore=None):
+def createCallerInputLocation(modulesToIgnore=None, hasColumn=False, hasCell=False, hasSheet=False):
     """
     `InputLocation` referring to the calling Python source code.
     """
@@ -113,7 +113,7 @@ def createCallerInputLocation(modulesToIgnore=None):
                 sourceLine = trace[1] - 1
         if not sourcePath:
             sourcePath = "<source>"
-    result = InputLocation(sourcePath)
+    result = InputLocation(sourcePath, hasColumn, hasCell, hasSheet)
     result.line = sourceLine
     return result
 

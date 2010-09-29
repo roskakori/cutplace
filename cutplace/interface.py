@@ -427,6 +427,14 @@ class InterfaceControlDocument(object):
                                  % InterfaceControlDocument._ID_FIELD_RULE)
         # FIXME: In the end of read(), the following needs to be set: self._location = None
 
+    def setLocationToSourceCode(self):
+        """
+        Set the location where the ICD is defined from to the caller location in the source code.
+        This is necessary if you create the ICD manually calling `addDataFormat`, `addFieldFormat`
+        etc. instead of using a file.
+        """
+        self._location = tools.createCallerInputLocation(hasCell=True);
+
     def _obtainReadable(self, dataFileToValidatePath):
         """
         A tuple consisting of the following:
