@@ -30,7 +30,7 @@ Version 0.6.2, xx-Sep-2010
     `tools.InputLocation`.
 
 * Cleaned up API documentation, using reStructured Text as output format
-  and moving it to chapter `api`_.
+  and adding a tutorial in chapter :doc:`api`.
 
 * Cleaned up logging to slightly improve performance.
 
