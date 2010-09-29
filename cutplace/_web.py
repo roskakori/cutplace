@@ -41,9 +41,9 @@ _SERVER_VERSION = "cutplace/%s" % version.VERSION_NUMBER
 _allowShutDown = False
 _readyToShutDown = False
 
-class _HtmlWritingValidationEventListener(interface.BaseValidationEventListener):
+class _HtmlWritingValidationListener(interface.BaseValidationListener):
     """
-    `BaseValidationEventListener` that writes accepted and rejected rows as HTML table.
+    `BaseValidationListener` that writes accepted and rejected rows as HTML table.
     """
     def __init__(self, htmlTargetFile, itemCount):
         assert htmlTargetFile is not None
@@ -246,12 +246,12 @@ Platform: %s</p>
                         validationHtmlFile.write("</tr>")
     
                         # Start listening to validation events.
-                        htmlListener = _HtmlWritingValidationEventListener(validationHtmlFile, len(icd.fieldNames))
-                        icd.addValidationEventListener(htmlListener)
+                        htmlListener = _HtmlWritingValidationListener(validationHtmlFile, len(icd.fieldNames))
+                        icd.addValidationListener(htmlListener)
                         try:
                             dataReadable = StringIO.StringIO(dataContent)
                             icd.validate(dataReadable)
-                            icd.removeValidationEventListener(htmlListener)
+                            icd.removeValidationListener(htmlListener)
                             validationHtmlFile.write("</table>")
                             
                             self.send_response(200)

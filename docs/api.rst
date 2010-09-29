@@ -104,10 +104,10 @@ indication that something is wrong.
 The reason for that is that cutplace should be able to continue in case a data
 row is rejected. Raining an ``Exception`` would defeat that. So instead, it
 informs interested listeners about validation events. To act on events, define
-a class inheriting from `BaseValidationEventListener` and overwrite the methods
+a class inheriting from `BaseValidationListener` and overwrite the methods
 for the events you are interested in:
 
->>> class ErrorPrintingValidationListener(interface.BaseValidationEventListener):
+>>> class ErrorPrintingValidationListener(interface.BaseValidationListener):
 ...     def rejectedRow(self, row, error):
 ...         print "%r" % row
 ...         print "error: %s" % error
@@ -117,13 +117,13 @@ This is a very simple listener which is only interested about rejected rows. In
 case this happens, it simply prints the row and the error that was detected in it.
 To learn about other events this listener can receive, take a look at the API
 documentation of
-`BaseValidationEventListener <api/cutplace.interface.BaseValidationEventListener-class.html>`_
+`BaseValidationListener <api/cutplace.interface.BaseValidationListener-class.html>`_
 
 To actually get some information about validation errors, you have to create
 such a listener and attach it to an ICD:
 
 >>> errorPrintingValidationListener = ErrorPrintingValidationListener()
->>> icd.addValidationEventListener(errorPrintingValidationListener)
+>>> icd.addValidationListener(errorPrintingValidationListener)
 
 Let's see what happens if we validate broken data again:
 
@@ -137,7 +137,7 @@ error: field u'date_of_birth' must match format: date must match format DD.MM.YY
 
 When you are done, remove the listener::
 
->>> icd.removeValidationEventListener(errorPrintingValidationListener)
+>>> icd.removeValidationListener(errorPrintingValidationListener)
 
 Putting it all together
 =======================
@@ -155,7 +155,7 @@ in one example you can use as base for your own validation code:
 >>> import os.path
 >>> from cutplace import interface
 >>> # Define a listener for validation events.
->>> class ErrorPrintingValidationListener(interface.BaseValidationEventListener):
+>>> class ErrorPrintingValidationListener(interface.BaseValidationListener):
 ...     def rejectedRow(self, row, error):
 ...         print "%r" % row
 ...         print "error: %s" % error
@@ -167,11 +167,11 @@ in one example you can use as base for your own validation code:
 >>> icd.read(icdPath)
 >>> # Validate the data.
 >>> errorPrintingValidationListener = ErrorPrintingValidationListener()
->>> icd.addValidationEventListener(errorPrintingValidationListener)
+>>> icd.addValidationListener(errorPrintingValidationListener)
 >>> try:
 ...     icd.validate(brokenCsvPath)
 ... finally:
-...     icd.removeValidationEventListener(errorPrintingValidationListener)
+...     icd.removeValidationListener(errorPrintingValidationListener)
 [u'12345', u'92', u'Bill', u'Carter', u'male', u'05.04.1953']
 error: field u'branch_id' must match format: value u'12345' must match regular expression: u'38\\d\\d\\d'
 [u'38111', u'XX', u'Sue', u'Brown', u'female', u'08.02.1962']

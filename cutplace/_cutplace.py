@@ -60,7 +60,7 @@ class _NoExitOptionParser(optparse.OptionParser):
         if self.version:
             print >> file, "Python %s, %s" % (_tools.pythonVersion(), _tools.platformVersion()) 
 
-class CutplaceValidationEventListener(interface.BaseValidationEventListener):
+class CutplaceValidationListener(interface.BaseValidationListener):
     """
     Listener for ICD events that writes accepted and rejected rows to the files specified in the
     command line options.
@@ -201,15 +201,15 @@ class CutPlace(object):
         try:
             if isWriteSplit:
                 rejectedTextFile = _openForWriteUsingUtf8(rejectedTextPath)
-                validationSplitListener = CutplaceValidationEventListener(_tools.UnicodeCsvWriter(acceptedCsvFile), rejectedTextFile)
+                validationSplitListener = CutplaceValidationListener(_tools.UnicodeCsvWriter(acceptedCsvFile), rejectedTextFile)
             else:
-                validationSplitListener = CutplaceValidationEventListener()
+                validationSplitListener = CutplaceValidationListener()
             try:
-                self.icd.addValidationEventListener(validationSplitListener)
+                self.icd.addValidationListener(validationSplitListener)
                 try:
                     self.icd.validate(dataFilePath)
                 finally:
-                    self.icd.removeValidationEventListener(validationSplitListener)
+                    self.icd.removeValidationListener(validationSplitListener)
                 shortDataFilePath = os.path.basename(dataFilePath)
                 acceptedRowCount = validationSplitListener.acceptedRowCount
                 rejectedRowCount = validationSplitListener.rejectedRowCount
