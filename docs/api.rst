@@ -168,12 +168,14 @@ in one example you can use as base for your own validation code:
 >>> # Validate the data.
 >>> errorPrintingValidationListener = ErrorPrintingValidationListener()
 >>> icd.addValidationEventListener(errorPrintingValidationListener)
->>> icd.validate(brokenCsvPath)
+>>> try:
+...     icd.validate(brokenCsvPath)
+... finally:
+...     icd.removeValidationEventListener(errorPrintingValidationListener)
 [u'12345', u'92', u'Bill', u'Carter', u'male', u'05.04.1953']
 error: field u'branch_id' must match format: value u'12345' must match regular expression: u'38\\d\\d\\d'
 [u'38111', u'XX', u'Sue', u'Brown', u'female', u'08.02.1962']
 error: field u'customer_id' must match format: value must be an integer number: u'XX'
 [u'38088', u'83', u'Rose', u'Baker', u'female', u'30.02.1994']
 error: field u'date_of_birth' must match format: date must match format DD.MM.YYYY (%d.%m.%Y) but is: u'30.02.1994' (day is out of range for month)
->>> icd.removeValidationEventListener(errorPrintingValidationListener)
 
