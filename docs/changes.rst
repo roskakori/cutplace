@@ -32,6 +32,8 @@ Version 0.6.2, xx-Sep-2010
 * Cleaned up API documentation, using reStructured Text as output format
   and moving it to chapter `api`_.
 
+* Cleaned up logging to slightly improve performance.
+
 
 Version 0.6.1, 25-Apr-2010
 ==========================

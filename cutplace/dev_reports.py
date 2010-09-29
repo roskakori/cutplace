@@ -33,7 +33,7 @@ try:
     import coverage
     import cProfile
 except ImportError, error:
-    _log.warning("developer reports will not work: %s" % error)
+    _log.warning("developer reports will not work: %s", error)
     
 
 
@@ -78,7 +78,7 @@ def createTasksReport(targetBasePath):
     TASK_IDS = ["FIXME", "TODO", "HACK"]
     
     taskHtmlPath = os.path.join(targetBasePath, "tasks.html")
-    _log.info("write %r" % taskHtmlPath)
+    _log.info("write %r", taskHtmlPath)
 
     modulePaths = [os.path.join(_getSourceFolder(), fileName) for fileName in _listdirPythonSource()]
     taskTypeToTexts = {}
@@ -96,7 +96,7 @@ def createTasksReport(targetBasePath):
                         taskType = line[taskIdIndex:taskIdIndex + len(taskId) - 1]
                         taskText = line[taskIdIndex + len(taskId):].strip()
                         _addToKeyList(taskTypeToTexts, taskType, (moduleName, lineNumber, taskText))
-                        _log.debug("%s::%s" % (taskType, taskText))
+                        _log.debug("%s::%s", taskType, taskText)
         finally:
             moduleFile.close()
     # Render HTML report.

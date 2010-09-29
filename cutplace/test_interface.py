@@ -40,11 +40,11 @@ class _SimpleErrorLoggingValidationEventListener(interface.BaseValidationEventLi
         self.checksAtEndFailedCount = 0
 
     def _logError(self, row, error):
-        _log.warning("error during validation: %s %r" % (error, row))
+        _log.warning("error during validation: %s %r", error, row)
 
     def acceptedRow(self, row, location):
         self.acceptedRowCount += 1
-        _log.info("accepted: %r" % row)
+        _log.info("accepted: %r", row)
 
     def rejectedRow(self, row, error):
         self.rejectedRowCount += 1

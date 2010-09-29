@@ -179,9 +179,9 @@ class CutPlace(object):
             else:
                 parser.error("file containing ICD must be specified")
 
-        self._log.debug("cutplace " + version.VERSION_TAG)
-        self._log.debug("options=" + str(self.options))
-        self._log.debug("others=" + str(others))
+        self._log.debug("cutplace %s", version.VERSION_TAG)
+        self._log.debug("options=%s", self.options)
+        self._log.debug("others=%s", others)
 
     def validate(self, dataFilePath):
         """

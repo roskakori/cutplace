@@ -156,7 +156,7 @@ def createLotsOfCustomersCsv(targetCsvPath):
     assert targetCsvPath is not None
     
     targetCsvFile = open(targetCsvPath, "w")
-    _log.info("write lots of customers to %r" % targetCsvPath)
+    _log.info("write lots of customers to %r", targetCsvPath)
     try:
         csvWriter = csv.writer(targetCsvFile)
         for customerId in range(1000):

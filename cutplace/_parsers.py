@@ -244,7 +244,7 @@ class _DelimitedParser(object):
                     actualLineDelimiter = CRLF
                 else:
                     actualLineDelimiter = LF
-            self._log.debug(" detected line delimiter: %r" % actualLineDelimiter)
+            self._log.debug(" detected line delimiter: %r", actualLineDelimiter)
         else:
             actualLineDelimiter = dialect.lineDelimiter
         if dialect.itemDelimiter == AUTO:
@@ -260,7 +260,7 @@ class _DelimitedParser(object):
                 if itemDelimiterToCountMap[possibleItemDelimiter] > delimiterCount:
                     delimiterCount = itemDelimiterToCountMap[possibleItemDelimiter]
                     actualItemDelimiter = possibleItemDelimiter
-                self._log.debug(" detected item delimiter: %r" % actualItemDelimiter)
+                self._log.debug(" detected item delimiter: %r", actualItemDelimiter)
         else:
             actualItemDelimiter = dialect.itemDelimiter
         
@@ -317,8 +317,7 @@ class _DelimitedParser(object):
         else:
             self.item = None
             self.atEndOfFile = True
-        if self._log.isEnabledFor(logging.DEBUG):
-            self._log.debug("(%d:%d) %r [%d;%d]" % (self.lineNumber, self.itemNumber, self.item, self.atEndOfLine, self.atEndOfFile))
+        self._log.debug("(%d:%d) %r [%d;%d]", self.lineNumber, self.itemNumber, self.item, self.atEndOfLine, self.atEndOfFile)
 
 class _FixedParser(object):
     def __init__(self, readable, fieldLengths):

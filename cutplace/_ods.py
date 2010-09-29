@@ -50,27 +50,27 @@ class AbstractOdsContentHandler(xml.sax.ContentHandler):
         self.indent += 1
         if name == "table:table":
             self.tablesToSkip -= 1
-            self._log.debug("%s<%s> #%d" % (" " * 2 * self.indent, name, self.tablesToSkip))
+            self._log.debug("%s<%s> #%d", " " * 2 * self.indent, name, self.tablesToSkip)
         elif (name == "table:table-cell") and (self.tablesToSkip == 0):
             try:
                 self.numberColumnsRepeated = long(attributes.getValue("table:number-columns-repeated"))
             except KeyError:
                 self.numberColumnsRepeated = 1
-            self._log.debug("%s<%s> (%d) %r" % (" " * 2 * self.indent, name, self.numberColumnsRepeated, attributes.items()))
+            self._log.debug("%s<%s> (%d) %r", " " * 2 * self.indent, name, self.numberColumnsRepeated, attributes.items())
             self.insideCell = True
             self.cellText = u""
         elif (name == "table:table-row") and (self.tablesToSkip == 0):
-            self._log.debug("%s<%s>" % (" " * 2 * self.indent, name))
+            self._log.debug("%s<%s>", " " * 2 * self.indent, name)
             self.row = []
 
     def characters(self, text):
         if self.insideCell and (self.tablesToSkip == 0):
-            self._log.debug("%s%r" % (" " * 2 * (self.indent + 1), text))
+            self._log.debug("%s%r", " " * 2 * (self.indent + 1), text)
             self.cellText += text
 
     def endElement(self, name):
         if (name == "table:table-cell") and (self.tablesToSkip == 0):
-            self._log.debug("%s</%s>" % (" " * 2 * self.indent, name))
+            self._log.debug("%s</%s>", " " * 2 * self.indent, name)
             assert self.cellText is not None
             self.insideCell = False
             for _ in range(self.numberColumnsRepeated):
@@ -79,7 +79,7 @@ class AbstractOdsContentHandler(xml.sax.ContentHandler):
                 self.row.append(self.cellText)
             self.cellText = None
         if (name == "table:table-row") and (self.tablesToSkip == 0):
-            self._log.debug("%s</%s>" % (" " * 2 * self.indent, name))
+            self._log.debug("%s</%s>", " " * 2 * self.indent, name)
             assert self.row is not None
             self.rowCompleted()
             self.row = None

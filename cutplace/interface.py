@@ -145,7 +145,7 @@ class InterfaceControlDocument(object):
         assert className
         assert moduleName
         className += classNameAppendix
-        self._log.debug("create from " + str(moduleName) + " class " + className)
+        self._log.debug("create from %s class %s", str(moduleName), className)
         try:
             result = getattr(module, className)
         except AttributeError:
@@ -273,7 +273,7 @@ class InterfaceControlDocument(object):
             if not fieldType:
                 fieldType = "Text"
             fieldClass = self._createFieldFormatClass(fieldType);
-            self._log.debug("create field: %s(%r, %r, %r)" % (fieldClass.__name__, fieldName, fieldType, fieldRule))
+            self._log.debug("create field: %s(%r, %r, %r)", fieldClass.__name__, fieldName, fieldType, fieldRule)
             fieldFormat = fieldClass.__new__(fieldClass, fieldName, fieldIsAllowedToBeEmpty, fieldLength, fieldRule)
             fieldFormat.__init__(fieldName, fieldIsAllowedToBeEmpty, fieldLength, fieldRule, self.dataFormat)
 
@@ -292,7 +292,7 @@ class InterfaceControlDocument(object):
                 self.fieldFormats.append(fieldFormat)
                 # TODO: Remember location where field format was defined to later include it in error message
                 self.fieldNameToFormatMap[fieldName] = fieldFormat
-                self._log.info("%s: defined field: %s" % (self._location, fieldFormat))
+                self._log.info("%s: defined field: %s", self._location, fieldFormat)
             else:
                 raise fields.FieldSyntaxError("field name must be used for only one field: %s" % fieldName,
                                               self._location)
@@ -336,7 +336,7 @@ class InterfaceControlDocument(object):
             checkRule = items[2]
         else:
             checkRule = ""
-        self._log.debug("create check: %s(%r, %r)" % (checkType, checkDescription, checkRule))
+        self._log.debug("create check: %s(%r, %r)", checkType, checkDescription, checkRule)
         checkClass = self._createCheckClass(checkType)
         check = checkClass.__new__(checkClass, checkDescription, checkRule, self.fieldNames, self._location)
         check.__init__(checkDescription, checkRule, self.fieldNames, self._location)
@@ -356,7 +356,7 @@ class InterfaceControlDocument(object):
         
         result = None
         icdHeader = icdReadable.read(4)
-        self._log.debug("icdHeader=%r" % icdHeader)
+        self._log.debug("icdHeader=%r", icdHeader)
         if icdHeader == InterfaceControlDocument._ODS_HEADER:
             # Consider ICD to be ODS.
             icdReadable.seek(0)
@@ -397,7 +397,7 @@ class InterfaceControlDocument(object):
         try:
             reader = self._fittingReader(icdFile, encoding)
             for row in reader:
-                self._log.debug("%s: parse %r" % (self._location, row))
+                self._log.debug("%s: parse %r", self._location, row)
                 if len(row) >= 1:
                     rowId = str(row[0]).lower()
                     if rowId == InterfaceControlDocument._ID_CHECK:
@@ -471,7 +471,7 @@ class InterfaceControlDocument(object):
         # TODO: Add "assert row is not None"?
         assert reason
         assert location
-        self._log.debug("rejected: %s" % row)
+        self._log.debug("rejected: %s", row)
         self._log.debug(reason, exc_info=self.logTrace)
         self.rejectedCount += 1
         for listener in self._validationEventListeners:
@@ -486,7 +486,7 @@ class InterfaceControlDocument(object):
         # FIXME: Split up `validate()` in several smaller meth_ods.
         assert dataFileToValidatePath is not None
         
-        self._log.info("validate \"%s\"" % (dataFileToValidatePath))
+        self._log.info("validate \"%s\"", dataFileToValidatePath)
         self._resetCounts()
         for check in self.checkDescriptions.values():
             check.reset()
@@ -543,8 +543,8 @@ class InterfaceControlDocument(object):
                                 item = row[location.cell]
                                 assert not isinstance(item, str), "%s: item must be Unicode string instead of plain string: %r" % (location, item)
                                 fieldFormat = self.fieldFormats[location.cell]
-                                if __debug__ and self._log.isEnabledFor(logging.DEBUG):
-                                    self._log.debug("validate item %d/%d: %r with %s <- %r" % (location.cell + 1, len(self.fieldFormats), item, fieldFormat, row))  
+                                if __debug__:
+                                    self._log.debug("validate item %d/%d: %r with %s <- %r", location.cell + 1, len(self.fieldFormats), item, fieldFormat, row)  
                                 rowMap[fieldFormat.fieldName] = fieldFormat.validated(item) 
                                 location.advanceCell()
                             if location.cell != len(row):
@@ -561,7 +561,7 @@ class InterfaceControlDocument(object):
                                     check.checkRow(rowMap, location)
                                 except checks.CheckError, error:
                                     raise checks.CheckError("row check failed: %r: %s" % (check.description, error), location)
-                            self._log.debug("accepted: %s" % row)
+                            self._log.debug("accepted: %s", row)
                             self.acceptedCount += 1
                             for listener in self._validationEventListeners:
                                 listener.acceptedRow(row, location)
@@ -588,7 +588,7 @@ class InterfaceControlDocument(object):
         # TODO: For checks at end, reset location to beginning of file and sheet
         for check in self.checkDescriptions.values():
             try:
-                self._log.debug("checkAtEnd: %s" % (check))
+                self._log.debug("checkAtEnd: %s", check)
                 check.checkAtEnd(location)
                 self.passedChecksAtEndCount += 1
             except checks.CheckError, message:
