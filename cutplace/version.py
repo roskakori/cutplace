@@ -17,9 +17,12 @@ Cutplace version information.
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 VERSION = 0
 RELEASE = 6
-REVISION = 1
+REVISION = 2
 
-REPOSITORY_ID, VERSION_DATE = "$Id$".split()[2:4]
+try:
+    REPOSITORY_ID, VERSION_DATE = "$Id$".split()[2:4]
+except ValueError:
+    REPOSITORY_ID, VERSION_DATE = "0", "0000-01-01"
 
 VERSION_NUMBER = "%d.%d.%d" % (VERSION, RELEASE, REVISION)
 VERSION_TAG = "%s (%s, r%s)" % (VERSION_NUMBER, VERSION_DATE, REPOSITORY_ID)

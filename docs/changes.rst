@@ -4,7 +4,7 @@ Revision history
 
 This chapter describes improvements compared to earlier versions of cutplace.
 
-Version 0.6.2, xx-Sep-2010
+Version 0.6.2, 29-Sep-2010
 ==========================
 
 * Added input location for error messages caused by failed checks.
