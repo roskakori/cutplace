@@ -23,7 +23,7 @@
            </exec>
        </sequential>
     </macrodef>
-    
+
     <target name="install" depends="bdist_egg" description="install binary distribution">
         <tstamp />
         <pyst command="install" />
@@ -38,6 +38,19 @@
             <arg value="setup.py" />
             <arg value="sdist" />
 	    	<arg value="--formats=zip" />
+        </exec>
+    </target>
+
+    <target name="sdist_upload" depends="bdist_egg" description="build source distribution">
+        <!-- Delete Mac OS X Finder cache files. -->
+        <delete>
+          <fileset defaultexcludes="false" dir="." includes="**/.DS_Store"/>
+        </delete>
+        <exec executable="python">
+            <arg value="setup.py" />
+            <arg value="sdist" />
+	    	<arg value="--formats=zip" />
+            <arg value="upload" />
         </exec>
     </target>
 
@@ -94,7 +107,7 @@
         <mkdir dir="${reports.dir}" />
         <mkdir dir="${api.dir}" />
     </target>
-    
+
     <target description="build documentation" name="docs" depends="sitebase, testdata">
         <pyst command="docs" />
 	</target>
@@ -102,7 +115,7 @@
 	<target name="reports" depends="sitebase, testdata">
         <!-- <exec executable="python" error="build-stderr.txt"> -->
         <exec executable="python">
-            <!-- FIXME: Use platform independent path. --> 
+            <!-- FIXME: Use platform independent path. -->
             <arg value="cutplace/dev_reports.py" />
             <arg value="${reports.dir}" />
         </exec>
