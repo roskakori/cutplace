@@ -139,10 +139,41 @@ When you are done, remove the listener::
 
 >>> icd.removeValidationEventListener(errorPrintingValidationListener)
 
-That's pretty much the gist of it. You now know how to:
+Putting it all together
+=======================
 
-  * declare and ICD in the source code
-  * validate data from a file
-  * listen to event happening during validation
+You now know how to:
 
+* declare and ICD in the source code
+* validate data from a file
+* listen to event happening during validation
+
+All that is left to do is to collect the code snipplets of the previous sections
+in one example you can use as base for your own validation code:
+
+>>> # Validate a test CSV file.
+>>> import os.path
+>>> from cutplace import interface
+>>> # Define a listener for validation events.
+>>> class ErrorPrintingValidationListener(interface.BaseValidationEventListener):
+...     def rejectedRow(self, row, error):
+...         print "%r" % row
+...         print "error: %s" % error
+>>> # Change this to use your own files.
+>>> icdPath = os.path.join("tests", "input", "icds", "customers.csv")
+>>> dataPath = os.path.join("tests", "input", "broken_customers.csv")
+>>> # Define the interface.
+>>> icd = interface.InterfaceControlDocument()
+>>> icd.read(icdPath)
+>>> # Validate the data.
+>>> errorPrintingValidationListener = ErrorPrintingValidationListener()
+>>> icd.addValidationEventListener(errorPrintingValidationListener)
+>>> icd.validate(brokenCsvPath)
+[u'12345', u'92', u'Bill', u'Carter', u'male', u'05.04.1953']
+error: field u'branch_id' must match format: value u'12345' must match regular expression: u'38\\d\\d\\d'
+[u'38111', u'XX', u'Sue', u'Brown', u'female', u'08.02.1962']
+error: field u'customer_id' must match format: value must be an integer number: u'XX'
+[u'38088', u'83', u'Rose', u'Baker', u'female', u'30.02.1994']
+error: field u'date_of_birth' must match format: date must match format DD.MM.YYYY (%d.%m.%Y) but is: u'30.02.1994' (day is out of range for month)
+>>> icd.removeValidationEventListener(errorPrintingValidationListener)
 
