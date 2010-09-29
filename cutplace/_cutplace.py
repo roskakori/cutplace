@@ -129,11 +129,11 @@ class CutPlace(object):
         assert argv is not None
         
         usage = """
-  %prog [options] ICD-FILE
+  cutplace [options] ICD-FILE
     validate interface control document in ICD-FILE
-  %prog [options] ICD-FILE DATA-FILE(S)
+  cutplace [options] ICD-FILE DATA-FILE(S)
     validate DATA-FILE(S) according to rules specified in ICD-FILE
-  %prog --web [options]
+  cutplace --web [options]
     launch web server providing a web interface for validation"""
 
         parser = _NoExitOptionParser(usage=usage, version="%prog " + version.VERSION_TAG)
