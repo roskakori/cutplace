@@ -190,7 +190,7 @@ def pythonVersion():
 
 def humanReadableList(items):
     """
-    All values in `items` in a human readable form. This is ment to be used in error messages, where
+    All values in `items` in a human readable form. This is meant to be used in error messages, where
     dumping "%r" to the user does not cut it.
     """
     assert items is not None
