@@ -4,8 +4,10 @@ Development
 
 Cutplace is open source software, so its source code is available for you to
 inspect, extend and play around with. This chapter describes where to get it,
-how to change and test the application, how to write your own field formats and
-how to contribute to the project.
+how to build it and how to contribute to the project.
+
+If you are just interested to use cutplace's library classes and funtions,
+refer to the chaper about the :doc:`api`.
 
 
 Obtaining additional tools and Python packages
@@ -138,43 +140,6 @@ To build the user guide, developer reports and web site::
 To remove files generated during the build process::
 
   ant clean
-
-Writing field formats
-=====================
-
-Cutplace already ships with several field formats that should cover most needs.
-If however you have some very special requirements, you can write your own
-formats.
-
-The easiest way to do so is by adding your format to ``cutplace/fields.py``.
-Simply inherit from ``AbstractFieldFormat`` and provide a constructor to parse
-the ``rule`` parameter. Next, implement ``validatedValue(self, value)`` that
-validates that the text in ``value`` conforms to ``rule``. If not, raise an
-``FieldValueError`` with a descriptive error message. For examples see any of
-the ``*FieldFormat`` classes in ``fields.py``.
-
-The drawback of this approach is that when you install a new version of
-cutplace, your changes in ``fields.py`` will be lost.
-
-TODO: Describe how to write a ``myfields.py`` and extend the Python path.
-
-Writing checks
-==============
-
-Writing checks is quite similar to writing field formats. The standard checks
-are stored in ``cutplace/checks.py``. Inherit from ``AbstractCheck`` and
-provide a constructor. You might want to implement at least one of the
-following methods:
-
-* ``checkRow(self, rowNumber, row)``: called for each row read from the data.
-  ``RowNumber`` is useful to report errors, row is a list where each item
-  contains the value from one column as found in the input data.
-
-* ``checkAtEnd(self)``: called when all rows from the data are processed.
-
-In case the check discovers any issues, it should raise a ``CheckError``.
-
-TODO: Describe how to write mychecks.py and extend Python path.
 
 Contributing source code
 ========================
