@@ -55,12 +55,54 @@ class AbstractFieldFormat(object):
         assert rule is not None, "to specify \"no rule\" use \"\" instead of None"
         assert dataFormat is not None
 
-        self.fieldName = fieldName
-        self.isAllowedToBeEmpty = isAllowedToBeEmpty
-        self.length = ranges.Range(lengthText)
-        self.rule = rule
-        self.dataFormat = dataFormat
-        self.emptyValue = emptyValue
+        self._fieldName = fieldName
+        self._isAllowedToBeEmpty = isAllowedToBeEmpty
+        self._length = ranges.Range(lengthText)
+        self._rule = rule
+        self._dataFormat = dataFormat
+        self._emptyValue = emptyValue
+
+    @property
+    def fieldName(self):
+        """The name of the field."""
+        return self._fieldName
+
+    @property
+    def isAllowedToBeEmpty(self):
+        """
+        ``True`` if the field can be empty in the data set, resulting in `validated()` to return
+        `emptyValue`.
+        """
+        return self._isAllowedToBeEmpty
+
+    @property
+    def length(self):
+        """
+        A `ranges.Range` describing the possible length of the value.
+        """
+        return self._length
+
+    @property
+    def rule(self):
+        """
+        A field format dependent rule to describe possible values.
+        """
+        return self._rule
+
+    @property
+    def dataFormat(self):
+        """
+        The `data.AbstractDataFormat` the data set has in case the field needs any properties from
+        it to validate its value, for instance `data.KEY_DECIMAL_SEPARATOR`.
+        """
+        return self._dataFormat
+
+    @property
+    def emptyValue(self):
+        """
+        The result of `validated(value)` in case ``value`` is an empty string. 
+        """
+        return self._emptyValue
 
     def validateCharacters(self, value):
         validCharacterRange = self.dataFormat.get(data.KEY_ALLOWED_CHARACTERS)
@@ -272,7 +314,6 @@ class RegExFieldFormat(AbstractFieldFormat):
     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
         super(RegExFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue="")
         self.regex = re.compile(rule, re.IGNORECASE | re.MULTILINE)
-        self.rule = rule
 
     def validatedValue(self, value):
         assert value
@@ -287,6 +328,7 @@ class PatternFieldFormat(AbstractFieldFormat):
     """
     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
         super(PatternFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue="")
+        # TODO: Use fnmatch. Ticket #37.
         pattern = ""
         for character in rule:
             if character == "?":
@@ -297,7 +339,6 @@ class PatternFieldFormat(AbstractFieldFormat):
                 pattern += re.escape(character)
         self.regex = re.compile(pattern, re.IGNORECASE | re.MULTILINE)
         self.pattern = pattern
-        self.rule = rule
 
     def validatedValue(self, value):
         assert value

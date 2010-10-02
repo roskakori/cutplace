@@ -59,11 +59,11 @@ class Range(object):
 
         if not hasText:
             # Use empty ranges.
-            self.description = None
-            self.items = None
+            self._description = None
+            self._items = None
         else:
-            self.description = text
-            self.items = []
+            self._description = text
+            self._items = []
             # TODO: Consolidate code with `DelimitedDataFormat._validatedCharacter()`.
             tokens = tokenize.generate_tokens(StringIO.StringIO(text).readline)
             endReached = False
@@ -151,14 +151,30 @@ class Range(object):
                     # Handle "x".
                     result = (lower, lower)
                 if result is not None:
-                    for item in self.items:
+                    for item in self._items:
                         if self._itemsOverlap(item, result):
                             # TODO: use _repr_item() or something to display item in error message.
                             raise RangeSyntaxError("range items must not overlap: %r and %r"
                                                    % (self._repr_item(item), self._repr_item(result)))
-                    self.items.append(result)
+                    self._items.append(result)
                 if _tools.isEofToken(next):
                     endReached = True
+
+    @property
+    def description(self):
+        """
+        The original human readable description of the range used to construct it.
+        """
+        return self._description
+
+    @property
+    def items(self):
+        """
+        A list compiled from `description` for fast processing. Each item is represented by a
+        tuple ``(lower, upper)`` where either ``lower``or ``upper`` can be ``None``. For example,
+        "2:20" turns ``(2, 20)``, ":20" turns to ``(None, 20)`` and "2:" becomes ``(2, None)``.
+        """
+        return self._items
 
     def _repr_item(self, item):
         """
@@ -187,7 +203,7 @@ class Range(object):
         if self.items:
             result = "'"
             isFirst = True
-            for item in self.items:
+            for item in self._items:
                 if isFirst:
                     isFirst = False
                 else:
@@ -235,11 +251,11 @@ class Range(object):
         assert name
         assert value is not None
 
-        if self.items is not None:
+        if self._items is not None:
             isValid = False
             itemIndex = 0
-            while not isValid and itemIndex < len(self.items):
-                lower, upper = self.items[itemIndex]
+            while not isValid and itemIndex < len(self._items):
+                lower, upper = self._items[itemIndex]
                 if lower is None:
                     assert upper is not None
                     if value <= upper:

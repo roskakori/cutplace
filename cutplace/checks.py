@@ -55,20 +55,20 @@ class AbstractCheck(object):
     Abstract check to be used as base class for other checks. The constructor should be called by
     descendants, the other methods do nothing and can be left untouched.
     """
-    def __init__(self, description, rule, fieldNames, location=None):
+    def __init__(self, description, rule, availableFieldNames, locationOfDefinition=None):
         assert description
         assert rule is not None
-        assert fieldNames is not None
+        assert availableFieldNames is not None
         
-        if not fieldNames:
-            raise fields.FieldLookupError("field names must be specified", location)
-        self.description = description
-        self.rule = rule
-        self.fieldNames = fieldNames
-        if location is None:
-            self.location = tools.createCallerInputLocation(["checks"])
+        if not availableFieldNames:
+            raise fields.FieldLookupError("field names must be specified", locationOfDefinition)
+        self._description = description
+        self._rule = rule
+        self.fieldNames = availableFieldNames
+        if locationOfDefinition is None:
+            self._location = tools.createCallerInputLocation(["checks"])
         else:
-            self.location = location
+            self._location = locationOfDefinition
     
     def reset(self):
         """
@@ -101,7 +101,29 @@ class AbstractCheck(object):
     
     def __str__(self):
         return "%s(%r, %r)" % (self.__class__.__name__, self.description, self.rule)
-        
+
+    @property
+    def description(self):
+        """
+        A short description of the check as specified in the ICD, for example "id must be unique".
+        """
+        return self._description
+
+    @property
+    def rule(self):
+        """
+        A rule string describing what the check actually should do; its syntax depends on the actual
+        check.
+        """
+        return self._rule
+
+    @property
+    def location(self):
+        """
+        The `tools.InputLocation` where the check was defined.
+        """
+        return self._location
+
 class IsUniqueCheck(AbstractCheck):
     """
     Check to ensure that all rows are unique concerning certain key fields.
