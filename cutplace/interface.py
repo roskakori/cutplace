@@ -95,17 +95,20 @@ class InterfaceControlDocument(object):
     _ODS_HEADER = "PK\x03\x04"
     # Header used by Excel (and other MS Office applications).
     _EXCEL_HEADER = "\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"
-    
+
     def __init__(self):
+        """
+        Create an empty ICD. To set a data format and add fields and checks,
+        use either `read` or `addDataFormat`, `addFieldFormat` and `addCheck`.
+        """
         self._log = logging.getLogger("cutplace")
-        self.dataFormat = None
-        self.fieldNames = []
-        self.fieldFormats = []
-        self.fieldNameToFormatMap = {}
-        self.checkDescriptions = {}
+        self._dataFormat = None
+        self._fieldNames = []
+        self._fieldFormats = []
+        self._fieldNameToFormatMap = {}
+        self._checkDescriptions = {}
         self._validationListeners = []
-        # TODO: Add logTrace as property and let setter check for True or False.
-        self.logTrace = False
+        self._logTrace = False
         self._resetCounts()
         self._location = None
         
@@ -170,12 +173,12 @@ class InterfaceControlDocument(object):
             else:
                 value = ""
             if data.isFormatKey(key):
-                if self.dataFormat is None:
-                    self.dataFormat = data.createDataFormat(value)
+                if self._dataFormat is None:
+                    self._dataFormat = data.createDataFormat(value)
                 else:
-                    raise data.DataFormatSyntaxError("data format must be set only once, but has been set already to: %r" % self.dataFormat.name, self._location)
-            elif self.dataFormat is not None: 
-                self.dataFormat.set(key, value)
+                    raise data.DataFormatSyntaxError("data format must be set only once, but has been set already to: %r" % self._dataFormat.name, self._location)
+            elif self._dataFormat is not None: 
+                self._dataFormat.set(key, value)
             else:
                 raise data.DataFormatSyntaxError("first data format property name is %r but must be %r" % (key, data.KEY_FORMAT), self._location)
         else:
@@ -199,7 +202,7 @@ class InterfaceControlDocument(object):
         assert items is not None
         assert self._location is not None
 
-        if self.dataFormat is None:
+        if self._dataFormat is None:
             raise IcdSyntaxError("data format must be specified before first field", self._location)
 
         fieldName = None
@@ -275,7 +278,7 @@ class InterfaceControlDocument(object):
             fieldClass = self._createFieldFormatClass(fieldType);
             self._log.debug("create field: %s(%r, %r, %r)", fieldClass.__name__, fieldName, fieldType, fieldRule)
             fieldFormat = fieldClass.__new__(fieldClass, fieldName, fieldIsAllowedToBeEmpty, fieldLength, fieldRule)
-            fieldFormat.__init__(fieldName, fieldIsAllowedToBeEmpty, fieldLength, fieldRule, self.dataFormat)
+            fieldFormat.__init__(fieldName, fieldIsAllowedToBeEmpty, fieldLength, fieldRule, self._dataFormat)
 
             # Validate example in case there is one.
             if fieldExample:
@@ -286,19 +289,19 @@ class InterfaceControlDocument(object):
                     raise IcdSyntaxError("cannot validate example for field %r: %s" % (fieldName, error), self._location)
 
             # Validate that field name is unique.
-            if not self.fieldNameToFormatMap.has_key(fieldName):
+            if not self._fieldNameToFormatMap.has_key(fieldName):
                 self._location.setCell(1)
-                self.fieldNames.append(fieldName)
-                self.fieldFormats.append(fieldFormat)
+                self._fieldNames.append(fieldName)
+                self._fieldFormats.append(fieldFormat)
                 # TODO: Remember location where field format was defined to later include it in error message
-                self.fieldNameToFormatMap[fieldName] = fieldFormat
+                self._fieldNameToFormatMap[fieldName] = fieldFormat
                 self._log.info("%s: defined field: %s", self._location, fieldFormat)
             else:
                 raise fields.FieldSyntaxError("field name must be used for only one field: %s" % fieldName,
                                               self._location)
 
             # Validate field length for fixed format.
-            if isinstance(self.dataFormat, data.FixedDataFormat):
+            if isinstance(self._dataFormat, data.FixedDataFormat):
                 self._location.setCell(4)
                 if fieldFormat.length.items:
                     fieldLengthIsBroken = True
@@ -338,14 +341,14 @@ class InterfaceControlDocument(object):
             checkRule = ""
         self._log.debug("create check: %s(%r, %r)", checkType, checkDescription, checkRule)
         checkClass = self._createCheckClass(checkType)
-        check = checkClass.__new__(checkClass, checkDescription, checkRule, self.fieldNames, self._location)
-        check.__init__(checkDescription, checkRule, self.fieldNames, self._location)
+        check = checkClass.__new__(checkClass, checkDescription, checkRule, self._fieldNames, self._location)
+        check.__init__(checkDescription, checkRule, self._fieldNames, self._location)
         self._location.setCell(1)
-        existingCheck = self.checkDescriptions.get(checkDescription)
+        existingCheck = self._checkDescriptions.get(checkDescription)
         if existingCheck:
             raise checks.CheckSyntaxError("check description must be used only once: %r" % (checkDescription),
                                           self._location, "initial declaration", existingCheck.location) 
-        self.checkDescriptions[checkDescription] = check
+        self._checkDescriptions[checkDescription] = check
 
     def _fittingReader(self, icdReadable, encoding):
         """
@@ -419,10 +422,10 @@ class InterfaceControlDocument(object):
         finally:
             if needsOpen:
                 icdFile.close()
-        if self.dataFormat is None:
+        if self._dataFormat is None:
             raise IcdSyntaxError("ICD must contain a section describing the data format (rows starting with %r)"
                                  % InterfaceControlDocument._ID_DATA_FORMAT)
-        if not self.fieldFormats:
+        if not self._fieldFormats:
             raise IcdSyntaxError("ICD must contain a section describing at least one field format (rows starting with %r)"
                                  % InterfaceControlDocument._ID_FIELD_RULE)
         # FIXME: In the end of read(), the following needs to be set: self._location = None
@@ -444,26 +447,26 @@ class InterfaceControlDocument(object):
           2. A flag indicating whether the caller needs to call ``close()`` on the readable object
              once it is done reading it.
         """
-        assert self.dataFormat is not None
+        assert self._dataFormat is not None
         assert dataFileToValidatePath is not None
 
-        if self.dataFormat.name in [data.FORMAT_CSV, data.FORMAT_EXCEL, data.FORMAT_ODS]:
+        if self._dataFormat.name in [data.FORMAT_CSV, data.FORMAT_EXCEL, data.FORMAT_ODS]:
             needsOpen = isinstance(dataFileToValidatePath, types.StringTypes)
-            hasSheet = (self.dataFormat.name != data.FORMAT_CSV)
+            hasSheet = (self._dataFormat.name != data.FORMAT_CSV)
             location = tools.InputLocation(dataFileToValidatePath, hasCell=True, hasSheet=hasSheet)
             if needsOpen:
                 dataFile = open(dataFileToValidatePath, "rb")
             else:
                 dataFile = dataFileToValidatePath
-        elif self.dataFormat.name == data.FORMAT_FIXED:
+        elif self._dataFormat.name == data.FORMAT_FIXED:
             needsOpen = isinstance(dataFileToValidatePath, types.StringTypes)
             location = tools.InputLocation(dataFileToValidatePath, hasColumn=True, hasCell=True)
             if needsOpen:
-                dataFile = codecs.open(dataFileToValidatePath, "rb", self.dataFormat.encoding)
+                dataFile = codecs.open(dataFileToValidatePath, "rb", self._dataFormat.encoding)
             else:
                 dataFile = dataFileToValidatePath
         else: # pragma: no cover
-            raise NotImplementedError("data format: %r" % self.dataFormat.name)
+            raise NotImplementedError("data format: %r" % self._dataFormat.name)
         
         return (dataFile, location, needsOpen)
         
@@ -483,29 +486,29 @@ class InterfaceControlDocument(object):
         If a validation listener has been attached using `addValidationListener`, it will be
         notified about any event occurring during validation. 
         """
-        # FIXME: Split up `validate()` in several smaller meth_ods.
+        # FIXME: Split up `validate()` in several smaller methods.
         assert dataFileToValidatePath is not None
         
         self._log.info("validate \"%s\"", dataFileToValidatePath)
         self._resetCounts()
-        for check in self.checkDescriptions.values():
+        for check in self._checkDescriptions.values():
             check.reset()
 
         (dataFile, location, needsOpen) = self._obtainReadable(dataFileToValidatePath)
         try:
-            if self.dataFormat.name == data.FORMAT_CSV:
+            if self._dataFormat.name == data.FORMAT_CSV:
                 dialect = _parsers.DelimitedDialect()
-                dialect.lineDelimiter = self.dataFormat.get(data.KEY_LINE_DELIMITER)
-                dialect.itemDelimiter = self.dataFormat.get(data.KEY_ITEM_DELIMITER)
-                dialect.quoteChar = self.dataFormat.get(data.KEY_QUOTE_CHARACTER)
+                dialect.lineDelimiter = self._dataFormat.get(data.KEY_LINE_DELIMITER)
+                dialect.itemDelimiter = self._dataFormat.get(data.KEY_ITEM_DELIMITER)
+                dialect.quoteChar = self._dataFormat.get(data.KEY_QUOTE_CHARACTER)
                 # FIXME: Set escape char according to ICD.
-                reader = _parsers.delimitedReader(dataFile, dialect, encoding=self.dataFormat.encoding)
-            elif self.dataFormat.name == data.FORMAT_EXCEL:
-                sheet = self.dataFormat.get(data.KEY_SHEET)
+                reader = _parsers.delimitedReader(dataFile, dialect, encoding=self._dataFormat.encoding)
+            elif self._dataFormat.name == data.FORMAT_EXCEL:
+                sheet = self._dataFormat.get(data.KEY_SHEET)
                 reader = _parsers.excelReader(dataFile, sheet)
-            elif self.dataFormat.name == data.FORMAT_FIXED:
+            elif self._dataFormat.name == data.FORMAT_FIXED:
                 fieldLengths = []
-                for fieldFormat in self.fieldFormats:
+                for fieldFormat in self._fieldFormats:
                     # Obtain the length of a fixed length item. We could easily do this in a
                     # single line and without assertions, but doing it the way seen below makes
                     # analyzing possible bugs a lot easier.
@@ -518,15 +521,15 @@ class InterfaceControlDocument(object):
                     longFixedLength = long(fixedLength)
                     fieldLengths.append(longFixedLength)
                 reader = _parsers.fixedReader(dataFile, fieldLengths)
-            elif self.dataFormat.name == data.FORMAT_ODS:
-                sheet = self.dataFormat.get(data.KEY_SHEET)
+            elif self._dataFormat.name == data.FORMAT_ODS:
+                sheet = self._dataFormat.get(data.KEY_SHEET)
                 reader = _parsers.odsReader(dataFile, sheet)
             else: # pragma: no cover
-                raise NotImplementedError("data format: %r" % self.dataFormat.name)
+                raise NotImplementedError("data format: %r" % self._dataFormat.name)
             # TODO: Replace rowNumber by position in parser.
             
             # Obtain values from the data format that will be used by various checks.
-            firstRowToValidateFieldsIn = self.dataFormat.get(data.KEY_HEADER)
+            firstRowToValidateFieldsIn = self._dataFormat.get(data.KEY_HEADER)
             assert firstRowToValidateFieldsIn is not None
             assert firstRowToValidateFieldsIn >= 0
 
@@ -537,24 +540,24 @@ class InterfaceControlDocument(object):
                     if location.line >= firstRowToValidateFieldsIn:
                         try:
                             # Validate all items of the current row and collect their values in `rowMap`.
-                            maxItemCount = min(len(row), len(self.fieldFormats))
+                            maxItemCount = min(len(row), len(self._fieldFormats))
                             rowMap = {}
                             while location.cell < maxItemCount:
                                 item = row[location.cell]
                                 assert not isinstance(item, str), "%s: item must be Unicode string instead of plain string: %r" % (location, item)
-                                fieldFormat = self.fieldFormats[location.cell]
+                                fieldFormat = self._fieldFormats[location.cell]
                                 if __debug__:
-                                    self._log.debug("validate item %d/%d: %r with %s <- %r", location.cell + 1, len(self.fieldFormats), item, fieldFormat, row)  
+                                    self._log.debug("validate item %d/%d: %r with %s <- %r", location.cell + 1, len(self._fieldFormats), item, fieldFormat, row)  
                                 rowMap[fieldFormat.fieldName] = fieldFormat.validated(item) 
                                 location.advanceCell()
                             if location.cell != len(row):
                                 raise checks.CheckError("unexpected data must be removed after item %d" % (location.cell), location)
-                            elif len(row) < len(self.fieldFormats):
-                                missingFieldNames = self.fieldNames[(len(row) - 1):]
+                            elif len(row) < len(self._fieldFormats):
+                                missingFieldNames = self._fieldNames[(len(row) - 1):]
                                 raise checks.CheckError("row must contain items for the following fields: %r" % missingFieldNames, location)
         
                             # Validate row checks.
-                            for check in self.checkDescriptions.values():
+                            for check in self._checkDescriptions.values():
                                 try:
                                     if __debug__:
                                         self._log.debug("check row: ", check)
@@ -570,7 +573,7 @@ class InterfaceControlDocument(object):
                         except tools.CutplaceError, error:
                             isFieldValueError = isinstance(error, fields.FieldValueError)
                             if isFieldValueError:
-                                fieldName = self.fieldNames[location.cell]
+                                fieldName = self._fieldNames[location.cell]
                                 reason = "field %r must match format: %s" % (fieldName, error)
                             else:
                                 reason = str(error)
@@ -584,9 +587,8 @@ class InterfaceControlDocument(object):
                 dataFile.close()
 
         # Validate checks at end of data.
-        # FIXME: Move inside code where `validationListener` is active.
         # TODO: For checks at end, reset location to beginning of file and sheet
-        for check in self.checkDescriptions.values():
+        for check in self._checkDescriptions.values():
             try:
                 self._log.debug("checkAtEnd: %s", check)
                 check.checkAtEnd(location)
@@ -597,7 +599,46 @@ class InterfaceControlDocument(object):
                 self.failedChecksAtEndCount += 1
                 for listener in self._validationListeners:
                     listener.checkAtEndFailed(reason)
-        
+
+    @property
+    def dataFormat(self):
+        """
+        The data format used by the this ICD; refer to the `data` module for possible formats.
+        """
+        return self._dataFormat
+
+    @property
+    def fieldNames(self):
+        """List of field names defined in this ICD in the order they have been defined."""
+        return self._fieldNames
+
+    @property
+    def checkNames(self):
+        """List of check names in no particular order."""
+        return self._fieldNames
+
+    def _getLogTrace(self):
+        return self._logTrace
+
+    def _setLogTrace(self, value):
+        self._logTrace = value
+
+    def getFieldFormat(self, fieldName):
+        """
+        The `fields.AbstractFieldFormat` for ``fieldName``. If no such field has been defined,
+        raise a ``KeyError`` .
+        """
+        assert fieldName is not None
+        return self._fieldNameToFormatMap[fieldName]
+
+    def getCheck(self, checkName):
+        """
+        The `checks.AbstractCheck` for ``checkName``. If no such check has been defined,
+        raise a ``KeyError`` .
+        """
+        assert checkName is not None
+        return self._checkDescriptions[checkName]
+
     def addValidationListener(self, listener):
         assert listener is not None
         assert listener not in self._validationListeners
@@ -607,3 +648,7 @@ class InterfaceControlDocument(object):
         assert listener is not None
         assert listener in self._validationListeners
         self._validationListeners.remove(listener)
+
+    logTrace = property(_getLogTrace, _setLogTrace,
+        doc="If ``True``, log stack trace on rejected data items or rows.")    
+
