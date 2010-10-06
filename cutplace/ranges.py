@@ -268,4 +268,3 @@ class Range(object):
                 itemIndex += 1
             if not isValid:
                 raise RangeValueError("%s is %r but must be within range: %r" % (name, value, self))
-
