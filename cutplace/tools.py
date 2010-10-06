@@ -36,15 +36,47 @@ class InputLocation(object):
     single character) and an optional cell (pointing a cell in a structured input such as CSV).
     """
     def __init__(self, filePath, hasColumn=False, hasCell=False, hasSheet=False):
+        """
+        Create a new ``InputLocation`` for the input described by ``filePath``. This can also be
+        a symbolic name such as ``"<source>"`` or ``"<string>"`` in case the input is no actual
+        file. If ``filePath`` is no string type, ``"<io>"`` will be used.
+        
+        If the input is a text or binary file, ``hasColumn`` should be ``True`` and
+        `advanceColumn()` should be called on every character or byte read.
+        
+        If the input is a tabular file such as CSV, ``hasCell`` should be ``True`` and
+        `advanceCell()` or `setCell` be called on each cell processed.
+        
+        If the input is a spreadsheet  format such as ODS or Excel, `advanceSheet()` should be called
+        each time a new sheet starts.
+        
+        You can also combine these properties, for example to exactly point out an error location
+        in a spreadsheet cell, all of ``hasColumn``, ``hasCell`` and ``hasSheet`` can be ``True``
+        with the column pointing at a broken character in a cell.
+        
+        Common examples:
+        
+        >>> InputLocation("data.txt", hasColumn=True)
+        data.txt (1;1)
+        >>> InputLocation("data.csv", hasCell=True)
+        data.csv (R1C1)
+        >>> InputLocation("data.ods", hasCell=True, hasSheet=True)
+        data.ods (Sheet1!R1C1)
+        >>> InputLocation("data.ods", hasColumn=True, hasCell=True, hasSheet=True) # for very detailed parsers
+        data.ods (Sheet1!R1C1;1)
+        >>> from StringIO import StringIO
+        >>> InputLocation(StringIO("some text"), hasColumn=True)
+        <io> (1;1)
+        """
         assert filePath
         if isinstance(filePath, types.StringTypes):
             self.filePath = filePath
         else:
             self.filePath = "<io>"
-        self.line = 0
-        self.column = 0
-        self.cell = 0
-        self.sheet = 0
+        self._line = 0
+        self._column = 0
+        self._cell = 0
+        self._sheet = 0
         self._hasColumn = hasColumn
         self._hasCell = hasCell
         self._hasSheet = hasSheet
@@ -53,32 +85,62 @@ class InputLocation(object):
         assert amount is not None
         assert amount > 0
         assert self._hasColumn
-        self.column += amount
+        self._column += amount
 
     def advanceCell(self, amount=1):
         assert amount is not None
         assert amount > 0
         assert self._hasCell
-        self.cell += amount
+        self._cell += amount
 
+    # TODO: Change property ``cell`` to have getter and setter.
     def setCell(self, newCell):
         assert newCell is not None
         assert newCell >= 0
         assert self._hasCell
-        self.cell = newCell
+        self._cell = newCell
 
-    def advanceLine(self):
-        self.line += 1
-        self.column = 0
-        self.cell = 0
+    def advanceLine(self, amount=1):
+        assert amount is not None
+        assert amount > 0
+        # TODO: assert self._hasCell or self._hasColumn, "hasCell=%r, hasColumn=%r" % (self._hasCell, self._hasColumn)
+        self._line += amount
+        self._column = 0
+        self._cell = 0
 
     def advanceSheet(self):
-        self.sheet += 1
-        self.line = 0
-        self.column = 0
-        self.cell = 0
+        self._sheet += 1
+        self._line = 0
+        self._column = 0
+        self._cell = 0
 
-    def __str__(self):
+    @property
+    def cell(self):
+        """The current cell in the input."""
+        assert self._hasCell
+        return self._cell
+
+    @property
+    def column(self):
+        """The current column in the current line or cell in the input."""
+        assert self._hasColumn
+        return self._column
+
+    @property
+    def line(self):
+        """The current line or row in the input."""
+        return self._line
+
+    @property
+    def sheet(self):
+        """The current sheet in the input."""
+        assert self._hasSheet
+        return self._sheet
+
+    def __repr__(self):
+        """
+        Human readable representation of the input location; see `__init__()` for some examples.
+        """
         result = os.path.basename(self.filePath) + " ("
         if self._hasCell:
             if self._hasSheet:
@@ -114,7 +176,8 @@ def createCallerInputLocation(modulesToIgnore=None, hasColumn=False, hasCell=Fal
         if not sourcePath:
             sourcePath = "<source>"
     result = InputLocation(sourcePath, hasColumn, hasCell, hasSheet)
-    result.line = sourceLine
+    if sourceLine:
+        result.advanceLine(sourceLine)
     return result
 
 class _BaseCutplaceError(Exception):
@@ -125,7 +188,7 @@ class _BaseCutplaceError(Exception):
     def __init__(self, message, location=None, seeAlsoMessage=None, seeAlsoLocation=None, cause=None):
         """
         Create exception that supports a `message` describing the error and an optional
-        `location` in the input where the error happened. If the message is related
+        `InputLocation` in the input where the error happened. If the message is related
         to another location (for example when attempting to redefine a field with
         the same name), ``seeAlsoMessage`` should describe the meaning of the other
         location and ``seeAlsoLocation`` should point to the location. If the exception is the
@@ -163,7 +226,6 @@ class _BaseCutplaceError(Exception):
     def cause(self):
         """The `Exception` that cause this error or `None`."""
         return self._cause
-
 
     def __str__(self):
         result = ""
