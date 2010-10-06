@@ -35,8 +35,8 @@ This should be enough to get you going. To learn more about logging, take a
 look at `logging chapter <http://docs.python.org/library/logging.html>`_ of
 the Python library documentation.
 
-Read or build an ICD
-====================
+Reading an ICD
+==============
 
 The class
 `interface.InterfaceControlDocument <api/cutplace.interface.InterfaceControlDocument-class.html>`_
@@ -56,6 +56,10 @@ it, use:
 
 This is the easiest way, which also keeps declaration and validation in
 separate files.
+
+Building an ICD in the code
+===========================
+
 
 In some cases it might be preferable to include the ICD in the code, for
 instance for trivial interfaces that are only used internally. Here is an
@@ -95,13 +99,13 @@ happened.
 >>> icd.fieldNames
 ['id', 'name', 'dateOfBirth']
 
-If any of this methods cannot handle the parameters you passed, the raise a
-``CutplaceError`` with a message describing what went wrong.
+If any of this methods cannot handle the parameters you passed, they raise a
+``CutplaceError`` with a message describing what went wrong. For example:
 
 >>> icd.addCheck([])
 Traceback (most recent call last):
     ...
-CheckSyntaxError: <source> (R1C2): check row (marked with 'f') must contain at least 2 columns
+CheckSyntaxError: <source> (R1C2): check row (marked with 'c') must contain at least 2 columns
 
 Validate data
 =============
@@ -203,11 +207,11 @@ error: field u'date_of_birth' must match format: date must match format DD.MM.YY
 Writing field formats
 =====================
 
-Cutplace already ships with several field formats that should cover most needs.
-If however you have some very special requirements, you can write your own
+Cutplace already ships with several field formats found in the `fields
+<api/cutplace.fields-module.html>`_ module that should cover most needs If
+however you have some very special requirements, you can write your own
 formats.
 
-The easiest way to do so is by adding your format to ``cutplace/fields.py``.
 Simply inherit from ``AbstractFieldFormat`` and optionally provide a
 constructor to parse the ``rule`` parameter. Next, implement
 ``validatedValue(self, value)`` that validates that the text in ``value``
@@ -237,7 +241,7 @@ is ``""`` or ``None`` because that would mean cutplace is broken.
 >>> colorField.validated("red")
 'red'
 
-Of course you have achieved they same thing using `fields.ChoiceFieldFormat
+Of course you could have achieved similar results using `fields.ChoiceFieldFormat
 <api/fields.ChoiceFieldFormat-class.html>`_. However, a custom field format can
 do more. In particular, ``validatedValue()`` does not have to return a string.
 It can return any Python type and even ``None``. The result will be used in the
@@ -251,20 +255,18 @@ tuple of RGB items:
 ...     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
 ...         super(ColorFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue="")
 ...
-...     def validatedValue(self, value):
-...         # Validate that ``value`` is a color and return its RGB representation.
-...         assert value
-...         if value == "red":
+...     def validatedValue(self, colorName):
+...         # Validate that ``colorName`` is a color and return its RGB representation.
+...         assert colorName
+...         if colorName == "red":
 ...             result = (1.0, 0.0, 0.0)
-...         elif value == "green":
+...         elif colorName == "green":
 ...             result = (0.0, 1.0, 0.0)
-...         elif value == "green":
+...         elif colorName == "blue":
 ...             result = (0.0, 1.0, 0.0)
 ...         else:
-...             raise fields.FieldValueError("color value is %r but must be one of: red, green, blue" % value)
+...             raise fields.FieldValueError("color name is %r but must be one of: red, green, blue" % colorName)
 ...         return result
-
-
 
 For a simple test, let's see this field format in action:
 
@@ -274,7 +276,7 @@ For a simple test, let's see this field format in action:
 >>> colorField.validated("yellow")
 Traceback (most recent call last):
 ...
-FieldValueError: color value is 'yellow' but must be one of: red, green, blue
+FieldValueError: color name is 'yellow' but must be one of: red, green, blue
 
 Before you learned that ``validatedValue()`` never gets called with an empty
 value. So what happens if you declare a color field that allows empty values,
@@ -300,17 +302,17 @@ slightly modified version:
 ...         super(ColorFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat,
 ...                 emptyValue=(0.0, 0.0, 0.0)) # Use black as "empty" color.
 ...
-...     def validatedValue(self, value):
+...     def validatedValue(self, colorName):
 ...         # (Exactly same as before)
-...         assert value
-...         if value == "red":
+...         assert colorName
+...         if colorName == "red":
 ...             result = (1.0, 0.0, 0.0)
-...         elif value == "green":
+...         elif colorName == "green":
 ...             result = (0.0, 1.0, 0.0)
-...         elif value == "green":
+...         elif colorName == "blue":
 ...             result = (0.0, 1.0, 0.0)
 ...         else:
-...             raise fields.FieldValueError("color value is %r but must be one of: red, green, blue" % value)
+...             raise fields.FieldValueError("color name is %r but must be one of: red, green, blue" % colorName)
 ...         return result
 
 Let's give it a try:
@@ -329,17 +331,145 @@ TODO: Describe how to write a ``myfields.py`` and extend the Python path.
 Writing checks
 ==============
 
-Writing checks is quite similar to writing field formats. The standard checks
-are stored in ``cutplace/checks.py``. Inherit from ``AbstractCheck`` and
-provide a constructor. You might want to implement at least one of the
-following methods:
+Writing checks is quite similar to writing field formats. However, the
+interaction with the validation is more complex.
 
-* ``checkRow(self, rowNumber, row)``: called for each row read from the data.
-  ``RowNumber`` is useful to report errors, row is a list where each item
-  contains the value from one column as found in the input data.
+Checks have to implement certain methods described in `checks.AbstractCheck
+<api/cutplace.checks.AbstractCheck-class.html>`_. For each check, cutplace
+performs the following actions:
 
-* ``checkAtEnd(self)``: called when all rows from the data are processed.
+#. When reading the ICD, call the check's ``__init__()``.
+#. When starting to read a set of data, call the checks's ``reset()``.
+#. For each row of data, call the checks's ``checkRow()``.
+#. When done with a set of data, call the checks's ``checkAtEnd()``.
 
-In case the check discovers any issues, it should raise a ``CheckError``.
+The remaineder of this section will describe how to implement each of
+these methods. As an example, we implement a check to ensure that
+each customer's full name requires less than 100 characters. The field
+formats already ensure that ``first_name`` and ``last_name`` are at most
+60 characters each. However, assuming the full name is derived using the
+expression::
+
+    last_name + ", " + first_name
+
+this could lead to full names with up to 122 characters.
+
+To implements this check, start by inheriting from `checks.AbstractCheck
+<api/cutplace.checks.AbstractCheck-class.html>`_:
+
+>>> from cutplace import checks
+>>> class FullNameLengthIsInRange(checks.AbstractCheck):
+>>>     """Check that total length of customer name is within the specified range."""
+
+Next, implement a constructor to which cutplace can pass the values
+found in the ICD. For example, for our check the ICD would contain:
+
++-+-------------------------------------------+------------------------+-----+
++ +Description                                +Type                    +Rule +
++=+===========================================+========================+=====+
++C+full name must have at most 100 characters +FullNameLengthIsInRange +:100 +
++-+-------------------------------------------+------------------------+-----+
+
+When cutplace encounters this line, it will create a new check by calling
+`checks.IsUniqueCheck.__init__() <api/cutplace.checks.IsUniqueCheck-class.html#__init__>`_, passing
+the following parameters:
+
+* ``description="customer must be unique"``, which is just a human readable
+  description of the check to refer to it in error messages
+* ``rule=":100"``, which describes what exactly the check
+  should do. Each check can define its own syntax for the rule. In case of
+  ``FullNameLengthIsInRange`` the rule describes a `ranges.Range <api/cutplace.ranges.Range-class.html>`_.
+* ``availableFieldNames=["branch_id", "customer_id", "first_name","last_name",
+  "gender", "date_of_birth"]`` (as defined in the ICD using the same order)
+* ``location`` being the ``tools.InputLocation`` in the ICD where the check was defined.
+
+The constructor basically has to do 3 things:
+
+#. Call the super constructor
+#. Perform optional initialisation needed by the check that need to be
+   done only once and not on each new data set. In most cases, this involves
+   parsing the ``rule`` parameter and obtain whatever information the checks needs
+   from it.
+#. Call ``self.reset()``. This is not really necessary for this check, but in most
+   cases it will make you life easier because you can avoid redundant initialisations
+   in the constructor.
+
+>>> from cutplace import ranges
+>>> class FullNameLengthIsInRangeCheck(checks.AbstractCheck):
+>>>     """Check that total length of customer name is within the specified range."""
+>>>     def __init__(self, description, rule, availableFieldNames, location=None):
+>>>         super(FullNameLengthIsInRangeCheck, self).__init__(description, rule, availableFieldNames, location)
+>>>         self._fullNameRange = ranges.Range(rule)
+>>>         self.reset()
+
+Once cutplace is done reading the ICD, it moves on to data. For each set of
+data it calls the checks `reset()
+<api/cutplace.checks.AbstractCheck-class.html#reset>`_ method. For our simple
+check, no actions are needed so we are good already because ``AbstractCheck``
+already provides a ``reset()`` that does nothing.
+
+When cutplace validates data, it reads them row by row. For each row, it
+calls `validated() <api/cutplace.fields.AbstractFieldFormat-class.html#validated>`_
+on each cell in the row. In case all cells are valid, it collects them in a
+dictionary which maps the field name to its native value. Recall the interface
+from the :doc:`tutorial`, which defined the following fields:
+
++-+--------------------+----------+------+------+--------+------------+
++ +Name                +Example   +Empty?+Length+Type    +Rule        +
++=+====================+==========+======+======+========+============+
++F+branch_id           +38000     +      +5     +        +            +
++-+--------------------+----------+------+------+--------+------------+
++F+customer_id         +16        +      +2:    +Integer +10:65535    +
++-+--------------------+----------+------+------+--------+------------+
++F+first_name          +Jane      +      +:60   +        +            +
++-+--------------------+----------+------+------+--------+------------+
++F+surname             +Doe       +      +:60   +        +            +
++-+--------------------+----------+------+------+--------+------------+
++F+gender              +female    +      +2:6   +Choice  +male, female+
++-+--------------------+----------+------+------+--------+------------+
++F+date_of_birth       +27.02.1946+X     +10    +DateTime+DD.MM.YYYY  +
++-+--------------------+----------+------+------+--------+------------+
+
+Now consider a data row with the following values:
+
++---------+-----------+----------+-------+------+-------------+
++Branch id+Customer id+First name+Surname+Gender+Date of birth+
++=========+===========+==========+=======+======+=============+
++38111    +96         +Andrew    +Dixon  +male  +02.10.1913   +
++---------+-----------+----------+-------+------+-------------+
+
+The row map for this row would be::
+
+  rowMap = {
+      "branch_id": 38111,
+      "customer_id": 96,
+      "first_name": "Andrew",
+      "last_name": "Dixon",
+      "gender": "male",
+      "date_of_birth": time.struct_time(tm_year=1913, tm_mon=10, tm_mday=2, ...)
+  }
+
+With this knowledge, we can easily implement a ``checkRow`` that computes the
+full name and checks that it is within the required range. If not, it raises
+a `CheckError <api/cutplace.checks.CheckError-class.html>`_:
+
+>>> def checkRow(self, rowMap, location):
+>>>     fullName = rowMap["last_name"] + ", " + rowMap["first_name"]
+>>>     fullNameLength = len(fullName)
+>>>     try:
+>>>         self._fullNameRange.validate("full name", fullNameLength)
+>>>     except ranges.RangeValueError, error:
+>>>         raise CheckError("full name length is %d but must be in range %s: %r" \
+...                 % (fullNameLength, self._fullNameRange, fullName))
+
+And finally, there is
+<api/cutplace.checks.AbstractCheck-class.html#checkAtEnd>`_ which is called
+when all data rows have been processed. Note that ``checkAtEnd()`` does not
+have any parameters that contain actual data. Instead you typically would
+collect all information needed by ``checkAtEnd()`` in ``checkRow()`` and store
+them in instance variables.
+
+Because our ``FullNameLengthIsInRangeCheck``does not need to do anything here,
+we can omit it and keep inherit an empty implementation from ``AbstractCheck``.
 
 TODO: Describe how to write mychecks.py and extend Python path.
