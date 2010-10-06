@@ -331,7 +331,7 @@ class InterfaceControlDocument(object):
         assert items is not None
         itemCount = len(items)
         if itemCount < 2:
-            raise checks.CheckSyntaxError("check row (marked with %r) must contain at least 2 columns" % InterfaceControlDocument._ID_FIELD_RULE,
+            raise checks.CheckSyntaxError("check row (marked with %r) must contain at least 2 columns" % InterfaceControlDocument._ID_CHECK,
                                           self._location)
         checkDescription = items[0]
         checkType = items[1]
