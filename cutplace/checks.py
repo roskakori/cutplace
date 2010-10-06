@@ -56,6 +56,13 @@ class AbstractCheck(object):
     descendants, the other methods do nothing and can be left untouched.
     """
     def __init__(self, description, rule, availableFieldNames, locationOfDefinition=None):
+        """
+        Create a check with the human readable ``description``, a ``rule`` in a check dependent
+        syntax which can act on the fields listed in ``availableFieldNames`` (in the same order as
+        defined in the ICD) and the optional ``locationOfDefinition`` in the ICD. If no
+        ``locationOfDefinition`` is provided, `tools.createCallerInputLocation(["checks"])` is
+        used.
+        """
         assert description
         assert rule is not None
         assert availableFieldNames is not None
@@ -82,16 +89,21 @@ class AbstractCheck(object):
         """
         pass
 
-    def checkRow(self, row, location):
+    def checkRow(self, rowMap, location):
         """
-        Check row and in case it is invalid raise ``CheckError``. By default do nothing.
+        Check row and in case it is invalid raise `CheckError`. By default do nothing.
+
+        ``RowMap`` is maps all field names to their respective value for this row, ``location`` is
+        the `tools.InputLocation` where the row started in the input.
         """
         pass
     
     def checkAtEnd(self, location):
         """
         Check at at end of document when all rows have been read and in case something is wrong
-        raise CheckError. By default do nothing.
+        raise `CheckError`. By default do nothing.
+        
+        ``Location`` is the `tools.InputLocation` of the last row in the input.
         """
         pass
     
