@@ -19,7 +19,9 @@ import checks
 import codecs
 import keyword
 import logging
+import Queue
 import sys
+import threading
 import token
 import types
 
@@ -28,6 +30,8 @@ import fields
 import tools
 import _parsers
 import _tools
+
+_log = logging.getLogger("cutplace")
 
 class BaseValidationListener(object):
     """
@@ -96,12 +100,17 @@ class InterfaceControlDocument(object):
     # Header used by Excel (and other MS Office applications).
     _EXCEL_HEADER = "\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"
 
+    # Possible values for ``errors`` parameter of `validatedRows()`.
+    _ERRORS_STRICT = "strict"
+    _ERRORS_IGNORE = "ignore"
+    _ERRORS_YIELD = "yield"
+    _ALL_ERRORS_VALUES = [_ERRORS_STRICT, _ERRORS_IGNORE, _ERRORS_YIELD]
+
     def __init__(self):
         """
         Create an empty ICD. To set a data format and add fields and checks,
         use either `read` or `addDataFormat`, `addFieldFormat` and `addCheck`.
         """
-        self._log = logging.getLogger("cutplace")
         self._dataFormat = None
         self._fieldNames = []
         self._fieldFormats = []
@@ -148,7 +157,7 @@ class InterfaceControlDocument(object):
         assert className
         assert moduleName
         className += classNameAppendix
-        self._log.debug("create from %s class %s", str(moduleName), className)
+        _log.debug("create from %s class %s", str(moduleName), className)
         try:
             result = getattr(module, className)
         except AttributeError:
@@ -276,7 +285,7 @@ class InterfaceControlDocument(object):
             if not fieldType:
                 fieldType = "Text"
             fieldClass = self._createFieldFormatClass(fieldType);
-            self._log.debug("create field: %s(%r, %r, %r)", fieldClass.__name__, fieldName, fieldType, fieldRule)
+            _log.debug("create field: %s(%r, %r, %r)", fieldClass.__name__, fieldName, fieldType, fieldRule)
             fieldFormat = fieldClass.__new__(fieldClass, fieldName, fieldIsAllowedToBeEmpty, fieldLength, fieldRule)
             fieldFormat.__init__(fieldName, fieldIsAllowedToBeEmpty, fieldLength, fieldRule, self._dataFormat)
 
@@ -295,7 +304,7 @@ class InterfaceControlDocument(object):
                 self._fieldFormats.append(fieldFormat)
                 # TODO: Remember location where field format was defined to later include it in error message
                 self._fieldNameToFormatMap[fieldName] = fieldFormat
-                self._log.info("%s: defined field: %s", self._location, fieldFormat)
+                _log.info("%s: defined field: %s", self._location, fieldFormat)
             else:
                 raise fields.FieldSyntaxError("field name must be used for only one field: %s" % fieldName,
                                               self._location)
@@ -339,7 +348,7 @@ class InterfaceControlDocument(object):
             checkRule = items[2]
         else:
             checkRule = ""
-        self._log.debug("create check: %s(%r, %r)", checkType, checkDescription, checkRule)
+        _log.debug("create check: %s(%r, %r)", checkType, checkDescription, checkRule)
         checkClass = self._createCheckClass(checkType)
         check = checkClass.__new__(checkClass, checkDescription, checkRule, self._fieldNames, self._location)
         check.__init__(checkDescription, checkRule, self._fieldNames, self._location)
@@ -359,7 +368,7 @@ class InterfaceControlDocument(object):
         
         result = None
         icdHeader = icdReadable.read(4)
-        self._log.debug("icdHeader=%r", icdHeader)
+        _log.debug("icdHeader=%r", icdHeader)
         if icdHeader == InterfaceControlDocument._ODS_HEADER:
             # Consider ICD to be ODS.
             icdReadable.seek(0)
@@ -400,7 +409,7 @@ class InterfaceControlDocument(object):
         try:
             reader = self._fittingReader(icdFile, encoding)
             for row in reader:
-                self._log.debug("%s: parse %r", self._location, row)
+                _log.debug("%s: parse %r", self._location, row)
                 if len(row) >= 1:
                     rowId = str(row[0]).lower()
                     if rowId == InterfaceControlDocument._ID_CHECK:
@@ -474,11 +483,19 @@ class InterfaceControlDocument(object):
         # TODO: Add "assert row is not None"?
         assert reason
         assert location
-        self._log.debug("rejected: %s", row)
-        self._log.debug(reason, exc_info=self.logTrace)
+        isExceptionReason = isinstance(reason, Exception)
+        isStringReason = isinstance(reason, types.StringTypes)
+        assert isExceptionReason or isStringReason, "reason=%s:%r" % (type(reason), reason)
+        assert isinstance(location, tools.InputLocation)
+        _log.debug("rejected: %s", row)
+        _log.debug(reason, exc_info=self.logTrace)
         self.rejectedCount += 1
+        if isExceptionReason:
+            error = reason
+        else:
+            error = tools.CutplaceError(reason, location)
         for listener in self._validationListeners:
-            listener.rejectedRow(row, reason)
+            listener.rejectedRow(row, error)
 
     def validate(self, dataFileToValidatePath):
         """
@@ -489,7 +506,7 @@ class InterfaceControlDocument(object):
         # FIXME: Split up `validate()` in several smaller methods.
         assert dataFileToValidatePath is not None
         
-        self._log.info("validate \"%s\"", dataFileToValidatePath)
+        _log.info("validate \"%s\"", dataFileToValidatePath)
         self._resetCounts()
         for check in self._checkDescriptions.values():
             check.reset()
@@ -547,7 +564,7 @@ class InterfaceControlDocument(object):
                                 assert not isinstance(item, str), "%s: item must be Unicode string instead of plain string: %r" % (location, item)
                                 fieldFormat = self._fieldFormats[location.cell]
                                 if __debug__:
-                                    self._log.debug("validate item %d/%d: %r with %s <- %r", location.cell + 1, len(self._fieldFormats), item, fieldFormat, row)  
+                                    _log.debug("validate item %d/%d: %r with %s <- %r", location.cell + 1, len(self._fieldFormats), item, fieldFormat, row)  
                                 rowMap[fieldFormat.fieldName] = fieldFormat.validated(item) 
                                 location.advanceCell()
                             if location.cell != len(row):
@@ -560,11 +577,11 @@ class InterfaceControlDocument(object):
                             for check in self._checkDescriptions.values():
                                 try:
                                     if __debug__:
-                                        self._log.debug("check row: ", check)
+                                        _log.debug("check row: ", check)
                                     check.checkRow(rowMap, location)
                                 except checks.CheckError, error:
                                     raise checks.CheckError("row check failed: %r: %s" % (check.description, error), location)
-                            self._log.debug("accepted: %s", row)
+                            _log.debug("accepted: %s", row)
                             self.acceptedCount += 1
                             for listener in self._validationListeners:
                                 listener.acceptedRow(row, location)
@@ -575,9 +592,8 @@ class InterfaceControlDocument(object):
                             if isFieldValueError:
                                 fieldName = self._fieldNames[location.cell]
                                 reason = "field %r must match format: %s" % (fieldName, error)
-                            else:
-                                reason = str(error)
-                            self._rejectRow(row, reason, location)
+                                error = fields.FieldValueError(reason, location)
+                            self._rejectRow(row, error, location)
                     location.advanceLine()
             except tools.CutplaceUnicodeError, error:
                 self._rejectRow([], error, location)
@@ -590,12 +606,12 @@ class InterfaceControlDocument(object):
         # TODO: For checks at end, reset location to beginning of file and sheet
         for check in self._checkDescriptions.values():
             try:
-                self._log.debug("checkAtEnd: %s", check)
+                _log.debug("checkAtEnd: %s", check)
                 check.checkAtEnd(location)
                 self.passedChecksAtEndCount += 1
             except checks.CheckError, message:
                 reason = "check at end of data failed: %r: %s" % (check.description, message)
-                self._log.error(reason)
+                _log.error(reason)
                 self.failedChecksAtEndCount += 1
                 for listener in self._validationListeners:
                     listener.checkAtEndFailed(reason)
@@ -652,3 +668,93 @@ class InterfaceControlDocument(object):
     logTrace = property(_getLogTrace, _setLogTrace,
         doc="If ``True``, log stack trace on rejected data items or rows.")    
 
+def  validatedRows(icd, dataFileToValidatePath, errors="strict"):
+    """
+    Generator for rows described using ``icd`` in the data set found at ``dataFileToValidatePath``.
+    This provides a convenient way to read and process data without having to implement an own
+    reader.
+    
+    The ``errors`` defines how to handle errors and takes the following values:
+    
+    * "strict" - raise an exception and stop processing data.
+    * "ignore" - silently ignore errors and keep processing data.
+    * "yield" - yield the error (inheriting from ``Exception``) instead of a row array; its up to
+       the caller to check the return type before deciding how to process the result.
+    """
+    assert icd is not None
+    assert dataFileToValidatePath is not None
+    assert errors in InterfaceControlDocument._ALL_ERRORS_VALUES, \
+        "errors=%r but must be one of: %s" % (errors, InterfaceControlDocument._ALL_ERRORS_VALUES)
+        
+    class ProducingValidationListener(BaseValidationListener):
+        """
+        Validation listener implementing a producer for rows or errors encountered while
+        validating a data set.
+        """
+        def __init__(self, rowOrErrorQueue, errors):
+            assert errors in InterfaceControlDocument._ALL_ERRORS_VALUES, \
+                "errors=%r but must be one of: %s" % (errors, InterfaceControlDocument._ALL_ERRORS_VALUES)
+            self._errors = errors
+            self._rowOrErrorQueue = rowOrErrorQueue
+
+        def produce(self, rowOrError):
+            """
+            Append ``rowOrError`` to producer queue with ``None`` indicating the end of the input.
+            """
+            self._rowOrErrorQueue.put(rowOrError)
+
+        def acceptedRow(self, row, location):
+            self.produce(row)
+        
+        def rejectedRow(self, row, error):
+            self.produce(error)
+
+        def checkAtEndFailed(self, error):
+            self.produce(error)
+
+    class ValidationThread(threading.Thread):
+        """
+        Thread to run a validation in order to produce rows and errors.
+        """
+        def __init__(self, icd, dataFileToValidatePath, rowOrErrorQueue, errors):
+            assert icd is not None
+            assert dataFileToValidatePath is not None
+            assert rowOrErrorQueue is not None
+            assert errors in InterfaceControlDocument._ALL_ERRORS_VALUES, \
+                "errors=%r but must be one of: %s" % (errors, InterfaceControlDocument._ALL_ERRORS_VALUES)
+            
+            super(ValidationThread, self).__init__()
+            self._icd = icd
+            self._dataFileToValidatePath = dataFileToValidatePath
+            self._rowOrErrorQueue = Queue.Queue(3)
+            self._producingValidationListener = ProducingValidationListener(rowOrErrorQueue, errors)
+
+        def run(self):
+            self._icd.addValidationListener(self._producingValidationListener)
+            try:
+                self._icd.validate(self._dataFileToValidatePath)
+                # Mark the end of the data set.
+                self._producingValidationListener.produce(None)
+            except Exception, error:
+                self._producingValidationListener.produce(error)
+            finally:
+                self._icd.removeValidationListener(self._producingValidationListener)
+
+    rowOrErrorQueue = Queue.Queue(3)
+    validationThread = ValidationThread(icd, dataFileToValidatePath, rowOrErrorQueue, errors)
+    validationThread.start()
+    rowOrError = rowOrErrorQueue.get()
+    while rowOrError is not None:
+        isError = isinstance(rowOrError, Exception)
+        if isError:
+            if errors == InterfaceControlDocument._ERRORS_STRICT:
+                # FIXME: Stop ``validationThread`` somehow to remove listener.
+                raise rowOrError
+            elif errors == InterfaceControlDocument._ERRORS_YIELD:
+                yield rowOrError
+            elif errors != InterfaceControlDocument._ERRORS_IGNORE:
+                raise NotImplementedError("errors=%r"  % errors)
+        else:
+            assert isinstance(rowOrError, types.ListType), "rowOrError=%s: %r" % (type(rowOrError),rowOrError)
+            yield rowOrError
+        rowOrError = rowOrErrorQueue.get()

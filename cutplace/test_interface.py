@@ -125,7 +125,47 @@ def createDefaultTestIcd(format, lineDelimiter="\n"):
     readable = StringIO.StringIO(spec)
     result.read(readable)
     return result
-        
+
+class ValidatedRowsTest(unittest.TestCase):
+    """Tests for ``validatedRows()``."""
+    def setUp(self):
+        self._validCostumersCsvPath = dev_test.getTestInputPath("valid_customers.csv")
+        self._brokenCostumersCsvPath = dev_test.getTestInputPath("broken_customers.csv")
+        icdPath = dev_test.getTestIcdPath("customers.csv")
+        self._icd = interface.InterfaceControlDocument()
+        self._icd.read(icdPath)
+    
+    def testValidatedRowsStrict(self):
+        for _ in interface.validatedRows(self._icd, self._validCostumersCsvPath):
+            pass
+        try:
+            for _ in interface.validatedRows(self._icd, self._brokenCostumersCsvPath):
+                pass
+            self.fail("CutplaceError expected")
+        except tools.CutplaceError:
+            # Ignore expected error.
+            pass
+
+    def testValidatedRowsIgnore(self):
+        for _ in interface.validatedRows(self._icd, self._validCostumersCsvPath, errors="ignore"):
+            pass
+        for _ in interface.validatedRows(self._icd, self._brokenCostumersCsvPath, errors="ignore"):
+            pass
+
+    def testValidatedRowsYield(self):
+        for _ in interface.validatedRows(self._icd, self._validCostumersCsvPath, errors="yield"):
+            pass
+        errorCount = 0
+        rowCount= 0
+        for rowOrError in interface.validatedRows(self._icd, self._brokenCostumersCsvPath, errors="yield"):
+            if isinstance(rowOrError, Exception):
+                errorCount += 1
+            else:
+                rowCount += 1
+        self.assertNotEqual(errorCount, 0)
+        self.assertNotEqual(rowCount, 0)
+
+
 class InterfaceControlDocumentTest(unittest.TestCase):
     """Tests  for InterfaceControlDocument."""
 
