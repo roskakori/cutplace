@@ -165,6 +165,20 @@ class ValidatedRowsTest(unittest.TestCase):
         self.assertNotEqual(errorCount, 0)
         self.assertNotEqual(rowCount, 0)
 
+    def testValidatedRowsWithBrokenDataFormat(self):
+        try:
+            import xlrd
+            icdPath = dev_test.getTestIcdPath("native_excel_formats.ods")
+            icd = interface.InterfaceControlDocument()
+            icd.read(icdPath)
+            for _ in interface.validatedRows(icd, self._validCostumersCsvPath):
+                pass
+            self.fail("XLRDError expected")
+        except xlrd.XLRDError, error:
+            # Ignore expected error cause by wrong data format.
+            pass
+        except ImportError, error:
+            _log.warning("ignoring test due to missing import: %s", error)
 
 class InterfaceControlDocumentTest(unittest.TestCase):
     """Tests  for InterfaceControlDocument."""
