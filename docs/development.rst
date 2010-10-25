@@ -6,8 +6,8 @@ Cutplace is open source software, so its source code is available for you to
 inspect, extend and play around with. This chapter describes where to get it,
 how to build it and how to contribute to the project.
 
-If you are just interested to use cutplace's library classes and funtions,
-refer to the chaper about the :doc:`api`.
+If you are just interested to use cutplace's library classes and functions,
+refer to the chapter about the :doc:`api`.
 
 
 Obtaining additional tools and Python packages

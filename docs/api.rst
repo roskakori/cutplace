@@ -347,7 +347,7 @@ performs the following actions:
 #. For each row of data, call the checks's ``checkRow()``.
 #. When done with a set of data, call the checks's ``checkAtEnd()``.
 
-The remaineder of this section will describe how to implement each of
+The remainder of this section will describe how to implement each of
 these methods. As an example, we implement a check to ensure that
 each customer's full name requires less than 100 characters. The field
 formats already ensure that ``first_name`` and ``last_name`` are at most
@@ -390,12 +390,12 @@ parameters:
 The constructor basically has to do 3 things:
 
 #. Call the super constructor
-#. Perform optional initialisation needed by the check that needs to be
+#. Perform optional initialization needed by the check that needs to be
    done only once and not on each new data set. In most cases, this involves
    parsing the ``rule`` parameter and obtain whatever information the checks needs
    from it.
 #. Call ``self.reset()``. This is not really necessary for this check, but in most
-   cases it will make your life easier because you can avoid redundant initialisations
+   cases it will make your life easier because you can avoid redundant initializations
    in the constructor.
 
 >>> from cutplace import ranges

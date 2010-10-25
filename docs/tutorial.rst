@@ -123,8 +123,8 @@ So far we only describe the name of the field, for example
 
 .. note::
   A field name must contain only ASCII letters, numbers and underscore
-  (_). So blanks, foreigen characters such as umlauts and
-  interpuntuations are not allowed and will result in an error message
+  (_). So blanks, foreign characters such as umlauts and
+  punctuation marks are not allowed and will result in an error message
   when cutplace attempts to read the ICD.
 
   Some examples for valid field names:
@@ -137,7 +137,7 @@ So far we only describe the name of the field, for example
 
   For comparison, here are a few broken field names
 
-  * ``customer-id`` - error: contains interpunctuation character "``-``";
+  * ``customer-id`` - error: contains the punctuation mark "``-``";
     use "``_``" instead.
 
   * ``customer id``  - error: contains a blank; use "``_``" instead.
@@ -212,7 +212,8 @@ This should result in an output similar to::
   Python 2.5.5, Mac OS 10.5.8 (i386)
 
 The actual version numbers may vary. If your version of cutplace is older then
-|release|, consider upgrading to avoid compatibiliy issues with this tutorial.
+|release|, consider upgrading to avoid compatibility issues with this
+tutorial.
 
 If instead this results in an error message, refer to the chapter on
 :doc:`installation` about how to setup cutplace.
@@ -250,7 +251,7 @@ Let's recap what we learned so far:
 Adding examples
 ===============
 
-Most people find it easist to get a general grasp of something by
+Most people find it easiest to get a general grasp of something by
 looking at an example. Cutplace supports this line of thinking by
 letting you add an examples for a field right after the name:
 
@@ -423,8 +424,8 @@ the colon (:) in some of the description of the lengths.
   numbers. In this case, the length is ``2:``.
 
 * The ``first_name`` and ``surname`` can take at most 60 characters, maybe
-  because someone said so way back in the 70'ies when COBOL ruled the
-  world. To express this as length, use ``:60``.
+  because someone said so way back in the 70s when COBOL ruled the world.
+  To express this as length, use ``:60``.
 
 * The ``gender`` can be ``male`` or ``female``, so its length is between
   4 and 6, which reads as ``4:6``.
@@ -433,13 +434,13 @@ the colon (:) in some of the description of the lengths.
   because apparently we require it to use leading zeros. This is
   similar to ``brach_id``, which also used an exact length.
 
-  Wait a second, didnt we state before that the ``date_of_birth`` can be
+  Wait a second, didn't we state before that the ``date_of_birth`` can be
   empty? Shouldn't we use ``0:10`` then? Actually no, because this would
   also accept dates with a length of 1, 2, 3 and so on until 9. The
   possibility that ``date_of_birth`` can have a length of 0 is already
   taken care of by the ``X`` in the *Empty?* column.
 
-To summarize: lenghts are either extact values (like ``5``) or ranges
+To summarize: lengths are either exact values (like ``5``) or ranges
 with an lower and upper limit separated by a colon (like ``4:6``).
 Either the lower or upper limit can be omitted (like ``2:`` or ``:60``).
 
@@ -463,7 +464,7 @@ time to reveal the big guns: types and rules.
 Let's take a closer look at the ``customer_id``. Apparently, it's a
 number. To be more specific, an integer number with no fractional part.
 Let's say the same person who told us that a ``customer_id`` has at
-least two digits now informed us that due a design steming from the 16
+least two digits now informed us that due a design stemming from the 16
 bit era, the highest ``customer_id`` is 65535 (the largest number one
 can represent with 16 bit). Here's how to express this knowledge with
 cutplace:

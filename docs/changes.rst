@@ -4,6 +4,27 @@ Revision history
 
 This chapter describes improvements compared to earlier versions of cutplace.
 
+Version 0.6.3, 25-Oct-2010
+==========================
+
+* Fixed ``InterfaceControlDocument.checkNames`` which actually contained the
+  field names. Additionally, checkNames now contains the names in the order
+  they were declared in the ICD. Consequently the checks are performed in this
+  order during validation unlike until now, where the internal hashcode
+  decided the order of checks. (Ticket 35)
+
+* Improved documentation, in particular:
+
+  * Added more information on writing field format and checks of your own. It
+    still lacks details on how to actually use these in an ICD though.
+    (Ticker 33)
+
+  * Cleaned up introductions of most chapters with the intention to make them
+    easier to comprehend.
+
+* Changed public instance variables to properties. This allows to mark many of
+  them as read only, and also makes them show up in the API reference. #34.
+
 Version 0.6.2, 29-Sep-2010
 ==========================
 
