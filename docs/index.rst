@@ -15,7 +15,7 @@ data.
   you and how it works.
 
 * Read the :doc:`application programmer interface tutorial <api>` to learn how
-  to integrate cutplace based validations in your own application start. For a
+  to integrate cutplace based validations in your own application. For a
   complete reference, browse the
   `API reference documentation <http://cutplace.sourceforge.net/api/>`_.
 
