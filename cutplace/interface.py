@@ -115,7 +115,8 @@ class InterfaceControlDocument(object):
         self._fieldNames = []
         self._fieldFormats = []
         self._fieldNameToFormatMap = {}
-        self._checkDescriptions = {}
+        self._checkNames = []
+        self._checkNameToCheckMap = {}
         self._validationListeners = []
         self._logTrace = False
         self._resetCounts()
@@ -353,11 +354,13 @@ class InterfaceControlDocument(object):
         check = checkClass.__new__(checkClass, checkDescription, checkRule, self._fieldNames, self._location)
         check.__init__(checkDescription, checkRule, self._fieldNames, self._location)
         self._location.setCell(1)
-        existingCheck = self._checkDescriptions.get(checkDescription)
+        existingCheck = self._checkNameToCheckMap.get(checkDescription)
         if existingCheck:
             raise checks.CheckSyntaxError("check description must be used only once: %r" % (checkDescription),
                                           self._location, "initial declaration", existingCheck.location) 
-        self._checkDescriptions[checkDescription] = check
+        self._checkNameToCheckMap[checkDescription] = check
+        self._checkNames.append(checkDescription)
+        assert len(self.checkNames) == len(self._checkNameToCheckMap)
 
     def _fittingReader(self, icdReadable, encoding):
         """
@@ -508,7 +511,8 @@ class InterfaceControlDocument(object):
         
         _log.info("validate \"%s\"", dataFileToValidatePath)
         self._resetCounts()
-        for check in self._checkDescriptions.values():
+        for checkName in self.checkNames:
+            check = self.getCheck(checkName)
             check.reset()
 
         (dataFile, location, needsOpen) = self._obtainReadable(dataFileToValidatePath)
@@ -574,7 +578,8 @@ class InterfaceControlDocument(object):
                                 raise checks.CheckError("row must contain items for the following fields: %r" % missingFieldNames, location)
         
                             # Validate row checks.
-                            for check in self._checkDescriptions.values():
+                            for checkName in self.checkNames:
+                                check = self.getCheck(checkName)
                                 try:
                                     if __debug__:
                                         _log.debug("check row: ", check)
@@ -604,7 +609,8 @@ class InterfaceControlDocument(object):
 
         # Validate checks at end of data.
         # TODO: For checks at end, reset location to beginning of file and sheet
-        for check in self._checkDescriptions.values():
+        for checkName in self.checkNames:
+            check = self.getCheck(checkName)
             try:
                 _log.debug("checkAtEnd: %s", check)
                 check.checkAtEnd(location)
@@ -631,7 +637,7 @@ class InterfaceControlDocument(object):
     @property
     def checkNames(self):
         """List of check names in no particular order."""
-        return self._fieldNames
+        return self._checkNames
 
     def _getLogTrace(self):
         return self._logTrace
@@ -653,7 +659,7 @@ class InterfaceControlDocument(object):
         raise a ``KeyError`` .
         """
         assert checkName is not None
-        return self._checkDescriptions[checkName]
+        return self._checkNameToCheckMap[checkName]
 
     def addValidationListener(self, listener):
         assert listener is not None
