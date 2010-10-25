@@ -362,7 +362,7 @@ To implements this check, start by inheriting from `checks.AbstractCheck
 <api/cutplace.checks.AbstractCheck-class.html>`_:
 
 >>> from cutplace import checks
->>> class FullNameLengthIsInRange(checks.AbstractCheck):
+>>> class FullNameLengthIsInRangeCheck(checks.AbstractCheck):
 ...     """Check that total length of customer name is within the specified range."""
 
 Next, implement a constructor to which cutplace can pass the values
@@ -375,8 +375,8 @@ found in the ICD. For example, for our check the ICD would contain:
 +-+-------------------------------------------+------------------------+-----+
 
 When cutplace encounters this line, it will create a new check by calling
-`checks.IsUniqueCheck.__init__() <api/cutplace.checks.IsUniqueCheck-class.html#__init__>`_, passing
-the following parameters:
+``checks.FullNameLengthIsInRangeCheck.__init__()``, passing the following
+parameters:
 
 * ``description="customer must be unique"``, which is just a human readable
   description of the check to refer to it in error messages
@@ -384,18 +384,18 @@ the following parameters:
   should do. Each check can define its own syntax for the rule. In case of
   ``FullNameLengthIsInRange`` the rule describes a `ranges.Range <api/cutplace.ranges.Range-class.html>`_.
 * ``availableFieldNames=["branch_id", "customer_id", "first_name","last_name",
-  "gender", "date_of_birth"]`` (as defined in the ICD using the same order)
+  "gender", "date_of_birth"]`` (as defined in the ICD and using the same order)
 * ``location`` being the ``tools.InputLocation`` in the ICD where the check was defined.
 
 The constructor basically has to do 3 things:
 
 #. Call the super constructor
-#. Perform optional initialisation needed by the check that need to be
+#. Perform optional initialisation needed by the check that needs to be
    done only once and not on each new data set. In most cases, this involves
    parsing the ``rule`` parameter and obtain whatever information the checks needs
    from it.
 #. Call ``self.reset()``. This is not really necessary for this check, but in most
-   cases it will make you life easier because you can avoid redundant initialisations
+   cases it will make your life easier because you can avoid redundant initialisations
    in the constructor.
 
 >>> from cutplace import ranges
@@ -467,13 +467,13 @@ a `CheckError <api/cutplace.checks.CheckError-class.html>`_:
 ...                 % (fullNameLength, self._fullNameRange, fullName))
 
 And finally, there is
-<api/cutplace.checks.AbstractCheck-class.html#checkAtEnd>`_ which is called
-when all data rows have been processed. Note that ``checkAtEnd()`` does not
-have any parameters that contain actual data. Instead you typically would
-collect all information needed by ``checkAtEnd()`` in ``checkRow()`` and store
-them in instance variables.
+`checkAtEnd() <api/cutplace.checks.AbstractCheck-class.html#checkAtEnd>`_ which
+is called when all data rows have been processed. Note that ``checkAtEnd()``
+does not have any parameters that contain actual data. Instead you typically
+would collect all information needed by ``checkAtEnd()`` in ``checkRow()`` and
+store them in instance variables.
 
-Because our ``FullNameLengthIsInRangeCheck``does not need to do anything here,
+Because our ``FullNameLengthIsInRangeCheck`` does not need to do anything here,
 we can omit it and keep inherit an empty implementation from ``AbstractCheck``.
 
 TODO: Describe how to write mychecks.py and extend Python path.
