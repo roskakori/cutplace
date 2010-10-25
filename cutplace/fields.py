@@ -217,8 +217,8 @@ class DecimalFieldFormat(AbstractFieldFormat):
     Field format accepting decimal numeric values, taking the data format properties
     `data.KEY_DECIMAL_SEPARATOR` and `data.KEY_THOUSANDS_SEPARATOR` into account. 
     """
-    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
-        super(DecimalFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat)
+    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue=None):
+        super(DecimalFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue)
         if rule.strip():
             raise FieldSyntaxError("decimal rule must be empty")
         self.decimalSeparator = dataFormat.get(data.KEY_DECIMAL_SEPARATOR)
@@ -259,8 +259,8 @@ class IntegerFieldFormat(AbstractFieldFormat):
     """
     _DEFAULT_RANGE = "%d:%d" % (-2 ** 31, 2 ** 31 - 1)
 
-    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
-        super(IntegerFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat)
+    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue=None):
+        super(IntegerFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue)
         # The default range is 32 bit. If the user wants a bigger range, he has to specify it.
         # Python's long scales to any range as long there is enough memory available to represent
         # it.
@@ -287,8 +287,8 @@ class DateTimeFieldFormat(AbstractFieldFormat):
     # particular, "%" need to be checked first, and "YYYY" needs to be checked before "YY".
     _humanReadableToStrptimeMap = ["%:%%", "DD:%d", "MM:%m", "YYYY:%Y", "YY:%y", "hh:%H", "mm:%M", "ss:%S"]
 
-    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
-        super(DateTimeFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat)
+    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue=None):
+        super(DateTimeFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue)
         self.humanReadableFormat = rule
         # Create an actual copy of the rule string so `replace()` will not modify the original..
         strptimeFormat = "".join(rule)
@@ -326,8 +326,8 @@ class PatternFieldFormat(AbstractFieldFormat):
     """
     Field format accepting values that match a pattern using "*" and "?" as place holders.
     """
-    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
-        super(PatternFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue="")
+    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue=""):
+        super(PatternFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue)
         # TODO: Use fnmatch. Ticket #37.
         pattern = ""
         for character in rule:
@@ -351,8 +351,8 @@ class TextFieldFormat(AbstractFieldFormat):
     """
     Field format accepting any text.
     """
-    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
-        super(TextFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue="")
+    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue=""):
+        super(TextFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue)
 
     def validatedValue(self, value):
         assert value
