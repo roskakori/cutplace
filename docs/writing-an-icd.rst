@@ -3,47 +3,50 @@ Writing an Interface Control Document
 =====================================
 
 This chapter describes all aspects of writing an ICD and can be used as
-reference. In case you are looking for a more gently introduction, see the
+reference. In case you are looking for a gentle introduction, see the
 :ref:`tutorial`.
 
 
 Parts of an ICD
 ===============
 
-ICD's for cutplace focus on the data specific parts and hence only describe:
+ICD's for cutplace focus on the data specific parts. They describe tabular data
+split in rows. Each row consists of fields. The number of fields per row must
+be the same for all rows (except for optional header rows). The meaning of a
+field at a certain column must be the same for each row. For example, once you
+declare the field in column 3 to be a time, row 17 can not store the street
+address in column 3 without violating the requirements for time fields.
 
 1. The Data format: The general format for data files, such as line separator,
    character encoding, quote character and so on. These properties concern the
    whole file and each data item in it.
 
 2. Fields: These are the smallest unit of information in a data file. A file
-   consists 0, 1 or many lines. Each line is devided into 1 or more fields,
+   consists 0, 1 or many lines. Each line is divided into 1 or more fields,
    which carry the actual information. For files with structured data, a
    certain field retains its meaning even when inspected in a different line.
    For example, if the third field in line 1 is a phone number, so has to be
    the third field in line 2, 3, 17, 23459 and so on. Nevertheless, the
    actual phone number can differ from line to line.
 
-3. Optional Checks, which are rules that have to be met across the whole
-   document or several fields. For example, a customer ID is supposed to be
-   unique and therefor must occur only once within a file.
+3. Optional checks, which are rules that have to be met across the whole
+   document or several fields in a row. For example, a customer ID might be
+   supposed to be unique and therefor must occur only once within a file.
 
 4. Comments are intended for human readers. Cutplace does not process them.
    Typically they describing the meaning of things or the motivation for
    certain decisions. Another use is the description the source of certain data
    items to simplify error analysis.
 
-This means that for cutplace to be applicable, the data of your interface have
-to fit in a table with each column always containing the same kind of value.
-
-TODO: elaborate
+Below you will find a detailed description of each of these concepts
+accompanied by many examples.
 
 .. _data-formats:
 
 Data formats
 ============
 
-The data format describes general properties of the input. Here is an example:
+The data format describes general properties of the data. Here is an example:
 
 Example data format
 
@@ -56,10 +59,10 @@ D   Line delimiter  LF
 D   Item delimiter  ,
 ==  ==============  ===========
 
-This basically says that the data are provided as comma separated values
-(CSV) and the character encoding is ISO-8859-15 (is similar to Latin-1 but
-also includes the Euro sign). Rows are separated using linefeed characters
-(ASCII code 10) and columns are separated using a comma (,).
+This basically says that the data are provided as comma separated values (CSV)
+and the character encoding is ISO-8859-15 (which is similar to Latin-1 but also
+includes the Euro sign). Rows are separated using linefeed characters (ASCII
+code 10) and columns are separated using a comma (,).
 
 The remainder of this section describes the supported formats and available
 properties for them.
@@ -134,8 +137,6 @@ Quote character
 Escape character
     The escape character necessary to use the quote character in item values.
     Possible values are: double quote (").
-
-    TODO: Consider supporting backslash (\) for C-like escapes
 
 .. _decimal-separator:
 
@@ -676,7 +677,7 @@ Example escaped text  Same as
 ``u"\u00dc"``         ``220`` (the Unicode character 220, also known as "Umlaut U")
 ====================  =============================================================
 
-Additonally there are a few symbolic names that are easier to read than the
+Additionally there are a few symbolic names that are easier to read than the
 rather cryptic escape sequences using a backslash:
 
 =============  ============  ======
