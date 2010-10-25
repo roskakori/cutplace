@@ -456,7 +456,8 @@ class InterfaceControlDocument(object):
         
           1. A file like readable object for `dataFileToValidatePath`, which can be a string describing the
              path to a file, or a ``StringIO`` to data.
-          2. A flag indicating whether the caller needs to call ``close()`` on the readable object
+          2. A `tools.InputLocation` pointing to the beginning of the first data item in the file.
+          3. A flag indicating whether the caller needs to call ``close()`` on the readable object
              once it is done reading it.
         """
         assert self._dataFormat is not None
@@ -622,6 +623,36 @@ class InterfaceControlDocument(object):
                 for listener in self._validationListeners:
                     listener.checkAtEndFailed(reason)
 
+    def getFieldNameIndex(self, fieldName):
+        """
+        The column index of  the field named ``fieldName`` starting with 0.
+        """
+        # TODO: Use a dictionary to to change performance from O(n) to O(1).
+        return fields.getFieldNameIndex(fieldName, self.fieldNames)
+
+    def getFieldValueFor(self, fieldName, row):
+        """
+        The value for field ``fieldName`` in ``row``. This looks up the column of the field named
+        ``fieldName`` and retrieves the data from the matching item in ``row``. If ``row`` does
+        not contain the expected amount of field value, raise a `data.DataFormatValueError`.
+        """
+        assert fieldName is not None
+        assert row is not None
+        
+        actualRowCount = len(row)
+        expectedRowCount = len(self.fieldnames)
+        if actualRowCount != expectedRowCount:
+            location = tools.createCallerInputLocation()
+            raise data.DataFormatValueError("row must have %d items but has %d: %s" % (expectedRowCount, actualRowCount, row), location)
+
+        fieldIndex = self.getFieldNameIndex(fieldName)
+        # The following condition must be ``true`` because any deviations should be been detected
+        #  already by comparing expected and actual row count.
+        assert fieldIndex < len(row)
+        
+        result = row[fieldIndex]
+        return result
+        
     @property
     def dataFormat(self):
         """
@@ -680,12 +711,12 @@ def  validatedRows(icd, dataFileToValidatePath, errors="strict"):
     This provides a convenient way to read and process data without having to implement an own
     reader.
     
-    The ``errors`` defines how to handle errors and takes the following values:
+    The ``errors`` parameter defines how to handle errors and takes the following values:
     
     * "strict" - raise an exception and stop processing data.
     * "ignore" - silently ignore errors and keep processing data.
     * "yield" - yield the error (inheriting from ``Exception``) instead of a row array; its up to
-       the caller to check the return type before deciding how to process the result.
+      the caller to check the return type before deciding how to process the result.
     """
     assert icd is not None
     assert dataFileToValidatePath is not None

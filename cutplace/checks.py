@@ -32,24 +32,6 @@ class CheckSyntaxError(tools.CutplaceError):
     Error to be raised when the specification of check in the ICD is broken.
     """
     
-def _getFieldNameIndex(supposedFieldName, availableFieldNames):
-    """
-    The index of `supposedFieldName` in `availableFieldNames`.
-    
-    In case it is missing, raise a `fields.FieldLookupError`.
-    """
-    assert supposedFieldName is not None
-    assert supposedFieldName == supposedFieldName.strip()
-    assert availableFieldNames
-
-    fieldName = supposedFieldName.strip()
-    try:
-        fieldIndex = availableFieldNames.index(fieldName)
-    except ValueError:
-        raise fields.FieldLookupError("unknown field name %r must be replaced by one of: %s"
-                                      % (fieldName, _tools.humanReadableList(availableFieldNames)))
-    return fieldIndex
-    
 class AbstractCheck(object):
     """
     Abstract check to be used as base class for other checks. The constructor should be called by
@@ -170,7 +152,7 @@ class IsUniqueCheck(AbstractCheck):
                     raise CheckSyntaxError("field name must contain only ASCII letters, numbers and underscores (_) "
                                            + "but found: %r [token type=%r]" % (tokenValue, tokenType))
                 try:
-                    _getFieldNameIndex(tokenValue, availableFieldNames)
+                    fields.getFieldNameIndex(tokenValue, availableFieldNames)
                 except fields.FieldLookupError, error:
                     raise CheckSyntaxError(str(error))
                 self.fieldNamesToCheck.append(tokenValue)
@@ -214,7 +196,7 @@ class DistinctCountCheck(AbstractCheck):
         if firstToken[0] != tokenize.NAME:
             raise CheckSyntaxError("rule must start with a field name but found: %r" % firstToken[1])
         self.fieldNameToCount = firstToken[1]
-        _getFieldNameIndex(self.fieldNameToCount, availableFieldNames)
+        fields.getFieldNameIndex(self.fieldNameToCount, availableFieldNames)
         lineWhereFieldNameEnds, columnWhereFieldNameEnds = firstToken[3]
         assert columnWhereFieldNameEnds > 0
         assert lineWhereFieldNameEnds == 1

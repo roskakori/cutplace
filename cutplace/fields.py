@@ -358,3 +358,22 @@ class TextFieldFormat(AbstractFieldFormat):
         assert value
         # TODO: Validate Text with rules like: 32..., a...z and so on.
         return value
+
+def getFieldNameIndex(supposedFieldName, availableFieldNames):
+    """
+    The index of `supposedFieldName` in `availableFieldNames`.
+    
+    In case it is missing, raise a `FieldLookupError`.
+    """
+    assert supposedFieldName is not None
+    assert supposedFieldName == supposedFieldName.strip()
+    assert availableFieldNames
+
+    fieldName = supposedFieldName.strip()
+    try:
+        fieldIndex = availableFieldNames.index(fieldName)
+    except ValueError:
+        raise FieldLookupError("unknown field name %r must be replaced by one of: %s"
+                                      % (fieldName, _tools.humanReadableList(availableFieldNames)))
+    return fieldIndex
+    

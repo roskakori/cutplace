@@ -180,6 +180,20 @@ def createCallerInputLocation(modulesToIgnore=None, hasColumn=False, hasCell=Fal
         result.advanceLine(sourceLine)
     return result
 
+def createCopyOfLocation(location):
+    """
+    `InputLocation` being an exact copy of `location`.
+    """
+    if location is None:
+        result = None
+    else:
+        result = InputLocation(location.filePath, location._hasColumn, location._hasCell, location._hasSheet)
+        result._line = location._line
+        result._column = location._column
+        result._cell = location._cell
+        result._sheet = location._sheet
+    return result
+    
 class _BaseCutplaceError(Exception):
     """
     Exception that supports a `message` describing the error and an optional
@@ -199,9 +213,9 @@ class _BaseCutplaceError(Exception):
         assert (seeAlsoLocation and seeAlsoMessage) or not seeAlsoLocation
         # Note: We cannot use `super` because `Exception` is an old style class.
         Exception.__init__(self, message)
-        self._location = location
+        self._location = createCopyOfLocation(location)
         self._seeAlsoMessage = seeAlsoMessage
-        self._seeAlsoLocation = seeAlsoLocation
+        self._seeAlsoLocation = createCopyOfLocation(seeAlsoLocation)
         self._cause = cause
 
     @property

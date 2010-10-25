@@ -35,8 +35,11 @@ This should be enough to get you going. To learn more about logging, take a
 look at `logging chapter <http://docs.python.org/library/logging.html>`_ of
 the Python library documentation.
 
+Basic usage
+===========
+
 Reading an ICD
-==============
+--------------
 
 The class
 `interface.InterfaceControlDocument <api/cutplace.interface.InterfaceControlDocument-class.html>`_
@@ -54,12 +57,164 @@ it, use:
 >>> icd.fieldNames
 [u'branch_id', u'customer_id', u'first_name', u'surname', u'gender', u'date_of_birth']
 
-This is the easiest way, which also keeps declaration and validation in
-separate files.
+This is the easiest way to describe an interface. The resulting document is
+human readable even for non coders and quite simple to edit and maintain. It
+also keeps declaration and validation in separate files.
+
+Validating data
+---------------
+
+.. WARNING::
+  The functions described in this section might still change slightly
+  in later versions and consequently require you to update your own code.
+
+Now that we know how our data are supposed to look, we can validate and optionally
+process them using
+`interface.validatedRows() <file:///Users/agi/workspace/cutplace/build/site/api/cutplace.interface-module.html#validatedRows>`_.
+This is a simple generator function that returns all data rows. If you are
+familiar with Python's ``csv.reader()``, you already know how to use it.
+
+Here is a trivial example that reads all rows from a valid CSV file:
+
+>>> validCsvPath = os.path.join("tests", "input", "valid_customers.csv")
+>>> for row in interface.validatedRows(icd, validCsvPath):
+...   pass # We could also do something useful with the data in ``row`` here.
+
+In this case we only validate the data, but we could easily extend the loop
+body to process them in any meaningful such a inserting them in a database.
+
+Now what happens if the data do not conform with the interface? Let's take a
+look at it:
+
+>>> brokenCsvPath = os.path.join("tests", "input", "broken_customers.csv")
+>>> for row in interface.validatedRows(icd, brokenCsvPath):
+...   pass
+Traceback (most recent call last):
+    ...
+FieldValueError: broken_customers.csv (R4C1): field u'branch_id' must match format: value u'12345' must match regular expression: u'38\\d\\d\\d'
+
+Apparently the first broken data item causes the reading to stop with an
+``Exception``. In many cases this is what you want.
+
+Sometimes however the requirements for an application will state that all
+valid data should be processed and invalid data should be put aside for
+further examination, for example by writing them to a log file. This is
+easy to do by setting the optional parameter ``errors="yield"``. With this
+enabled, the generator always returns a value even for broken rows. The difference
+however is that broken rows do not result in a list of values but in a result
+of type ``CutplaceError``. It is up to you to detect this and process the different kinds
+of results properly.
+
+Here is an example the prints any data related errors detected during validation:
+
+>>> from cutplace import tools
+>>> brokenCsvPath = os.path.join("tests", "input", "broken_customers.csv")
+>>> for rowOrError in interface.validatedRows(icd, brokenCsvPath, errors="yield"):
+...     if isinstance(rowOrError, tools.CutplaceError):
+...         # Print data related error details and move on.
+...         print rowOrError
+...     elif isinstance(rowOrError, Exception):
+...         # Let other, more severe errors terminate the validation.
+...         raise rowOrError
+...     else:
+...         pass # We could also do something useful with the data in ``row`` here.
+broken_customers.csv (R4C1): field u'branch_id' must match format: value u'12345' must match regular expression: u'38\\d\\d\\d'
+broken_customers.csv (R5C2): field u'customer_id' must match format: value must be an integer number: u'XX'
+broken_customers.csv (R6C6): field u'date_of_birth' must match format: date must match format DD.MM.YYYY (%d.%m.%Y) but is: u'30.02.1994' (day is out of range for month)
+
+Note that it is possible for the reader to throw other exceptions, for example
+of type ``IOError`` in case the file cannot be read at all or
+``CutplaceUnicodeError`` (which does not inherit from ``CutplaceError``) in
+case the encoding does not match. You should not continue after such errors as
+they indicate a problem not related to the data but either in the specification
+or environment.
+
+The ``errors`` parameter can also take the values ``"strict"`` (which is the
+default and raises a ``CutplaceError`` on encountering the first error as
+described above) and ``"ignore"``, which silently ignores any error and moves
+on with the next row. The latter can be useful during prototyping a new
+application when ICD's and data are in a constant state of flux. In production
+code ``errors="ignore"`` mainly represents a very efficient way to shoot
+yourself into the foot.
+
+Processing data
+---------------
+
+As a first step, we should figure out where in each row we can find the first
+name and the surname. We need to do this only once so this happens outside of
+the processing loop. The names used to find the indices must match the names
+used in the ICD.
+
+
+>>> firstNameIndex = icd.getFieldNameIndex("first_name")
+>>> surnameIndex =  icd.getFieldNameIndex("surname")
+
+Now we can read the data just like before. Instead of a simple ``pass`` loop we
+obtain the first name from ``row`` and check if it starts with "J". If so, we
+compute the full name and print it:
+
+>>> for row in interface.validatedRows(icd, validCsvPath):
+...   firstName = row[firstNameIndex]
+...   if firstName.startswith("J"):
+...      surname = row[surnameIndex]
+...      fullName = surname + ", " + firstName
+...      print fullName
+Doe, John
+Miller, Jane
+
+Of course nothing prevents you from doing more glamourous things here like
+inserting the data into a database or rendering them to a dynamic web page.
+
+Putting it all together
+-----------------------
+
+To recapitulate and summarize the previous sections here is a little code
+fragment containing a complete example you can use as base for your own
+validation code:
+
+>>> # Validate a test CSV file.
+>>> import os.path
+>>> from cutplace import interface
+>>> # Change this to use your own files.
+>>> icdPath = os.path.join("tests", "input", "icds", "customers.csv")
+>>> dataPath = os.path.join("tests", "input", "valid_customers.csv")
+>>> # Define the interface.
+>>> icd = interface.InterfaceControlDocument()
+>>> icd.read(icdPath)
+>>> # Validate the data.
+>>> for row in interface.validatedRows(icd, dataPath):
+...   pass # We could also do something useful with the data in ``row`` here.
+
+In case you want to process the data, simply replace the ``pass`` inside the
+loop by whatever needs to be done.
+
+In case you want to continue even if a row was rejected, use the optional
+parameter ``errors="yield"`` as described earlier.
+
+Advanced usage
+==============
+
+In the previous section, you learned how to read an ICD and use it to validate
+data using a few simple API calls. You also learned how to handle errors
+detected in the data.
+
+With this knowledge, you should be able to write your own small validation
+scripts that process the results in any meaningful way you want by adding your
+own code to log errors, send validation reports via email or automatically
+insert accepted rows in a data base. The Python standard library offers
+powerful modules for all these tasks.
+
+In case you are already happy and found everything you need, you can stop
+reading this chapter and move on with implementing your tasks.
+
+If however you need more flexibility, suffer from API
+`OCPD <http://en.wikipedia.org/wiki/Obsessive-compulsive_personality_disorder>`_
+or just want to know what else cutplace offers in case you might need it one
+day, the following sections describe the lower level hooks of cutplace API.
+They are more powerful and flexible, but also more difficult to use.
 
 Building an ICD in the code
-===========================
-
+---------------------------
 
 In some cases it might be preferable to include the ICD in the code, for
 instance for trivial interfaces that are only used internally. Here is an
@@ -111,8 +266,8 @@ Traceback (most recent call last):
     ...
 CheckSyntaxError: <source> (R1C2): check row (marked with 'c') must contain at least 2 columns
 
-Validate data
-=============
+Validating with listeners
+-------------------------
 
 Once the ICD is set up, you can validate data using ``validate()``:
 
@@ -132,7 +287,7 @@ Again, the validation runs through without any ``Exception`` or other
 indication that something is wrong.
 
 The reason for that is that cutplace should be able to continue in case a data
-row is rejected. Raining an ``Exception`` would defeat that. So instead, it
+row is rejected. Raising an ``Exception`` would defeat that. So instead, it
 informs interested listeners about validation events. To act on events, define
 a class inheriting from ``BaseValidationListener`` and overwrite the methods
 for the events you are interested in:
@@ -168,51 +323,13 @@ When you are done, remove the listener::
 
 >>> icd.removeValidationListener(errorPrintingValidationListener)
 
-Putting it all together
-=======================
 
-You now know how to:
-
-* declare and ICD in the source code
-* validate data from a file
-* listen to event happening during validation
-
-All that is left to do is to collect the code snipplets of the previous sections
-in one example you can use as base for your own validation code:
-
->>> # Validate a test CSV file.
->>> import os.path
->>> from cutplace import interface
->>> # Define a listener for validation events.
->>> class ErrorPrintingValidationListener(interface.BaseValidationListener):
-...     def rejectedRow(self, row, error):
-...         print "%r" % row
-...         print "error: %s" % error
->>> # Change this to use your own files.
->>> icdPath = os.path.join("tests", "input", "icds", "customers.csv")
->>> dataPath = os.path.join("tests", "input", "broken_customers.csv")
->>> # Define the interface.
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(icdPath)
->>> # Validate the data.
->>> errorPrintingValidationListener = ErrorPrintingValidationListener()
->>> icd.addValidationListener(errorPrintingValidationListener)
->>> try:
-...     icd.validate(brokenCsvPath)
-... finally:
-...     icd.removeValidationListener(errorPrintingValidationListener)
-[u'12345', u'92', u'Bill', u'Carter', u'male', u'05.04.1953']
-error: broken_customers.csv (R4C1): field u'branch_id' must match format: value u'12345' must match regular expression: u'38\\d\\d\\d'
-[u'38111', u'XX', u'Sue', u'Brown', u'female', u'08.02.1962']
-error: broken_customers.csv (R5C2): field u'customer_id' must match format: value must be an integer number: u'XX'
-[u'38088', u'83', u'Rose', u'Baker', u'female', u'30.02.1994']
-error: broken_customers.csv (R6C6): field u'date_of_birth' must match format: date must match format DD.MM.YYYY (%d.%m.%Y) but is: u'30.02.1994' (day is out of range for month)
 
 Writing field formats
-=====================
+---------------------
 
 Cutplace already ships with several field formats found in the `fields
-<api/cutplace.fields-module.html>`_ module that should cover most needs If
+<api/cutplace.fields-module.html>`_ module that should cover most needs. If
 however you have some very special requirements, you can write your own
 formats.
 
@@ -333,7 +450,7 @@ actually utilize it in an ICD.
 TODO: Describe how to write a ``myfields.py`` and extend the Python path.
 
 Writing checks
-==============
+--------------
 
 Writing checks is quite similar to writing field formats. However, the
 interaction with the validation is more complex.
