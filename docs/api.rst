@@ -65,10 +65,14 @@ In some cases it might be preferable to include the ICD in the code, for
 instance for trivial interfaces that are only used internally. Here is an
 example of a simple ICD for CSV data with 3 fields:
 
+First, import the necessary modules:
+
 >>> from cutplace import data
 >>> from cutplace import fields
 >>> from cutplace import interface
->>>
+
+Next create an empty ICD:
+
 >>> icd = interface.InterfaceControlDocument()
 
 As the ICD will not be read from an input file, error messages would not be
@@ -154,11 +158,11 @@ Let's see what happens if we validate broken data again:
 
 >>> icd.validate(brokenCsvPath)
 [u'12345', u'92', u'Bill', u'Carter', u'male', u'05.04.1953']
-error: field u'branch_id' must match format: value u'12345' must match regular expression: u'38\\d\\d\\d'
+error: broken_customers.csv (R4C1): field u'branch_id' must match format: value u'12345' must match regular expression: u'38\\d\\d\\d'
 [u'38111', u'XX', u'Sue', u'Brown', u'female', u'08.02.1962']
-error: field u'customer_id' must match format: value must be an integer number: u'XX'
+error: broken_customers.csv (R5C2): field u'customer_id' must match format: value must be an integer number: u'XX'
 [u'38088', u'83', u'Rose', u'Baker', u'female', u'30.02.1994']
-error: field u'date_of_birth' must match format: date must match format DD.MM.YYYY (%d.%m.%Y) but is: u'30.02.1994' (day is out of range for month)
+error: broken_customers.csv (R6C6): field u'date_of_birth' must match format: date must match format DD.MM.YYYY (%d.%m.%Y) but is: u'30.02.1994' (day is out of range for month)
 
 When you are done, remove the listener::
 
@@ -198,11 +202,11 @@ in one example you can use as base for your own validation code:
 ... finally:
 ...     icd.removeValidationListener(errorPrintingValidationListener)
 [u'12345', u'92', u'Bill', u'Carter', u'male', u'05.04.1953']
-error: field u'branch_id' must match format: value u'12345' must match regular expression: u'38\\d\\d\\d'
+error: broken_customers.csv (R4C1): field u'branch_id' must match format: value u'12345' must match regular expression: u'38\\d\\d\\d'
 [u'38111', u'XX', u'Sue', u'Brown', u'female', u'08.02.1962']
-error: field u'customer_id' must match format: value must be an integer number: u'XX'
+error: broken_customers.csv (R5C2): field u'customer_id' must match format: value must be an integer number: u'XX'
 [u'38088', u'83', u'Rose', u'Baker', u'female', u'30.02.1994']
-error: field u'date_of_birth' must match format: date must match format DD.MM.YYYY (%d.%m.%Y) but is: u'30.02.1994' (day is out of range for month)
+error: broken_customers.csv (R6C6): field u'date_of_birth' must match format: date must match format DD.MM.YYYY (%d.%m.%Y) but is: u'30.02.1994' (day is out of range for month)
 
 Writing field formats
 =====================
@@ -359,7 +363,7 @@ To implements this check, start by inheriting from `checks.AbstractCheck
 
 >>> from cutplace import checks
 >>> class FullNameLengthIsInRange(checks.AbstractCheck):
->>>     """Check that total length of customer name is within the specified range."""
+...     """Check that total length of customer name is within the specified range."""
 
 Next, implement a constructor to which cutplace can pass the values
 found in the ICD. For example, for our check the ICD would contain:
@@ -396,11 +400,11 @@ The constructor basically has to do 3 things:
 
 >>> from cutplace import ranges
 >>> class FullNameLengthIsInRangeCheck(checks.AbstractCheck):
->>>     """Check that total length of customer name is within the specified range."""
->>>     def __init__(self, description, rule, availableFieldNames, location=None):
->>>         super(FullNameLengthIsInRangeCheck, self).__init__(description, rule, availableFieldNames, location)
->>>         self._fullNameRange = ranges.Range(rule)
->>>         self.reset()
+...     """Check that total length of customer name is within the specified range."""
+...     def __init__(self, description, rule, availableFieldNames, location=None):
+...         super(FullNameLengthIsInRangeCheck, self).__init__(description, rule, availableFieldNames, location)
+...         self._fullNameRange = ranges.Range(rule)
+...         self.reset()
 
 Once cutplace is done reading the ICD, it moves on to data. For each set of
 data it calls the checks `reset()
@@ -454,12 +458,12 @@ full name and checks that it is within the required range. If not, it raises
 a `CheckError <api/cutplace.checks.CheckError-class.html>`_:
 
 >>> def checkRow(self, rowMap, location):
->>>     fullName = rowMap["last_name"] + ", " + rowMap["first_name"]
->>>     fullNameLength = len(fullName)
->>>     try:
->>>         self._fullNameRange.validate("full name", fullNameLength)
->>>     except ranges.RangeValueError, error:
->>>         raise CheckError("full name length is %d but must be in range %s: %r" \
+...     fullName = rowMap["last_name"] + ", " + rowMap["first_name"]
+...     fullNameLength = len(fullName)
+...     try:
+...         self._fullNameRange.validate("full name", fullNameLength)
+...     except ranges.RangeValueError, error:
+...         raise CheckError("full name length is %d but must be in range %s: %r" \
 ...                 % (fullNameLength, self._fullNameRange, fullName))
 
 And finally, there is
