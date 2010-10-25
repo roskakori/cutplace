@@ -71,7 +71,7 @@ class AbstractCheck(object):
             raise fields.FieldLookupError("field names must be specified", locationOfDefinition)
         self._description = description
         self._rule = rule
-        self.fieldNames = availableFieldNames
+        self._fieldNames = availableFieldNames
         if locationOfDefinition is None:
             self._location = tools.createCallerInputLocation(["checks"])
         else:
@@ -133,6 +133,17 @@ class AbstractCheck(object):
     def location(self):
         """
         The `tools.InputLocation` where the check was defined.
+        """
+        return self._location
+
+    @property
+    def fieldNames(self):
+        """
+        Names of fields declared in the ICD using this field format. They can be used by checks
+        that need to extract field values by name or that have a `rule` referring to certain
+        fields.
+        
+        The order of field names in this list match the order of declaration in the ICD.
         """
         return self._location
 
