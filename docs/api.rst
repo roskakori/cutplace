@@ -1,3 +1,5 @@
+.. index:: API, application programmer interface
+
 ================================
 Application programmer interface
 ================================

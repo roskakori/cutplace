@@ -705,6 +705,58 @@ class InterfaceControlDocument(object):
     logTrace = property(_getLogTrace, _setLogTrace,
         doc="If ``True``, log stack trace on rejected data items or rows.")    
 
+class RowProducingThread(threading.Thread):
+    """
+    Thread to produce rows read from a filelike object using a `RowProducer`. 
+    """
+    def __init__(self, filelike, row):
+        assert filelike is not None
+        
+        super(ValidationThread, self).__init__()
+        self._filelike = filelike
+        self._rowQueue = Queue.Queue(3)
+        self_error = None
+
+    def run(self):
+        pass
+    
+    @property
+    def rowQueue(self):
+        """
+        The ``Queue.Queue`` the rows are produced on.
+        """
+        return self._rowQueue
+
+    @property
+    def error(self):
+        """
+        ``None`` or an ``Exception`` that caused the production of rows to stop.
+        """
+        return self._error
+
+class Validator(object):
+    pass
+    
+class ValidationThread(threading.Thread):
+    def __init__(self, icd):
+        assert icd is not None
+        self._icd = icd
+        self._resetCounts();
+    
+    def _resetCounts(self):
+        # TODO: Turn public instance variables to properties.
+        self.acceptedCount = 0
+        self.rejectedCount = 0
+        self.failedChecksAtEndCount = 0
+        self.passedChecksAtEndCount = 0
+
+@property
+def icd(self):
+    """
+    The `InterfaceControlDocument` used for the validation.
+    """
+    return self._icd
+        
 def  validatedRows(icd, dataFileToValidatePath, errors="strict"):
     """
     Generator for rows described using ``icd`` in the data set found at ``dataFileToValidatePath``.

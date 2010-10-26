@@ -35,6 +35,8 @@ If you are using Ubuntu, you should instead use ``apt-get``::
   sudo apt-get install python-profiler
   sudo easy_install coverage epydoc sphinx
 
+.. index:: epydoc
+
 Sadly, epydoc 3.0.1 does not work with docutils 0.6, so in case you are using
 a reasonably modern Python version, it will fail with::
 
@@ -65,6 +67,8 @@ it is more robust and portable than using shell scripts for the same thing
 and partially because it seems easier to write and maintain an ant target
 than adding a new ``setup.py`` command. Ideally though there would be no need for
 ant and everything would be covered by ``setup.py``.
+
+.. index:: repository, source code
 
 Obtaining and building the source code
 ======================================

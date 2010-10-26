@@ -1,3 +1,5 @@
+.. index:: command line interface
+
 ==================
 Command line usage
 ==================
@@ -6,6 +8,10 @@ This chapter describes how to use cutplace from the command line. It assumes
 the user already opened a console window (for example ``Terminal.app`` on Mac
 OS X, ``term`` on Linux or ``cmd.exe`` on Windows) and is ready to enter
 commands in it.
+
+.. index:: pair: command line option; --help
+.. index:: pair: command line option; --listencodings
+.. index:: pair: command line option; --version
 
 Show help and other information
 ===============================
@@ -94,7 +100,9 @@ validating data:
 
 TODO: elaborate
 
-If ``--split`` is set, cutplace creates stores each row in one of two files:
+.. index:: pair: command line option; --split
+
+If ``--split`` is set, cutplace stores each row in one of two files:
 
 #. A CSV file containing the rows that have been accepted. It uses a comma (,)
    as separator and UTF-8 as character encoding. This file can be helpful in case
@@ -109,11 +117,17 @@ If ``--split`` is set, cutplace creates stores each row in one of two files:
 These files are stored in the same folder as the data file and have a the same
 name but a suffix of "_accepted.csv" and "_rejected.txt" appended.
 
+.. index:: pair: command line option; --trace
+
 The command line option ``--trace`` can be helpful for tracking down bugs in
 the rules you specified for complex checks like ``DistinctCount``, field
 formats or checks you developed yourself, or in cutplace itself. When enabled,
 error messages related to issues in the data include a Python stack trace,
 which might contain information useful to developers.
+
+.. index:: web interface
+.. index:: pair: command line option; --web
+.. index:: pair: command line option; --port
 
 Launching the web server
 ========================

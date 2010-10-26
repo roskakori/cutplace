@@ -43,6 +43,8 @@ accompanied by many examples.
 
 .. _data-formats:
 
+.. index:: data format
+
 Data formats
 ============
 
@@ -66,6 +68,8 @@ code 10) and columns are separated using a comma (,).
 
 The remainder of this section describes the supported formats and available
 properties for them.
+
+.. index:: single: data format; delimited
 
 Delimited data
 --------------
@@ -91,10 +95,14 @@ D   Allowed characters   32:128, 1024:1280
 
 In case Format is Delimited, the following properties have to be specified:
 
+.. index:: pair: data format property; encoding
+
 Encoding
     The character encoding. The most common values will be ASCII, ISO-8859-15
     (for many western countries), UTF-8 (for Unicode), CP-850 (used by MS DOS
     in many western countries).
+
+.. index:: pair: data format property; line delimiter
 
 Line delimiter
     Thus describes which character or character sequence is used to mark the
@@ -114,6 +122,8 @@ Line delimiter
       consistently, using for example CR for some lines and LF for others is
       not allowed.
 
+.. index:: pair: data format property; item delimiter
+
 Item delimiter
     The character used to separated data items from each other, for example:
 
@@ -128,17 +138,22 @@ Item delimiter
 	D   Item delimiter      ``Tab``   Same as ``"\t"`` but using a more legible symbolic name
 	==  ==================  ========  ===============================
 
+.. index:: pair: data format property; quote character
+
 Quote character
     The character used to surround items with that contain delimiters or while
     space, for example double quote (") or single quote (').
 
     TODO: How to specify "no quoting"?
 
+.. index:: pair: data format property; escape character
+
 Escape character
     The escape character necessary to use the quote character in item values.
     Possible values are: double quote (").
 
 .. _decimal-separator:
+.. index:: pair: data format property; decimal separator
 
 Decimal separator
 	The character to separate the fractional part of a number, for example
@@ -146,11 +161,15 @@ Decimal separator
 	(.).
 
 .. _thousands-separator:
+.. index:: pair: data format property; thousands separator
+
 
 Thousands separator
     The character to optionally group digits in large numbers, for example in
     `12,345,678`. Typical values are: comma (,), dot (.) and the space
     character. By default, no character can be used to group digits.
+
+.. index:: pair: data format property; allowed characters
 
 Allowed characters
     This range describing the characters allowed for data items. Each number
@@ -159,6 +178,8 @@ Allowed characters
     example, ``32:128`` means "between 32 and 128".
 
     You can find more information on how to specify ranges in :ref:`ranges`.
+
+.. index:: pair: data format; CSV
 
 CSV data (comma separated values)
 ---------------------------------
@@ -204,6 +225,7 @@ F   Item delimiter  ;
 ==  ==============  ===========
 
 .. _format-excel:
+.. index:: pair: data format; Excel
 
 Excel data
 ----------
@@ -244,6 +266,11 @@ see on the screen in generally is not what cutplace gets when it reads
 Excel data. To avoid confusion, here's short list of how certain data
 from Excel will look to cutplace:
 
+.. index:: pair: Excel type; currency
+.. index:: pair: Excel type; date
+.. index:: pair: Excel type; time
+.. index:: pair: Excel type; percent
+
 ============= ============= ===================
 Excel type    cutplace type rule
 ============= ============= ===================
@@ -258,6 +285,8 @@ Time          DateTime      hh:mm:ss
   Excel cannot represent integer numbers exactly, so you better use
   *Decimal* instead of *Integer* in the ICD. In case you do use *Integer*
   be prepared for weird validation error and rounding issues.
+
+.. index:: pair: data format; fixed
 
 Fixed data
 ----------
@@ -275,6 +304,8 @@ F   Encoding            ISO-8859-15
 F   Line delimiter      LF
 F   Allowed characters  0:
 ==  ==================  ===========
+
+.. index:: pair: data format; ODS
 
 ODS data (open document spreadsheet)
 ------------------------------------
@@ -304,6 +335,7 @@ F   Sheet     5
 ==  ========  =====
 
 .. _field-formats:
+.. index:: field format
 
 Field formats
 =============
@@ -363,6 +395,8 @@ F   surname        Miller              1:60        Text
 F   date_of_birth  1969-11-03  X                   DateTime  YYYY-MM-DD
 ==  =============  ==========  ======  ==========  ========  ==========
 
+.. index:: double: field format; Text
+
 Text
 ----
 
@@ -376,6 +410,8 @@ Examples for Text fields
 ==  =======  =======  =====  ======  ====  ====
 F   surname  Miller          1:60    Text
 ==  =======  =======  =====  ======  ====  ====
+
+.. index:: double: field format; Integer
 
 Integer
 -------
@@ -394,6 +430,7 @@ F   id      1337            5       Integer  1:99999
 ==  ======  =======  =====  ======  =======  =======
 
 .. _field-format-decimal:
+.. index:: double: field format; Decimal
 
 Decimal
 -------
@@ -423,6 +460,8 @@ format property decimal separator accordingly.
 ..
   TODO: Get this working: :ref:`thousands separator thousands-separator`
 
+.. index:: double: field format; Choice
+
 Choice
 ------
 
@@ -438,6 +477,8 @@ F   color       red                     Choice  "red", "green", "blue"
 F   iso_gender  male                    Choice  "male", "female", "unknown", "other"
 F   department  sales                   Choice  "accounting", "development", "sales", "shipping"
 ==  ==========  =======  =====  ======  ======  ================================================
+
+.. index:: double: field format; DateTime
 
 DateTime
 --------
@@ -478,6 +519,8 @@ F   time_of_arrival  17:23                      DateTime  hh:mm
 
 .. _field-format-pattern:
 
+.. index:: double: field format; Pattern
+
 Pattern
 -------
 
@@ -498,6 +541,7 @@ F   branch_id                    Pattern  B???-????-?*
 ==  ============  =====  ======  =======  ============
 
 .. _field-format-regex:
+.. index:: double: field format; RegEx
 
 RegEx
 -----
@@ -514,6 +558,8 @@ Examples for RegEx fields
 ==  =====  ================  =====  ======  =====  ================================================
 F   email  some@example.com                 RegEx  ^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$ [#fn1]_
 ==  =====  ================  =====  ======  =====  ================================================
+
+.. index:: checks
 
 Checks
 ======
@@ -540,6 +586,7 @@ The remainder of this section describes the available checks in detail and
 gives specific examples.
 
 .. _check-distinct-count:
+.. index:: pair: checks; DistinctCount
 
 DistinctCount
 -------------
@@ -563,6 +610,7 @@ To describe the rule you can use any comparison operator or mathematical
 expression available to the Python language.
 
 .. _check-is-unique:
+.. index:: pair: checks; IsUnique
 
 IsUnique
 --------
@@ -611,6 +659,7 @@ In particular this constitutes:
   column number 4.
 
 .. _ranges:
+.. index:: ranges
 
 Ranges
 ======
