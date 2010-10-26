@@ -1,5 +1,5 @@
 """
-Range to check if certain values are within it. This is used in several places of the ICD, in
+Ranges check if certain values are within it. This is used in several places of the ICD, in
 particular to specify the length limits for field values and the characters allowed for a data
 format.
 """
@@ -36,7 +36,7 @@ class RangeValueError(tools.CutplaceError):
 
 class Range(object):
     """
-    A range that can be used to validate that that a value is within it.
+    A range that can be used to validate that a value is within it.
     """
 
     def __init__(self, text, default=None):
