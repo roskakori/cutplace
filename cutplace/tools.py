@@ -72,6 +72,7 @@ class InputLocation(object):
         if isinstance(filePath, types.StringTypes):
             self.filePath = filePath
         else:
+            # TODO: Check for file object and use ``name`` in this case.
             self.filePath = "<io>"
         self._line = 0
         self._column = 0
