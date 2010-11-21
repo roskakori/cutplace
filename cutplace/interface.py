@@ -27,6 +27,7 @@ import types
 
 import data
 import fields
+import sniff
 import tools
 import _parsers
 import _tools
@@ -95,10 +96,6 @@ class InterfaceControlDocument(object):
     _ID_DATA_FORMAT = "d"
     _ID_FIELD_RULE = "f"
     _VALID_IDS = [_ID_CHECK, _ID_DATA_FORMAT, _ID_FIELD_RULE]
-    # Header used by zipped ODS content.
-    _ODS_HEADER = "PK\x03\x04"
-    # Header used by Excel (and other MS Office applications).
-    _EXCEL_HEADER = "\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"
 
     # Possible values for ``errors`` parameter of `validatedRows()`.
     _ERRORS_STRICT = "strict"
@@ -362,36 +359,6 @@ class InterfaceControlDocument(object):
         self._checkNames.append(checkDescription)
         assert len(self.checkNames) == len(self._checkNameToCheckMap)
 
-    def _fittingReader(self, icdReadable, encoding):
-        """
-        A reader fitting the contents of `icdReadable`.
-        """
-        assert icdReadable is not None
-        assert encoding is not None
-        
-        result = None
-        icdHeader = icdReadable.read(4)
-        _log.debug("icdHeader=%r", icdHeader)
-        if icdHeader == InterfaceControlDocument._ODS_HEADER:
-            # Consider ICD to be ODS.
-            icdReadable.seek(0)
-            result = _parsers.odsReader(icdReadable)
-        else:
-            icdHeader += icdReadable.read(4)
-            icdReadable.seek(0)
-            if icdHeader == InterfaceControlDocument._EXCEL_HEADER:
-                # Consider ICD to be Excel.
-                result = _parsers.excelReader(icdReadable)
-            else:
-                # Consider ICD to be CSV.
-                dialect = _parsers.DelimitedDialect()
-                dialect.lineDelimiter = _parsers.AUTO
-                dialect.itemDelimiter = _parsers.AUTO
-                dialect.quoteChar = "\""
-                dialect.escapeChar = "\""
-                result = _parsers.delimitedReader(icdReadable, dialect, encoding)
-        return result
-    
     def read(self, icdFilePath, encoding="ascii"):
         """
         Read the ICD as specified in ``icdFilePath``.
@@ -410,7 +377,7 @@ class InterfaceControlDocument(object):
             icdFile = icdFilePath
         self._location = tools.InputLocation(icdFilePath, hasCell=True)
         try:
-            reader = self._fittingReader(icdFile, encoding)
+            reader = sniff.createReader(icdFile, encoding=encoding)
             for row in reader:
                 _log.debug("%s: parse %r", self._location, row)
                 if len(row) >= 1:
