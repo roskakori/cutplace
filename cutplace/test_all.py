@@ -26,6 +26,7 @@ import data
 import fields
 import interface
 import ranges
+import sniff
 import tools
 import version
 import test_checks
@@ -36,6 +37,7 @@ import test_fields
 import test_ods
 import test_parsers
 import test_ranges
+import test_sniff
 import test_tools
 import test_web
 import _cutplace
@@ -52,7 +54,7 @@ def createTestSuite():
     loader = unittest.TestLoader()
 
     # TODO: Automatically discover doctest cases.
-    for module in checks, data, fields, interface, ranges, tools, version, _cutplace, _ods, _parsers, _tools, _web:
+    for module in checks, data, fields, interface, ranges, sniff, tools, version, _cutplace, _ods, _parsers, _tools, _web:
         result.addTest(doctest.DocTestSuite(module))
     result.addTest(doctest.DocFileSuite(os.path.join("docs", "api.rst"), module_relative=False))
 
@@ -75,6 +77,7 @@ def createTestSuite():
             test_parsers.ExcelReaderTest,
             test_parsers.FixedParserTest,
             test_ranges.RangeTest,
+            test_sniff.SniffTest,
             test_tools.ToolsTest
             # FIXME: Stop server and add: test_web.WebTest
             ]
