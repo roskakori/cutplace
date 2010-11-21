@@ -363,7 +363,7 @@ def createInterfaceControlDocument(readable, **keywords):
         columnCountOfRowToAnalyze = len(rowToAnalyze)
         if columnCountOfRowToAnalyze != longestSegmentColumnCount:
             raise CutplaceSniffError("data must not change between sniffer passes, but row %d now has %d columns instead of %d" \
-                % (rowIndex + 1, columnCountOfRowToAnalyze, longestSegmentColumnCount), location.advanceLine())
+                % (rowIndex + 1, columnCountOfRowToAnalyze, longestSegmentColumnCount), location)
         for itemIndex in range(longestSegmentColumnCount):
             value = rowToAnalyze[itemIndex]
             columnInfos[itemIndex].process(value)
