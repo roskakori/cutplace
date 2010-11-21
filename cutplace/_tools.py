@@ -177,6 +177,47 @@ def camelized(key, firstIsLower=False):
         result = result[0].lower() + result[1:]
     return result
 
+def decamelized(name):
+    """
+    Decamlized, all lower case ``name`` with former upper case letters marking words separated by blanks.
+    
+    Examples:
+    
+    >>> decamelized('some')
+    'some'
+    >>> decamelized('someMore')
+    'some more'
+    >>> decamelized('EvenMore')
+    'even more'
+    >>> decamelized('')
+    ''
+    """
+    assert name is not None
+    assert name == name.strip(), "name must be trimmed"
+    if name:
+        result = name[0]
+        for c in name[1:]:
+            if c.isdigit() or c.islower():
+                result += c
+            else:
+                result += " " + c.lower()
+    else:
+        result = ""
+    return result
+
+def basedText(longNumber, base, numerals="0123456789abcdefghijklmnopqrstuvwxyz"):
+    # Based on code found at:
+    # http://stackoverflow.com/questions/2267362/convert-integer-to-a-string-in-a-given-numeric-base-in-python
+    assert longNumber is not None
+    assert numerals is not None
+    assert base > 0
+    assert base <= len(numerals)
+
+    zero = numerals[0]
+    result = ((longNumber == 0) and  zero) \
+        or ( basedText(longNumber // base, base, numerals).lstrip(zero) + numerals[longNumber % base])
+    return result
+
 def platformVersion():
     macVersion = platform.mac_ver()
     if (macVersion[0]):

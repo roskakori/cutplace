@@ -22,6 +22,7 @@ import logging
 import Queue
 
 import data
+import sniff
 import tools
 import _ods
 import _tools
@@ -223,52 +224,20 @@ class _DelimitedParser(object):
 
         self._log = logging.getLogger("cutplace.parsers")
 
-        # Automatically set line and item delimiter.
-        # TODO: Use a more intelligent logic. Csv.Sniffer would be nice,
-        # but not all test cases work with it.
-        if (dialect.lineDelimiter == AUTO) or (dialect.itemDelimiter == AUTO):
-            oldPosition = readable.tell()
-            sniffedText = readable.read(16384)
-            readable.seek(oldPosition)
-        if dialect.lineDelimiter == AUTO:
-            crLfCount = sniffedText.count(CRLF)
-            crCount = sniffedText.count(CR) - crLfCount
-            lfCount = sniffedText.count(LF) - crLfCount
-            if (crCount > crLfCount):
-                if (crCount > lfCount):
-                    actualLineDelimiter = CR
-                else:
-                    actualLineDelimiter = CRLF
-            else:
-                if (crLfCount > lfCount):
-                    actualLineDelimiter = CRLF
-                else:
-                    actualLineDelimiter = LF
-            self._log.debug(" detected line delimiter: %r", actualLineDelimiter)
-        else:
-            actualLineDelimiter = dialect.lineDelimiter
-        if dialect.itemDelimiter == AUTO:
-            itemDelimiterToCountMap = {",":sniffedText.count(","), 
-                ";":sniffedText.count(";"),
-                ":":sniffedText.count(":"),
-                "\t":sniffedText.count("\t"),
-                "|":sniffedText.count("|")
-            }
-            actualItemDelimiter = ','
-            delimiterCount = itemDelimiterToCountMap[","]
-            for possibleItemDelimiter in itemDelimiterToCountMap:
-                if itemDelimiterToCountMap[possibleItemDelimiter] > delimiterCount:
-                    delimiterCount = itemDelimiterToCountMap[possibleItemDelimiter]
-                    actualItemDelimiter = possibleItemDelimiter
-                self._log.debug(" detected item delimiter: %r", actualItemDelimiter)
-        else:
-            actualItemDelimiter = dialect.itemDelimiter
+        dialectKeyowrds = {
+            sniff._ENCODING: encoding,
+            sniff._ESCAPE_CHARACTER: dialect.escapeChar,
+            sniff._ITEM_DELIMITER: dialect.itemDelimiter,
+            sniff._LINE_DELIMITER: dialect.lineDelimiter,
+            sniff._QUOTE_CHARACTER: dialect.quoteChar
+        }
+        delimitedOptions = sniff.delimitedOptions(readable, **dialectKeyowrds)
         
         self.readable = readable
-        self.lineDelimiter = actualLineDelimiter
-        self.itemDelimiter = actualItemDelimiter
-        self.quoteChar = dialect.quoteChar
-        self.escapeChar = dialect.escapeChar
+        self.lineDelimiter = delimitedOptions[sniff._LINE_DELIMITER]
+        self.itemDelimiter = delimitedOptions[sniff._ITEM_DELIMITER]
+        self.quoteChar = delimitedOptions[sniff._QUOTE_CHARACTER]
+        self.escapeChar = delimitedOptions[sniff._ESCAPE_CHARACTER]
         self.blanksAroundItemDelimiter = dialect.blanksAroundItemDelimiter
 
         self.item = None
