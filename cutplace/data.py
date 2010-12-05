@@ -297,6 +297,15 @@ class _BaseDataFormat(object):
 
     encoding = property(_getEncoding, _setEncoding)
 
+    def asIcdRows(self):
+        """
+        The data format as it could be defined in an ICD (without the leading 'd').
+        """
+        yield (KEY_FORMAT, self.name)
+        for key, value in self.properties.items():
+            if value is not None and not isFormatKey(key):
+                yield (key, value)
+
     def __str__(self):
         return "DataFormat(%r, %r)" % (self.name, self.properties)
 

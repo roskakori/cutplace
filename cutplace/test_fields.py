@@ -145,7 +145,14 @@ class IntegerFieldFormatTest(unittest.TestCase):
     def testNoNumber(self):
         format = fields.IntegerFieldFormat("x", False, None, "1:10", _anyFormat)
         self.assertRaises(fields.FieldValueError, format.validated, "abc")
-        
+
+    def testAsIcdRow(self):
+        format = fields.IntegerFieldFormat("x", False, None, "1:10", _anyFormat)
+        length = format.length
+        items = length.items
+        self.assertEquals(items, None)
+        self.assertEquals(format.asIcdRow(), ["x", "", "", "Integer", "", "1:10"])
+
 class RegExFieldFormatTest(unittest.TestCase):
     """
     Tests  for `RegExFieldFormat`.

@@ -25,6 +25,9 @@ import ranges
 import tools
 import _tools
 
+# Expected suffix for classes that describe filed formats.
+_FieldFormatClassSuffix = "FieldFormat"
+ 
 class FieldValueError(tools.CutplaceError):
     """
     Error raised when `AbstractFieldFormat.validated` detects an error.
@@ -162,6 +165,32 @@ class AbstractFieldFormat(object):
             result = self.validatedValue(result)
         else:
             result = self.emptyValue
+        return result
+
+    def asIcdRow(self):
+        """
+        The description of the field format as row that can be written to an ICD except for the
+        leading row mark "f".
+        """
+        if self.isAllowedToBeEmpty:
+            isAllowedToBeEmptyMark = "X"
+        else:
+            isAllowedToBeEmptyMark = ""
+        if self.length.items:
+            lengthText = str(self._length)
+        else:
+            lengthText = ""
+        fieldTypeName = self.__class__.__name__
+        assert fieldTypeName.endswith(_FieldFormatClassSuffix), "fieldTypeName=%r" % fieldTypeName
+        fieldTypeName = fieldTypeName[:len(fieldTypeName) - len(_FieldFormatClassSuffix)]
+        result = [
+            self._fieldName,
+            "", # No example.
+            isAllowedToBeEmptyMark,
+            fieldTypeName,
+            lengthText,
+            self._rule,
+        ]
         return result
 
     def __str__(self):
