@@ -374,18 +374,17 @@ def createInterfaceControlDocument(readable, **keywords):
         _log.debug("  %s" % columnInfos[columnIndex].asFieldFormat())
 
     # TODO: Create interface.InterfaceControlDocument and use it as result.
-    print ["Interface: <Name>"]
-    print []
+    yield ["Interface: <Name>"]
+    yield []
     for dataFormatRow in dataFormat.asIcdRows():
         dataFormatCsvRow = ['d']
         dataFormatCsvRow.extend(dataFormatRow) 
-        print dataFormatCsvRow
-    print []
+        yield dataFormatCsvRow
+    yield []
     
-    # TODO: Add data format
-    print ["", "Field", "Example", "Empty?", "Type", "Length", "Rule"]
+    yield ["", "Field", "Example", "Empty?", "Type", "Length", "Rule"]
     for columnInfo in columnInfos:
         fieldFormat = columnInfo.asFieldFormat()
         fieldRow = ["f"]
         fieldRow.extend(fieldFormat.asIcdRow())
-        print fieldRow
+        yield fieldRow

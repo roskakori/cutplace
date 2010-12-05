@@ -106,14 +106,6 @@ class CutPlace(object):
     """
     Command line interface for CutPlace.
     """
-
-    # Mapping for value of --log to logging level
-    _LOG_LEVEL_MAP = {"debug": logging.DEBUG,
-        "info": logging.INFO,
-        "warning": logging.WARNING,
-        "error": logging.ERROR,
-        "critical": logging.CRITICAL}
-
     def __init__(self):
         self._log = logging.getLogger("cutplace")
         self.options = None
@@ -152,7 +144,7 @@ class CutPlace(object):
         webGroup.add_option("-b", "--browse", action="store_true", dest="isOpenBrowser", help="open validation page in browser")
         parser.add_option_group(webGroup)
         loggingGroup = optparse.OptionGroup(parser, "Logging options", "Modify the logging output")
-        loggingGroup.add_option("--log", metavar="LEVEL", type="choice", choices=CutPlace._LOG_LEVEL_MAP.keys(), dest="logLevel", help="set log level to LEVEL (default: %default)")
+        loggingGroup.add_option("--log", metavar="LEVEL", type="choice", choices=_tools.LogLevelNameToLevelMap.keys(), dest="logLevel", help="set log level to LEVEL (default: %default)")
         loggingGroup.add_option("-t", "--trace", action="store_true", dest="isLogTrace", help="include Python stack in error messages related to data")
         parser.add_option_group(loggingGroup)
         

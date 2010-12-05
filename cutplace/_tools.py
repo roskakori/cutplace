@@ -18,6 +18,7 @@ Various internal utility functions.
 import codecs
 import csv
 import errno
+import logging
 import os
 import platform
 import re
@@ -25,6 +26,14 @@ import StringIO
 import token
 import tokenize
 
+
+# Mapping for value of --log to logging level.
+LogLevelNameToLevelMap = {"debug": logging.DEBUG,
+    "info": logging.INFO,
+    "warning": logging.WARNING,
+    "error": logging.ERROR,
+    "critical": logging.CRITICAL
+}
 
 # The original source code for UTF8Recoder, UnicodeReader and UnicodeWriter
 # is available from the Python documentation.

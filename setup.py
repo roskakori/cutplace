@@ -157,7 +157,10 @@ setup(
           ("examples", glob.glob("examples/*.csv") + glob.glob("examples/*.ods"))
       ],
       entry_points={
-        "console_scripts": ["cutplace = cutplace._cutplace:mainForScript"]
+        "console_scripts": [
+            "cutplace = cutplace._cutplace:mainForScript",
+            "cutsniff = cutplace._cutsniff:main"
+        ]
       },
       license="GNU General Public License 3 or later",
       test_suite="cutplace.test_all.createTestSuite",
