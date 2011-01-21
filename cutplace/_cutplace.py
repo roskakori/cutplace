@@ -150,7 +150,7 @@ class CutPlace(object):
         
         (self.options, others) = parser.parse_args(argv)
 
-        self._log.setLevel(CutPlace._LOG_LEVEL_MAP[self.options.logLevel])
+        self._log.setLevel(_tools.LogLevelNameToLevelMap[self.options.logLevel])
         self.icdEncoding = self.options.icdEncoding
         self.isLogTrace = self.options.isLogTrace
         self.isOpenBrowser = self.options.isOpenBrowser
