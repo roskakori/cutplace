@@ -197,7 +197,7 @@ def decamelized(name):
     >>> decamelized('someMore')
     'some more'
     >>> decamelized('EvenMore')
-    'even more'
+    'Even more'
     >>> decamelized('')
     ''
     """
