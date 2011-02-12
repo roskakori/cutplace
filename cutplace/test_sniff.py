@@ -120,6 +120,24 @@ class SniffTest(unittest.TestCase):
                 sniff.createInterfaceControlDocument(testFile)
             finally:
                 testFile.close()
+
+    def testHeaderAndStopAfter(self):
+        testFileNames = [
+            "valid_customers.csv",
+            "valid_customers.ods",
+            "valid_customers.xls"
+        ]
+        for testFileName in testFileNames:
+            testFilePath = dev_test.getTestInputPath(testFileName)
+            testFile = open(testFilePath, "rb")
+            try:
+                reader = sniff.createReader(testFile)
+                rowCount = 0
+                for _ in reader:
+                    rowCount += 1
+                self.assertTrue(rowCount > 0)
+            finally:
+                testFile.close()
         
 if __name__ == "__main__":
     import logging
