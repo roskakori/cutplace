@@ -46,7 +46,7 @@ _ESCAPE_CHARACTER = _tools.camelized(data.KEY_ESCAPE_CHARACTER, True)
 _ITEM_DELIMITER = _tools.camelized(data.KEY_ITEM_DELIMITER, True)
 _LINE_DELIMITER = _tools.camelized(data.KEY_LINE_DELIMITER, True)
 _QUOTE_CHARACTER = _tools.camelized(data.KEY_QUOTE_CHARACTER, True)
-
+ 
 CR = "\r"
 LF = "\n"
 CRLF = CR + LF
@@ -293,13 +293,21 @@ def createInterfaceControlDocument(readable, **keywords):
     
       * ``encoding`` - the character encoding to be used in case ``readable``
         contains delimited data.
-      * ``dataFormat`` - the data format to be assumed; default: `FORMAT_AUTO`. 
+      * ``dataFormat`` - the data format to be assumed; default: `FORMAT_AUTO`.
+      * ``header`` - number of header rows to ignore for data analysis;
+        default: 0.
+      * ``stopAfter`` - number of data rows after which to stop analyzing;
+        0 means "analyze all data"; default: 0.
     """
     assert readable is not None
     dataFormat = keywords.get("dataFormat", FORMAT_AUTO)
     assert dataFormat is not None
     encoding = keywords.get(_ENCODING, DEFAULT_ENCODING)    
     assert encoding is not None
+    dataRowsToStopAfter = keywords.get("stopAfter", 0)
+    assert dataRowsToStopAfter >= 0
+    headerRowsToSkip = keywords.get("header", 0)
+    assert headerRowsToSkip >= 0
 
     NO_COUNT = -1
     
@@ -373,18 +381,20 @@ def createInterfaceControlDocument(readable, **keywords):
     for columnIndex in range(longestSegmentColumnCount):
         _log.debug("  %s" % columnInfos[columnIndex].asFieldFormat())
 
-    # TODO: Create interface.InterfaceControlDocument and use it as result.
-    yield ["Interface: <Name>"]
-    yield []
+    icdRows = []
+    icdRows.append(["Interface: <Name>"])
+    icdRows.append([])
     for dataFormatRow in dataFormat.asIcdRows():
         dataFormatCsvRow = ['d']
         dataFormatCsvRow.extend(dataFormatRow) 
-        yield dataFormatCsvRow
-    yield []
+        icdRows.append(dataFormatCsvRow)
+    icdRows.append([])
     
-    yield ["", "Field", "Example", "Empty?", "Type", "Length", "Rule"]
+    icdRows.append(["", "Field", "Example", "Empty?", "Type", "Length", "Rule"])
     for columnInfo in columnInfos:
         fieldFormat = columnInfo.asFieldFormat()
         fieldRow = ["f"]
         fieldRow.extend(fieldFormat.asIcdRow())
-        yield fieldRow
+        icdRows.append(fieldRow)
+    # TODO: Create interface.InterfaceControlDocument and use it as icdRows.
+    return icdRows

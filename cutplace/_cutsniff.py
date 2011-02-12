@@ -49,9 +49,14 @@ Example:
     parser.add_option("-f", "--data-format", default=sniff.FORMAT_AUTO, metavar="FORMAT", type="choice",
         choices=(sniff.FORMAT_AUTO, data.FORMAT_CSV, data.FORMAT_DELIMITED, data.FORMAT_EXCEL, data.FORMAT_ODS),
         dest="dataFormat", help="data format to assume for DATAFILE (default: %default)")
-    parser.add_option("--log", metavar="LEVEL", type="choice", choices=_tools.LogLevelNameToLevelMap.keys(),
-        dest="logLevel", help="set log level to LEVEL (default: %default)")
-    
+    parser.add_option("-a", "--stop-after", default=0, metavar="NUMBER", type="long",
+        help="number of data rows after which to stop analyzing; 0=analyze all data (default: %default)")
+    parser.add_option("-H", "--head", default=0, metavar="NUMBER", type="long",
+        help="number of header rows to skip before to start analyzing (default: %default)")
+    parser.add_option("--log", default=logging.getLevelName(logging.INFO).lower(), metavar="LEVEL", type="choice",
+        choices=_tools.LogLevelNameToLevelMap.keys(), dest="logLevel",
+        help="set log level to LEVEL (default: %default)")
+
     (options, others) = parser.parse_args(argv[1:])
     othersCount = len(others)
     if othersCount == 0:
