@@ -11,8 +11,8 @@ Cutplace setup for setuptools.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser Public License for
-# more details.
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License
+# for more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -162,7 +162,7 @@ setup(
             "cutsniff = cutplace._cutsniff:main"
         ]
       },
-      license="GNU General Public License 3 or later",
+      license="GNU Lesser General Public License 3 or later",
       test_suite="cutplace.test_all.createTestSuite",
       long_description="""Cutplace is a tool to validate that data conform to an interface control document (ICD).
 
