@@ -10,8 +10,8 @@ Heuristic data analysis to figure out file types and field formats.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser Public License for
-# more details.
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License
+# for more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -81,12 +81,14 @@ def createDataFormat(readable, **keywords):
 
     icdHeader = readable.read(4)
     _log.debug("header=%r", icdHeader)
-    if icdHeader == _ODS_HEADER:
+    if _tools.isEqualBytes(icdHeader, _ODS_HEADER):
         # Consider ICD to be ODS.
         dataFormatName = data.FORMAT_ODS
     else:
         icdHeader += readable.read(4)
-        if icdHeader == _EXCEL_HEADER:
+        assert isinstance(icdHeader, str), "icdHeader=%r" % icdHeader
+        assert isinstance(_EXCEL_HEADER, str), "_EXCEL_HEADER=%r" % _EXCEL_HEADER
+        if _tools.isEqualBytes(icdHeader, _EXCEL_HEADER):
             # Consider ICD to be Excel.
             dataFormatName = data.FORMAT_EXCEL
         else:
@@ -127,7 +129,7 @@ def createReader(readable, **keywords):
     else:
         icdHeader += readable.read(4)
         readable.seek(0)
-        if icdHeader == _EXCEL_HEADER:
+        if _tools.isEqualBytes(icdHeader, _EXCEL_HEADER):
             # Consider ICD to be Excel.
             result = _parsers.excelReader(readable)
         else:

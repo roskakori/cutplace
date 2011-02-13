@@ -10,8 +10,8 @@ Various internal utility functions.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser Public License for
-# more details.
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License
+# for more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -28,7 +28,8 @@ import tokenize
 
 
 # Mapping for value of --log to logging level.
-LogLevelNameToLevelMap = {"debug": logging.DEBUG,
+LogLevelNameToLevelMap = {
+    "debug": logging.DEBUG,
     "info": logging.INFO,
     "warning": logging.WARNING,
     "error": logging.ERROR,
@@ -295,22 +296,48 @@ def isCommaToken(someToken):
     """
     assert someToken
     return (someToken[0] == token.OP) and (someToken[1] == ",")
-"""
-Same as `path` but with suffix changed to `suffix`.
 
-Examples:
-
->>> print tools.withSuffix("eggs.txt", ".rst")
-eggs.rst
->>> print tools.withSuffix("eggs.txt", "")
-eggs
->>> print tools.withSuffix(os.path.join("spam", "eggs.txt"), ".rst")
-spam/eggs.rst
-"""
 def withSuffix(path, suffix=""):
+    """
+    Same as `path` but with suffix changed to `suffix`.
+
+    Examples:
+
+    >>> withSuffix("eggs.txt", ".rst")
+    'eggs.rst'
+    >>> withSuffix("eggs.txt", "")
+    'eggs'
+    >>> withSuffix(os.path.join("spam", "eggs.txt"), ".rst")
+    'spam/eggs.rst'
+    """
     assert path is not None
     assert suffix is not None
     result = os.path.splitext(path)[0]
     if suffix:
         result += suffix
     return result
+
+def asBytes(text):
+    """
+    Same as ``text`` but represented as list of integers.
+
+    >>> asBytes("abc")
+    [97, 98, 99]
+    >>> asBytes("\\x00\\xff")
+    [0, 255]
+    """
+    assert text is not None
+    return [ord(item) for item in text]
+
+def isEqualBytes(some, other):
+    """
+    ``True`` if the bytes of ``some`` and ``other`` match. This allows to
+    compare two raw strings with none ASCII characters without running into
+    a "UnicodeWarning: Unicode equal comparison failed to convert both
+    arguments to Unicode - interpreting them as being unequal".
+    """
+    assert some is not None
+    assert other is not None
+    someBytes = asBytes(some)
+    otherBytes = asBytes(other)
+    return someBytes == otherBytes
