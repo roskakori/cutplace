@@ -43,7 +43,7 @@ copyright = u'2009, Thomas Aglassinger'
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
-from version import *
+from cutplace.version import *
 
 #
 # The short X.Y version.

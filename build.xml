@@ -84,7 +84,21 @@
 	</target>
 
     <target name="test" depends="testdata" description="run test suite">
-        <pyst command="test" />
+        <exec executable="nosetests">
+		    <arg value="--with-coverage" />
+            <arg value="--with-doctest" />
+		    <arg value="--with-xunit" />
+		    <arg value="--cover-erase" />
+		    <arg value="--doctest-extension=rst" />
+            <arg value="--include" />
+            <arg value="docs" />
+		    <arg value="--exclude" />
+            <!-- TODO: Implement automatic test cases for web interface. -->
+		    <arg value=".*test_web.*" />
+        </exec>
+        <exec executable="coverage">
+		    <arg value="xml" />
+        </exec>
     </target>
 
     <target name="clean" description="clean up">
@@ -92,6 +106,7 @@
         <pyst command="clean" />
         <delete>
             <fileset dir="." includes="**/*.pyc, **/*$py.class"/>
+            <fileset dir="." includes="coverage.xml, nosetests.xml"/>
         </delete>
         <delete includeemptydirs="true">
             <fileset dir="${tests-output.dir}" includes="**/*"/>

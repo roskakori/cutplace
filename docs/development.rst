@@ -18,22 +18,20 @@ To build the source code, you need a few additional tools and Python packages.
 First there are a couple of Python packages:
 
 * coverage
-
 * epydoc
-
+* nose
 * profiler
-
 * sphinx
 
 The easiest way to install them is running::
 
-  easy_install coverage epydoc profiler sphinx
+  easy_install coverage epydoc nose profiler sphinx
 
 If you are using Ubuntu, you should instead use ``apt-get``::
 
   sudo apt-get install python-setuptools
   sudo apt-get install python-profiler
-  sudo easy_install coverage epydoc sphinx
+  sudo easy_install coverage epydoc nose sphinx
 
 .. index:: epydoc
 
