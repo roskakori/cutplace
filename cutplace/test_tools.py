@@ -1,16 +1,16 @@
 """
 Test for `tools` module.
 """
-# Copyright (C) 2009-2010 Thomas Aglassinger
+# Copyright (C) 2009-2011 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or (at your
-#  option) any later version.
+# option) any later version.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser Public License for
 # more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
@@ -48,7 +48,7 @@ class ToolsTest(unittest.TestCase):
         # Simply exercise these functions, their results do not really matter.
         _tools.platformVersion()
         _tools.pythonVersion()
-        
+
     def testValidatedPythonName(self):
         self.assertEqual(_tools.validatedPythonName("x", "abc_123"), "abc_123")
         self.assertEqual(_tools.validatedPythonName("x", " abc_123 "), "abc_123")
@@ -56,7 +56,7 @@ class ToolsTest(unittest.TestCase):
         self.assertRaises(NameError, _tools.validatedPythonName, "x", "")
         self.assertRaises(NameError, _tools.validatedPythonName, "x", " ")
         self.assertRaises(NameError, _tools.validatedPythonName, "x", "a.b")
-        
+
     def testHumanReadableList(self):
         self.assertEqual(_tools.humanReadableList([]), "")
         self.assertEqual(_tools.humanReadableList(["a"]), "'a'")
@@ -73,7 +73,7 @@ class ToolsTest(unittest.TestCase):
         self._testWithSuffix("hugo.", "hugo.txt", ".")
         self._testWithSuffix("hugo.txt", "hugo", ".txt")
         self._testWithSuffix(os.path.join("eggs", "hugo.pas"), os.path.join("eggs", "hugo.txt"), ".pas")
-        
+
     def testInputLocation(self):
         location = tools.InputLocation("eggs.txt", hasColumn=True)
         self.assertEqual(location.line, 0)
@@ -87,7 +87,7 @@ class ToolsTest(unittest.TestCase):
         self.assertEqual(location.line, 1)
         self.assertEqual(location.column, 0)
         self.assertEqual(str(location), "eggs.txt (2;1)")
-        
+
         # Test input with cells.
         location = tools.InputLocation("eggs.csv", hasCell=True)
         self.assertEqual(location.line, 0)
@@ -109,7 +109,7 @@ class ToolsTest(unittest.TestCase):
         input = StringIO.StringIO("hugo was here")
         location = tools.InputLocation(input)
         self.assertEqual(str(location), "<io> (1)")
-        
+
 
 if __name__ == "__main__": # pragma: no cover
     unittest.main()

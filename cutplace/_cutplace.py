@@ -2,16 +2,16 @@
 """
 Cutplace - Validate flat data according to an interface control document.
 """
-# Copyright (C) 2009-2010 Thomas Aglassinger
+# Copyright (C) 2009-2011 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or (at your
-#  option) any later version.
+# option) any later version.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser Public License for
 # more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
@@ -53,12 +53,12 @@ class _NoExitOptionParser(optparse.OptionParser):
 
     def error(self, msg):
         raise optparse.OptionError(msg, "")
-    
+
     def print_version(self, file=None):
         # No super() due to old style class.
         optparse.OptionParser.print_version(self, file)
         if self.version:
-            print >> file, "Python %s, %s" % (_tools.pythonVersion(), _tools.platformVersion()) 
+            print >> file, "Python %s, %s" % (_tools.pythonVersion(), _tools.platformVersion())
 
 class CutplaceValidationListener(interface.BaseValidationListener):
     """
@@ -80,7 +80,7 @@ class CutplaceValidationListener(interface.BaseValidationListener):
         else:
             # Write to a csv.writer.
             self.acceptedFile.writerow(row)
-    
+
     def rejectedRow(self, row, error):
         self.rejectedRowCount += 1
         rowText = "items: %r" % row
@@ -92,7 +92,7 @@ class CutplaceValidationListener(interface.BaseValidationListener):
             # Write to a text file.
             self.rejectedFile.write("%s%s" % (rowText, os.linesep))
             self.rejectedFile.write("%s%s" % (errorText, os.linesep))
-    
+
     def checkAtEndFailed(self, error):
         errorText = "check at end failed: %s" % error
         self.checksAtEndFailedCount += 1
@@ -101,7 +101,7 @@ class CutplaceValidationListener(interface.BaseValidationListener):
         else:
             # Write to a text file.
             self.rejectedFile.write("%s%s" % (errorText, os.linesep))
-    
+
 class CutPlace(object):
     """
     Command line interface for CutPlace.
@@ -119,7 +119,7 @@ class CutPlace(object):
     def setOptions(self, argv):
         """Reset options and set them again from argument list such as sys.argv[1:]."""
         assert argv is not None
-        
+
         usage = """
   cutplace [options] ICD-FILE
     validate interface control document in ICD-FILE
@@ -147,7 +147,7 @@ class CutPlace(object):
         loggingGroup.add_option("--log", metavar="LEVEL", type="choice", choices=_tools.LogLevelNameToLevelMap.keys(), dest="logLevel", help="set log level to LEVEL (default: %default)")
         loggingGroup.add_option("-t", "--trace", action="store_true", dest="isLogTrace", help="include Python stack in error messages related to data")
         parser.add_option_group(loggingGroup)
-        
+
         (self.options, others) = parser.parse_args(argv)
 
         self._log.setLevel(_tools.LogLevelNameToLevelMap[self.options.logLevel])
@@ -181,7 +181,7 @@ class CutPlace(object):
         """
         assert dataFilePath is not None
         assert self.icd is not None
-        
+
         self.lastValidationWasOk = False
         isWriteSplit = self.isSplit
         if isWriteSplit:
@@ -218,17 +218,17 @@ class CutPlace(object):
                     rejectedTextFile.close()
         finally:
             if isWriteSplit:
-                acceptedCsvFile.close()                   
-            
+                acceptedCsvFile.close()
+
     def setIcdFromFile(self, newIcdPath):
         assert newIcdPath is not None
         newIcd = interface.InterfaceControlDocument()
         if self.options is not None:
             newIcd.logTrace = self.options.isLogTrace
         newIcd.read(newIcdPath, self.icdEncoding)
-        self.icd = newIcd 
+        self.icd = newIcd
         self.interfaceSpecificationPath = newIcdPath
-        
+
     def _printAvailableEncodings(self):
         for encoding in self._encodingsFromModuleNames():
             if encoding != "__init__":
@@ -240,11 +240,11 @@ class CutPlace(object):
         for filePath in glob.glob(os.path.join(encodingsModuleFilePath, "*.py")):
             fileName = os.path.basename(filePath)
             yield os.path.splitext(fileName)[0]
-            
+
 def main(options):
     """
     Main routine that might raise errors but won't ``sys.exit()``.
-    
+
     ``options`` is string array containing the command line options to process, for example
     ``sys.argv[1:]``.
     """
@@ -276,10 +276,10 @@ def _exitWithError(exitCode, error):
     assert exitCode is not None
     assert exitCode > 0
     assert error is not None
-    
+
     sys.stderr.write("%s%s" % (error, os.linesep))
     sys.exit(exitCode)
-    
+
 def mainForScript():
     """
     Main routine that reports errors in options to ``sys.stderr`` and does ``sys.exit()``.
@@ -301,6 +301,6 @@ def mainForScript():
     except Exception, error:
         traceback.print_exc()
         _exitWithError(4, "cannot handle unexpected error: %s" % error)
-        
+
 if __name__ == '__main__':
     mainForScript()

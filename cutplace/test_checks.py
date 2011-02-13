@@ -1,16 +1,16 @@
 """
-Tests for checks module.
+Tests for `checks` module.
 """
-# Copyright (C) 2009-2010 Thomas Aglassinger
+# Copyright (C) 2009-2011 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or (at your
-#  option) any later version.
+# option) any later version.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser Public License for
 # more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
@@ -26,7 +26,7 @@ def _createFieldMap(fieldNames, fieldValues):
     assert fieldNames
     assert fieldValues
     assert len(fieldNames) == len(fieldValues)
-    
+
     # FIXME: There must be a more pythonic way to do this.
     result = {}
     for fieldIndex in range(len(fieldNames) - 1):
@@ -43,12 +43,12 @@ class _AbstractCheckTest(unittest.TestCase):
         # TODO: Create an instance of the current class instead of _AbstractCheck even for ancestors.
         check = checks.AbstractCheck("test check", "", fieldNames)
         self.assertTrue(check.__str__())
-        
+
     def testLocation(self):
         fieldNames = _getTestFieldNames()
         check = checks.AbstractCheck("test check", "", fieldNames)
         self.assertTrue(check.location is not None)
-        
+
     def testMissingFieldNames(self):
         self.assertRaises(fields.FieldLookupError, checks.AbstractCheck, "missing fields", "", [])
 
@@ -59,7 +59,7 @@ class _AbstractCheckTest(unittest.TestCase):
         check = checks.AbstractCheck("test check", "", fieldNames)
         location = tools.InputLocation(self.testCheckRow, hasCell=True)
         check.checkRow([], location)
-        
+
 class IsUniqueCheckTest(_AbstractCheckTest):
     def testIsUniqueCheck(self):
         fieldNames = _getTestFieldNames()

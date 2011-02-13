@@ -2,16 +2,16 @@
 """
 Tests  for field formats.
 """
-# Copyright (C) 2009-2010 Thomas Aglassinger
+# Copyright (C) 2009-2011 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or (at your
-#  option) any later version.
+# option) any later version.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser Public License for
 # more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
@@ -55,11 +55,11 @@ class AbstractFieldFormatTest(unittest.TestCase):
     def testEmptyAndLengthLimit(self):
         format = fields.AbstractFieldFormat("x", True, "3:5", "", _anyFormat)
         format.validateLength("")
-        
+
     def testValidate(self):
         format = fields.AbstractFieldFormat("x", True, "3:5", "", _anyFormat)
         self.assertRaises(NotImplementedError, format.validated, "xyz")
-        
+
 class DateTimeFieldFormatTest(unittest.TestCase):
     """
     Tests  for `DateTimeFieldFormat`.
@@ -83,7 +83,7 @@ class DateTimeFieldFormatTest(unittest.TestCase):
         self.assertRaises(fields.FieldValueError, format.validated, "2000-02-30")
         self.assertRaises(fields.FieldValueError, format.validated, "0000-01-01")
         self.assertRaises(fields.FieldValueError, format.validated, "this is a bad day")
-        
+
         # FIXME: Raise FieldValueError for the following value due lack of leading zeros.
         format.validated("2000-1-1")
 
@@ -118,10 +118,10 @@ class DecimalFieldFormatTest(unittest.TestCase):
         germanFormat = _createGermanDecimalFormat()
         self.assertRaises(fields.FieldValueError, germanFormat.validated, "12,345,678")
         self.assertRaises(fields.FieldValueError, germanFormat.validated, "12,345.678")
-        
+
     def testBrokenDecimalSyntax(self):
         self.assertRaises(fields.FieldSyntaxError, fields.DecimalFieldFormat, "x", False, None, "eggs", _anyFormat)
-        
+
 class IntegerFieldFormatTest(unittest.TestCase):
     """
     Tests  for `IntegerFieldFormat`.
@@ -141,7 +141,7 @@ class IntegerFieldFormatTest(unittest.TestCase):
     def testTooBig(self):
         format = fields.IntegerFieldFormat("x", False, None, "1:10", _anyFormat)
         self.assertRaises(fields.FieldValueError, format.validated, "11")
-        
+
     def testNoNumber(self):
         format = fields.IntegerFieldFormat("x", False, None, "1:10", _anyFormat)
         self.assertRaises(fields.FieldValueError, format.validated, "abc")
@@ -164,7 +164,7 @@ class RegExFieldFormatTest(unittest.TestCase):
     def testNoMatch(self):
         format = fields.RegExFieldFormat("x", False, None, r"a.*", _anyFormat)
         self.assertRaises(fields.FieldValueError, format.validated, "xyz")
-    
+
     def testBrokenRegEx(self):
         try:
             fields.RegExFieldFormat("x", False, None, "*", _anyFormat)
@@ -189,11 +189,11 @@ class ChoiceFieldFormatTest(unittest.TestCase):
         # Disregard upper/lower case.
         self.assertRaises(fields.FieldValueError, format.validated, "gReen")
         self.assertRaises(fields.FieldValueError, format.validated, "")
-        
+
     def testImproperChoice(self):
         format = fields.ChoiceFieldFormat("color", False, None, "red,green, blue ", _anyFormat)
         self.assertRaises(fields.FieldValueError, format.validated, "tree")
-        
+
     def testMatchingOnlyChoice(self):
         format = fields.ChoiceFieldFormat("color", False, None, "red", _anyFormat)
         self.assertEquals(format.validated("red"), "red")
@@ -207,7 +207,7 @@ class ChoiceFieldFormatTest(unittest.TestCase):
         format = fields.ChoiceFieldFormat("optional_color", True, ":5", "red, green, blue", _anyFormat)
         self.assertEquals(format.validated("red"), "red")
         self.assertEquals(format.validated(""), "")
-        
+
     def testBrokenEmptyChoice(self):
         self.assertRaises(fields.FieldSyntaxError, fields.ChoiceFieldFormat, "color", False, None, "", _anyFormat)
         self.assertRaises(fields.FieldSyntaxError, fields.ChoiceFieldFormat, "color", False, None, " ", _anyFormat)
@@ -221,10 +221,10 @@ class PatternFieldFormatTest(unittest.TestCase):
     """
     def testMatch(self):
         format = fields.PatternFieldFormat("x", False, None, "h*g?", _anyFormat)
-        self.assertEquals(format.validated("hgo"), "hgo") 
+        self.assertEquals(format.validated("hgo"), "hgo")
         self.assertEquals(format.validated("hugo"), "hugo")
         self.assertEquals(format.validated("huuuuga"), "huuuuga")
-    
+
     def testNoMatch(self):
         format = fields.PatternFieldFormat("x", False, None, "h*g?", _anyFormat)
         self.assertRaises(fields.FieldValueError, format.validated, "")

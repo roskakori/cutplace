@@ -1,16 +1,16 @@
 """
 Standard checks that can cover a whole row or data set.
 """
-# Copyright (C) 2009-2010 Thomas Aglassinger
+# Copyright (C) 2009-2011 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or (at your
-#  option) any later version.
+# option) any later version.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser Public License for
 # more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
@@ -31,7 +31,7 @@ class CheckSyntaxError(tools.CutplaceError):
     """
     Error to be raised when the specification of check in the ICD is broken.
     """
-    
+
 class AbstractCheck(object):
     """
     Abstract check to be used as base class for other checks. The constructor should be called by
@@ -48,7 +48,7 @@ class AbstractCheck(object):
         assert description
         assert rule is not None
         assert availableFieldNames is not None
-        
+
         if not availableFieldNames:
             raise fields.FieldLookupError("field names must be specified", locationOfDefinition)
         self._description = description
@@ -58,14 +58,14 @@ class AbstractCheck(object):
             self._location = tools.createCallerInputLocation(["checks"])
         else:
             self._location = locationOfDefinition
-    
+
     def reset(self):
         """
         Reset all internal resources needed by the check to keep track of the check conditions.
         By default do nothing.
-        
+
         It is recommended that the `__init__()` of any child classes calls this method.
-        
+
         This is called by `interface.InterfaceControlDocument.validate()` when starting to
         validate the data.
         """
@@ -79,20 +79,20 @@ class AbstractCheck(object):
         the `tools.InputLocation` where the row started in the input.
         """
         pass
-    
+
     def checkAtEnd(self, location):
         """
         Check at at end of document when all rows have been read and in case something is wrong
         raise `CheckError`. By default do nothing.
-        
+
         ``Location`` is the `tools.InputLocation` of the last row in the input.
         """
         pass
-    
+
     def cleanup(self):
         """Clean up any resources allocated to perform the checks."""
         pass
-    
+
     def __str__(self):
         return "%s(%r, %r)" % (self.__class__.__name__, self.description, self.rule)
 
@@ -124,7 +124,7 @@ class AbstractCheck(object):
         Names of fields declared in the ICD using this field format. They can be used by checks
         that need to extract field values by name or that have a `rule` referring to certain
         fields.
-        
+
         The order of field names in this list match the order of declaration in the ICD.
         """
         return self._location
@@ -135,7 +135,7 @@ class IsUniqueCheck(AbstractCheck):
     """
     def __init__(self, description, rule, availableFieldNames, location=None):
         super(IsUniqueCheck, self).__init__(description, rule, availableFieldNames, location)
-        
+
         self.fieldNamesToCheck = []
 
         # Extract field names to check from rule.
@@ -163,10 +163,10 @@ class IsUniqueCheck(AbstractCheck):
         if not len(self.fieldNamesToCheck):
             raise CheckSyntaxError("rule must contain at least one field name to check for uniqueness")
         self.reset()
-            
+
     def reset(self):
         self.uniqueValues = {}
-        
+
     def checkRow(self, rowMap, location):
         key = []
         for fieldName in self.fieldNamesToCheck:
@@ -185,13 +185,13 @@ class DistinctCountCheck(AbstractCheck):
     Check to ensure that the number of different values in a field matches an expression.
     """
     _COUNT_NAME = "count"
-    
+
     def __init__(self, description, rule, availableFieldNames, location=None):
         super(DistinctCountCheck, self).__init__(description, rule, availableFieldNames, location)
         ruleReadLine = StringIO.StringIO(rule).readline
         tokens = tokenize.generate_tokens(ruleReadLine)
         firstToken = tokens.next()
-        
+
         # Obtain and validate field to count.
         if firstToken[0] != tokenize.NAME:
             raise CheckSyntaxError("rule must start with a field name but found: %r" % firstToken[1])
@@ -211,7 +211,7 @@ class DistinctCountCheck(AbstractCheck):
 
     def _distinctCount(self):
         return len(self.distinctValuesToCountMap)
-    
+
     def _eval(self):
         localVariables = {DistinctCountCheck._COUNT_NAME:self._distinctCount()}
         try:
@@ -221,7 +221,7 @@ class DistinctCountCheck(AbstractCheck):
         if result not in [True, False]:
             raise CheckSyntaxError("count expression %r must result in %r or %r, but test resulted in: %r" % (self.expression, True, False, result))
         return result
-        
+
     def checkRow(self, rowMap, location):
         value = rowMap[self.fieldNameToCount]
         try:

@@ -2,16 +2,16 @@
 """
 Tests for interface control documents.
 """
-# Copyright (C) 2009-2010 Thomas Aglassinger
+# Copyright (C) 2009-2011 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or (at your
-#  option) any later version.
+# option) any later version.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser Public License for
 # more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
@@ -50,12 +50,12 @@ class _SimpleErrorLoggingValidationListener(interface.BaseValidationListener):
         self.rejectedRowCount += 1
         self._logError(row, error)
         super(_SimpleErrorLoggingValidationListener, self).rejectedRow(row, error)
-    
+
     def checkAtEndFailed(self, error):
         self.checksAtEndFailedCount += 1
         self._logError(None, error)
         super(_SimpleErrorLoggingValidationListener, self).checkAtEndFailed(error)
-    
+
 _defaultIcdListener = _SimpleErrorLoggingValidationListener()
 
 def createDefaultTestFixedIcd():
@@ -91,7 +91,7 @@ C,distinct branches must be within limit,DistinctCount,branch_id <= 3
 def createDefaultTestIcd(format, lineDelimiter="\n"):
     assert format in [data.FORMAT_CSV, data.FORMAT_EXCEL, data.FORMAT_ODS], "format=%r" % format
     assert lineDelimiter
-    
+
     spec = u""","Interface: customer"
 ,
 ,"Data format"
@@ -134,7 +134,7 @@ class ValidatedRowsTest(unittest.TestCase):
         icdPath = dev_test.getTestIcdPath("customers.csv")
         self._icd = interface.InterfaceControlDocument()
         self._icd.read(icdPath)
-    
+
     def testValidatedRowsStrict(self):
         for _ in interface.validatedRows(self._icd, self._validCostumersCsvPath):
             pass
@@ -188,14 +188,14 @@ class InterfaceControlDocumentTest(unittest.TestCase):
         assert expectedError is not None
         icd = interface.InterfaceControlDocument()
         self.assertRaises(expectedError, icd.read, StringIO.StringIO(spec), "iso-8859-1")
-        
+
     def testBrokenFirstItem(self):
         spec = u""","Broken Interface with a row where the first item is not a valid row id"
 "D","Format","CSV"
 "x"
 """
         self._testBroken(spec, interface.IcdSyntaxError)
-    
+
     def testBrokenFixedFieldWithoutLength(self):
         spec = u""",Broken interface with a fixed field without length
 ,
@@ -270,7 +270,7 @@ F,first_name,John,X,15,Text
         createDefaultTestIcd(data.FORMAT_CSV, "\n")
         createDefaultTestIcd(data.FORMAT_CSV, "\r")
         createDefaultTestIcd(data.FORMAT_CSV, "\r\n")
-        
+
     def testIsUniqueCheck(self):
         icd = createDefaultTestIcd(data.FORMAT_CSV)
         dataText = """38000,23,"John","Doe","male","08.03.1957"
@@ -348,11 +348,11 @@ F,first_name,John,X,15,Text
         self.assertEqual(icd.failedChecksAtEndCount, 0)
 
     def testBrokenAsciiIcd(self):
-        spec = u",Broken ASCII interface with with non ASCII character\n,\u00fd" 
+        spec = u",Broken ASCII interface with with non ASCII character\n,\u00fd"
         icd = interface.InterfaceControlDocument()
         readable = StringIO.StringIO(spec)
         self.assertRaises(tools.CutplaceUnicodeError, icd.read, readable)
-        
+
         # FIXME: When called from eclipse, this just works, but when called from console it failes with:
         # ERROR:tools:'ascii' codec can't encode character u'\xfd' in position 55: ordinal not in range(128)
         # Traceback (most recent call last):
@@ -412,7 +412,7 @@ F,first_name,John,X,15,Text
         icd.validate(dataReadable)
         self.assertEqual(icd.rejectedCount, 1)
         self.assertEqual(icd.acceptedCount, 1)
-        
+
     def testSimpleFixedIcd(self):
         icd = createDefaultTestFixedIcd()
         dataText = u"3800012345John           Doe            male   08.03.19573800012346Jane           Miller         female 04.10.1946"
@@ -488,7 +488,7 @@ F,first_name,John,X,15,Text
 "Jane","female","04.10.1946" """
         dataReadable = StringIO.StringIO(dataText)
         icd.validate(dataReadable)
-    
+
     def testFieldTypeWithModule(self):
         spec = ""","Interface with field using a fully qualified type"
 "D","Format","CSV"
@@ -505,7 +505,7 @@ F,first_name,John,X,15,Text
 Jane"""
         dataReadable = StringIO.StringIO(dataText)
         icd.validate(dataReadable)
-    
+
     def testEmptyChoiceWithLength(self):
         spec = ""","Interface with a Choice field (gender) that can be empty and has a field length > 0"
 "D","Format","CSV"
@@ -549,7 +549,7 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
             errorText = str(error)
             self.assertTrue("check description must be used only once" in errorText, "unexpected error text: %r" % errorText)
             self.assertTrue("see also:" in errorText, "unexpected error text: %r" % errorText)
-    
+
     def testBrokenCheckTooFewItems(self):
         baseSpec = ""","Broken Interface with duplicate check description"
 "D","Format","CSV"
@@ -568,11 +568,11 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
         readable = StringIO.StringIO(baseSpec)
         icd.read(readable)
 
-        spec = baseSpec + "C"        
+        spec = baseSpec + "C"
         self._testBroken(spec, checks.CheckSyntaxError)
-        spec = baseSpec + "C,incomplete check"        
+        spec = baseSpec + "C,incomplete check"
         self._testBroken(spec, checks.CheckSyntaxError)
-    
+
     def testBrokenDataFormatInvalidFormat(self):
         spec = ""","Broken Interface with invalid data format"
 "D","Format","XYZ"
@@ -585,40 +585,40 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "D","Header","-1"
 """
         self._testBroken(spec, data.DataFormatValueError)
-        
+
     def testBrokenDataFormatDefinedTwice(self):
         spec = ""","Broken Interface with invalid data format where the format shows up twice"
 "D","Format","CSV"
 "D","Format","CSV"
 """
         self._testBroken(spec, data.DataFormatSyntaxError)
-        
+
     def testBrokenDataFormatWithoutName(self):
         spec = ""","Broken Interface with invalid data format where the format value is missing"
 "D","Format"
 """
         self._testBroken(spec, data.DataFormatSyntaxError)
-        
+
     def testBrokenDataFormatWithoutPropertyName(self):
         spec = ""","Broken Interface with invalid data format where the property name is missing"
 "D","Format","CSV"
 "D"
 """
         self._testBroken(spec, data.DataFormatSyntaxError)
-        
+
     def testBrokenDataFormatNonNumericHeader(self):
         spec = ""","Broken Interface with invalid data format where the header is too small"
 "D","Format","CSV"
 "D","Header","eggs"
 """
         self._testBroken(spec, data.DataFormatValueError)
-        
+
     def testBrokenDataFormatInvalidFormatPropertyName(self):
         spec = ""","Broken Interface with broken name for format property"
 "D","Fromat","CSV"
 """
         self._testBroken(spec, data.DataFormatSyntaxError)
-        
+
     def testBrokenInterfaceFieldBeforeDataFormat(self):
         spec = ""","Broken Interface with data format specified after first field"
 "F","branch_id"
@@ -626,7 +626,7 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 """
         self._testBroken(spec, interface.IcdSyntaxError)
 
-        
+
     def testBrokenFieldNameMissing(self):
         spec = ""","Broken Interface with missing field name"
 "D","Format","CSV"
@@ -816,7 +816,7 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "D","Encoding","ISO-8859-1"
 """
         self._testBroken(spec, interface.IcdSyntaxError)
-        
+
         # Same thing should happen with an empty ICD.
         self._testBroken("", interface.IcdSyntaxError)
 

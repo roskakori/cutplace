@@ -2,16 +2,16 @@
 """
 Read and convert ODS files created by OpenOffice.org's Calc.
 """
-# Copyright (C) 2009-2010 Thomas Aglassinger
+# Copyright (C) 2009-2011 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or (at your
-#  option) any later version.
+# option) any later version.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser Public License for
 # more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
@@ -34,18 +34,18 @@ class AbstractOdsContentHandler(xml.sax.ContentHandler):
     Sax ContentHandler for content.xml in ODS.
     """
     def __init__(self, sheet=1):
-        assert sheet >= 1 
+        assert sheet >= 1
 
         xml.sax.ContentHandler.__init__(self)
         self.tablesToSkip = sheet
         self._log = logging.getLogger("cutplace.ods")
-        
+
     def startDocument(self):
         self.row = None
         self.cellText = None
         self.indent = 0
         self.insideCell = False
-    
+
     def startElement(self, name, attributes):
         self.indent += 1
         if name == "table:table":
@@ -84,13 +84,13 @@ class AbstractOdsContentHandler(xml.sax.ContentHandler):
             self.rowCompleted()
             self.row = None
         self.indent -= 1
-            
+
     def rowCompleted(self):
         """
         Actions to be performed once ``self.row`` is complete and can be processed.
         """
         raise NotImplementedError("rowCompleted must be implemented")
-        
+
 class OdsToCsvContentHandler(AbstractOdsContentHandler):
     def __init__(self, csvWriter, sheet=1):
         assert csvWriter is not None
@@ -135,7 +135,7 @@ def toCsv(odsFilePath, csvTargetPath, dialect="excel", sheet=1):
     assert dialect is not None
     assert sheet is not None
     assert sheet >= 1
-    
+
     contentReadable = odsContent(odsFilePath)
     try:
         csvTargetFile = open(csvTargetPath, "w")
@@ -150,10 +150,10 @@ def toCsv(odsFilePath, csvTargetPath, dialect="excel", sheet=1):
 class ProducerThread(threading.Thread):
     """
     Thread to produce the contents of an ODS readable to a queue where a consumer can get it.
-    
+
     Consumers should call ``Queue.get()`` until it returns ``None``. Possible exceptions raised
     in the background during `run()` are raised again when calling `join()` so no special means
-    are necessary for the consumer to handle exceptions in the producer thread. 
+    are necessary for the consumer to handle exceptions in the producer thread.
     """
     def __init__(self, readable, targetQueue, sheet=1):
         assert readable is not None
@@ -165,7 +165,7 @@ class ProducerThread(threading.Thread):
         self.targetQueue = targetQueue
         self.sheet = sheet
         self.error = None
-        
+
     def run(self):
         try:
             xml.sax.parse(self.readable, RowProducingContentHandler(self.targetQueue, self.sheet))
@@ -175,7 +175,7 @@ class ProducerThread(threading.Thread):
         finally:
             # The last row always is a `None` to mark the end.
             self.targetQueue.put(None)
-    
+
     def join(self):
         super(ProducerThread, self).join()
         if self.error is not None:
@@ -186,7 +186,7 @@ def _writeRstRow(rstTargetFile, columnLengths, items):
     assert columnLengths
     assert items
     assert len(columnLengths) >= len(items)
-    
+
     for columnIndex in range(len(columnLengths)):
         columnLength = columnLengths[columnIndex]
         if columnIndex < len(items):
@@ -200,12 +200,12 @@ def _writeRstRow(rstTargetFile, columnLengths, items):
             raise NotImplementedError("item must not contain line separator: %r" % item)
         rstTargetFile.write("+%s%s" % (item, " " * (columnLength - itemLength)))
     rstTargetFile.write("+\n")
-     
+
 def _writeRstSeparatorLine(rstTargetFile, columnLengths, lineSeparator):
     assert rstTargetFile is not None
     assert columnLengths
     assert lineSeparator in ["-", "="]
-    
+
     for columnLength in columnLengths:
         rstTargetFile.write("+")
         if columnLength > 0:
@@ -217,7 +217,7 @@ def odsContent(odsSourceFilePath):
     Readable for content.xml in `odsSourceFilePath`.
     """
     assert odsSourceFilePath is not None
-    
+
     zipArchive = zipfile.ZipFile(odsSourceFilePath, "r")
     try:
         # TODO: Consider switching to 2.6 and use ZipFile.open(). This would need less memory.
@@ -227,7 +227,7 @@ def odsContent(odsSourceFilePath):
         zipArchive.close()
 
     return result
-    
+
 def toRst(odsFilePath, rstTargetPath, firstRowIsHeading=True, sheet=1):
     """
     Convert ODS file in `odsFilePath` to reStructuredText and store the result in `rstTargetPath`.
@@ -235,7 +235,7 @@ def toRst(odsFilePath, rstTargetPath, firstRowIsHeading=True, sheet=1):
     assert odsFilePath is not None
     assert rstTargetPath is not None
     assert sheet >= 1
-    
+
     rowListHandler = RowListContentHandler(sheet)
     readable = odsContent(odsFilePath)
     try:
@@ -255,7 +255,7 @@ def toRst(odsFilePath, rstTargetPath, firstRowIsHeading=True, sheet=1):
                 isFirstRow = False
             elif lengths[columnIndex] < itemLength:
                 lengths[columnIndex] = itemLength
-    
+
     if not lengths:
         raise ValueError("file must contain columns: %r" % odsFilePath)
     for columnIndex in range(len(lengths)):
@@ -276,7 +276,7 @@ def toRst(odsFilePath, rstTargetPath, firstRowIsHeading=True, sheet=1):
             _writeRstSeparatorLine(rstTargetFile, lengths, lineSeparator)
     finally:
         rstTargetFile.close()
- 
+
 def _isEmptyRow(row):
     """
     True if row has no items or all items in row are "".
@@ -289,7 +289,7 @@ def _isEmptyRow(row):
         else:
             itemIndex += 1
     return result
-         
+
 def toDocBookXml(odsFilePath, xmlTargetPath, id, title, sheet=1):
     """
     Convert ODS file in `odsFilePath` to DocBook XML and store the result in `xmlTargetPath`.
@@ -306,7 +306,7 @@ def toDocBookXml(odsFilePath, xmlTargetPath, id, title, sheet=1):
         xml.sax.parse(contentReadable, handler)
     finally:
         contentReadable.close()
-    
+
     # Remove trailing empty rows.
     rows = handler.rows
     rowCount = len(rows)

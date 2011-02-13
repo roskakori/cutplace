@@ -1,16 +1,16 @@
 """
 Data formats that describe the general structure of the data.
 """
-# Copyright (C) 2009-2010 Thomas Aglassinger
+# Copyright (C) 2009-2011 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or (at your
-#  option) any later version.
+# option) any later version.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser Public License for
 # more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
@@ -182,7 +182,7 @@ class _BaseDataFormat(object):
     def _raiseDecimalThousandsSeparatorClash(self, propertyToBeSet, propertyExisting, clashingValue):
         raise DataFormatValueError("value for property %r is %r but must differ from property %r"
             % (propertyToBeSet, propertyExisting, clashingValue))
-                
+
     def validated(self, key, value):
         """
         ``Value`` in its native type.
@@ -264,20 +264,20 @@ class _BaseDataFormat(object):
         >>> format.set(KEY_LINE_DELIMITER, LF)
         >>> print "%r" % format.get(KEY_LINE_DELIMITER)
         '\n'
-        
+
         Many properties have default values in case no value has been set yet:
-        
+
         >>> print "%r" % format.get(KEY_ITEM_DELIMITER)
         'any'
-        
+
         You can query them ignoring the default, which yields `None` for properties that have
         not been set yet:
 
         >>> print "%r" % format.get(KEY_ITEM_DELIMITER, False)
         None
-        
+
         Once a value is provided, the default is ignored in any case:
-        
+
         >>> format.set(KEY_ITEM_DELIMITER, ";")
         >>> print "%r" % format.get(KEY_ITEM_DELIMITER, False)
         ';'

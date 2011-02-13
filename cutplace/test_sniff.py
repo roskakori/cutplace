@@ -1,16 +1,16 @@
 """
 Test for `sniff` module.
 """
-# Copyright (C) 2009-2010 Thomas Aglassinger
+# Copyright (C) 2009-2011 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or (at your
-#  option) any later version.
+# option) any later version.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser Public License for
 # more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
@@ -58,7 +58,7 @@ class SniffTest(unittest.TestCase):
 
                 # Add actual line delimiter as expected. We cannot provide a proper expected line
                 # delimiter in ``exptectedDelimitedOptions`` because the actual value depend on
-                # the platform the repository has been checked out to. 
+                # the platform the repository has been checked out to.
                 actualLineDelimiter = actualDelimitedOptions["lineDelimiter"]
                 self.assertTrue(actualLineDelimiter)
                 exptectedDelimitedOptions["lineDelimiter"] = actualLineDelimiter
@@ -85,7 +85,7 @@ class SniffTest(unittest.TestCase):
                 self.assertTrue(rowCount > 0)
             finally:
                 testFile.close()
-        
+
     def testEmpty(self):
         emptyReadable = StringIO.StringIO("")
 
@@ -101,7 +101,7 @@ class SniffTest(unittest.TestCase):
         for _ in emptyReader:
             rowCount += 1
         self.assertEqual(rowCount, 0)
-        
+
     def testCreateEmptyInterfaceControlDocument(self):
         emptyReadable = StringIO.StringIO("")
         self.assertRaises(sniff.CutplaceSniffError, sniff.createInterfaceControlDocument, emptyReadable)
@@ -138,7 +138,7 @@ class SniffTest(unittest.TestCase):
                 self.assertTrue(rowCount > 0)
             finally:
                 testFile.close()
-        
+
 if __name__ == "__main__":
     import logging
     logging.basicConfig()

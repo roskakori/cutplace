@@ -1,16 +1,16 @@
 """
 Tests  for cutplace application.
 """
-# Copyright (C) 2009-2010 Thomas Aglassinger
+# Copyright (C) 2009-2011 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or (at your
-#  option) any later version.
+# option) any later version.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser Public License for
 # more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
@@ -32,7 +32,7 @@ class CutplaceTest(unittest.TestCase):
 
     def testVersion(self):
         self.assertRaises(_cutplace._ExitQuietlyOptionError, _cutplace.main, ["--version"])
-        
+
     def testHelp(self):
         self.assertRaises(_cutplace._ExitQuietlyOptionError, _cutplace.main, ["--help"])
         self.assertRaises(_cutplace._ExitQuietlyOptionError, _cutplace.main, ["-h"])
@@ -53,7 +53,7 @@ class CutplaceTest(unittest.TestCase):
         self.assertEqual(os.path.getsize(rejectedDataPath), 0)
         os.remove(acceptedDataPath)
         os.remove(rejectedDataPath)
-        
+
     def testSplitBrokenData(self):
         icdPath = dev_test.getTestIcdPath("customers.ods")
         dataPath = dev_test.getTestInputPath("broken_customers.csv")
@@ -68,19 +68,19 @@ class CutplaceTest(unittest.TestCase):
         self.assertNotEqual(os.path.getsize(rejectedDataPath), 0)
         os.remove(acceptedDataPath)
         os.remove(rejectedDataPath)
-        
+
     def _testValidIcd(self, suffix):
         assert suffix is not None
         icdPath = dev_test.getTestIcdPath("customers." + suffix)
         cutPlace = _cutplace.CutPlace()
         cutPlace.setIcdFromFile(icdPath)
-    
+
     def testValidIcdInCsvFormat(self):
         self._testValidIcd("csv")
-    
+
     def testValidIcdInOdsFormat(self):
         self._testValidIcd("ods")
-    
+
     def testValidIcdInXlsFormat(self):
         try:
             self._testValidIcd("xls")
@@ -124,7 +124,7 @@ class CutplaceTest(unittest.TestCase):
 
     def testBrokenNonExistentIcdPath(self):
         self.assertRaises(IOError, _cutplace.main, ["no-such-icd.nix"])
-        
+
     def testBrokenNonExistentDataPath(self):
         icdPath = dev_test.getTestIcdPath("customers.ods")
         self.assertRaises(EnvironmentError, _cutplace.main, [icdPath, "no-such-data.nix"])
@@ -138,7 +138,7 @@ class LotsOfCustomersTest(unittest.TestCase):
         dev_test.createLotsOfCustomersCsv(locCsvPath)
         _cutplace.main([icdOdsPath, locCsvPath])
         # TODO: Assert number of errors detected in dataPath is 0.
-        
+
 if __name__ == '__main__': # pragma: no cover
     logging.basicConfig()
     logging.getLogger("cutplace").setLevel(logging.WARNING)

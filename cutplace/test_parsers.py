@@ -1,17 +1,17 @@
 # -*- coding: iso-8859-15 -*-
 """
-Tests for _parsers.
+Tests for `_parsers`.
 """
-# Copyright (C) 2009-2010 Thomas Aglassinger
+# Copyright (C) 2009-2011 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or (at your
-#  option) any later version.
+# option) any later version.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser Public License for
 # more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
@@ -25,7 +25,7 @@ import dev_test
 import _parsers
 
 _log = logging.getLogger("cutplace.test_parsers")
-        
+
 class AbstractParserTest(unittest.TestCase):
     """
     Abstract TestCase acting as base for the other test cases in this module.
@@ -58,7 +58,7 @@ class ExcelReaderTest(unittest.TestCase):
             _log.warning("ignored ImportError caused by missing xlrd")
         finally:
             readable.close()
-            
+
     def testCellValue(self):
         fieldTypesXlsPath = dev_test.getTestInputPath("fieldtypes.xls")
         readable = open(fieldTypesXlsPath, "rb")
@@ -75,15 +75,15 @@ class ExcelReaderTest(unittest.TestCase):
             _log.warning("ignored ImportError caused by missing xlrd")
         finally:
             readable.close()
-            
+
 class FixedParserTest(AbstractParserTest):
     _DEFAULT_FIELD_LENGTHS = [5, 4, 10]
-        
+
     def _testParse(self, expectedRows, readable, fieldLengths=_DEFAULT_FIELD_LENGTHS):
         assert expectedRows is not None
         assert readable is not None
         assert fieldLengths is not None
-        
+
         actualReadable = self.possiblyStringIoedReadable(readable)
         reader = _parsers.fixedReader(actualReadable, fieldLengths)
         self.readAndAssertEquals(expectedRows, reader)
@@ -93,10 +93,10 @@ class FixedParserTest(AbstractParserTest):
 
     def testValid(self):
         self._testParse([[u"38000", u" 123", u"Doe       "]], u"38000 123Doe       ")
-        
+
     def testBrokenEndingTooSoon(self):
         self.assertRaises(_parsers.ParserSyntaxError, self._testParse, [], u"38000 123Doe  ")
-    
+
 class DelimitedParserTest(AbstractParserTest):
     """
     TestCase for DelimitedParser.
@@ -114,7 +114,7 @@ class DelimitedParserTest(AbstractParserTest):
         """
         assert expectedRows is not None
         assert readable is not None
-        
+
         actualReadable = self.possiblyStringIoedReadable(readable)
         if dialect is None:
             actualDialect = self._createDefaultDialect()
@@ -122,13 +122,13 @@ class DelimitedParserTest(AbstractParserTest):
             actualDialect = dialect
         reader = _parsers.delimitedReader(actualReadable, actualDialect)
         self.readAndAssertEquals(expectedRows, reader)
-        
+
     def _assertRaisesParserSyntaxError(self, readable, dialect=None):
         """
         Attempt to parse all items of `readable` using `dialect` and assert that this raises _`_parsers.ParserSyntaxError`.
         """
         assert readable is not None
-        
+
         actualReadable = self.possiblyStringIoedReadable(readable)
         if dialect is None:
             actualDialect = self._createDefaultDialect()
@@ -142,13 +142,13 @@ class DelimitedParserTest(AbstractParserTest):
         except _parsers.ParserSyntaxError:
             # Ignore expected error.
             pass
-        
+
     # TODO: Add test cases for linefeeds within quotes.
     # TODO: Add test cases for preservation of blanks between unquoted items.
-       
+
     def testBrokenMissingQuote(self):
         self._assertRaisesParserSyntaxError("\"")
-       
+
     def testSingleCharCsv(self):
         self._assertRowsEqual([["x"]], "x")
 
@@ -186,29 +186,29 @@ class DelimitedParserTest(AbstractParserTest):
 
     def testMixedQuotedLineCsv(self):
         self._assertRowsEqual([["hugo", "was", "here"]], "hugo,\"was\",here")
-        
+
     def testEmptyCsv(self):
         self._assertRowsEqual([], "")
-    
+
     def testAutoDelimiters(self):
         dialect = self._createDefaultDialect()
         dialect.lineDelimiter = _parsers.AUTO
         dialect.itemDelimiter = _parsers.AUTO
         self._assertRowsEqual([["a", "b"], ["c", "d", "e"]], "a,b" + _parsers.CRLF + "c,d,e" + _parsers.CRLF, dialect)
-        
+
     def testEmptyLineWithLfCsv(self):
         self._assertRowsEqual([], _parsers.LF)
-    
+
     def testEmptyLineWithCrCsv(self):
         dialect = self._createDefaultDialect()
         dialect.lineDelimiter = _parsers.CR
         self._assertRowsEqual([], _parsers.CR, dialect)
-    
+
     def testEmptyLineWithCrLfCsv(self):
         dialect = self._createDefaultDialect()
         dialect.lineDelimiter = _parsers.CRLF
         self._assertRowsEqual([], _parsers.CRLF, dialect)
-        
+
     def testReader(self):
         dialect = self._createDefaultDialect()
         dataStream = StringIO.StringIO("hugo,was" + _parsers.LF + "here,again")
@@ -229,7 +229,7 @@ class DelimitedParserTest(AbstractParserTest):
             rowCount += 1
             self.assertEqual(7, len(row))
         self.assertEqual(1, rowCount)
-        
+
 if __name__ == '__main__': # pragma: no cover
     logging.basicConfig()
     _log.setLevel(logging.DEBUG)

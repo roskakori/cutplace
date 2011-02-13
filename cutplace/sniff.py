@@ -1,16 +1,16 @@
 """
 Heuristic data analysis to figure out file types and field formats.
 """
-# Copyright (C) 2009-2010 Thomas Aglassinger
+# Copyright (C) 2009-2011 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or (at your
-#  option) any later version.
+# option) any later version.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser Public License for
 # more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
@@ -46,7 +46,7 @@ _ESCAPE_CHARACTER = _tools.camelized(data.KEY_ESCAPE_CHARACTER, True)
 _ITEM_DELIMITER = _tools.camelized(data.KEY_ITEM_DELIMITER, True)
 _LINE_DELIMITER = _tools.camelized(data.KEY_LINE_DELIMITER, True)
 _QUOTE_CHARACTER = _tools.camelized(data.KEY_QUOTE_CHARACTER, True)
- 
+
 CR = "\r"
 LF = "\n"
 CRLF = CR + LF
@@ -72,13 +72,13 @@ class CutplaceSniffError(tools.CutplaceError):
 def createDataFormat(readable, **keywords):
     """
     Data format describing the contents of ``readable``.
-    
+
     Supported formats are delimited data (such as CSV), ODS and Excel.
     """
     assert readable is not None
-    encoding = keywords.get("encoding", DEFAULT_ENCODING)    
+    encoding = keywords.get("encoding", DEFAULT_ENCODING)
     assert encoding is not None
-    
+
     icdHeader = readable.read(4)
     _log.debug("header=%r", icdHeader)
     if icdHeader == _ODS_HEADER:
@@ -103,18 +103,18 @@ def createDataFormat(readable, **keywords):
             result.set(propertyName, value)
     readable.seek(0)
     return result
-    
+
 def createReader(readable, **keywords):
     """
     A reader fitting the contents of ``readable``. Supported formats are
     delimited data (such as CSV), ODS and Excel. When iterating the reader,
-    it returns a Python array for each row of data. 
+    it returns a Python array for each row of data.
     """
     # TODO: Get rid of circular import.
     import _parsers
 
     assert readable is not None
-    encoding = keywords.get("encoding", DEFAULT_ENCODING)    
+    encoding = keywords.get("encoding", DEFAULT_ENCODING)
     assert encoding is not None
 
     result = None
@@ -143,27 +143,27 @@ def createReader(readable, **keywords):
 def delimitedOptions(readable, **keywords):
     """
     Dictionary containing the delimited options as derived from ``readable`` and ``keywords``.
-    
+
     Possible values for ``keywords`` and the keys in the result are:
-    
+
       *  ``encoding``
       *  ``escapeCharacter`
-      *  ``itemDelimiter``   
+      *  ``itemDelimiter``
       *  ``lineDelimiter``
       *  ``quoteCharacter``
     """
     assert readable is not None
-    encoding = keywords.get(_ENCODING, DEFAULT_ENCODING)    
+    encoding = keywords.get(_ENCODING, DEFAULT_ENCODING)
     assert encoding is not None
     escapeCharacter = keywords.get(_ESCAPE_CHARACTER, DEFAULT_ESCAPE_CHARACTER)
-    if escapeCharacter is None:    
+    if escapeCharacter is None:
         escapeCharacter = DEFAULT_ESCAPE_CHARACTER
     # assert escapeCharacter is not None
-    itemDelimiter = keywords.get(_ITEM_DELIMITER, DEFAULT_ITEM_DELIMITER)    
+    itemDelimiter = keywords.get(_ITEM_DELIMITER, DEFAULT_ITEM_DELIMITER)
     assert itemDelimiter is not None
-    lineDelimiter = keywords.get(_LINE_DELIMITER, DEFAULT_LINE_DELIMITER)    
+    lineDelimiter = keywords.get(_LINE_DELIMITER, DEFAULT_LINE_DELIMITER)
     assert lineDelimiter in _VALID_LINE_DELIMITERS
-    quoteCharacter = keywords.get(_QUOTE_CHARACTER, DEFAULT_QUOTE_CHARACTER)    
+    quoteCharacter = keywords.get(_QUOTE_CHARACTER, DEFAULT_QUOTE_CHARACTER)
     assert quoteCharacter is not None
 
     # Automatically set line and item delimiter.
@@ -191,7 +191,7 @@ def delimitedOptions(readable, **keywords):
     else:
         actualLineDelimiter = lineDelimiter
     if itemDelimiter == data.ANY:
-        itemDelimiterToCountMap = {",":sniffedText.count(","), 
+        itemDelimiterToCountMap = {",":sniffedText.count(","),
             ";":sniffedText.count(";"),
             ":":sniffedText.count(":"),
             "\t":sniffedText.count("\t"),
@@ -206,11 +206,11 @@ def delimitedOptions(readable, **keywords):
             _log.debug("  detected item delimiter: %r", actualItemDelimiter)
     else:
         actualItemDelimiter = itemDelimiter
-    
+
     result = {
         _ENCODING: encoding,
         _ESCAPE_CHARACTER: escapeCharacter,
-        _ITEM_DELIMITER: actualItemDelimiter,    
+        _ITEM_DELIMITER: actualItemDelimiter,
         _LINE_DELIMITER: actualLineDelimiter,
         _QUOTE_CHARACTER: quoteCharacter
     }
@@ -231,7 +231,7 @@ class _ColumnSniffInfo(object):
         self.minLength = None
         self.textCount = 0
         self.distinctValues = set([])
-    
+
     def _isLong(self, value):
         assert value is not None
         try:
@@ -253,7 +253,7 @@ class _ColumnSniffInfo(object):
 
     def process(self, value):
         assert value is not None
-        
+
         length = len(value)
         if length:
             if not self.textCount:
@@ -278,7 +278,7 @@ class _ColumnSniffInfo(object):
         else:
             if self.minLength:
                 lengthText += unicode(self.minLength)
-            lengthText += ":%d" % self.maxLength 
+            lengthText += ":%d" % self.maxLength
 
         # TODO: Detect decimal and integer format.
         # TODO: Detect date format.
@@ -288,9 +288,9 @@ class _ColumnSniffInfo(object):
 def createInterfaceControlDocument(readable, **keywords):
     """
     Create an ICD by examining the contents of ``readable``.
-    
+
     Optional keyword parameters are:
-    
+
       * ``encoding`` - the character encoding to be used in case ``readable``
         contains delimited data.
       * ``dataFormat`` - the data format to be assumed; default: `FORMAT_AUTO`.
@@ -302,7 +302,7 @@ def createInterfaceControlDocument(readable, **keywords):
     assert readable is not None
     dataFormat = keywords.get("dataFormat", FORMAT_AUTO)
     assert dataFormat is not None
-    encoding = keywords.get(_ENCODING, DEFAULT_ENCODING)    
+    encoding = keywords.get(_ENCODING, DEFAULT_ENCODING)
     assert encoding is not None
     dataRowsToStopAfter = keywords.get("stopAfter", 0)
     assert dataRowsToStopAfter >= 0
@@ -310,7 +310,7 @@ def createInterfaceControlDocument(readable, **keywords):
     assert headerRowsToSkip >= 0
 
     NO_COUNT = -1
-    
+
     _log.debug("find longest segment of rows with same column count")
     currentSegmentColumnCount = None
     longestSegmentColumnCount = NO_COUNT
@@ -360,7 +360,7 @@ def createInterfaceControlDocument(readable, **keywords):
         reader.next()
         location.advanceLine()
         rowIndex += 1
-    
+
     _log.info("analyze longest segment of rows with same column count")
     columnInfos = []
     for columnIndex in range(longestSegmentColumnCount):
@@ -386,10 +386,10 @@ def createInterfaceControlDocument(readable, **keywords):
     icdRows.append([])
     for dataFormatRow in dataFormat.asIcdRows():
         dataFormatCsvRow = ['d']
-        dataFormatCsvRow.extend(dataFormatRow) 
+        dataFormatCsvRow.extend(dataFormatRow)
         icdRows.append(dataFormatCsvRow)
     icdRows.append([])
-    
+
     icdRows.append(["", "Field", "Example", "Empty?", "Type", "Length", "Rule"])
     for columnInfo in columnInfos:
         fieldFormat = columnInfo.asFieldFormat()

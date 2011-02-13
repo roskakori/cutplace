@@ -1,16 +1,16 @@
 """
 Web server to provide a simple GUI for cutplace.
 """
-# Copyright (C) 2009-2010 Thomas Aglassinger
+# Copyright (C) 2009-2011 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or (at your
-#  option) any later version.
+# option) any later version.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser Public License for
 # more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
@@ -61,30 +61,30 @@ class _HtmlWritingValidationListener(interface.BaseValidationListener):
         for item in row:
             self._htmlTargetFile.write("<td class=\"%s\">%s</td>\n" % (cssClass, cgi.escape(item)))
         self._htmlTargetFile.write("</tr>\n")
-        
+
     def _writeTextRow(self, text):
         assert text is not None
         self._htmlTargetFile.write("<tr>\n")
         self._htmlTargetFile.write("<td colspan=\"%d\">%s</td>\n" % (self._itemCount, cgi.escape(text)))
         self._htmlTargetFile.write("</tr>\n")
-        
+
     def acceptedRow(self, row, location):
         assert row is not None
         self.acceptedCount += 1
         self._writeRow(row, "ok")
-    
+
     def rejectedRow(self, row, error):
         assert row is not None
         assert error is not None
         self.rejectedCount += 1
         self._writeRow(row, "error")
         self._writeTextRow("%s" % error)
-    
+
     def checkAtEndFailed(self, error):
         assert error is not None
         self.checkAtEndFailedCount += 1
         self._writeTextRow("check at end failed: %s" % error)
-    
+
 class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
     server_version = _SERVER_VERSION
     _IO_BUFFER_SIZE = 8192
@@ -173,9 +173,9 @@ Platform: %s</p>
 </body></html>
 """ % (_STYLE, _FOOTER)
 
-    
+
     def do_GET(self):
-        
+
         log = logging.getLogger("cutplace.web")
         log.info("%s %r" % (self.command, self.path))
 
@@ -220,7 +220,7 @@ Platform: %s</p>
             fileMap = cgi.parse_qs(qs, keep_blank_values=1)
         else:
             fileMap = {} # Unknown content-type
-        
+
         if "icd" in fileMap:
             icdContent = fileMap["icd"][0]
         else:
@@ -244,7 +244,7 @@ Platform: %s</p>
                         for title in icd.fieldNames:
                             validationHtmlFile.write("<th>%s</th>" % cgi.escape(title))
                         validationHtmlFile.write("</tr>")
-    
+
                         # Start listening to validation events.
                         htmlListener = _HtmlWritingValidationListener(validationHtmlFile, len(icd.fieldNames))
                         icd.addValidationListener(htmlListener)
@@ -253,11 +253,11 @@ Platform: %s</p>
                             icd.validate(dataReadable)
                             icd.removeValidationListener(htmlListener)
                             validationHtmlFile.write("</table>")
-                            
+
                             self.send_response(200)
                             self.send_header("Content-type", "text/html")
                             self.end_headers()
-                            
+
                             # Write the contents of the temporary HTML file to the web page.
                             self.wfile.write("""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <html>
@@ -328,7 +328,7 @@ class WaitForServerToBeReadyThread(threading.Thread):
                 log.error("cannot find server yet, retry=%d/%d" % (retries, self.maxRetries), exc_info=1)
                 time.sleep(self.delayBetweenRetryInSeconds)
                 retries += 1
-    
+
 class OpenBrowserThread(WaitForServerToBeReadyThread):
     """Thread to open the cutplace's validation form in the web browser."""
     def run(self):
@@ -351,7 +351,7 @@ def main(port=DEFAULT_PORT, isOpenBrowser=False, allowShutDown=False):
     # TODO: Get rid of super ugly global `_allowShutDown`.
     global _allowShutDown
     global _readyToShutDown
-    
+
     log = logging.getLogger("cutplace.web")
     _allowShutDown = allowShutDown
     httpd = BaseHTTPServer.HTTPServer(("", port), Handler)
@@ -371,7 +371,7 @@ def main(port=DEFAULT_PORT, isOpenBrowser=False, allowShutDown=False):
         # Ignore Control-C and proceed with shut down.
         pass
     log.info("Shut down")
-                                     
+
 if __name__ == '__main__':
     logging.basicConfig()
     logging.getLogger("cutplace").setLevel(logging.INFO)

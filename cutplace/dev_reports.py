@@ -1,16 +1,16 @@
 """
 Development reports for cutplace.
 """
-# Copyright (C) 2009-2010 Thomas Aglassinger
+# Copyright (C) 2009-2011 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or (at your
-#  option) any later version.
+# option) any later version.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser Public License for
 # more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
@@ -34,7 +34,7 @@ try:
     import cProfile
 except ImportError, error:
     _log.warning("developer reports will not work: %s", error)
-    
+
 
 
 def _testLotsOfCustomers():
@@ -54,10 +54,10 @@ def _addToKeyList(map, key, valueToAdd):
         map[key].append(valueToAdd)
     else:
         map[key] = [valueToAdd]
-        
+
 def createProfilerReport(targetBasePath):
     assert targetBasePath is not None
-    
+
     itemName = "profile_lotsOfCustomers"
     targetProfilePath = os.path.join(targetBasePath, itemName) + ".profile"
     targetReportPath = os.path.join(targetBasePath, itemName) + ".txt"
@@ -76,7 +76,7 @@ def createProfilerReport(targetBasePath):
 def createTasksReport(targetBasePath):
     assert targetBasePath is not None
     TASK_IDS = ["FIXME", "TODO", "HACK"]
-    
+
     taskHtmlPath = os.path.join(targetBasePath, "tasks.html")
     _log.info("write %r", taskHtmlPath)
 
@@ -125,7 +125,7 @@ def createTasksReport(targetBasePath):
         taskHtmlFile.write(taskHtml)
     finally:
         taskHtmlFile.close()
-    
+
 def createCoverageReport(targetBasePath):
     # Collect coverage data.
     print "collecting coverage data"
@@ -181,7 +181,7 @@ def createCoverageReport(targetBasePath):
             for index in range(1,4):
                 coverageHtml += "<td>%s</td>" % cgi.escape(coverageWords[index])
         finally:
-            reportStringIO.close() 
+            reportStringIO.close()
         coverageHtml += "</tr>" + os.linesep
         print "write %r" % targetHtmlPath
         fo = file(targetHtmlPath, "wb")
@@ -203,11 +203,11 @@ def createCoverageReport(targetBasePath):
 
 def createReports(targetFolder):
     assert targetFolder is not None
-    
+
     _tools.mkdirs(targetFolder)
     createCoverageReport(targetFolder)
     createTasksReport(targetFolder)
-        
+
 if __name__ == '__main__':
     logging.basicConfig()
     logging.getLogger("cutplace").setLevel(logging.WARNING)

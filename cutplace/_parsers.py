@@ -2,16 +2,16 @@
 Parsers to read tabular data from various input formats and yield each row as a Python array
 containing the columns.
 """
-# Copyright (C) 2009-2010 Thomas Aglassinger
+# Copyright (C) 2009-2011 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or (at your
-#  option) any later version.
+# option) any later version.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser Public License for
 # more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
@@ -37,7 +37,7 @@ class CutplaceXlrdImportError(tools.CutplaceError):
     """
     Error raised if xlrd package to read Excel can not be imported.
     """
-    
+
 def delimitedReader(readable, dialect, encoding="ascii"):
     """Generator yielding the "readable" row by row using "dialect"."""
     assert readable is not None
@@ -59,7 +59,7 @@ def fixedReader(readable, fieldLengths):
     assert readable is not None
     assert fieldLengths
     assert len(fieldLengths) > 0
-    
+
     parser = _FixedParser(readable, fieldLengths)
     columns = []
     while not parser.atEndOfFile:
@@ -75,11 +75,11 @@ def _excelCellValue(cell, datemode):
     The value of `cell` as text taking into account the way excel encodes dates and times.
 
     Numeric Excel types (Currency,  Fractional, Number, Percent, Scientific) simply yield the decimal number without any special formatting.
-    
+
     Dates result in a text using the format "YYYY-MM-DD", times in a text using the format "hh:mm:ss".
-    
+
     Boolean yields "0" or "1".
-    
+
     Formulas are evaluated and yield the respective result.
     """
     assert cell is not None
@@ -117,12 +117,12 @@ def excelReader(readable, sheetIndex=1):
     assert readable is not None
     assert sheetIndex is not None
     assert sheetIndex >= 1
-    
+
     try:
         import xlrd
     except ImportError:
         raise CutplaceXlrdImportError("to read Excel data the xlrd package must be installed, see <http://pypi.python.org/pypi/xlrd> for more information")
-        
+
     contents = readable.read()
     workbook = xlrd.open_workbook(file_contents=contents)
     datemode = workbook.datemode
@@ -156,14 +156,14 @@ def odsReader(readable, sheetIndex=1):
     finally:
         contentXmlReadable.close()
     producer.join()
-    
+
 class DelimitedDialect(object):
     def __init__(self, lineDelimiter=AUTO, itemDelimiter=AUTO):
         assert lineDelimiter is not None
         assert lineDelimiter in  _VALID_LINE_DELIMITERS
         assert itemDelimiter is not None
         # assert len(itemDelimiter) == 1
-        
+
         self.lineDelimiter = lineDelimiter
         self.itemDelimiter = itemDelimiter
         self.quoteChar = None
@@ -183,9 +183,9 @@ class DelimitedDialect(object):
         if not result.doublequote:
             result.escapechar = self.escapeChar
         result.skipinitialspace = (self.blanksAroundItemDelimiter)
-        
+
         return result
-    
+
 class ParserSyntaxError(tools.CutplaceError):
     """
     Syntax error detected while parsing the data.
@@ -198,12 +198,12 @@ class ParserSyntaxError(tools.CutplaceError):
         assert itemNumberInLine >= 0
         assert columnNumberInLine is not None
         assert columnNumberInLine >= 0
-        
+
         self.message = message
         self.lineNumber = lineNumber
         self.itemNumberInLine = itemNumberInLine
         self.columnNumberInLine = columnNumberInLine
-        
+
     def __str__(self):
         result = "(" + _tools.valueOr("%d" % (self.lineNumber + 1), "?")
         if self.columnNumberInLine is not None:
@@ -212,7 +212,7 @@ class ParserSyntaxError(tools.CutplaceError):
             result += "@%d" % (self.itemNumberInLine + 1)
         result += "): %s" % self.message
         return result
-            
+
 class _DelimitedParser(object):
     """Parser for data where items are separated by delimiters."""
     def __init__(self, readable, dialect, encoding="ascii"):
@@ -232,7 +232,7 @@ class _DelimitedParser(object):
             sniff._QUOTE_CHARACTER: dialect.quoteChar
         }
         delimitedOptions = sniff.delimitedOptions(readable, **dialectKeyowrds)
-        
+
         self.readable = readable
         self.lineDelimiter = delimitedOptions[sniff._LINE_DELIMITER]
         self.itemDelimiter = delimitedOptions[sniff._ITEM_DELIMITER]
@@ -241,7 +241,7 @@ class _DelimitedParser(object):
         self.blanksAroundItemDelimiter = dialect.blanksAroundItemDelimiter
 
         self.item = None
-        
+
         # FIXME: Read delimited items without holding the whole file into memory.
         self.rows = []
         # HACK: Convert delimiters using `str()` because `csv.reader()` cannot handle Unicode strings,
@@ -293,7 +293,7 @@ class _FixedParser(object):
         assert readable is not None
         assert fieldLengths is not None
         assert len(fieldLengths) > 0
-        
+
         self.readable = readable
         self.fieldLengths = fieldLengths
         # TODO: Obtain name of file to parse, if there is one.
@@ -305,14 +305,14 @@ class _FixedParser(object):
         self.atEndOfFile = False
         self.item = 0
         self.advance()
-        
+
     def _raiseSyntaxError(self, message):
         assert message is not None
         raise ParserSyntaxError(message, self.rowNumber, self.itemNumberInRow, self.columnNumberInRow)
-    
+
     def advance(self):
         assert not self.atEndOfFile
-        
+
         if self.atEndOfLine:
             self.itemNumberInRow = 0
             self.columnNumberInRow = 0
@@ -327,7 +327,7 @@ class _FixedParser(object):
             self.item = None
             self.atEndOfLine = True
             self.atEndOfFile = True
-        else: 
+        else:
             actualLength = len(self.item)
             if actualLength != expectedLength:
                 self._raiseSyntaxError("item must have %d characters but data already end after %d yielding: %r" % (expectedLength, actualLength, self.item))

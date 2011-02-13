@@ -1,16 +1,16 @@
 """
 Test for web server.
 """
-# Copyright (C) 2009-2010 Thomas Aglassinger
+# Copyright (C) 2009-2011 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or (at your
-#  option) any later version.
+# option) any later version.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser Public License for
 # more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
@@ -61,7 +61,7 @@ class MultiPartForm(object):
         # line is separated by '\r\n'.
         parts = []
         part_boundary = '--' + self.boundary
-        
+
         # Add the form fields
         parts.extend(
             [ part_boundary,
@@ -71,7 +71,7 @@ class MultiPartForm(object):
             ]
             for name, value in self.form_fields
             )
-        
+
         # Add the files to upload
         parts.extend(
             [ part_boundary,
@@ -83,7 +83,7 @@ class MultiPartForm(object):
             ]
             for field_name, filename, content_type, body in self.files
             )
-        
+
         # Flatten the list and add closing boundary marker,
         # then return CR+LF separated data
         flattened = list(itertools.chain(*parts))
@@ -93,13 +93,13 @@ class MultiPartForm(object):
 
 class WebThread(threading.Thread):
     """Thread to run the test web server in."""
-    
+
     PORT = 8642
-    
+
     def run(self):
         _web.main(WebThread.PORT, allowShutDown=True)
         # FIXME: Let exception result in the test case to fail.
-        
+
 class WebTest(unittest.TestCase):
     """TestCase for web module."""
     def _createOpener(self):
@@ -107,7 +107,7 @@ class WebTest(unittest.TestCase):
         proxy_support = urllib2.ProxyHandler({})
         result = urllib2.build_opener(proxy_support)
         return result
-        
+
     def _get(self, url):
         opener = self._createOpener()
         result = opener.open(url)
@@ -118,7 +118,7 @@ class WebTest(unittest.TestCase):
 
         form = MultiPartForm()
         form.add_file("icd", os.path.split(icdPath)[1], open(icdPath, "rb"))
-        
+
         # Build the request
         request = urllib2.Request("http://localhost:%d/cutplace" % (WebThread.PORT))
         request.add_header("User-agent", "test_web.py")
@@ -126,18 +126,18 @@ class WebTest(unittest.TestCase):
         request.add_header("Content-type", form.get_content_type())
         request.add_header("Content-length", len(body))
         request.add_data(body)
-        
+
         print
         print "OUTGOING DATA:"
         print request.get_data()
-        
+
         print
         print "SERVER RESPONSE:"
         opener = self._createOpener()
         result = opener.open(request)
         print result.read()
         return result
-    
+
     def _getHtmlText(self, relativeUrl=""):
         assert relativeUrl is not None
         response = self._get("http://localhost:%d/%s" % (WebThread.PORT, relativeUrl))
@@ -147,7 +147,7 @@ class WebTest(unittest.TestCase):
         finally:
             response.close()
         return result
-        
+
     def setUp(self):
         self._webThread = WebThread()
         self._webThread.start()
@@ -161,7 +161,7 @@ class WebTest(unittest.TestCase):
         self.assertTrue(text.find("cutplace") >= 0)
         self._webThread.join()
         self._webThread = None
-        
+
     def testAbout(self):
         text = self._getHtmlText("about").lower()
         self.assertTrue(text.find("about") >= 0)
@@ -169,7 +169,7 @@ class WebTest(unittest.TestCase):
     def testForm(self):
         text = self._getHtmlText().lower()
         self.assertTrue(text.find("<form") >= 0)
-    
+
     def _testValidateProperData(self):
         # TODO: Implement: testValidateProperData
         pass

@@ -1,16 +1,16 @@
 """
 Standard field formats supported by cutplace.
 """
-# Copyright (C) 2009-2010 Thomas Aglassinger
+# Copyright (C) 2009-2011 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or (at your
-#  option) any later version.
+# option) any later version.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser Public License for
 # more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
@@ -27,7 +27,7 @@ import _tools
 
 # Expected suffix for classes that describe filed formats.
 _FieldFormatClassSuffix = "FieldFormat"
- 
+
 class FieldValueError(tools.CutplaceError):
     """
     Error raised when `AbstractFieldFormat.validated` detects an error.
@@ -47,7 +47,7 @@ class AbstractFieldFormat(object):
     """
     Abstract format description of a field in a data file to validate which acts as base for all
     other field formats. To implement another field format, it is usually sufficient to:
-    
+
       1. Overload `__init__()` but call ``super(..., self).__init__(...)`` from it.
       2. Implement `validatedValue()`.
     """
@@ -103,7 +103,7 @@ class AbstractFieldFormat(object):
     @property
     def emptyValue(self):
         """
-        The result of `validated(value)` in case ``value`` is an empty string. 
+        The result of `validated(value)` in case ``value`` is an empty string.
         """
         return self._emptyValue
 
@@ -198,12 +198,12 @@ class AbstractFieldFormat(object):
 
 class ChoiceFieldFormat(AbstractFieldFormat):
     """
-    Field format accepting only values from a pool of choices. 
+    Field format accepting only values from a pool of choices.
     """
     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
         super(ChoiceFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue="")
         self.choices = []
-        
+
         # Split rule into tokens, ignoring white space.
         tokens = _tools.tokenizeWithoutSpace(rule)
 
@@ -244,7 +244,7 @@ class ChoiceFieldFormat(AbstractFieldFormat):
 class DecimalFieldFormat(AbstractFieldFormat):
     """
     Field format accepting decimal numeric values, taking the data format properties
-    `data.KEY_DECIMAL_SEPARATOR` and `data.KEY_THOUSANDS_SEPARATOR` into account. 
+    `data.KEY_DECIMAL_SEPARATOR` and `data.KEY_THOUSANDS_SEPARATOR` into account.
     """
     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue=None):
         super(DecimalFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue)
@@ -391,7 +391,7 @@ class TextFieldFormat(AbstractFieldFormat):
 def getFieldNameIndex(supposedFieldName, availableFieldNames):
     """
     The index of `supposedFieldName` in `availableFieldNames`.
-    
+
     In case it is missing, raise a `FieldLookupError`.
     """
     assert supposedFieldName is not None
@@ -405,4 +405,4 @@ def getFieldNameIndex(supposedFieldName, availableFieldNames):
         raise FieldLookupError("unknown field name %r must be replaced by one of: %s"
                                       % (fieldName, _tools.humanReadableList(availableFieldNames)))
     return fieldIndex
-    
+

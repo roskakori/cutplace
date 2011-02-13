@@ -1,16 +1,16 @@
 """
 Various utility classes and functions.
 """
-# Copyright (C) 2009-2010 Thomas Aglassinger
+# Copyright (C) 2009-2011 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or (at your
-#  option) any later version.
+# option) any later version.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser Public License for
 # more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
@@ -40,22 +40,22 @@ class InputLocation(object):
         Create a new ``InputLocation`` for the input described by ``filePath``. This can also be
         a symbolic name such as ``"<source>"`` or ``"<string>"`` in case the input is no actual
         file. If ``filePath`` is no string type, ``"<io>"`` will be used.
-        
+
         If the input is a text or binary file, ``hasColumn`` should be ``True`` and
         `advanceColumn()` should be called on every character or byte read.
-        
+
         If the input is a tabular file such as CSV, ``hasCell`` should be ``True`` and
         `advanceCell()` or `setCell` be called on each cell processed.
-        
+
         If the input is a spreadsheet  format such as ODS or Excel, `advanceSheet()` should be called
         each time a new sheet starts.
-        
+
         You can also combine these properties, for example to exactly point out an error location
         in a spreadsheet cell, all of ``hasColumn``, ``hasCell`` and ``hasSheet`` can be ``True``
         with the column pointing at a broken character in a cell.
-        
+
         Common examples:
-        
+
         >>> InputLocation("data.txt", hasColumn=True)
         data.txt (1;1)
         >>> InputLocation("data.csv", hasCell=True)
@@ -194,7 +194,7 @@ def createCopyOfLocation(location):
         result._cell = location._cell
         result._sheet = location._sheet
     return result
-    
+
 class _BaseCutplaceError(Exception):
     """
     Exception that supports a `message` describing the error and an optional

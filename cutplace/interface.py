@@ -1,16 +1,16 @@
 """
 Interface control document (ICD) describing all aspects of a data driven interface.
 """
-# Copyright (C) 2009-2010 Thomas Aglassinger
+# Copyright (C) 2009-2011 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or (at your
-#  option) any later version.
+# option) any later version.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser Public License for
 # more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
@@ -37,7 +37,7 @@ _log = logging.getLogger("cutplace")
 class BaseValidationListener(object):
     """
     Listener to process events during `InterfaceControlDocument.validate()`.
-    
+
     To act on events, define a class inheriting from `BaseValidationListener` and overwrite the
     methods for the events you are interested in:
 
@@ -45,26 +45,26 @@ class BaseValidationListener(object):
     ...     def rejectedRow(self, row, error):
     ...         print "%r" % row
     ...         print "error: %s" % error
-    ... 
+    ...
 
     Create a new listener:
-    
+
     >>> listener = MyValidationListener()
-    
+
     To actually receive events, you have to attach it to an ICD:
-    
+
     >>> icd = InterfaceControlDocument()
     >>> icd.addValidationListener(listener)
     >>> # Add data format and field formats and call `icd.validate()`
 
     When you are done, remove the listener so its resources are released:
-    
+
     >>> icd.removeValidationListener(listener)
     """
     def acceptedRow(self, row, location):
         """Called in case `row` at `tools.InputLocation` `location` has been accepted."""
         pass
-    
+
     def rejectedRow(self, row, error):
         """
         Called in case ``row`` has been rejected due to ``error``, which is of type
@@ -72,14 +72,14 @@ class BaseValidationListener(object):
         ``error.location``.
         """
         pass
-    
+
     def checkAtEndFailed(self, error):
         """
         Called in case any of the checks performed at the end of processing
         the data due to `error`, which is of type `tools.CutplaceError`.
         """
         pass
-    
+
     # TODO: Ponder: Would there be any point in `dataFormatFailed(self, error)`?
 
 class IcdSyntaxError(tools.CutplaceError):
@@ -118,19 +118,19 @@ class InterfaceControlDocument(object):
         self._logTrace = False
         self._resetCounts()
         self._location = None
-        
+
     def _resetCounts(self):
         self.acceptedCount = 0
         self.rejectedCount = 0
         self.failedChecksAtEndCount = 0
         self.passedChecksAtEndCount = 0
-    
+
     def _createClass(self, defaultModuleName, type, classNameAppendix, typeName):
         assert defaultModuleName
         assert type
         assert classNameAppendix
         assert typeName
-        
+
         # FIXME: Remove check for "fields." and provide a proper test case in testFieldTypeWithModule
         # using a "real" module.
         if type.startswith("fields."):
@@ -184,7 +184,7 @@ class InterfaceControlDocument(object):
                     self._dataFormat = data.createDataFormat(value)
                 else:
                     raise data.DataFormatSyntaxError("data format must be set only once, but has been set already to: %r" % self._dataFormat.name, self._location)
-            elif self._dataFormat is not None: 
+            elif self._dataFormat is not None:
                 self._dataFormat.set(key, value)
             else:
                 raise data.DataFormatSyntaxError("first data format property name is %r but must be %r" % (key, data.KEY_FORMAT), self._location)
@@ -194,16 +194,16 @@ class InterfaceControlDocument(object):
     def addFieldFormat(self, items):
         """
         Add field as described by `items`. The meanings of the items are:
-        
+
         1) field name
         2) optional: example value (can be empty)
         3) optional: empty flag ("X"=field is allowed to be empty)
         4) optional: length ("lower:upper")
         5) optional: field type
         6) optional: rule to validate field (depending on type)
-        
+
         Further values in `items` are ignored.
-        
+
         Any errors detected result in a `fields.FieldSyntaxError`.
         """
         assert items is not None
@@ -218,7 +218,7 @@ class InterfaceControlDocument(object):
         fieldLength = None
         fieldType = None
         fieldRule = ""
-        
+
         itemCount = len(items)
         if itemCount >= 1:
             # Obtain field name.
@@ -242,14 +242,14 @@ class InterfaceControlDocument(object):
             else:
                 fieldExample = ""
 
-            # Obtain "empty" flag. 
+            # Obtain "empty" flag.
             if itemCount >= 3:
                 self._location.advanceCell()
                 fieldIsAllowedToBeEmptyText = items[2].strip().lower()
                 if fieldIsAllowedToBeEmptyText == InterfaceControlDocument._EMPTY_INDICATOR:
                     fieldIsAllowedToBeEmpty = True
                 elif fieldIsAllowedToBeEmptyText:
-                    raise fields.FieldSyntaxError("mark for empty field must be %r or empty but is %r" 
+                    raise fields.FieldSyntaxError("mark for empty field must be %r or empty but is %r"
                                                   % (InterfaceControlDocument._EMPTY_INDICATOR,
                                                      fieldIsAllowedToBeEmptyText), self._location)
 
@@ -333,7 +333,7 @@ class InterfaceControlDocument(object):
         assert fieldExample is not None
         assert fieldType
         assert fieldRule is not None
-        
+
     def addCheck(self, items):
         assert items is not None
         itemCount = len(items)
@@ -354,7 +354,7 @@ class InterfaceControlDocument(object):
         existingCheck = self._checkNameToCheckMap.get(checkDescription)
         if existingCheck:
             raise checks.CheckSyntaxError("check description must be used only once: %r" % (checkDescription),
-                                          self._location, "initial declaration", existingCheck.location) 
+                                          self._location, "initial declaration", existingCheck.location)
         self._checkNameToCheckMap[checkDescription] = check
         self._checkNames.append(checkDescription)
         assert len(self.checkNames) == len(self._checkNameToCheckMap)
@@ -362,10 +362,10 @@ class InterfaceControlDocument(object):
     def read(self, icdFilePath, encoding="ascii"):
         """
         Read the ICD as specified in ``icdFilePath``.
-        
+
           - ``icdPath`` - either the path of a file or a ``StringIO``
           - ``encoding`` - the name of the encoding to use when reading the ICD; depending  on the
-            file type this might be ignored 
+            file type this might be ignored
         """
         assert icdFilePath is not None
         assert encoding is not None
@@ -420,7 +420,7 @@ class InterfaceControlDocument(object):
     def _obtainReadable(self, dataFileToValidatePath):
         """
         A tuple consisting of the following:
-        
+
           1. A file like readable object for `dataFileToValidatePath`, which can be a string describing the
              path to a file, or a ``StringIO`` to data.
           2. A `tools.InputLocation` pointing to the beginning of the first data item in the file.
@@ -447,9 +447,9 @@ class InterfaceControlDocument(object):
                 dataFile = dataFileToValidatePath
         else: # pragma: no cover
             raise NotImplementedError("data format: %r" % self._dataFormat.name)
-        
+
         return (dataFile, location, needsOpen)
-        
+
     def _rejectRow(self, row, reason, location):
         # TODO: Add "assert row is not None"?
         assert reason
@@ -472,11 +472,11 @@ class InterfaceControlDocument(object):
         """
         Validate that all rows and items in ``dataFileToValidatePath`` conform to this interface.
         If a validation listener has been attached using `addValidationListener`, it will be
-        notified about any event occurring during validation. 
+        notified about any event occurring during validation.
         """
         # FIXME: Split up `validate()` in several smaller methods.
         assert dataFileToValidatePath is not None
-        
+
         _log.info("validate \"%s\"", dataFileToValidatePath)
         self._resetCounts()
         for checkName in self.checkNames:
@@ -516,7 +516,7 @@ class InterfaceControlDocument(object):
             else: # pragma: no cover
                 raise NotImplementedError("data format: %r" % self._dataFormat.name)
             # TODO: Replace rowNumber by position in parser.
-            
+
             # Obtain values from the data format that will be used by various checks.
             firstRowToValidateFieldsIn = self._dataFormat.get(data.KEY_HEADER)
             assert firstRowToValidateFieldsIn is not None
@@ -536,15 +536,15 @@ class InterfaceControlDocument(object):
                                 assert not isinstance(item, str), "%s: item must be Unicode string instead of plain string: %r" % (location, item)
                                 fieldFormat = self._fieldFormats[location.cell]
                                 if __debug__:
-                                    _log.debug("validate item %d/%d: %r with %s <- %r", location.cell + 1, len(self._fieldFormats), item, fieldFormat, row)  
-                                rowMap[fieldFormat.fieldName] = fieldFormat.validated(item) 
+                                    _log.debug("validate item %d/%d: %r with %s <- %r", location.cell + 1, len(self._fieldFormats), item, fieldFormat, row)
+                                rowMap[fieldFormat.fieldName] = fieldFormat.validated(item)
                                 location.advanceCell()
                             if location.cell != len(row):
                                 raise checks.CheckError("unexpected data must be removed after item %d" % (location.cell), location)
                             elif len(row) < len(self._fieldFormats):
                                 missingFieldNames = self._fieldNames[(len(row) - 1):]
                                 raise checks.CheckError("row must contain items for the following fields: %r" % missingFieldNames, location)
-        
+
                             # Validate row checks.
                             for checkName in self.checkNames:
                                 check = self.getCheck(checkName)
@@ -605,7 +605,7 @@ class InterfaceControlDocument(object):
         """
         assert fieldName is not None
         assert row is not None
-        
+
         actualRowCount = len(row)
         expectedRowCount = len(self.fieldnames)
         if actualRowCount != expectedRowCount:
@@ -616,10 +616,10 @@ class InterfaceControlDocument(object):
         # The following condition must be ``true`` because any deviations should be been detected
         #  already by comparing expected and actual row count.
         assert fieldIndex < len(row)
-        
+
         result = row[fieldIndex]
         return result
-        
+
     @property
     def dataFormat(self):
         """
@@ -663,23 +663,23 @@ class InterfaceControlDocument(object):
         assert listener is not None
         assert listener not in self._validationListeners
         self._validationListeners.append(listener)
-        
+
     def removeValidationListener(self, listener):
         assert listener is not None
         assert listener in self._validationListeners
         self._validationListeners.remove(listener)
 
     logTrace = property(_getLogTrace, _setLogTrace,
-        doc="If ``True``, log stack trace on rejected data items or rows.")    
+        doc="If ``True``, log stack trace on rejected data items or rows.")
 
 def  validatedRows(icd, dataFileToValidatePath, errors="strict"):
     """
     Generator for rows described using ``icd`` in the data set found at ``dataFileToValidatePath``.
     This provides a convenient way to read and process data without having to implement an own
     reader.
-    
+
     The ``errors`` parameter defines how to handle errors and takes the following values:
-    
+
     * "strict" - raise an exception and stop processing data.
     * "ignore" - silently ignore errors and keep processing data.
     * "yield" - yield the error (inheriting from ``Exception``) instead of a row array; its up to
@@ -689,7 +689,7 @@ def  validatedRows(icd, dataFileToValidatePath, errors="strict"):
     assert dataFileToValidatePath is not None
     assert errors in InterfaceControlDocument._ALL_ERRORS_VALUES, \
         "errors=%r but must be one of: %s" % (errors, InterfaceControlDocument._ALL_ERRORS_VALUES)
-        
+
     class ProducingValidationListener(BaseValidationListener):
         """
         Validation listener implementing a producer for rows or errors encountered while
@@ -709,7 +709,7 @@ def  validatedRows(icd, dataFileToValidatePath, errors="strict"):
 
         def acceptedRow(self, row, location):
             self.produce(row)
-        
+
         def rejectedRow(self, row, error):
             self.produce(error)
 
@@ -726,7 +726,7 @@ def  validatedRows(icd, dataFileToValidatePath, errors="strict"):
             assert rowOrErrorQueue is not None
             assert errors in InterfaceControlDocument._ALL_ERRORS_VALUES, \
                 "errors=%r but must be one of: %s" % (errors, InterfaceControlDocument._ALL_ERRORS_VALUES)
-            
+
             super(ValidationThread, self).__init__()
             self._icd = icd
             self._dataFileToValidatePath = dataFileToValidatePath
