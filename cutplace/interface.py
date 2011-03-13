@@ -468,6 +468,39 @@ class InterfaceControlDocument(object):
         for listener in self._validationListeners:
             listener.rejectedRow(row, error)
 
+    def _reader(self, dataFile):
+        if self.dataFormat.name == data.FORMAT_CSV:
+            dialect = _parsers.DelimitedDialect()
+            dialect.lineDelimiter = self.dataFormat.get(data.KEY_LINE_DELIMITER)
+            dialect.itemDelimiter = self.dataFormat.get(data.KEY_ITEM_DELIMITER)
+            dialect.quoteChar = self.dataFormat.get(data.KEY_QUOTE_CHARACTER)
+            # FIXME: Set escape char according to ICD.
+            reader = _parsers.delimitedReader(dataFile, dialect, encoding=self.dataFormat.encoding)
+        elif self.dataFormat.name == data.FORMAT_EXCEL:
+            sheet = self.dataFormat.get(data.KEY_SHEET)
+            reader = _parsers.excelReader(dataFile, sheet)
+        elif self.dataFormat.name == data.FORMAT_FIXED:
+            fieldLengths = []
+            for fieldFormat in self.fieldFormats:
+                # Obtain the length of a fixed length item. We could easily do this in a
+                # single line and without assertions, but doing it the way seen below makes
+                # analyzing possible bugs a lot easier.
+                fieldLengthItems = fieldFormat.length.items
+                assert len(fieldLengthItems) == 1
+                firstLengthItem = fieldLengthItems[0]
+                assert len(firstLengthItem) == 2
+                fixedLength = firstLengthItem[0]
+                assert fixedLength == firstLengthItem[1]
+                longFixedLength = long(fixedLength)
+                fieldLengths.append(longFixedLength)
+            reader = _parsers.fixedReader(dataFile, fieldLengths)
+        elif self.dataFormat.name == data.FORMAT_ODS:
+            sheet = self.dataFormat.get(data.KEY_SHEET)
+            reader = _parsers.odsReader(dataFile, sheet)
+        else: # pragma: no cover
+            raise NotImplementedError("data format: %r" % self.dataFormat.name)
+        return reader
+
     def validate(self, dataFileToValidatePath):
         """
         Validate that all rows and items in ``dataFileToValidatePath`` conform to this interface.
@@ -485,36 +518,7 @@ class InterfaceControlDocument(object):
 
         (dataFile, location, needsOpen) = self._obtainReadable(dataFileToValidatePath)
         try:
-            if self._dataFormat.name == data.FORMAT_CSV:
-                dialect = _parsers.DelimitedDialect()
-                dialect.lineDelimiter = self._dataFormat.get(data.KEY_LINE_DELIMITER)
-                dialect.itemDelimiter = self._dataFormat.get(data.KEY_ITEM_DELIMITER)
-                dialect.quoteChar = self._dataFormat.get(data.KEY_QUOTE_CHARACTER)
-                # FIXME: Set escape char according to ICD.
-                reader = _parsers.delimitedReader(dataFile, dialect, encoding=self._dataFormat.encoding)
-            elif self._dataFormat.name == data.FORMAT_EXCEL:
-                sheet = self._dataFormat.get(data.KEY_SHEET)
-                reader = _parsers.excelReader(dataFile, sheet)
-            elif self._dataFormat.name == data.FORMAT_FIXED:
-                fieldLengths = []
-                for fieldFormat in self._fieldFormats:
-                    # Obtain the length of a fixed length item. We could easily do this in a
-                    # single line and without assertions, but doing it the way seen below makes
-                    # analyzing possible bugs a lot easier.
-                    fieldLengthItems = fieldFormat.length.items
-                    assert len(fieldLengthItems) == 1
-                    firstLengthItem = fieldLengthItems[0]
-                    assert len(firstLengthItem) == 2
-                    fixedLength = firstLengthItem[0]
-                    assert fixedLength == firstLengthItem[1]
-                    longFixedLength = long(fixedLength)
-                    fieldLengths.append(longFixedLength)
-                reader = _parsers.fixedReader(dataFile, fieldLengths)
-            elif self._dataFormat.name == data.FORMAT_ODS:
-                sheet = self._dataFormat.get(data.KEY_SHEET)
-                reader = _parsers.odsReader(dataFile, sheet)
-            else: # pragma: no cover
-                raise NotImplementedError("data format: %r" % self._dataFormat.name)
+            reader = self._reader(dataFile)
             # TODO: Replace rowNumber by position in parser.
 
             # Obtain values from the data format that will be used by various checks.
