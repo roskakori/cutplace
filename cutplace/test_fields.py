@@ -151,7 +151,7 @@ class IntegerFieldFormatTest(unittest.TestCase):
         length = format.length
         items = length.items
         self.assertEquals(items, None)
-        self.assertEquals(format.asIcdRow(), ["x", "", "", "Integer", "", "1:10"])
+        self.assertEquals(format.asIcdRow(), ["x", "", "", "", "Integer", "1:10"])
 
 class RegExFieldFormatTest(unittest.TestCase):
     """

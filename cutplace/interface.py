@@ -481,7 +481,7 @@ class InterfaceControlDocument(object):
             reader = _parsers.excelReader(dataFile, sheet)
         elif self.dataFormat.name == data.FORMAT_FIXED:
             fieldLengths = []
-            for fieldFormat in self.fieldFormats:
+            for fieldFormat in self._fieldFormats:
                 # Obtain the length of a fixed length item. We could easily do this in a
                 # single line and without assertions, but doing it the way seen below makes
                 # analyzing possible bugs a lot easier.
