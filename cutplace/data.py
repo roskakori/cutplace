@@ -35,6 +35,10 @@ _LINE_DELIMITER_TO_TEXT_MAP = {
     "\r": CR,
     "\r\n": CRLF
 }
+# Build reverse mapping for `_LINE_DELIMITER_TO_TEXT_MAP`.
+_TEXT_TO_LINE_DELIMITER_MAP = {}
+for lineDelimiter, lineDelimiterText in _LINE_DELIMITER_TO_TEXT_MAP.items():
+    _TEXT_TO_LINE_DELIMITER_MAP[lineDelimiterText] = lineDelimiter
 
 _VALID_LINE_DELIMITER_TEXTS = sorted(_LINE_DELIMITER_TO_TEXT_MAP.values())
 _VALID_LINE_DELIMITERS = sorted(_LINE_DELIMITER_TO_TEXT_MAP.keys())
@@ -294,7 +298,8 @@ class _BaseDataFormat(object):
             defaultValue = self.optionalKeyValueMap.get(normalizedKey)
         else:
             defaultValue = None
-        return self.properties.get(normalizedKey, defaultValue)
+        result = self.properties.get(normalizedKey, defaultValue)
+        return result
 
     def _getEncoding(self):
         return self.get(KEY_ENCODING)
@@ -343,8 +348,7 @@ class _BaseTextDataFormat(_BaseDataFormat):
         elif key == KEY_LINE_DELIMITER:
             lowerValue = value.lower()
             self._validatedChoice(key, lowerValue, _VALID_LINE_DELIMITER_TEXTS)
-            lineDelimiterIndex = _VALID_LINE_DELIMITER_TEXTS.index(lowerValue)
-            result = _VALID_LINE_DELIMITERS[lineDelimiterIndex]
+            result = _TEXT_TO_LINE_DELIMITER_MAP[lowerValue]
         else:
             result = super(_BaseTextDataFormat, self).validated(key, value)
         return result
