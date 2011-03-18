@@ -32,6 +32,9 @@ def main(argv=None):
     if argv is None:
         argv = sys.argv
 
+    logging.basicConfig()
+    logging.getLogger("cutplace").setLevel(logging.INFO)
+
     usage = """usage: %prog [options] ICDFILE DATAFILE
 Write interface control document to ICDFILE describing the data found in
 DATAFILE. The resulting ICD is stored in CSV format.
@@ -72,7 +75,7 @@ Example:
     try:
         with open(icdPath, "wb") as icdFile:
             icdCsvWriter = _tools.UnicodeCsvWriter(
-                icdFile, delimiter=options.icdDelimioter, encoding="ascii"
+                icdFile, delimiter=options.icdDelimiter, encoding="ascii"
             )
             with open(dataPath, "rb") as dataFile:
                 for icdRowToWrite in sniff.createInterfaceControlDocument(dataFile, dataFormat=options.dataFormat, encoding=options.dataEncoding):
