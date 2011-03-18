@@ -32,9 +32,6 @@ def main(argv=None):
     if argv is None:
         argv = sys.argv
 
-    logging.basicConfig()
-    logging.getLogger("cutplace").setLevel(logging.INFO)
-
     usage = """usage: %prog [options] ICDFILE DATAFILE
 Write interface control document to ICDFILE describing the data found in
 DATAFILE. The resulting ICD is stored in CSV format.
@@ -88,5 +85,5 @@ Example:
     return exitCode
 
 if __name__ == "__main__":
-    logging.basicConfig()
+    logging.basicConfig(level=logging.INFO)
     sys.exit(main())
