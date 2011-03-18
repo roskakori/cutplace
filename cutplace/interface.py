@@ -430,9 +430,9 @@ class InterfaceControlDocument(object):
         assert self._dataFormat is not None
         assert dataFileToValidatePath is not None
 
-        if self._dataFormat.name in [data.FORMAT_CSV, data.FORMAT_EXCEL, data.FORMAT_ODS]:
+        if self._dataFormat.name in (data.FORMAT_CSV, data.FORMAT_CSV, data.FORMAT_DELIMITED, data.FORMAT_EXCEL, data.FORMAT_ODS):
             needsOpen = isinstance(dataFileToValidatePath, types.StringTypes)
-            hasSheet = (self._dataFormat.name != data.FORMAT_CSV)
+            hasSheet = (self._dataFormat.name not in (data.FORMAT_CSV, data.FORMAT_DELIMITED))
             location = tools.InputLocation(dataFileToValidatePath, hasCell=True, hasSheet=hasSheet)
             if needsOpen:
                 dataFile = open(dataFileToValidatePath, "rb")
@@ -469,7 +469,7 @@ class InterfaceControlDocument(object):
             listener.rejectedRow(row, error)
 
     def _reader(self, dataFile):
-        if self.dataFormat.name == data.FORMAT_CSV:
+        if self.dataFormat.name in (data.FORMAT_CSV, data.FORMAT_DELIMITED):
             dialect = _parsers.DelimitedDialect()
             dialect.lineDelimiter = self.dataFormat.get(data.KEY_LINE_DELIMITER)
             dialect.itemDelimiter = self.dataFormat.get(data.KEY_ITEM_DELIMITER)

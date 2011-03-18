@@ -384,7 +384,7 @@ def createInterfaceControlDocument(readable, **keywords):
         _log.debug("  %s" % columnInfos[columnIndex].asFieldFormat())
 
     icdRows = []
-    icdRows.append(["Interface: <Name>"])
+    icdRows.append(["", "Interface: <Name>"])
     icdRows.append([])
     for dataFormatRow in dataFormat.asIcdRows():
         dataFormatCsvRow = ['d']
@@ -392,7 +392,7 @@ def createInterfaceControlDocument(readable, **keywords):
         icdRows.append(dataFormatCsvRow)
     icdRows.append([])
 
-    icdRows.append(["", "Field", "Example", "Empty?", "Type", "Length", "Rule"])
+    icdRows.append(["", "Field", "Example", "Empty?", "Length", "Type", "Rule"])
     for columnInfo in columnInfos:
         fieldFormat = columnInfo.asFieldFormat()
         fieldRow = ["f"]

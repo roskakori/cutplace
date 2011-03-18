@@ -29,8 +29,15 @@ ANY = "any"
 CR = "cr"
 LF = "lf"
 CRLF = "crlf"
-_VALID_LINE_DELIMITER_TEXTS = [ANY, CR, CRLF, LF]
-_VALID_LINE_DELIMITERS = [ANY, "\r", "\r\n", "\n"]
+_LINE_DELIMITER_TO_TEXT_MAP = {
+    ANY: ANY,
+    "\n": LF,
+    "\r": CR,
+    "\r\n": CRLF
+}
+
+_VALID_LINE_DELIMITER_TEXTS = sorted(_LINE_DELIMITER_TO_TEXT_MAP.values())
+_VALID_LINE_DELIMITERS = sorted(_LINE_DELIMITER_TO_TEXT_MAP.keys())
 _VALID_QUOTE_CHARACTERS = ["\"", "\'"]
 _VALID_ESCAPE_CHARACTERS = ["\"", "\\"]
 _VALID_DECIMAL_SEPARATORS = [".", ","]
@@ -304,6 +311,8 @@ class _BaseDataFormat(object):
         yield (KEY_FORMAT, self.name)
         for key, value in self.properties.items():
             if value is not None and not isFormatKey(key):
+                if key == KEY_LINE_DELIMITER:
+                    value = _LINE_DELIMITER_TO_TEXT_MAP[value]
                 yield (key, value)
 
     def __str__(self):

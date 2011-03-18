@@ -201,7 +201,17 @@ class Range(object):
         Human readable description of the range similar to a Python tuple.
         """
         if self.items:
-            result = "'"
+            result = "'%s'" % self
+        else:
+            result = str(None)
+        return result
+
+    def __str__(self):
+        """
+        Human readable description of the range similar to a Python tuple.
+        """
+        if self.items:
+            result = ""
             isFirst = True
             for item in self._items:
                 if isFirst:
@@ -209,7 +219,6 @@ class Range(object):
                 else:
                     result += ", "
                 result += self._repr_item(item)
-            result += "'"
         else:
             result = str(None)
         return result

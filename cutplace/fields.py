@@ -187,8 +187,8 @@ class AbstractFieldFormat(object):
             self._fieldName,
             "", # No example.
             isAllowedToBeEmptyMark,
-            fieldTypeName,
             lengthText,
+            fieldTypeName,
             self._rule,
         ]
         return result
