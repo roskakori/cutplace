@@ -31,6 +31,7 @@ from cutplace import dev_reports
 from cutplace import version
 from cutplace import _ods
 from cutplace import _tools
+from cutplace import _cutplace
 
 import os.path
 import re
@@ -143,7 +144,7 @@ class _ReportsCommand(Command):
 setup(
       name="cutplace",
       version=version.VERSION_NUMBER,
-      description="validate flat data according to an interface control document",
+      description=_cutplace.DESCIPTION,
       author="Thomas Aglassinger",
       author_email="roskakori@users.sourceforge.net",
       url="http://cutplace.sourceforge.net/",
@@ -164,7 +165,8 @@ setup(
       },
       license="GNU Lesser General Public License 3 or later",
       test_suite="cutplace.test_all.createTestSuite",
-      long_description="""Cutplace is a tool to validate that data conform to an interface control document (ICD).
+      long_description="""Cutplace is a tool and API to validate that data conform to an interface control document
+(ICD).
 
 Cutplace works with flat data formats using a separator (such as CSV) or fixed length fields. Such formats are commonly
 used to exchange data between different platforms or physically separated systems. Examples are exchanging data

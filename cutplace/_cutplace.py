@@ -32,6 +32,7 @@ import _tools
 import _web
 
 DEFAULT_ICD_ENCODING = "ascii"
+DESCIPTION = "validate data stored in CSV, PRN, ODS or Excel files"
 
 def _openForWriteUsingUtf8(targetPath):
     assert targetPath is not None
