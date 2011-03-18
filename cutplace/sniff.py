@@ -263,10 +263,10 @@ class _ColumnSniffInfo(object):
                     self.longCount += 1
                 else:
                     self.textCount += 1
-                if (self.minLength is None) or (length < self.minLength):
-                    self.minLength = length
-                if length > self.maxLength:
-                    self.maxLength = length
+            if (self.minLength is None) or (length < self.minLength):
+                self.minLength = length
+            if length > self.maxLength:
+                self.maxLength = length
             if value not in self.distinctValues:
                 self.distinctValues |= set([value])
         else:
@@ -325,8 +325,13 @@ def createInterfaceControlDocument(readable, **keywords):
     dataFormat = createDataFormat(readable, **keywords)
     readable.seek(0)
     reader = createReader(readable, **keywords)
+    isFirstRow = True
     for rowToAnalyze in reader:
         columnCount = len(rowToAnalyze)
+        if isFirstRow:
+            currentSegmentColumnCount = columnCount
+        else:
+            isFirstRow = False
         if columnCount != currentSegmentColumnCount:
             _log.debug("  segment starts in row %d after %d rows", rowIndex, currentSegmentRowCount)
             if currentSegmentRowCount > longestSegmentRowCount:
@@ -350,7 +355,7 @@ def createInterfaceControlDocument(readable, **keywords):
     if longestSegmentRowCount < 1:
         raise CutplaceSniffError("content must contain data for format to be sniffed")
     _log.debug("found longest segment starting in row %d lasting for %d rows having %d columns",
-        rowIndexWhereLongestSegmentStarts, longestSegmentColumnCount, longestSegmentColumnCount)
+        rowIndexWhereLongestSegmentStarts, longestSegmentRowCount, longestSegmentColumnCount)
 
     assert rowIndexWhereLongestSegmentStarts is not None
     _log.debug("skip %d rows until longest segment starts", rowIndexWhereLongestSegmentStarts)

@@ -21,6 +21,8 @@ import StringIO
 import data
 import sniff
 import dev_test
+import _cutsniff
+import interface
 
 class SniffTest(unittest.TestCase):
 
@@ -138,6 +140,15 @@ class SniffTest(unittest.TestCase):
                 self.assertTrue(rowCount > 0)
             finally:
                 testFile.close()
+
+    def testCanSniffAndValidateUsingMain(self):
+        testIcdPath = dev_test.getTestOutputPath("icd_sniffed.csv")
+        testDataPath = dev_test.getTestInputPath("valid_customers.csv")
+        _cutsniff.main(["test", testIcdPath, testDataPath])
+        sniffedIcd = interface.InterfaceControlDocument()
+        sniffedIcd.read(testIcdPath)
+        for _ in interface.validatedRows(sniffedIcd, testDataPath):
+            pass
 
 if __name__ == "__main__":
     import logging
