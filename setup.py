@@ -144,7 +144,7 @@ class _ReportsCommand(Command):
 setup(
       name="cutplace",
       version=version.VERSION_NUMBER,
-      description=_cutplace.DESCIPTION,
+      description=_cutplace.DESCRIPTION,
       author="Thomas Aglassinger",
       author_email="roskakori@users.sourceforge.net",
       url="http://cutplace.sourceforge.net/",
