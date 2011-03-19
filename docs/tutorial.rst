@@ -573,10 +573,73 @@ the rule can look solely depends on the type of the check.
     A check to validate that a field value or a combination of field
     values is unique in each row compared with all other rows.
 
+.. _cutsniff:
+
+.. index:: cutsniff
+
+Sniffing drafts from data
+=========================
+
+Creating ICDs from scratch by looking at a file and deducing the basic data
+format and field properties from it is a rather cumbersome task. That's
+where ``cutsniff`` comes in: it takes a look at a data file, and creates an
+ICD for it.
+
+The resulting ICD can be used for validation immediately, though it is
+recommeneded that you rework it to some extend. Nevertheless within seconds
+you get an ICD that can immediately be used and possibly improved later on.
+
+As example, consider our data file ``examples/customers.csv``. To make
+``cutsniff`` create an ICD for it, run::
+
+  cutsniff icd_customers_sniffed.csv examples/customers.csv
+
+The resulting ``icd_customers_sniffed.csv`` looks like this::
+
+  Interface: <Name>
+
+  d,format,delimited
+  d,item delimiter,","
+  d,line delimiter,lf
+  d,escape character,""""
+  d,quote character,""""
+  d,encoding,ascii
+
+  ,Field,Example,Empty?,Length,Type,Rule
+  f,column_a,,,5,Text,
+  f,column_b,,,2,Text,
+  f,column_c,,,4,Text,
+  f,column_d,,,3:7,Text,
+  f,column_e,,,4:6,Text,
+  f,column_f,,,10,Text,
+
+You can already use this to validate the data::
+
+  cutplace icd_customers_sniffed.csv examples/customers.csv
+
+Nevertheless most sniffed ICDs will need manual tweaking before you can
+apply them for other files. In particular, you should:
+
+* Replace the heading ``Interface: <Name>`` by something more meaningful
+  so that you can quickly grasp the intent of the data the interface
+  describes.
+* Change the field names to something more meaningful than ``column_*`` in
+  order to understand the meaning of it.
+* Change the expected length of fields in order to validate other data
+  files that might contain longer or shorter values.
+* Save the ICD as ODS or Excel and make it easier to read by utilizing
+  colors and formatting
+
+There are also a few command line options to specifiy the character
+encoding of the data to read and the delimiter to use in the ICD. Run::
+
+  cutsniff --help
+
+for more information.
+
+
 Conclusion
 ==========
-
-Well, that's it.
 
 You are now familiar with the basic concepts behind cutplace and should
 be able to use this for writing reasonably complete and sophisticated
