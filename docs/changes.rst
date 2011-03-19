@@ -4,29 +4,41 @@ Revision history
 
 This chapter describes improvements compared to earlier versions of cutplace.
 
-Version 0.6.3, 25-Oct-2010
-==========================
+Version 0.6.4, 2011-03-19
+=========================
+
+* Added :ref:`cutsniff`, a tools to create an ICD by analyzing an existing
+  data file.
+
+* #21: Fixed automatic detection of Excel format processing reading ICD
+  	over web interface. (Tickte #21).
+
+* Fixed ``AttributeError`` when data format was set to "delimited".
+
+Version 0.6.3, 2010-10-25
+=========================
 
 * Fixed ``InterfaceControlDocument.checkNames`` which actually contained the
   field names. Additionally, checkNames now contains the names in the order
   they were declared in the ICD. Consequently the checks are performed in this
   order during validation unlike until now, where the internal hashcode
-  decided the order of checks. (Ticket 35)
+  decided the order of checks. (Ticket #35)
 
 * Improved documentation, in particular:
 
   * Added more information on writing field format and checks of your own. It
     still lacks details on how to actually use these in an ICD though.
-    (Ticker 33)
+    (Ticket #33)
 
   * Cleaned up introductions of most chapters with the intention to make them
     easier to comprehend.
 
 * Changed public instance variables to properties. This allows to mark many of
-  them as read only, and also makes them show up in the API reference. #34.
+  them as read only, and also makes them show up in the API reference.
+  (Ticket #34).
 
-Version 0.6.2, 29-Sep-2010
-==========================
+Version 0.6.2, 2010-09-29
+=========================
 
 * Added input location for error messages caused by failed checks.
   (Ticket #26, #27 and #28)
@@ -56,8 +68,8 @@ Version 0.6.2, 29-Sep-2010
 * Cleaned up logging to slightly improve performance.
 
 
-Version 0.6.1, 25-Apr-2010
-==========================
+Version 0.6.1, 2010-04-25
+=========================
 
 * Added data format properties "decimal delimiter" (default: ".") and
   "thousands delimiter" (default: none). Fields of type `Decimal` take them
@@ -85,8 +97,8 @@ Version 0.6.1, 25-Apr-2010
 * Added API documentation available from
   <http://cutplace.sourceforge.net/api/>.
 
-Version 0.6.0, 29-Mar-2010
-==========================
+Version 0.6.0, 2010-03-29
+=========================
 
 * Changed license from GPL to LGPL so closed source application can import
   the cutplace Python module.
@@ -104,8 +116,8 @@ Version 0.6.0, 29-Mar-2010
 * Cleaned up code for field validation.
 
 
-Version 0.5.8, 12-Oct-2009
-==========================
+Version 0.5.8, 2009-10-12
+=========================
 
 * Changed Unicode encoding errors to result in the row to be rejected similar
   to a row with an invalid field instead of a simple message in the console.
@@ -118,8 +130,8 @@ Version 0.5.8, 12-Oct-2009
   This case also results in a stack trace to be printed.
 
 
-Version 0.5.7, 07-Sep-2009
-==========================
+Version 0.5.7, 2009-09-07
+=========================
 
 * Fixed validation of empty Choice fields that according to the ICD were
   allowed to be empty but nevertheless were rejected.
@@ -127,8 +139,8 @@ Version 0.5.7, 07-Sep-2009
 * Fixed a strange error when run using Jython 2.5.0 on certain platforms.
   The exact message was: ``TypeError: 'type' object is not iterable``.
 
-Version 0.5.6, 19-Aug-2009
-==========================
+Version 0.5.6, 2009-08-19
+=========================
 
 * Added a short summary at the end of validation. Depending on the result,
   this can be either for instance ``eggs.csv: accepted 123 rows`` or
@@ -143,8 +155,8 @@ Version 0.5.6, 19-Aug-2009
   Python standard module ``webbrowser``. Attempting to use ``--browser`` will
   result in an error message nevertheless.
 
-Version 0.5.5, 26-Jul-2009
-==========================
+Version 0.5.5, 2009-07-26
+=========================
 
 * Added summary to validation results shown by web interface.
 
@@ -154,8 +166,8 @@ Version 0.5.5, 26-Jul-2009
   The resulting web page now is less cluttered and the HTTP result is a
   consistent 40x error.
 
-Version 0.5.4, 21-Jul-2009
-==========================
+Version 0.5.4, 2009-07-21
+=========================
 
 * Fixed ``--split`` which did not actually write any files. (Ticket #19)
 
@@ -168,8 +180,8 @@ Version 0.5.4, 21-Jul-2009
 * Fixed internal handling of ranges with a default, which resulted in a
   ``NameError``.
 
-Version 0.5.3, 18-Jul-2009
-==========================
+Version 0.5.3, 2009-07-18
+=========================
 
 * Added command line option ``--split`` to store accepted and rejected data in two
   separated files. See also: ticket #17.
@@ -183,13 +195,13 @@ Version 0.5.3, 18-Jul-2009
 
 * Changed development status from alpha to beta.
 
-Version 0.5.2, 11-Jun-2009
-==========================
+Version 0.5.2, 2009-06-11
+=========================
 
 * Fixed missing setup script.
 
-Version 0.5.1, 11-Jun-2009
-==========================
+Version 0.5.1, 2009-06-11
+=========================
 
 * Added support for ICDs in Excel and ODS format for built in web server.
 
@@ -203,8 +215,8 @@ Version 0.5.1, 11-Jun-2009
 * Fixed TypeError when the CSV delimiters specified in the ICD were encoded
   in Unicode.
 
-Version 0.5.0, 02-Jun-2009
-==========================
+Version 0.5.0, 2009-06-02
+=========================
 
 * Fixed handling of Excel numbers, dates and times. Refer to the
   section on Excel data format for details.
@@ -225,8 +237,8 @@ Version 0.5.0, 02-Jun-2009
 
 * Improved build and installation process (``setup.py``).
 
-Version 0.4.4, 23-May-2009
-==========================
+Version 0.4.4, 2009-05-23
+=========================
 
 * Fixed checks when validating more than one data file from the command line.
   Until now the checks did preserve internal state information needed to
@@ -247,15 +259,15 @@ Version 0.4.4, 23-May-2009
 * Added plenty of test cases and consequently performed a couple of minor
   fixes, improvements and clean ups.
 
-Version 0.4.3, 18-May-2009
-==========================
+Version 0.4.3, 2009-05-18
+=========================
 
 * Fixed auto detection of delimiters in a CSV file, which got broken when
   switching to Python's built in CSV reader with version 0.3.1. See also:
   Ticket #8.
 
-Version 0.4.2, 17-May-2009
-==========================
+Version 0.4.2, 2009-05-17
+=========================
 
 * Added validation for data format property "Allowed characters", which can be
   used with all data formats.
@@ -280,13 +292,13 @@ Version 0.4.2, 17-May-2009
 
 * Cleaned up error handling and error messages.
 
-Version 0.4.1, 10-May-2009
-==========================
+Version 0.4.1, 2009-05-10
+=========================
 
 * Added support for Excel and ODS data formats.
 
-Version 0.4.0, 06-May-2009
-==========================
+Version 0.4.0, 2009-05-06
+=========================
 
 * Added support for ICDs stored in Excel format. In order for this to work, the
   xlrd Python package needs to be installed. It is available from
@@ -297,8 +309,8 @@ Version 0.4.0, 06-May-2009
   to quickly grasp the meaning of a field by taking a glimpse at the first few
   columns instead of having to "decipher" the field type and rule.
 
-Version 0.3.1, 03-May-2009
-==========================
+Version 0.3.1, 2009-05-03
+=========================
 
 * Added proper error messages for several possible error the user might make
   when writing an ICD. So far these errors resulted into confusing messages
@@ -331,8 +343,8 @@ Version 0.3.1, 03-May-2009
 
 * Improved error messages for broken field names and types in the ICD.
 
-Version 0.3.0, 28-Apr-2009
-==========================
+Version 0.3.0, 2009-04-28
+=========================
 
 * Fixed error messages in case field name or type was missing in ICD.
 
@@ -352,8 +364,8 @@ Version 0.3.0, 28-Apr-2009
   minutes. To avoid any confusion, disable the cell format auto detection of
   the spreadsheet application by changing all cells to contain "Text".
 
-Version 0.2.2, 07-Apr-2009
-==========================
+Version 0.2.2, 04-07-2009
+=========================
 
 * Added support to use data encodings other than ASCII by specifying them in
   the data format section of the ICD using the encoding property.
@@ -366,8 +378,8 @@ Version 0.2.2, 07-Apr-2009
 * Added command line option ``--icd-encoding`` to specify the character encoding
   to be used with ICDs in CSV format.
 
-Version 0.2.1, 29-Mar-2009
-==========================
+Version 0.2.1, 2009-03-29
+=========================
 
 * Added support for ICDs in ODS format for command line client.
 
@@ -381,16 +393,16 @@ Version 0.2.1, 29-Mar-2009
 * Fixed cutplace script, which did exit with an ``ExitQuietlyOptionError`` for
   options that just showed some information and exited (such as ``--help``).
 
-Version 0.2.0, 27-Mar-2009
-==========================
+Version 0.2.0, 2009-03-27
+=========================
 
 * Added option ``--web`` and ``--port`` to launch web server providing a simple
   graphical user interface for validation.
 
 * Changed ``--listencodings`` to ``--list-encodings``.
 
-Version 0.1.2, 22-Mar-2009
-==========================
+Version 0.1.2, 2009-03-22
+=========================
 
 * Added ``DistinctCount`` check.
 
@@ -403,7 +415,7 @@ Version 0.1.2, 22-Mar-2009
 
 * Cleaned up error messages.
 
-Version 0.1.1, 17-Mar-2009
-==========================
+Version 0.1.1, 2009-03-17
+=========================
 
 * Initial release.
