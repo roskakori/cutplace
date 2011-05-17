@@ -318,6 +318,8 @@ class _BaseDataFormat(object):
             if value is not None and not isFormatKey(key):
                 if key == KEY_LINE_DELIMITER:
                     value = _LINE_DELIMITER_TO_TEXT_MAP[value]
+                if not isinstance(value, basestring):
+                    value = unicode(value)
                 yield (key, value)
 
     def __str__(self):

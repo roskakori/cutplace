@@ -106,7 +106,7 @@ class SniffTest(unittest.TestCase):
 
     def testCreateEmptyInterfaceControlDocument(self):
         emptyReadable = StringIO.StringIO("")
-        self.assertRaises(sniff.CutplaceSniffError, sniff.createInterfaceControlDocument, emptyReadable)
+        self.assertRaises(sniff.CutplaceSniffError, sniff.createCidRows, emptyReadable)
 
     def testCreateInterfaceControlDocument(self):
         testFileNames = [
@@ -119,7 +119,7 @@ class SniffTest(unittest.TestCase):
             testFile = open(testFilePath, "rb")
             try:
                 # TODO: Add assertions to actually test instead of just exercise.
-                sniff.createInterfaceControlDocument(testFile)
+                sniff.createCidRows(testFile)
             finally:
                 testFile.close()
 
@@ -142,9 +142,20 @@ class SniffTest(unittest.TestCase):
                 testFile.close()
 
     def testCanSniffAndValidateUsingMain(self):
-        testIcdPath = dev_test.getTestOutputPath("icd_sniffed.csv")
+        testIcdPath = dev_test.getTestOutputPath("icd_sniffed_valid_customers.csv")
         testDataPath = dev_test.getTestInputPath("valid_customers.csv")
-        _cutsniff.main(["test", testIcdPath, testDataPath])
+        exitCode = _cutsniff.main(["test", testIcdPath, testDataPath])
+        self.assertEqual(exitCode, 0)
+        sniffedIcd = interface.InterfaceControlDocument()
+        sniffedIcd.read(testIcdPath)
+        for _ in interface.validatedRows(sniffedIcd, testDataPath):
+            pass
+
+    def testCanSniffAndValidateUsingMainWithHeaderAndEncoding(self):
+        testIcdPath = dev_test.getTestOutputPath("icd_sniffed_valid_customers_with_header_iso-8859-15.csv")
+        testDataPath = dev_test.getTestInputPath("valid_customers_with_header_iso-8859-15.csv")
+        exitCode = _cutsniff.main(["test", "--data-encoding", "iso-8859-15", "--head", "1", testIcdPath, testDataPath])
+        self.assertEqual(exitCode, 0)
         sniffedIcd = interface.InterfaceControlDocument()
         sniffedIcd.read(testIcdPath)
         for _ in interface.validatedRows(sniffedIcd, testDataPath):

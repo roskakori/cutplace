@@ -359,6 +359,41 @@ class InterfaceControlDocument(object):
         self._checkNames.append(checkDescription)
         assert len(self.checkNames) == len(self._checkNameToCheckMap)
 
+    def _processRow(self, icdRowToProcess):
+        """
+        Process a single row read from an ICD file ignoring empty rows and rows where the first
+        column is empty.
+        """
+        assert icdRowToProcess is not None
+        assert self._location
+        _log.debug("%s: parse %r", self._location, icdRowToProcess)
+        if len(icdRowToProcess) >= 1:
+            rowId = str(icdRowToProcess[0]).lower()
+            if rowId == InterfaceControlDocument._ID_CHECK:
+                # FIXME: Validate data format (required properties, contradictions)
+                self.addCheck(icdRowToProcess[1:])
+            elif rowId == InterfaceControlDocument._ID_DATA_FORMAT:
+                # FIXME: Check that no fields or checks have been specified yet.
+                self.addDataFormat(icdRowToProcess[1:])
+            elif rowId == InterfaceControlDocument._ID_FIELD_RULE:
+                # FIXME: Validate data format (required properties, contradictions)
+                self.addFieldFormat(icdRowToProcess[1:])
+            elif rowId.strip():
+                raise IcdSyntaxError("first item in icdRowToProcess is %r but must be empty or one of: %s"
+                                     % (icdRowToProcess[0], _tools.humanReadableList(InterfaceControlDocument._VALID_IDS)),
+                                     self._location)
+        self._location.advanceLine()
+
+    def _checkAfterRead(self):
+        assert self._location
+        if self._dataFormat is None:
+            raise IcdSyntaxError("ICD must contain a section describing the data format (rows starting with %r)"
+                                 % InterfaceControlDocument._ID_DATA_FORMAT)
+        if not self._fieldFormats:
+            raise IcdSyntaxError("ICD must contain a section describing at least one field format (rows starting with %r)"
+                                 % InterfaceControlDocument._ID_FIELD_RULE)
+        # FIXME: In the end of read(), the following needs to be set: self._location = None
+
     def read(self, icdFilePath, encoding="ascii"):
         """
         Read the ICD as specified in ``icdFilePath``.
@@ -378,37 +413,22 @@ class InterfaceControlDocument(object):
         self._location = tools.InputLocation(icdFilePath, hasCell=True)
         try:
             reader = sniff.createReader(icdFile, encoding=encoding)
-            for row in reader:
-                _log.debug("%s: parse %r", self._location, row)
-                if len(row) >= 1:
-                    rowId = str(row[0]).lower()
-                    if rowId == InterfaceControlDocument._ID_CHECK:
-                        # FIXME: Validate data format (required properties, contradictions)
-                        self.addCheck(row[1:])
-                    elif rowId == InterfaceControlDocument._ID_DATA_FORMAT:
-                        # FIXME: Check that no fields or checks have been specified yet.
-                        self.addDataFormat(row[1:])
-                    elif rowId == InterfaceControlDocument._ID_FIELD_RULE:
-                        # FIXME: Validate data format (required properties, contradictions)
-                        self.addFieldFormat(row[1:])
-                    elif rowId.strip():
-                        raise IcdSyntaxError("first item in row is %r but must be empty or one of: %s"
-                                             % (row[0], _tools.humanReadableList(InterfaceControlDocument._VALID_IDS)),
-                                             self._location)
-                self._location.advanceLine()
+            for icdRowToProcess in reader:
+                self._processRow(icdRowToProcess)
         except tools.CutplaceUnicodeError, error:
             raise tools.CutplaceUnicodeError("ICD must conform to encoding %r: %s" % (encoding, error))
         finally:
             if needsOpen:
                 icdFile.close()
-        if self._dataFormat is None:
-            raise IcdSyntaxError("ICD must contain a section describing the data format (rows starting with %r)"
-                                 % InterfaceControlDocument._ID_DATA_FORMAT)
-        if not self._fieldFormats:
-            raise IcdSyntaxError("ICD must contain a section describing at least one field format (rows starting with %r)"
-                                 % InterfaceControlDocument._ID_FIELD_RULE)
-        # FIXME: In the end of read(), the following needs to be set: self._location = None
+        self._checkAfterRead()
 
+    def readFromRows(self, rows):
+        assert rows is not None
+        self._location = tools.InputLocation(":memory:", hasCell=True)
+        for icdRowToProcess in rows:
+            self._processRow(icdRowToProcess)
+        self._checkAfterRead()
+        
     def setLocationToSourceCode(self):
         """
         Set the location where the ICD is defined from to the caller location in the source code.
@@ -675,6 +695,25 @@ class InterfaceControlDocument(object):
 
     logTrace = property(_getLogTrace, _setLogTrace,
         doc="If ``True``, log stack trace on rejected data items or rows.")
+
+def createSniffedInterfaceControlDocument(readable, **keywords):
+    """
+    `InterfaceControlDocument` created by examining the contents of ``readable``.
+
+    Optional keyword parameters are:
+
+      * ``encoding`` - the character encoding to be used in case ``readable``
+        contains delimited data.
+      * ``dataFormat`` - the data format to be assumed; default: `FORMAT_AUTO`.
+      * ``header`` - number of header rows to ignore for data analysis;
+        default: 0.
+      * ``stopAfter`` - number of data rows after which to stop analyzing;
+        0 means "analyze all data"; default: 0.
+    """
+    cidRows= sniff.createCidRows(readable, **keywords)
+    result = InterfaceControlDocument()
+    result.readFromRows(cidRows)
+    return result
 
 def  validatedRows(icd, dataFileToValidatePath, errors="strict"):
     """

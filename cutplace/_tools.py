@@ -113,16 +113,21 @@ def valueOr(value, noneValue):
         result = value
     return result
 
-def listdirMatching(folder, pattern):
+def listdirMatching(folder, pattern, patternToExclude=None):
     """
-    Name of entries in folder that match regex pattern.
+    Name of entries in folder that match regex ``pattern`` and not matching the optional regex
+    ``patternToExclude``.
     """
     assert folder is not None
     assert pattern is not None
 
     regex = re.compile(pattern)
+    if patternToExclude:
+        regexToExclude = re.compile(patternToExclude)
+    else:
+        regexToExclude = None
     for entry in os.listdir(folder):
-        if regex.match(entry):
+        if regex.match(entry) and not (regexToExclude and regexToExclude.match(entry)):
             yield entry
 
 def mkdirs(folder):

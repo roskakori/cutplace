@@ -37,12 +37,14 @@ parameters of the functions of this module.
 """
 DEFAULT_ENCODING = "ascii"
 DEFAULT_ESCAPE_CHARACTER = "\""
+DEFAULT_HEADER = "0"
 DEFAULT_ITEM_DELIMITER = data.ANY
 DEFAULT_LINE_DELIMITER = data.ANY
 DEFAULT_QUOTE_CHARACTER = "\""
 
 _ENCODING = _tools.camelized(data.KEY_ENCODING, True)
 _ESCAPE_CHARACTER = _tools.camelized(data.KEY_ESCAPE_CHARACTER, True)
+_HEADER = _tools.camelized(data.KEY_HEADER, True)
 _ITEM_DELIMITER = _tools.camelized(data.KEY_ITEM_DELIMITER, True)
 _LINE_DELIMITER = _tools.camelized(data.KEY_LINE_DELIMITER, True)
 _QUOTE_CHARACTER = _tools.camelized(data.KEY_QUOTE_CHARACTER, True)
@@ -71,7 +73,10 @@ class CutplaceSniffError(tools.CutplaceError):
 
 def createDataFormat(readable, **keywords):
     """
-    Data format describing the contents of ``readable``.
+    Data format describing the contents of ``readable``, which should be a
+    a raw binary input stream as returned by ``open(..., 'rb')``. Do not use
+    ``codecs.open(...)`` because it returns Unicode strings instead of raw
+    strings.
 
     Supported formats are delimited data (such as CSV), ODS and Excel.
     """
@@ -86,7 +91,7 @@ def createDataFormat(readable, **keywords):
         dataFormatName = data.FORMAT_ODS
     else:
         icdHeader += readable.read(4)
-        assert isinstance(icdHeader, str), "icdHeader=%r" % icdHeader
+        assert isinstance(icdHeader, str), "icdHeader=%r but must be a string; use open(..., 'rb') instead of codecs.open()" % icdHeader
         assert isinstance(_EXCEL_HEADER, str), "_EXCEL_HEADER=%r" % _EXCEL_HEADER
         if _tools.isEqualBytes(icdHeader, _EXCEL_HEADER):
             # Consider ICD to be Excel.
@@ -149,7 +154,8 @@ def delimitedOptions(readable, **keywords):
     Possible values for ``keywords`` and the keys in the result are:
 
       *  ``encoding``
-      *  ``escapeCharacter`
+      *  ``escapeCharacter``
+      *  ``header``
       *  ``itemDelimiter``
       *  ``lineDelimiter``
       *  ``quoteCharacter``
@@ -167,7 +173,8 @@ def delimitedOptions(readable, **keywords):
     assert lineDelimiter in _VALID_LINE_DELIMITERS
     quoteCharacter = keywords.get(_QUOTE_CHARACTER, DEFAULT_QUOTE_CHARACTER)
     assert quoteCharacter is not None
-
+    header = keywords.get(_HEADER, DEFAULT_HEADER)
+    
     # Automatically set line and item delimiter.
     # TODO: Use a more intelligent logic. Csv.Sniffer would be nice,
     # but not all test cases work with it.
@@ -216,6 +223,9 @@ def delimitedOptions(readable, **keywords):
         _LINE_DELIMITER: actualLineDelimiter,
         _QUOTE_CHARACTER: quoteCharacter
     }
+    if header != DEFAULT_HEADER:
+        result[_HEADER] = header
+    print "delimitedOptions = ", result
     return result
 
 class _ColumnSniffInfo(object):
@@ -287,9 +297,9 @@ class _ColumnSniffInfo(object):
         result = fields.TextFieldFormat(self.name, isAllowedToBeEmpty, lengthText, "", self.dataFormat)
         return result
 
-def createInterfaceControlDocument(readable, **keywords):
+def createCidRows(readable, **keywords):
     """
-    Create an ICD by examining the contents of ``readable``.
+    Create rows for an ICD by examining the contents of ``readable``.
 
     Optional keyword parameters are:
 
@@ -332,7 +342,7 @@ def createInterfaceControlDocument(readable, **keywords):
             currentSegmentColumnCount = columnCount
         else:
             isFirstRow = False
-        if columnCount != currentSegmentColumnCount:
+        if (rowIndex >= headerRowsToSkip) and (columnCount != currentSegmentColumnCount):
             _log.debug("  segment starts in row %d after %d rows", rowIndex, currentSegmentRowCount)
             if currentSegmentRowCount > longestSegmentRowCount:
                 rowIndexWhereLongestSegmentStarts = rowIndexWhereCurrentSegmentStarted
@@ -360,7 +370,7 @@ def createInterfaceControlDocument(readable, **keywords):
     assert rowIndexWhereLongestSegmentStarts is not None
     _log.debug("skip %d rows until longest segment starts", rowIndexWhereLongestSegmentStarts)
     readable.seek(0)
-    reader = createReader(readable)
+    reader = createReader(readable, **keywords)
     rowIndex = 0
     location = tools.InputLocation(readable)
     while rowIndex < rowIndexWhereLongestSegmentStarts:
@@ -375,13 +385,14 @@ def createInterfaceControlDocument(readable, **keywords):
     rowIndex = 0
     while rowIndex < longestSegmentRowCount:
         rowToAnalyze = reader.next()
-        columnCountOfRowToAnalyze = len(rowToAnalyze)
-        if columnCountOfRowToAnalyze != longestSegmentColumnCount:
-            raise CutplaceSniffError("data must not change between sniffer passes, but row %d now has %d columns instead of %d" \
-                % (rowIndex + 1, columnCountOfRowToAnalyze, longestSegmentColumnCount), location)
-        for itemIndex in range(longestSegmentColumnCount):
-            value = rowToAnalyze[itemIndex]
-            columnInfos[itemIndex].process(value)
+        if rowIndex >= headerRowsToSkip:
+            columnCountOfRowToAnalyze = len(rowToAnalyze)
+            if columnCountOfRowToAnalyze != longestSegmentColumnCount:
+                raise CutplaceSniffError("data must not change between sniffer passes, but row %d now has %d columns instead of %d" \
+                    % (rowIndex + 1, columnCountOfRowToAnalyze, longestSegmentColumnCount), location)
+            for itemIndex in range(longestSegmentColumnCount):
+                value = rowToAnalyze[itemIndex]
+                columnInfos[itemIndex].process(value)
         location.advanceLine()
         rowIndex += 1
 

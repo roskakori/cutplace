@@ -90,7 +90,7 @@ class CutplaceTest(unittest.TestCase):
     def testValidCsvs(self):
         VALID_PREFIX = "valid_"
         testsInputFolder = dev_test.getTestFolder("input")
-        validCsvFileNames = _tools.listdirMatching(testsInputFolder, VALID_PREFIX + ".*\\.csv")
+        validCsvFileNames = _tools.listdirMatching(testsInputFolder, VALID_PREFIX + ".*\\.csv", ".*with_head.*")
         validCsvPaths = list(os.path.join(testsInputFolder, fileName) for fileName in validCsvFileNames)
         for dataPath in validCsvPaths:
             # Compute the base name of the related ICD.

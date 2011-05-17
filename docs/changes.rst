@@ -4,6 +4,15 @@ Revision history
 
 This chapter describes improvements compared to earlier versions of cutplace.
 
+
+Version 0.6.5, 2011-05-17
+=========================
+
+* Added command line option ``--header`` to :ref:`cutsniff`.
+
+* Fixed build error in case module coverage was not installed by making
+  coverage a required module again.
+
 Version 0.6.4, 2011-03-19
 =========================
 

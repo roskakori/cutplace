@@ -49,7 +49,7 @@ Example:
     parser.add_option("-f", "--data-format", default=sniff.FORMAT_AUTO, metavar="FORMAT", type="choice",
         choices=(sniff.FORMAT_AUTO, data.FORMAT_CSV, data.FORMAT_DELIMITED, data.FORMAT_EXCEL, data.FORMAT_ODS),
         dest="dataFormat", help="data format to assume for DATAFILE (default: %default)")
-    parser.add_option("-a", "--stop-after", default=0, metavar="NUMBER", type="long",
+    parser.add_option("-a", "--stop-after", default=0, metavar="NUMBER", type="long", dest="stopAfter",
         help="number of data rows after which to stop analyzing; 0=analyze all data (default: %default)")
     parser.add_option("-H", "--head", default=0, metavar="NUMBER", type="long",
         help="number of header rows to skip before to start analyzing (default: %default)")
@@ -72,10 +72,11 @@ Example:
     try:
         with open(icdPath, "wb") as icdFile:
             icdCsvWriter = _tools.UnicodeCsvWriter(
-                icdFile, delimiter=options.icdDelimiter, encoding="ascii"
+                icdFile, delimiter=options.icdDelimiter, encoding="utf-8"
             )
             with open(dataPath, "rb") as dataFile:
-                for icdRowToWrite in sniff.createInterfaceControlDocument(dataFile, dataFormat=options.dataFormat, encoding=options.dataEncoding):
+                for icdRowToWrite in sniff.createCidRows(dataFile, dataFormat=options.dataFormat, encoding=options.dataEncoding, header=options.head, stopAfter=options.stopAfter):
+                    print "rowToWrite=", icdRowToWrite
                     icdCsvWriter.writerow(icdRowToWrite)
         exitCode = 0
     except EnvironmentError, error:
