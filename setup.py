@@ -148,7 +148,7 @@ setup(
       author="Thomas Aglassinger",
       author_email="roskakori@users.sourceforge.net",
       url="http://cutplace.sourceforge.net/",
-      install_requires=["xlrd"],
+      install_requires=["coverage", "xlrd"],
       packages=["cutplace"],
       data_files=[
           ("", ["setup.py"]),
