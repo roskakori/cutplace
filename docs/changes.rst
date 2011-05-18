@@ -5,10 +5,16 @@ Revision history
 This chapter describes improvements compared to earlier versions of cutplace.
 
 
+Version 0.6.5, 2011-05-18
+=========================
+
+* Cleaned up debugging output.
+
 Version 0.6.5, 2011-05-17
 =========================
 
-* Added command line option ``--header`` to :ref:`cutsniff`.
+* Added command line option ``--header`` to :ref:`cutsniff` to exclude header
+  rows from analysis.
 
 * Fixed build error in case module coverage was not installed by making
   coverage a required module again.

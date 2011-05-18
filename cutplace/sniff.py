@@ -225,7 +225,6 @@ def delimitedOptions(readable, **keywords):
     }
     if header != DEFAULT_HEADER:
         result[_HEADER] = header
-    print "delimitedOptions = ", result
     return result
 
 class _ColumnSniffInfo(object):
