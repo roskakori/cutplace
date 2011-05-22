@@ -110,6 +110,37 @@ class ToolsTest(unittest.TestCase):
         location = tools.InputLocation(input)
         self.assertEqual(str(location), "<io> (1)")
 
+    def testCanAsciifyText(self):
+        self.assertEqual(_tools.asciified(u"hello"), u"hello")
+        self.assertEqual(_tools.asciified(u"h\xe4ll\xf6"), u"hallo")
+        self.assertEqual(_tools.asciified(u"hello.world!"), u"hello.world!")
+
+    def testFailAsciifyOnNonUnicode(self):
+        self.assertRaises(ValueError, _tools.asciified, "hello")
+        self.assertRaises(ValueError, _tools.asciified, 17)
+
+    def testCanNamifyText(self):
+        self.assertEqual(_tools.namified(u"hello"), "hello")
+        self.assertEqual(_tools.namified(u"hElLo"), "hElLo")
+        self.assertEqual(_tools.namified(u"h3LL0"), "h3LL0")
+        self.assertEqual(_tools.namified(u"Date of birth"), "Date_of_birth")
+        self.assertEqual(_tools.namified(u"a    b"), "a_b")
+
+    def testCanNamifyNumber(self):
+        self.assertEqual(_tools.namified(u"1a"), "x1a")
+        self.assertEqual(_tools.namified(u"3.1415"), "x3_1415")
+
+    def testCanNamifyKeyword(self):
+        self.assertEqual(_tools.namified(u"if"), "if_")
+
+    def testCanNamifyEmptyText(self):
+        self.assertEqual(_tools.namified(u""), "x")
+        self.assertEqual(_tools.namified(u" "), "x")
+        self.assertEqual(_tools.namified(u"\t"), "x")
+
+    def testCanNamifyControlCharacters(self):
+        self.assertEqual(_tools.namified(u"\r"), "x")
+        self.assertEqual(_tools.namified(u"a\rb"), "a_b")
 
 if __name__ == "__main__": # pragma: no cover
     unittest.main()

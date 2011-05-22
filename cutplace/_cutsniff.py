@@ -53,6 +53,8 @@ Example:
         help="number of data rows after which to stop analyzing; 0=analyze all data (default: %default)")
     parser.add_option("-H", "--head", default=0, metavar="NUMBER", type="long",
         help="number of header rows to skip before to start analyzing (default: %default)")
+    parser.add_option("-n", "--names", metavar="FIELDNAMES", dest="fieldNameList",
+        help="comma separated list of field names (default: use row specified by --head or generate names)")
     parser.add_option("--log", default=logging.getLevelName(logging.INFO).lower(), metavar="LEVEL", type="choice",
         choices=_tools.LogLevelNameToLevelMap.keys(), dest="logLevel",
         help="set log level to LEVEL (default: %default)")
@@ -66,6 +68,11 @@ Example:
     elif othersCount > 2:
         parser.error("only ICDFILE and DATAFILE must be specified but also found: %s" % others[2:])
 
+    if options.fieldNameList:
+        fieldNames = [fieldName.strip() for fieldName in options.fieldNameList.split(",")]
+    else:
+        fieldNames = None
+
     icdPath = others[0]
     dataPath = others[1]
     exitCode = 1
@@ -75,7 +82,7 @@ Example:
                 icdFile, delimiter=options.icdDelimiter, encoding="utf-8"
             )
             with open(dataPath, "rb") as dataFile:
-                for icdRowToWrite in sniff.createCidRows(dataFile, dataFormat=options.dataFormat, encoding=options.dataEncoding, header=options.head, stopAfter=options.stopAfter):
+                for icdRowToWrite in sniff.createCidRows(dataFile, dataFormat=options.dataFormat, encoding=options.dataEncoding, header=options.head, fieldNames=fieldNames, stopAfter=options.stopAfter):
                     print "rowToWrite=", icdRowToWrite
                     icdCsvWriter.writerow(icdRowToWrite)
         exitCode = 0

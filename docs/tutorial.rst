@@ -630,13 +630,29 @@ apply them for other files. In particular, you should:
 * Save the ICD as ODS or Excel and make it easier to read by utilizing
   colors and formatting
 
-There are also a few command line options to specifiy the character
-encoding of the data to read and the delimiter to use in the ICD. Run::
+In case the data file starts with a heading, you can exclude it from the
+analysis using ``--head``.
+
+If CSV or PRN data files use an ecoding other than ASCII, you can specify
+it using ``--data-encoding``.
+
+For example::
+
+  cutplace --head 1 --data-encoding iso-8859-15 icd_customers_sniffed.csv examples/valid_customers_with_header_iso-8859-15.csv
+
+In case ``--head`` is specified, ``cutsniff`` uses the last header row to
+derive field names by applying a couple of heuristics to turn them into
+valid Python variable names.
+
+If you prefer to set the field names already during sniffing instead of
+manually adjusting them afterwards, you can use ``--names`` to specify a
+comma separated list of names. For example::
+
+  cutplace --head 1 --names "branchId,customerId,firstName,surName,gender,dateOfBirth" ...
+
+To get an overview of all command line options available, run::
 
   cutsniff --help
-
-for more information.
-
 
 Conclusion
 ==========

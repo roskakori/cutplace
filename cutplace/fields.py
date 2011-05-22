@@ -16,9 +16,11 @@ Standard field formats supported by cutplace.
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import decimal
+import keyword
 import re
 import sys
 import time
+import token
 
 import data
 import ranges
@@ -406,3 +408,19 @@ def getFieldNameIndex(supposedFieldName, availableFieldNames):
                                       % (fieldName, _tools.humanReadableList(availableFieldNames)))
     return fieldIndex
 
+def validatedFieldName(supposedFieldName, location=None):
+    """
+    Same as ``supposedFieldName`` except with surrounding white space removed, provided that it
+    describes a valid field name. Otherwise, raise a `FieldSyntaxError` pointing to ``location``.
+    """
+    tokens = _tools.tokenizeWithoutSpace(supposedFieldName)
+    tokenType, result, _, _, _ = tokens.next()
+    if tokenType != token.NAME:
+        message = "field name must be a valid Python name consisting of ASCII letters, underscore (%r) and digits but is: %r" % ("_", result)
+        raise FieldSyntaxError(message, location)
+    if keyword.iskeyword(result):
+        raise FieldSyntaxError("field name must not be a Python keyword but is: %r" % result, location)
+    toky = tokens.next()
+    if not _tools.isEofToken(toky):
+        raise FieldSyntaxError("field name must be a single word but is: %r" % supposedFieldName, location)
+    return result

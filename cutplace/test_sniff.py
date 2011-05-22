@@ -151,6 +151,17 @@ class SniffTest(unittest.TestCase):
         for _ in interface.validatedRows(sniffedIcd, testDataPath):
             pass
 
+    def testCanSniffAndValidateUsingMainWithFieldNames(self):
+        testIcdPath = dev_test.getTestOutputPath("icd_sniffed_valid_customers.csv")
+        testDataPath = dev_test.getTestInputPath("valid_customers.csv")
+        exitCode = _cutsniff.main(["test", "--names", " branchId,customerId, firstName,surName ,gender,dateOfBirth ", testIcdPath, testDataPath])
+        self.assertEqual(exitCode, 0)
+        sniffedIcd = interface.InterfaceControlDocument()
+        sniffedIcd.read(testIcdPath)
+        self.assertEqual(sniffedIcd.fieldNames, ["branchId", "customerId", "firstName", "surName", "gender", "dateOfBirth"])
+        for _ in interface.validatedRows(sniffedIcd, testDataPath):
+            pass
+
     def testCanSniffAndValidateUsingMainWithHeaderAndEncoding(self):
         testIcdPath = dev_test.getTestOutputPath("icd_sniffed_valid_customers_with_header_iso-8859-15.csv")
         testDataPath = dev_test.getTestInputPath("valid_customers_with_header_iso-8859-15.csv")
@@ -158,6 +169,17 @@ class SniffTest(unittest.TestCase):
         self.assertEqual(exitCode, 0)
         sniffedIcd = interface.InterfaceControlDocument()
         sniffedIcd.read(testIcdPath)
+        for _ in interface.validatedRows(sniffedIcd, testDataPath):
+            pass
+
+    def testCanSniffAndValidateUsingMainWithHeaderAndSpecifiedFieldNames(self):
+        testIcdPath = dev_test.getTestOutputPath("icd_sniffed_valid_customers_with_header_iso-8859-15.csv")
+        testDataPath = dev_test.getTestInputPath("valid_customers_with_header_iso-8859-15.csv")
+        exitCode = _cutsniff.main(["test", "--data-encoding", "iso-8859-15", "--head", "1", "--names", " branchId,customerId, firstName,surName ,gender,dateOfBirth ", testIcdPath, testDataPath])
+        self.assertEqual(exitCode, 0)
+        sniffedIcd = interface.InterfaceControlDocument()
+        sniffedIcd.read(testIcdPath)
+        self.assertEqual(sniffedIcd.fieldNames, ["branchId", "customerId", "firstName", "surName", "gender", "dateOfBirth"])
         for _ in interface.validatedRows(sniffedIcd, testDataPath):
             pass
 

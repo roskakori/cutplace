@@ -309,6 +309,12 @@ def createCidRows(readable, **keywords):
         default: 0.
       * ``stopAfter`` - number of data rows after which to stop analyzing;
         0 means "analyze all data"; default: 0.
+      * ``fieldNames`` - Python names to refer to the fields. If this is a list of
+        strings, each string represents a field name. If this is a single
+        string, split it using comma (,) as separator to get to the names. If
+        this is ``None`` (the default), use the last column of the ``header``
+        as names. If ``header`` is ``None``, use generated field names such as
+        'column_a', 'column_b' and so on.
     """
     assert readable is not None
     dataFormat = keywords.get("dataFormat", FORMAT_AUTO)
@@ -319,6 +325,11 @@ def createCidRows(readable, **keywords):
     assert dataRowsToStopAfter >= 0
     headerRowsToSkip = keywords.get("header", 0)
     assert headerRowsToSkip >= 0
+    fieldNames = keywords.get("fieldNames")
+    if isinstance(fieldNames, basestring):
+        fieldNames = [name.strip() for name in fieldNames.split(",")]
+    elif fieldNames is not None:
+        assert isinstance(fieldNames, list), "field names must be a list or string but is: %s" % type(fieldNames)
 
     NO_COUNT = -1
 
@@ -335,12 +346,15 @@ def createCidRows(readable, **keywords):
     readable.seek(0)
     reader = createReader(readable, **keywords)
     isFirstRow = True
+    isReadFieldNamesFromHeader = (not fieldNames and headerRowsToSkip)
     for rowToAnalyze in reader:
         columnCount = len(rowToAnalyze)
         if isFirstRow:
             currentSegmentColumnCount = columnCount
         else:
             isFirstRow = False
+        if isReadFieldNamesFromHeader and (rowIndex == headerRowsToSkip - 1):
+            fieldNames = rowToAnalyze
         if (rowIndex >= headerRowsToSkip) and (columnCount != currentSegmentColumnCount):
             _log.debug("  segment starts in row %d after %d rows", rowIndex, currentSegmentRowCount)
             if currentSegmentRowCount > longestSegmentRowCount:
@@ -353,6 +367,28 @@ def createCidRows(readable, **keywords):
         else:
             currentSegmentRowCount += 1
         rowIndex += 1
+
+    # Validate field names.
+    if fieldNames is not None:
+        if isReadFieldNamesFromHeader:
+            location = tools.InputLocation(readable, hasCell=True)
+            location.advanceLine(headerRowsToSkip)
+        else:
+            location = None
+        if not fieldNames:
+            raise data.DataFormatSyntaxError("the field names specified must contain at least 1 name", location)
+        uniquefieldNames = set()
+        for nameIndex in range(len(fieldNames)):
+            fieldNameToCheck = fieldNames[nameIndex]
+            if isReadFieldNamesFromHeader:
+                fieldNameToCheck = _tools.namified(fieldNameToCheck)
+            fieldNameToCheck = fields.validatedFieldName(fieldNameToCheck, location)
+            if fieldNameToCheck in uniquefieldNames:
+                raise fields.FieldSyntaxError("field name must be unique: %s" % fieldNameToCheck, location)
+            fieldNames[nameIndex] = fieldNameToCheck
+            uniquefieldNames.add(fieldNameToCheck)
+            if location:
+                location.advanceCell()
 
     # Handle the case that the whole file can be one large segment.
     _log.debug("last segment started in row %d and lasted for %d rows", rowIndexWhereCurrentSegmentStarted, currentSegmentRowCount)
@@ -380,7 +416,10 @@ def createCidRows(readable, **keywords):
     _log.info("analyze longest segment of rows with same column count")
     columnInfos = []
     for columnIndex in range(longestSegmentColumnCount):
-        columnInfos.append(_ColumnSniffInfo(columnIndex, dataFormat))
+        columnInfoToAppend = _ColumnSniffInfo(columnIndex, dataFormat)
+        if fieldNames:
+            columnInfoToAppend.name = fieldNames[columnIndex]
+        columnInfos.append(columnInfoToAppend)
     rowIndex = 0
     while rowIndex < longestSegmentRowCount:
         rowToAnalyze = reader.next()

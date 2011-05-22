@@ -18,6 +18,7 @@ Various internal utility functions.
 import codecs
 import csv
 import errno
+import keyword
 import logging
 import os
 import platform
@@ -25,6 +26,7 @@ import re
 import StringIO
 import token
 import tokenize
+import unicodedata
 
 
 # Mapping for value of --log to logging level.
@@ -346,3 +348,45 @@ def isEqualBytes(some, other):
     someBytes = asBytes(some)
     otherBytes = asBytes(other)
     return someBytes == otherBytes
+
+def asciified(text):
+    """
+    Similar to ``text`` but with none ASCII letters replaced by their decomposed ASCII
+    equivalent.
+    """
+    assert text is not None
+    if not isinstance(text, unicode):
+        raise ValueError("text must be unicode instead of %s" % type(text))
+    result = u""
+    for ch in text:
+        decomp = unicodedata.decomposition(ch)
+        if decomp:
+            result += unichr(int(decomp.split()[0], 16))
+        else:
+            result += ch
+    return result
+
+def namified(text):
+    """
+    Similar to ``text`` with possible modifications to ensure that it can be used as
+    Python variable name.
+    """
+    assert text is not None
+    result = ""
+    asciifiedText = asciified(text.strip())
+    wasUnderscore = False
+    for ch in asciifiedText:
+        isUnderscore = (ch == "_")
+        if ch.isalnum() or isUnderscore:
+            if not (wasUnderscore and isUnderscore):
+                result += ch
+            wasUnderscore = isUnderscore
+        elif not wasUnderscore:
+            result += "_"
+            wasUnderscore = True
+    if not result or result[0].isdigit():
+        result = "x" + result
+    if keyword.iskeyword(result):
+        result += "_"
+    assert result
+    return result

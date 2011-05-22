@@ -71,8 +71,9 @@ class InputLocation(object):
         assert filePath
         if isinstance(filePath, types.StringTypes):
             self.filePath = filePath
+        elif isinstance(filePath, types.FileType):
+            self.filePath = filePath.name
         else:
-            # TODO: Check for file object and use ``name`` in this case.
             self.filePath = "<io>"
         self._line = 0
         self._column = 0

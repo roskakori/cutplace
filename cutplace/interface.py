@@ -222,18 +222,7 @@ class InterfaceControlDocument(object):
         itemCount = len(items)
         if itemCount >= 1:
             # Obtain field name.
-            fieldNameText = items[0]
-            tokens = _tools.tokenizeWithoutSpace(fieldNameText)
-            tokenType, tokenText, _, _, _ = tokens.next()
-            if tokenType != token.NAME:
-                raise fields.FieldSyntaxError("field name must be a valid Python name consisting of ASCII letters, underscore (%r) and digits but is: %r" % ("_", tokenText),
-                                              self._location)
-            if keyword.iskeyword(tokenText):
-                raise fields.FieldSyntaxError("field name must not be a Python keyword but is: %r" %  tokenText, self._location)
-            fieldName = tokenText
-            toky = tokens.next()
-            if not _tools.isEofToken(toky):
-                raise fields.FieldSyntaxError("field name must be a single word but is: %r" % fieldNameText, self._location)
+            fieldName = fields.validatedFieldName(items[0], self._location)
 
             # Obtain example.
             if itemCount >= 2:
