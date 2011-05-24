@@ -155,8 +155,21 @@ The easiest way to do this is by posting your patch to the
 Developer notes
 ===============
 
-This section collects a few final notes interesting for developers, especially
-for release management.
+This section collects a few final notes interesting for developers.
+
+Install a developer build
+-------------------------
+
+To install the current work copy as a developer build, use::
+
+  sudo python setup.py develop
+
+Once the related version is published, you can install it using::
+
+  sudo easy_install --upgrade cutplace
+
+This ensures that the current version found on PyPI is installed even if
+a locally installed developer build has the same version.
 
 Add a release tag
 -----------------
@@ -167,3 +180,21 @@ can be done using the following template::
   svn copy -m "Added tag for version 0.x.x." https://cutplace.svn.sourceforge.net/svnroot/cutplace/trunk https://cutplace.svn.sourceforge.net/svnroot/cutplace/tags/0.x.x
 
 Simply replace ``0.x.x`` with the current version number.
+
+Set up Jenkins
+--------------
+
+To set up Jenkins for continuous integration, create a build using the following steps:
+
+  * Source code management
+    * Subversion: ``https://cutplace.svn.sourceforge.net/svnroot/cutplace/trunk``
+  * Build triggers
+    * Poll SCM: ``*/10 * * * *``
+  * Build
+    1. Invoke ant: targets: ``test``
+    1. Invoke ant: targets: ``site``
+    1. Execute shell: commands: ``python setup.py sdist``
+  * Post-build actions:
+    1. Publish JUnit test result report: ``**/nosetests.xml``
+    1. Publish Cobertura Coverage Report: ``**/coverage.xml``
+
