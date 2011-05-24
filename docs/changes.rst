@@ -5,7 +5,7 @@ Revision history
 This chapter describes improvements compared to earlier versions of cutplace.
 
 
-Version 0.6.7, 2011-05-23
+Version 0.6.7, 2011-05-24
 =========================
 
 * Added option ``--names`` to :ref:`cutsniff` to specify field names as comma

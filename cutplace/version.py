@@ -17,12 +17,12 @@ Cutplace version information.
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 VERSION = 0
 RELEASE = 6
-REVISION = 6
+REVISION = 7
 
 try:
     REPOSITORY_ID, VERSION_DATE = "$Id$".split()[2:4]
 except ValueError:
-    # Fallback if SCM does not support $Id.
+    # Fall back if SCM does not support $Id.
     REPOSITORY_ID = "0"
     VERSION_DATE = "0000-01-01"
 
