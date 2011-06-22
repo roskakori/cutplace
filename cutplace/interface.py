@@ -17,12 +17,10 @@ Interface control document (ICD) describing all aspects of a data driven interfa
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import checks
 import codecs
-import keyword
 import logging
 import Queue
 import sys
 import threading
-import token
 import types
 
 import data
