@@ -618,7 +618,7 @@ class InterfaceControlDocument(object):
         assert row is not None
 
         actualRowCount = len(row)
-        expectedRowCount = len(self.fieldnames)
+        expectedRowCount = len(self.fieldNames)
         if actualRowCount != expectedRowCount:
             location = tools.createCallerInputLocation()
             raise data.DataFormatValueError("row must have %d items but has %d: %s" % (expectedRowCount, actualRowCount, row), location)

@@ -931,6 +931,22 @@ Mike,male,23.12.1974"""
         dataReadable = StringIO.StringIO(dataText)
         icd.validate(dataReadable)
 
+    def testCanGetFieldValue(self):
+        icd = createDefaultTestIcd(data.FORMAT_CSV)
+        validRow = [u"38123", u"12345", u"John", u"Doe", u"male", u"08.03.1957"]
+        self.assertEqual(icd.getFieldValueFor("branch_id", validRow), u"38123")
+        self.assertEqual(icd.getFieldValueFor("date_of_birth", validRow), u"08.03.1957")
+
+    def testFailsOnGetUnknownFieldValue(self):
+        icd = createDefaultTestIcd(data.FORMAT_CSV)
+        validRow = [u"38123", u"12345", u"John", u"Doe", u"male", u"08.03.1957"]
+        self.assertRaises(fields.FieldLookupError, icd.getFieldValueFor, "no_such_field", validRow)
+
+    def testFailsOnGetFieldValueForEmptyRow(self):
+        icd = createDefaultTestIcd(data.FORMAT_CSV)
+        emptyRow = []
+        self.assertRaises(data.DataFormatValueError, icd.getFieldValueFor, "branch_id", emptyRow)
+        
 if __name__ == '__main__': # pragma: no cover
     logging.basicConfig()
     logging.getLogger("cutplace").setLevel(logging.INFO)
