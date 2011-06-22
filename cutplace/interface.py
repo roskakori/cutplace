@@ -110,6 +110,7 @@ class InterfaceControlDocument(object):
         self._fieldNames = []
         self._fieldFormats = []
         self._fieldNameToFormatMap = {}
+        self._fieldNameToIndexMap = {}
         self._checkNames = []
         self._checkNameToCheckMap = {}
         self._validationListeners = []
@@ -210,6 +211,13 @@ class InterfaceControlDocument(object):
         if self._dataFormat is None:
             raise IcdSyntaxError("data format must be specified before first field", self._location)
 
+        # Assert that the various lists and maps related to fields are in a consistent state.
+        # Ideally this would be a class invariant, but this is Python, not Eiffel.
+        fieldCount = len(self.fieldNames)
+        assert len(self._fieldFormats) == fieldCount
+        assert len(self._fieldNameToFormatMap) == fieldCount
+        assert len(self._fieldNameToIndexMap) == fieldCount
+
         fieldName = None
         fieldExample = None
         fieldIsAllowedToBeEmpty = False
@@ -285,10 +293,11 @@ class InterfaceControlDocument(object):
             # Validate that field name is unique.
             if not self._fieldNameToFormatMap.has_key(fieldName):
                 self._location.setCell(1)
+                self._fieldNameToFormatMap[fieldName] = fieldFormat
+                self._fieldNameToIndexMap[fieldName] = len(self._fieldNames)
                 self._fieldNames.append(fieldName)
                 self._fieldFormats.append(fieldFormat)
                 # TODO: Remember location where field format was defined to later include it in error message
-                self._fieldNameToFormatMap[fieldName] = fieldFormat
                 _log.info("%s: defined field: %s", self._location, fieldFormat)
             else:
                 raise fields.FieldSyntaxError("field name must be used for only one field: %s" % fieldName,
@@ -605,8 +614,12 @@ class InterfaceControlDocument(object):
         """
         The column index of  the field named ``fieldName`` starting with 0.
         """
-        # TODO: Use a dictionary to to change performance from O(n) to O(1).
-        return fields.getFieldNameIndex(fieldName, self.fieldNames)
+        assert fieldName is not None
+        try:
+            result = self._fieldNameToIndexMap[fieldName]
+        except KeyError:
+            raise fields.FieldLookupError("unknown field name %r must be replaced by one of: %s" % (fieldName, _tools.humanReadableList(sorted(self.fieldNames))))
+        return result
 
     def getFieldValueFor(self, fieldName, row):
         """
