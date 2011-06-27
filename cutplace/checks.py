@@ -15,6 +15,7 @@ Standard checks that can cover a whole row or data set.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import copy
 import StringIO
 import tokenize
 
@@ -178,7 +179,7 @@ class IsUniqueCheck(AbstractCheck):
             raise CheckError("unique %r has already occurred: %s" % (self.fieldNamesToCheck, keyText),
                 location, seeAlsoMessage="location of previous occurrence", seeAlsoLocation=seeAlsoLocation)
         else:
-            self.uniqueValues[keyText] = location
+            self.uniqueValues[keyText] = copy.copy(location)
 
 class DistinctCountCheck(AbstractCheck):
     """

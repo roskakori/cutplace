@@ -4,6 +4,14 @@ Revision history
 
 This chapter describes improvements compared to earlier versions of cutplace.
 
+Version 0.6.8, 2011-06-xx
+=========================
+
+* Fixed "see also" location in error messages caused by ``IsUniqueCheck``
+  which used the current location as original location.
+
+* Fixed ``AttributeError`` when using the API method
+  ``AbstractFieldFormat.getFieldValueFor()``.
 
 Version 0.6.7, 2011-05-24
 =========================
@@ -31,11 +39,11 @@ Version 0.6.5, 2011-05-17
 Version 0.6.4, 2011-03-19
 =========================
 
-* Added :ref:`cutsniff`, a tools to create an ICD by analyzing an existing
-  data file.
+* Added :ref:`cutsniff`, a tool to create an ICD by analyzing an existing data
+  file.
 
-* #21: Fixed automatic detection of Excel format processing reading ICD
-  	over web interface. (Tickte #21).
+* #21: Fixed automatic detection of Excel format when reading ICDs using the
+  web interface. (Tickte #21).
 
 * Fixed ``AttributeError`` when data format was set to "delimited".
 

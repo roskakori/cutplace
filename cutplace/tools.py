@@ -15,6 +15,7 @@ Various utility classes and functions.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import copy
 import os
 import traceback
 import types
@@ -155,6 +156,26 @@ class InputLocation(object):
         result += ")"
         return result
 
+    def __cmp__(self, other):
+        assert other is not None
+        if self.filePath == other.filePath:
+            if self.line == other.line:
+                if self.column == other.column:
+                    if self.cell == other.cell:
+                        result = cmp(self.sheet, other.sheet)
+                    else:
+                        result = cmp(self.cell, other.cell)
+                else:
+                    result = cmp(self.column, other.column)
+            else:
+                result = cmp(self.line, other.line)
+        else:
+            result = cmp(self.filePath, other.filePath)
+        return result
+
+    # Note: There is no ``InputLocation.__hash__()`` because it is a mutable class that cannot be
+    # used as dictionary key.
+
 def createCallerInputLocation(modulesToIgnore=None, hasColumn=False, hasCell=False, hasSheet=False):
     """
     `InputLocation` referring to the calling Python source code.
@@ -182,20 +203,6 @@ def createCallerInputLocation(modulesToIgnore=None, hasColumn=False, hasCell=Fal
         result.advanceLine(sourceLine)
     return result
 
-def createCopyOfLocation(location):
-    """
-    `InputLocation` being an exact copy of `location`.
-    """
-    if location is None:
-        result = None
-    else:
-        result = InputLocation(location.filePath, location._hasColumn, location._hasCell, location._hasSheet)
-        result._line = location._line
-        result._column = location._column
-        result._cell = location._cell
-        result._sheet = location._sheet
-    return result
-
 class _BaseCutplaceError(Exception):
     """
     Exception that supports a `message` describing the error and an optional
@@ -215,9 +222,9 @@ class _BaseCutplaceError(Exception):
         assert (seeAlsoLocation and seeAlsoMessage) or not seeAlsoLocation
         # Note: We cannot use `super` because `Exception` is an old style class.
         Exception.__init__(self, message)
-        self._location = createCopyOfLocation(location)
+        self._location = copy.copy(location)
         self._seeAlsoMessage = seeAlsoMessage
-        self._seeAlsoLocation = createCopyOfLocation(seeAlsoLocation)
+        self._seeAlsoLocation = copy.copy(seeAlsoLocation)
         self._cause = cause
 
     @property

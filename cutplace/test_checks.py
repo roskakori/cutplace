@@ -69,8 +69,12 @@ class IsUniqueCheckTest(_AbstractCheckTest):
         location.advanceLine()
         check.checkRow(_createFieldMap(fieldNames, [38000, 59, "Jane", "Miller", "female", "04.10.1946"]), location)
         location.advanceLine()
-        self.assertRaises(checks.CheckError, check.checkRow,
-                          _createFieldMap(fieldNames, [38000, 59, "Jane", "Miller", "female", "04.10.1946"]), location)
+        try:
+            check.checkRow(_createFieldMap(fieldNames, [38000, 59, "Jane", "Miller", "female", "04.10.1946"]), location)
+            self.fail("duplicate row must cause CheckError")
+        except checks.CheckError, error:
+            self.assertTrue(error.seeAlsoLocation)
+            self.assertNotEqual(location, error.seeAlsoLocation)
 
         # These methods should not do anything, but call them anyway for test sake.
         check.checkAtEnd(location)
