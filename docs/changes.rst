@@ -4,7 +4,7 @@ Revision history
 
 This chapter describes improvements compared to earlier versions of cutplace.
 
-Version 0.6.8, 2011-06-xx
+Version 0.6.8, 2011-07-26
 =========================
 
 * Fixed "see also" location in error messages caused by ``IsUniqueCheck``
@@ -12,6 +12,9 @@ Version 0.6.8, 2011-06-xx
 
 * Fixed ``AttributeError`` when using the API method
   ``AbstractFieldFormat.getFieldValueFor()``.
+
+* Fixed ``ImportError`` during installation on systems lacking the Python
+  profiler.
 
 Version 0.6.7, 2011-05-24
 =========================

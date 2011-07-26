@@ -19,7 +19,6 @@ import cgi
 import logging
 import optparse
 import os
-import pstats
 import StringIO
 import sys
 import unittest
@@ -32,6 +31,7 @@ _log = logging.getLogger("cutplace.dev_reports")
 try:
     import coverage
     import cProfile
+    import pstats
 except ImportError, error:
     _log.warning("developer reports will not work: %s", error)
 
