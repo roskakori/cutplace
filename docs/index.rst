@@ -2,11 +2,11 @@
 Cutplace
 =======================================
 
-Welcome to the cutplace, a tool and API to validate that tabular and flat data
-conform to an interface control document (ICD). Cutplace can check CSV and
-fixed format files using configurable separator, delimiters and fillers. And
-can detect errors in single cells, across rows or considering the whole set of
-data.
+Cutplace is a tool and API to validate that tabular and flat data conform
+to an interface control document (ICD). Cutplace checks CSV, PRN (fixed
+length), Excel and ODS files using configurable separators, delimiters and
+fillers. It supports error conditions for single cells, across rows or
+concerning the whole set of data.
 
 * `Download cutplace from PyPI <http://pypi.python.org/pypi/cutplace/>`_
   or run ``easy_install cutplace``.
