@@ -24,6 +24,11 @@
        </sequential>
     </macrodef>
 
+    <target name="develop" depends="bdist_egg" description="install current development version">
+        <tstamp />
+        <pyst command="develop" />
+    </target>
+
     <target name="install" depends="bdist_egg" description="install binary distribution">
         <tstamp />
         <pyst command="install" />
