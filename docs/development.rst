@@ -186,15 +186,21 @@ Set up Jenkins
 
 To set up Jenkins for continuous integration, create a build using the following steps:
 
-  * Source code management
-    * Subversion: ``https://cutplace.svn.sourceforge.net/svnroot/cutplace/trunk``
-  * Build triggers
-    * Poll SCM: ``*/10 * * * *``
-  * Build
-    1. Invoke ant: targets: ``test``
-    1. Invoke ant: targets: ``site``
-    1. Execute shell: commands: ``python setup.py sdist``
-  * Post-build actions:
-    1. Publish JUnit test result report: ``**/nosetests.xml``
-    1. Publish Cobertura Coverage Report: ``**/coverage.xml``
+  * Source code management:
 
+    * Subversion: ``https://cutplace.svn.sourceforge.net/svnroot/cutplace/trunk``
+
+  * Build triggers:
+
+    * Poll SCM: ``*/10 * * * *``
+
+  * Build:
+
+    #. Invoke ant: targets: ``test``
+    #. Invoke ant: targets: ``site``
+    #. Execute shell: commands: ``python setup.py sdist``
+
+  * Post-build actions:
+
+    #. Publish JUnit test result report: ``**/nosetests.xml``
+    #. Publish Cobertura Coverage Report: ``**/coverage.xml``
