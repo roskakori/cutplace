@@ -184,7 +184,15 @@ Simply replace ``0.x.x`` with the current version number.
 Set up Jenkins
 --------------
 
-To set up Jenkins for continuous integration, create a build using the following steps:
+To set up Jenkins for continuous integration, install the following plugins
+by navigating to Manage Jenkins > Manage plugins and then choosing them
+from the tab "Available":
+
+  * Cobertura Plugin
+  * Static Code Analysis Plug-ins
+  * Task Scanner Plugin
+
+Next, create a build using the following steps:
 
   * Source code management:
 
@@ -202,5 +210,9 @@ To set up Jenkins for continuous integration, create a build using the following
 
   * Post-build actions:
 
+    #. Scan workspace for open tasks:
+
+       * Files to scan: ``**/*.py, **/*.rst``
+       * Task tags: High=FIXME, normal=TODO, low=HACK
     #. Publish JUnit test result report: ``**/nosetests.xml``
     #. Publish Cobertura Coverage Report: ``**/coverage.xml``
