@@ -38,7 +38,7 @@ master_doc = 'contents'
 
 # General information about the project.
 project = u'cutplace'
-copyright = u'2009, Thomas Aglassinger'
+copyright = u'2009-2011, Thomas Aglassinger'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -47,7 +47,7 @@ from cutplace.version import *
 
 #
 # The short X.Y version.
-version = "%d.%d" % (VERSION, REVISION)
+version = '%d.%d' % (VERSION, REVISION)
 
 # The full version, including alpha/beta/rc tags.
 release = VERSION_NUMBER
