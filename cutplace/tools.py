@@ -31,6 +31,7 @@ SYMBOLIC_NAMES_MAP = {
     "vt": 11
 }
 
+
 class InputLocation(object):
     """
     Location in an input file, consisting of ``line``, an optional ``column`` (pointing at a
@@ -176,6 +177,7 @@ class InputLocation(object):
     # Note: There is no ``InputLocation.__hash__()`` because it is a mutable class that cannot be
     # used as dictionary key.
 
+
 def createCallerInputLocation(modulesToIgnore=None, hasColumn=False, hasCell=False, hasSheet=False):
     """
     `InputLocation` referring to the calling Python source code.
@@ -202,6 +204,7 @@ def createCallerInputLocation(modulesToIgnore=None, hasColumn=False, hasCell=Fal
     if sourceLine:
         result.advanceLine(sourceLine)
     return result
+
 
 class _BaseCutplaceError(Exception):
     """
@@ -263,10 +266,12 @@ class _BaseCutplaceError(Exception):
             result += self.seeAlsoMessage + ")"
         return result
 
+
 class CutplaceError(_BaseCutplaceError):
     """
     Error detected by cutplace caused by issues in the ICD or data.
     """
+
 
 class CutplaceUnicodeError(_BaseCutplaceError):
     """
@@ -275,4 +280,3 @@ class CutplaceUnicodeError(_BaseCutplaceError):
     This error is not derived from `CutplaceError` because it will not be handled in
     any meaningful way and simply results in the the termination of the validation.
     """
-

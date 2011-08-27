@@ -30,20 +30,24 @@ import _tools
 # Expected suffix for classes that describe filed formats.
 _FieldFormatClassSuffix = "FieldFormat"
 
+
 class FieldValueError(tools.CutplaceError):
     """
     Error raised when `AbstractFieldFormat.validated` detects an error.
     """
+
 
 class FieldLookupError(tools.CutplaceError):
     """
     Error raised when a field cannot be found.
     """
 
+
 class FieldSyntaxError(tools.CutplaceError):
     """
     Error raised when a field definition in the ICD is broken.
     """
+
 
 class AbstractFieldFormat(object):
     """
@@ -187,7 +191,7 @@ class AbstractFieldFormat(object):
         fieldTypeName = fieldTypeName[:len(fieldTypeName) - len(_FieldFormatClassSuffix)]
         result = [
             self._fieldName,
-            "", # No example.
+            "",  # No example.
             isAllowedToBeEmptyMark,
             lengthText,
             fieldTypeName,
@@ -197,6 +201,7 @@ class AbstractFieldFormat(object):
 
     def __str__(self):
         return "%s(%r, %r, %r, %r)" % (self.__class__.__name__, self.fieldName, self.isAllowedToBeEmpty, self.length, self.rule)
+
 
 class ChoiceFieldFormat(AbstractFieldFormat):
     """
@@ -243,6 +248,7 @@ class ChoiceFieldFormat(AbstractFieldFormat):
                                    % (value, _tools.humanReadableList(self.choices)))
         return value
 
+
 class DecimalFieldFormat(AbstractFieldFormat):
     """
     Field format accepting decimal numeric values, taking the data format properties
@@ -284,6 +290,7 @@ class DecimalFieldFormat(AbstractFieldFormat):
 
         return result
 
+
 class IntegerFieldFormat(AbstractFieldFormat):
     """
     Field format accepting numeric integer values with fractional part.
@@ -309,6 +316,7 @@ class IntegerFieldFormat(AbstractFieldFormat):
         except ranges.RangeValueError, error:
             raise FieldValueError(str(error))
         return longValue
+
 
 class DateTimeFieldFormat(AbstractFieldFormat):
     """
@@ -338,6 +346,7 @@ class DateTimeFieldFormat(AbstractFieldFormat):
             raise FieldValueError("date must match format %s (%s) but is: %r (%s)" % (self.humanReadableFormat, self.strptimeFormat, value, sys.exc_info()[1]))
         return result
 
+
 class RegExFieldFormat(AbstractFieldFormat):
     """
     Field format accepting values that match a specified regular expression.
@@ -352,6 +361,7 @@ class RegExFieldFormat(AbstractFieldFormat):
         if not self.regex.match(value):
             raise FieldValueError("value %r must match regular expression: %r" % (value, self.rule))
         return value
+
 
 class PatternFieldFormat(AbstractFieldFormat):
     """
@@ -378,6 +388,7 @@ class PatternFieldFormat(AbstractFieldFormat):
             raise FieldValueError("value %r must match pattern: %r (regex %r)" % (value, self.rule, self.pattern))
         return value
 
+
 class TextFieldFormat(AbstractFieldFormat):
     """
     Field format accepting any text.
@@ -389,6 +400,7 @@ class TextFieldFormat(AbstractFieldFormat):
         assert value
         # TODO: Validate Text with rules like: 32..., a...z and so on.
         return value
+
 
 def getFieldNameIndex(supposedFieldName, availableFieldNames):
     """
@@ -407,6 +419,7 @@ def getFieldNameIndex(supposedFieldName, availableFieldNames):
         raise FieldLookupError("unknown field name %r must be replaced by one of: %s"
                                       % (fieldName, _tools.humanReadableList(availableFieldNames)))
     return fieldIndex
+
 
 def validatedFieldName(supposedFieldName, location=None):
     """

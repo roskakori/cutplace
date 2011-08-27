@@ -32,6 +32,7 @@ import _tools
 
 _log = logging.getLogger("cutplace")
 
+
 class BaseValidationListener(object):
     """
     Listener to process events during `InterfaceControlDocument.validate()`.
@@ -80,10 +81,12 @@ class BaseValidationListener(object):
 
     # TODO: Ponder: Would there be any point in `dataFormatFailed(self, error)`?
 
+
 class IcdSyntaxError(tools.CutplaceError):
     """
     General syntax error in the specification of the ICD.
     """
+
 
 class InterfaceControlDocument(object):
     """
@@ -277,7 +280,7 @@ class InterfaceControlDocument(object):
             # Obtain class for field type.
             if not fieldType:
                 fieldType = "Text"
-            fieldClass = self._createFieldFormatClass(fieldType);
+            fieldClass = self._createFieldFormatClass(fieldType)
             _log.debug("create field: %s(%r, %r, %r)", fieldClass.__name__, fieldName, fieldType, fieldRule)
             fieldFormat = fieldClass.__new__(fieldClass, fieldName, fieldIsAllowedToBeEmpty, fieldLength, fieldRule)
             fieldFormat.__init__(fieldName, fieldIsAllowedToBeEmpty, fieldLength, fieldRule, self._dataFormat)
@@ -291,17 +294,17 @@ class InterfaceControlDocument(object):
                     raise IcdSyntaxError("cannot validate example for field %r: %s" % (fieldName, error), self._location)
 
             # Validate that field name is unique.
-            if not self._fieldNameToFormatMap.has_key(fieldName):
-                self._location.setCell(1)
-                self._fieldNameToFormatMap[fieldName] = fieldFormat
-                self._fieldNameToIndexMap[fieldName] = len(self._fieldNames)
-                self._fieldNames.append(fieldName)
-                self._fieldFormats.append(fieldFormat)
-                # TODO: Remember location where field format was defined to later include it in error message
-                _log.info("%s: defined field: %s", self._location, fieldFormat)
-            else:
+            if fieldName in self._fieldNameToFormatMap:
                 raise fields.FieldSyntaxError("field name must be used for only one field: %s" % fieldName,
                                               self._location)
+
+            self._location.setCell(1)
+            self._fieldNameToFormatMap[fieldName] = fieldFormat
+            self._fieldNameToIndexMap[fieldName] = len(self._fieldNames)
+            self._fieldNames.append(fieldName)
+            self._fieldFormats.append(fieldFormat)
+            # TODO: Remember location where field format was defined to later include it in error message
+            _log.info("%s: defined field: %s", self._location, fieldFormat)
 
             # Validate field length for fixed format.
             if isinstance(self._dataFormat, data.FixedDataFormat):
@@ -424,14 +427,14 @@ class InterfaceControlDocument(object):
         for icdRowToProcess in rows:
             self._processRow(icdRowToProcess)
         self._checkAfterRead()
-        
+
     def setLocationToSourceCode(self):
         """
         Set the location where the ICD is defined from to the caller location in the source code.
         This is necessary if you create the ICD manually calling `addDataFormat`, `addFieldFormat`
         etc. instead of using a file.
         """
-        self._location = tools.createCallerInputLocation(hasCell=True);
+        self._location = tools.createCallerInputLocation(hasCell=True)
 
     def _obtainReadable(self, dataFileToValidatePath):
         """
@@ -461,7 +464,7 @@ class InterfaceControlDocument(object):
                 dataFile = codecs.open(dataFileToValidatePath, "rb", self._dataFormat.encoding)
             else:
                 dataFile = dataFileToValidatePath
-        else: # pragma: no cover
+        else:  # pragma: no cover
             raise NotImplementedError("data format: %r" % self._dataFormat.name)
 
         return (dataFile, location, needsOpen)
@@ -513,7 +516,7 @@ class InterfaceControlDocument(object):
         elif self.dataFormat.name == data.FORMAT_ODS:
             sheet = self.dataFormat.get(data.KEY_SHEET)
             reader = _parsers.odsReader(dataFile, sheet)
-        else: # pragma: no cover
+        else:  # pragma: no cover
             raise NotImplementedError("data format: %r" % self.dataFormat.name)
         return reader
 
@@ -696,6 +699,7 @@ class InterfaceControlDocument(object):
     logTrace = property(_getLogTrace, _setLogTrace,
         doc="If ``True``, log stack trace on rejected data items or rows.")
 
+
 def createSniffedInterfaceControlDocument(readable, **keywords):
     """
     `InterfaceControlDocument` created by examining the contents of ``readable``.
@@ -710,10 +714,11 @@ def createSniffedInterfaceControlDocument(readable, **keywords):
       * ``stopAfter`` - number of data rows after which to stop analyzing;
         0 means "analyze all data"; default: 0.
     """
-    cidRows= sniff.createCidRows(readable, **keywords)
+    cidRows = sniff.createCidRows(readable, **keywords)
     result = InterfaceControlDocument()
     result.readFromRows(cidRows)
     return result
+
 
 def  validatedRows(icd, dataFileToValidatePath, errors="strict"):
     """
@@ -800,8 +805,8 @@ def  validatedRows(icd, dataFileToValidatePath, errors="strict"):
             elif errors == InterfaceControlDocument._ERRORS_YIELD:
                 yield rowOrError
             elif errors != InterfaceControlDocument._ERRORS_IGNORE:
-                raise NotImplementedError("errors=%r"  % errors)
+                raise NotImplementedError("errors=%r" % errors)
         else:
-            assert isinstance(rowOrError, types.ListType), "rowOrError=%s: %r" % (type(rowOrError),rowOrError)
+            assert isinstance(rowOrError, types.ListType), "rowOrError=%s: %r" % (type(rowOrError), rowOrError)
             yield rowOrError
         rowOrError = rowOrErrorQueue.get()

@@ -37,17 +37,21 @@ def _testLotsOfCustomers():
     suite = loader.loadTestsFromTestCase(test_cutplace.LotsOfCustomersTest)
     unittest.TextTestRunner(verbosity=2).run(suite)
 
+
 def _getSourceFolder():
     return "cutplace"
+
 
 def _listdirPythonSource():
     return _tools.listdirMatching(_getSourceFolder(), ".*\\.py")
 
+
 def _addToKeyList(targetMap, key, valueToAdd):
-    if targetMap.has_key(key):
+    if key in targetMap:
         targetMap[key].append(valueToAdd)
     else:
         targetMap[key] = [valueToAdd]
+
 
 def createProfilerReport(targetBasePath):
     assert targetBasePath is not None
@@ -66,6 +70,7 @@ def createProfilerReport(targetBasePath):
         stats.sort_stats("cumulative").print_stats("cutplace", 20)
     finally:
         targetReportFile.close()
+
 
 def createReports(targetFolder):
     assert targetFolder is not None

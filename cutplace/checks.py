@@ -23,15 +23,18 @@ import fields
 import tools
 import _tools
 
+
 class CheckError(tools.CutplaceError):
     """
     Error to be raised when a check fails.
     """
 
+
 class CheckSyntaxError(tools.CutplaceError):
     """
     Error to be raised when the specification of check in the ICD is broken.
     """
+
 
 class AbstractCheck(object):
     """
@@ -130,6 +133,7 @@ class AbstractCheck(object):
         """
         return self._location
 
+
 class IsUniqueCheck(AbstractCheck):
     """
     Check to ensure that all rows are unique concerning certain key fields.
@@ -181,6 +185,7 @@ class IsUniqueCheck(AbstractCheck):
         else:
             self.uniqueValues[keyText] = copy.copy(location)
 
+
 class DistinctCountCheck(AbstractCheck):
     """
     Check to ensure that the number of different values in a field matches an expression.
@@ -214,7 +219,7 @@ class DistinctCountCheck(AbstractCheck):
         return len(self.distinctValuesToCountMap)
 
     def _eval(self):
-        localVariables = {DistinctCountCheck._COUNT_NAME:self._distinctCount()}
+        localVariables = {DistinctCountCheck._COUNT_NAME: self._distinctCount()}
         try:
             result = eval(self.expression, {}, localVariables)
         except Exception, message:

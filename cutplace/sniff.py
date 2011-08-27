@@ -66,10 +66,12 @@ _ODS_HEADER = "PK\x03\x04"
 # Header used by Excel (and other MS Office applications).
 _EXCEL_HEADER = "\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"
 
+
 class CutplaceSniffError(tools.CutplaceError):
     """
     Error to indicate that the format of some content could not be sniffed.
     """
+
 
 def createDataFormat(readable, **keywords):
     """
@@ -111,6 +113,7 @@ def createDataFormat(readable, **keywords):
     readable.seek(0)
     return result
 
+
 def createReader(readable, **keywords):
     """
     A reader fitting the contents of ``readable``. Supported formats are
@@ -147,6 +150,7 @@ def createReader(readable, **keywords):
             result = _parsers.delimitedReader(readable, dialect, encoding)
     return result
 
+
 def delimitedOptions(readable, **keywords):
     """
     Dictionary containing the delimited options as derived from ``readable`` and ``keywords``.
@@ -174,7 +178,7 @@ def delimitedOptions(readable, **keywords):
     quoteCharacter = keywords.get(_QUOTE_CHARACTER, DEFAULT_QUOTE_CHARACTER)
     assert quoteCharacter is not None
     header = keywords.get(_HEADER, DEFAULT_HEADER)
-    
+
     # Automatically set line and item delimiter.
     # TODO: Use a more intelligent logic. Csv.Sniffer would be nice,
     # but not all test cases work with it.
@@ -200,11 +204,12 @@ def delimitedOptions(readable, **keywords):
     else:
         actualLineDelimiter = lineDelimiter
     if itemDelimiter == data.ANY:
-        itemDelimiterToCountMap = {",":sniffedText.count(","),
-            ";":sniffedText.count(";"),
-            ":":sniffedText.count(":"),
-            "\t":sniffedText.count("\t"),
-            "|":sniffedText.count("|")
+        itemDelimiterToCountMap = {
+            ",": sniffedText.count(","),
+            ";": sniffedText.count(";"),
+            ":": sniffedText.count(":"),
+            "\t": sniffedText.count("\t"),
+            "|": sniffedText.count("|")
         }
         actualItemDelimiter = ','
         delimiterCount = itemDelimiterToCountMap[","]
@@ -226,6 +231,7 @@ def delimitedOptions(readable, **keywords):
     if header != DEFAULT_HEADER:
         result[_HEADER] = header
     return result
+
 
 class _ColumnSniffInfo(object):
     def __init__(self, columnIndex, dataFormat):
@@ -295,6 +301,7 @@ class _ColumnSniffInfo(object):
         # TODO: Detect date format.
         result = fields.TextFieldFormat(self.name, isAllowedToBeEmpty, lengthText, "", self.dataFormat)
         return result
+
 
 def createCidRows(readable, **keywords):
     """

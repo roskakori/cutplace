@@ -66,6 +66,7 @@ KEY_SPACE_AROUND_DELIMITER = "blanks around delimiter"
 KEY_DECIMAL_SEPARATOR = "decimal separator"
 KEY_THOUSANDS_SEPARATOR = "thousands separator"
 
+
 def createDataFormat(name):
     """
     Factory function to create the specified data format.
@@ -89,6 +90,7 @@ def createDataFormat(name):
     result = formatClass()
     return result
 
+
 def _isKey(possibleKey, keyToCompareWith):
     """
     True if `possibleKey` and `keyToCompareWith` match, ignoring case and blanks between words.
@@ -97,21 +99,25 @@ def _isKey(possibleKey, keyToCompareWith):
     keyToCompareWithWords = keyToCompareWith.lower().split()
     return possibleKeyWords == keyToCompareWithWords
 
+
 def isFormatKey(key):
     """
     True if `key` matches `KEY_FORMAT`.
     """
     return _isKey(key, KEY_FORMAT)
 
+
 class DataFormatValueError(tools.CutplaceError):
     """
     Error in data caused by violating the data format.
     """
 
+
 class DataFormatSyntaxError(tools.CutplaceError):
     """
     Error in data format declaration.
     """
+
 
 class _BaseDataFormat(object):
     """
@@ -127,9 +133,9 @@ class _BaseDataFormat(object):
         """
         self.requiredKeys = []
         self.optionalKeyValueMap = {
-            KEY_ALLOWED_CHARACTERS:None,
-            KEY_DECIMAL_SEPARATOR:".",
-            KEY_THOUSANDS_SEPARATOR:",",
+            KEY_ALLOWED_CHARACTERS: None,
+            KEY_DECIMAL_SEPARATOR: ".",
+            KEY_THOUSANDS_SEPARATOR: ",",
             KEY_HEADER: 0
         }
         if requiredKeys is not None:
@@ -212,14 +218,14 @@ class _BaseDataFormat(object):
             except ranges.RangeSyntaxError, error:
                 raise DataFormatValueError("value for property %r must be a valid range: %s" % (key, error))
         elif key == KEY_DECIMAL_SEPARATOR:
-            result = self._validatedChoice(key, value, _VALID_DECIMAL_SEPARATORS);
+            result = self._validatedChoice(key, value, _VALID_DECIMAL_SEPARATORS)
             thousandsSeparatorSoFar = self.get(KEY_THOUSANDS_SEPARATOR, False)
             if result == thousandsSeparatorSoFar:
                 self._raiseDecimalThousandsSeparatorClash(KEY_DECIMAL_SEPARATOR, KEY_THOUSANDS_SEPARATOR, result)
         elif key == KEY_HEADER:
             result = self._validatedLong(key, value, 0)
         elif key == KEY_THOUSANDS_SEPARATOR:
-            result = self._validatedChoice(key, value, _VALID_THOUSANDS_SEPARATORS);
+            result = self._validatedChoice(key, value, _VALID_THOUSANDS_SEPARATORS)
             decimalSeparatorSetSoFar = self.get(KEY_DECIMAL_SEPARATOR, False)
             if result == decimalSeparatorSetSoFar:
                 self._raiseDecimalThousandsSeparatorClash(KEY_THOUSANDS_SEPARATOR, KEY_DECIMAL_SEPARATOR, result)
@@ -325,6 +331,7 @@ class _BaseDataFormat(object):
     def __str__(self):
         return "DataFormat(%r, %r)" % (self.name, self.properties)
 
+
 class _BaseTextDataFormat(_BaseDataFormat):
     """
     Base data format that supports an "encoding" and "line delimiter" property.
@@ -355,6 +362,7 @@ class _BaseTextDataFormat(_BaseDataFormat):
             result = super(_BaseTextDataFormat, self).validated(key, value)
         return result
 
+
 class _BaseSpreadsheetDataFormat(_BaseDataFormat):
     """
     Base data format for spreadsheet formats.
@@ -375,6 +383,7 @@ class _BaseSpreadsheetDataFormat(_BaseDataFormat):
 
         return result
 
+
 class DelimitedDataFormat(_BaseTextDataFormat):
     """
     Data format for delimited data such as CSV.
@@ -388,10 +397,9 @@ class DelimitedDataFormat(_BaseTextDataFormat):
                                               FORMAT_DELIMITED,
                                               {KEY_ESCAPE_CHARACTER: None,
                                                KEY_ITEM_DELIMITER: itemDelimiter,
-                                               KEY_QUOTE_CHARACTER:None})
+                                               KEY_QUOTE_CHARACTER: None})
         self.optionalKeyValueMap[KEY_LINE_DELIMITER] = lineDelimiter
         self._log = logging.getLogger("cutplace")
-
 
     def _validatedCharacter(self, key, value):
         r"""
@@ -508,6 +516,7 @@ class DelimitedDataFormat(_BaseTextDataFormat):
 
         return result
 
+
 class CsvDataFormat(DelimitedDataFormat):
     """
     Data format for comma separated values (CSV).
@@ -521,6 +530,7 @@ class CsvDataFormat(DelimitedDataFormat):
         self.optionalKeyValueMap[KEY_ENCODING] = u"ascii"
         self.optionalKeyValueMap[KEY_QUOTE_CHARACTER] = u"\""
         self.optionalKeyValueMap[KEY_ESCAPE_CHARACTER] = u"\""
+
 
 class FixedDataFormat(_BaseTextDataFormat):
     """
@@ -554,12 +564,14 @@ class FixedDataFormat(_BaseTextDataFormat):
         result = value.strip()
         return result
 
+
 class OdsDataFormat(_BaseSpreadsheetDataFormat):
     """
     Data format for ODS as created by OpenOffice.org's Calc.
     """
     def __init__(self):
         super(OdsDataFormat, self).__init__(FORMAT_ODS)
+
 
 class ExcelDataFormat(_BaseSpreadsheetDataFormat):
     """

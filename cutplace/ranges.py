@@ -24,15 +24,18 @@ import tokenize
 import tools
 import _tools
 
+
 class RangeSyntaxError(tools.CutplaceError):
     """
     Error in Range declaration.
     """
 
+
 class RangeValueError(tools.CutplaceError):
     """
     Error raised when ranges.validate() detects that a value is outside the expected ranges.
     """
+
 
 class Range(object):
     """
