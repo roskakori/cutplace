@@ -41,6 +41,7 @@ _SERVER_VERSION = "cutplace/%s" % version.VERSION_NUMBER
 _allowShutDown = False
 _readyToShutDown = False
 
+
 class _HtmlWritingValidationListener(interface.BaseValidationListener):
     """
     `BaseValidationListener` that writes accepted and rejected rows as HTML table.
@@ -84,6 +85,7 @@ class _HtmlWritingValidationListener(interface.BaseValidationListener):
         assert error is not None
         self.checkAtEndFailedCount += 1
         self._writeTextRow("check at end failed: %s" % error)
+
 
 class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
     server_version = _SERVER_VERSION
@@ -173,7 +175,6 @@ Platform: %s</p>
 </body></html>
 """ % (_STYLE, _FOOTER)
 
-
     def do_GET(self):
 
         log = logging.getLogger("cutplace.web")
@@ -219,7 +220,7 @@ Platform: %s</p>
             qs = self.rfile.read(length)
             fileMap = cgi.parse_qs(qs, keep_blank_values=1)
         else:
-            fileMap = {} # Unknown content-type
+            fileMap = {}  # Unknown content-type
 
         if "icd" in fileMap:
             icdContent = fileMap["icd"][0]
@@ -273,7 +274,7 @@ Platform: %s</p>
   <tr><td>Rows rejected:</td><td>%d</td></tr>
   <tr><td>Checks at end failed:</td><td>%d</td></tr>
 </table>
-""" %(htmlListener.acceptedCount, htmlListener.rejectedCount, htmlListener.checkAtEndFailedCount))
+""" % (htmlListener.acceptedCount, htmlListener.rejectedCount, htmlListener.checkAtEndFailedCount))
                             validationHtmlFile.seek(0)
                             buffer = validationHtmlFile.read(Handler._IO_BUFFER_SIZE)
                             while buffer:
@@ -329,6 +330,7 @@ class WaitForServerToBeReadyThread(threading.Thread):
                 time.sleep(self.delayBetweenRetryInSeconds)
                 retries += 1
 
+
 class OpenBrowserThread(WaitForServerToBeReadyThread):
     """Thread to open the cutplace's validation form in the web browser."""
     def run(self):
@@ -346,6 +348,7 @@ class OpenBrowserThread(WaitForServerToBeReadyThread):
                 log.warning("cannot browse site %r: %s" % (self.site, error))
         else:
             log.warning("cannot find server at <%s>, giving up; try to connect manually" % self.site)
+
 
 def main(port=DEFAULT_PORT, isOpenBrowser=False, allowShutDown=False):
     # TODO: Get rid of super ugly global `_allowShutDown`.

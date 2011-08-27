@@ -1,5 +1,8 @@
 """
 Various internal utility functions.
+
+Note: The original source code for `UTF8Recoder`, `UnicodeReader` and `UnicodeWriter` is available
+from the Python documentation.
 """
 # Copyright (C) 2009-2011 Thomas Aglassinger
 #
@@ -27,6 +30,7 @@ import StringIO
 import token
 import tokenize
 import unicodedata
+import optparse
 
 
 # Mapping for value of --log to logging level.
@@ -38,8 +42,7 @@ LogLevelNameToLevelMap = {
     "critical": logging.CRITICAL
 }
 
-# The original source code for UTF8Recoder, UnicodeReader and UnicodeWriter
-# is available from the Python documentation.
+
 class UTF8Recoder:
     """
     Iterator that reads an encoded stream and reencodes the input to UTF-8
@@ -59,6 +62,7 @@ class UTF8Recoder:
             raise CutplaceUnicodeError("cannot decode input: %s" % error, cause=error)
         return result
 
+
 class UnicodeCsvReader:
     """
     A CSV reader which will iterate over lines in the CSV file "f",
@@ -75,6 +79,7 @@ class UnicodeCsvReader:
 
     def __iter__(self):
         return self
+
 
 class UnicodeCsvWriter:
     """
@@ -105,6 +110,15 @@ class UnicodeCsvWriter:
         for row in rows:
             self.writerow(row)
 
+
+class OptionParserWithPreformattedEpilog(optparse.OptionParser):
+    """
+    Similar to ``optparse.OptionParser`` but preserves the formatting of the ``epilog``.
+    """
+    def format_epilog(self, formatter):
+        return self.epilog
+
+
 def valueOr(value, noneValue):
     """
     Value or noneValue in case value is None.
@@ -114,6 +128,7 @@ def valueOr(value, noneValue):
     else:
         result = value
     return result
+
 
 def listdirMatching(folder, pattern, patternToExclude=None):
     """
@@ -132,6 +147,7 @@ def listdirMatching(folder, pattern, patternToExclude=None):
         if regex.match(entry) and not (regexToExclude and regexToExclude.match(entry)):
             yield entry
 
+
 def mkdirs(folder):
     """
     Like ``os.mkdirs()`` but does not raise an `OSError` if ``folder`` already exists.
@@ -144,6 +160,7 @@ def mkdirs(folder):
         if error.errno != errno.EEXIST:
             raise
 
+
 def attemptToRemove(filePath):
     """
     Like ``os.remove()`` but does not raise an `OSError` if ``filePath`` does not exist.
@@ -155,6 +172,7 @@ def attemptToRemove(filePath):
     except OSError, error:
         if error.errno != errno.EEXIST:
             raise
+
 
 def validatedPythonName(name, value):
     """
@@ -181,6 +199,7 @@ def validatedPythonName(name, value):
         raise NameError("%s must be a single word, but after %r there also is %r" % (name, result, secondToken[1]))
     return result
 
+
 def camelized(key, firstIsLower=False):
     """
     Camelized name of possibly multiple words separated by blanks that can be used for variables.
@@ -193,6 +212,7 @@ def camelized(key, firstIsLower=False):
     if firstIsLower and result:
         result = result[0].lower() + result[1:]
     return result
+
 
 def decamelized(name):
     """
@@ -222,6 +242,7 @@ def decamelized(name):
         result = ""
     return result
 
+
 def basedText(longNumber, base, numerals="0123456789abcdefghijklmnopqrstuvwxyz"):
     # Based on code found at:
     # http://stackoverflow.com/questions/2267362/convert-integer-to-a-string-in-a-given-numeric-base-in-python
@@ -232,8 +253,9 @@ def basedText(longNumber, base, numerals="0123456789abcdefghijklmnopqrstuvwxyz")
 
     zero = numerals[0]
     result = ((longNumber == 0) and  zero) \
-        or ( basedText(longNumber // base, base, numerals).lstrip(zero) + numerals[longNumber % base])
+        or (basedText(longNumber // base, base, numerals).lstrip(zero) + numerals[longNumber % base])
     return result
+
 
 def platformVersion():
     macVersion = platform.mac_ver()
@@ -243,8 +265,10 @@ def platformVersion():
         result = platform.platform()
     return result
 
+
 def pythonVersion():
         return platform.python_version()
+
 
 def humanReadableList(items):
     """
@@ -269,6 +293,7 @@ def humanReadableList(items):
     assert result is not None
     return result
 
+
 def tokenizeWithoutSpace(text):
     """
     ``text`` split into token with any white space tokens removed.
@@ -280,6 +305,7 @@ def tokenizeWithoutSpace(text):
         if ((tokyType != token.INDENT) and tokyText.strip()) or (tokyType == token.ENDMARKER):
             yield toky
 
+
 def tokenText(toky):
     assert toky is not None
     tokyType = toky[0]
@@ -290,6 +316,7 @@ def tokenText(toky):
         result = tokyText
     return result
 
+
 def isEofToken(someToken):
     """
     True if `someToken` is a token that represents an "end of file".
@@ -297,12 +324,14 @@ def isEofToken(someToken):
     assert someToken is not None
     return tokenize.ISEOF(someToken[0])
 
+
 def isCommaToken(someToken):
     """
     True if `someToken` is a token that represents a comma (,).
     """
     assert someToken
     return (someToken[0] == token.OP) and (someToken[1] == ",")
+
 
 def withSuffix(path, suffix=""):
     """
@@ -324,6 +353,7 @@ def withSuffix(path, suffix=""):
         result += suffix
     return result
 
+
 def asBytes(text):
     """
     Same as ``text`` but represented as list of integers.
@@ -335,6 +365,7 @@ def asBytes(text):
     """
     assert text is not None
     return [ord(item) for item in text]
+
 
 def isEqualBytes(some, other):
     """
@@ -348,6 +379,7 @@ def isEqualBytes(some, other):
     someBytes = asBytes(some)
     otherBytes = asBytes(other)
     return someBytes == otherBytes
+
 
 def asciified(text):
     """
@@ -365,6 +397,7 @@ def asciified(text):
         else:
             result += ch
     return result
+
 
 def namified(text):
     """

@@ -29,6 +29,7 @@ import zipfile
 
 import _tools
 
+
 class AbstractOdsContentHandler(xml.sax.ContentHandler):
     """
     Sax ContentHandler for content.xml in ODS.
@@ -91,6 +92,7 @@ class AbstractOdsContentHandler(xml.sax.ContentHandler):
         """
         raise NotImplementedError("rowCompleted must be implemented")
 
+
 class OdsToCsvContentHandler(AbstractOdsContentHandler):
     def __init__(self, csvWriter, sheet=1):
         assert csvWriter is not None
@@ -102,6 +104,7 @@ class OdsToCsvContentHandler(AbstractOdsContentHandler):
     def rowCompleted(self):
         self.csvWriter.writerow(self.row)
 
+
 class RowListContentHandler(AbstractOdsContentHandler):
     """
     ContentHandler to collect all rows in a list which can be accessed using the ``rows`` attribute.
@@ -112,6 +115,7 @@ class RowListContentHandler(AbstractOdsContentHandler):
 
     def rowCompleted(self):
         self.rows.append(self.row)
+
 
 class RowProducingContentHandler(AbstractOdsContentHandler):
     """
@@ -125,6 +129,7 @@ class RowProducingContentHandler(AbstractOdsContentHandler):
 
     def rowCompleted(self):
         self.queue.put(self.row)
+
 
 def toCsv(odsFilePath, csvTargetPath, dialect="excel", sheet=1):
     """
@@ -146,6 +151,7 @@ def toCsv(odsFilePath, csvTargetPath, dialect="excel", sheet=1):
             csvTargetFile.close()
     finally:
         contentReadable.close()
+
 
 class ProducerThread(threading.Thread):
     """
@@ -181,6 +187,7 @@ class ProducerThread(threading.Thread):
         if self.error is not None:
             raise self.error
 
+
 def _writeRstRow(rstTargetFile, columnLengths, items):
     assert rstTargetFile is not None
     assert columnLengths
@@ -201,6 +208,7 @@ def _writeRstRow(rstTargetFile, columnLengths, items):
         rstTargetFile.write("+%s%s" % (item, " " * (columnLength - itemLength)))
     rstTargetFile.write("+\n")
 
+
 def _writeRstSeparatorLine(rstTargetFile, columnLengths, lineSeparator):
     assert rstTargetFile is not None
     assert columnLengths
@@ -211,6 +219,7 @@ def _writeRstSeparatorLine(rstTargetFile, columnLengths, lineSeparator):
         if columnLength > 0:
             rstTargetFile.write(lineSeparator * columnLength)
     rstTargetFile.write("+\n")
+
 
 def odsContent(odsSourceFilePath):
     """
@@ -227,6 +236,7 @@ def odsContent(odsSourceFilePath):
         zipArchive.close()
 
     return result
+
 
 def toRst(odsFilePath, rstTargetPath, firstRowIsHeading=True, sheet=1):
     """
@@ -277,6 +287,7 @@ def toRst(odsFilePath, rstTargetPath, firstRowIsHeading=True, sheet=1):
     finally:
         rstTargetFile.close()
 
+
 def _isEmptyRow(row):
     """
     True if row has no items or all items in row are "".
@@ -289,6 +300,7 @@ def _isEmptyRow(row):
         else:
             itemIndex += 1
     return result
+
 
 def toDocBookXml(odsFilePath, xmlTargetPath, id, title, sheet=1):
     """
@@ -357,6 +369,8 @@ def toDocBookXml(odsFilePath, xmlTargetPath, id, title, sheet=1):
 
 # FIXME: The handlers for the various formats should support items spawning multiple columns.
 # FIXME: Add support for items spawning multiple rows.
+
+
 def main(arguments):
     assert arguments is not None
 
@@ -406,7 +420,7 @@ def main(arguments):
                 toDocBookXml(sourceFilePath, targetFilePath, id=options.id, title=options.title, sheet=options.sheet)
             elif options.format == _FORMAT_RST:
                 toRst(sourceFilePath, targetFilePath, firstRowIsHeading=options.firstRowIsHeading, sheet=options.sheet)
-            else: # pragma: no cover
+            else:  # pragma: no cover
                 raise NotImplementedError("format=%r" % (options.format))
         except EnvironmentError, error:
             logging.getLogger("cutplace.ods").error("cannot convert ods to csv: %s" % error)
@@ -418,7 +432,7 @@ def main(arguments):
         log.error("ODS-FILE must be specified")
         sys.exit(1)
 
-if __name__ == '__main__': # pragma: no cover
+if __name__ == '__main__':  # pragma: no cover
     logging.basicConfig()
     logging.getLogger("cutplace.ods").setLevel(logging.INFO)
     main(sys.argv[1:])

@@ -33,10 +33,12 @@ LF = "\n"
 CRLF = CR + LF
 _VALID_LINE_DELIMITERS = [AUTO, CR, CRLF, LF]
 
+
 class CutplaceXlrdImportError(tools.CutplaceError):
     """
     Error raised if xlrd package to read Excel can not be imported.
     """
+
 
 def delimitedReader(readable, dialect, encoding="ascii"):
     """Generator yielding the "readable" row by row using "dialect"."""
@@ -54,6 +56,7 @@ def delimitedReader(readable, dialect, encoding="ascii"):
             columns = []
         parser.advance()
 
+
 def fixedReader(readable, fieldLengths):
     """Generator yielding the "readable" row by row using "fieldLengths"."""
     assert readable is not None
@@ -69,6 +72,7 @@ def fixedReader(readable, fieldLengths):
             yield columns
             columns = []
         parser.advance()
+
 
 def _excelCellValue(cell, datemode):
     """
@@ -97,7 +101,7 @@ def _excelCellValue(cell, datemode):
         else:
             result = unicode(str(datetime.datetime(*cellTuple)), "ascii")
     elif cell.ctype == xlrd.XL_CELL_ERROR:
-        defaultErrorText = xlrd.error_text_from_code[0x2a] # same as "#N/A!"
+        defaultErrorText = xlrd.error_text_from_code[0x2a]  # same as "#N/A!"
         errorCode = cell.value
         result = unicode(xlrd.error_text_from_code.get(errorCode, defaultErrorText), "ascii")
     elif isinstance(cell.value, unicode):
@@ -108,6 +112,7 @@ def _excelCellValue(cell, datemode):
             result = result[: - 2]
 
     return result
+
 
 def excelReader(readable, sheetIndex=1):
     """
@@ -133,6 +138,7 @@ def excelReader(readable, sheetIndex=1):
             row.append(_excelCellValue(sheet.cell(y, x), datemode))
         yield row
 
+
 def odsReader(readable, sheetIndex=1):
     """
     Generator yielding the Open Document spreadsheet stored in `readable`.
@@ -156,6 +162,7 @@ def odsReader(readable, sheetIndex=1):
     finally:
         contentXmlReadable.close()
     producer.join()
+
 
 class DelimitedDialect(object):
     def __init__(self, lineDelimiter=AUTO, itemDelimiter=AUTO):
@@ -186,6 +193,7 @@ class DelimitedDialect(object):
 
         return result
 
+
 class ParserSyntaxError(tools.CutplaceError):
     """
     Syntax error detected while parsing the data.
@@ -212,6 +220,7 @@ class ParserSyntaxError(tools.CutplaceError):
             result += "@%d" % (self.itemNumberInLine + 1)
         result += "): %s" % self.message
         return result
+
 
 class _DelimitedParser(object):
     """Parser for data where items are separated by delimiters."""
@@ -287,6 +296,7 @@ class _DelimitedParser(object):
             self.item = None
             self.atEndOfFile = True
         self._log.debug("(%d:%d) %r [%d;%d]", self.lineNumber, self.itemNumber, self.item, self.atEndOfLine, self.atEndOfFile)
+
 
 class _FixedParser(object):
     def __init__(self, readable, fieldLengths):

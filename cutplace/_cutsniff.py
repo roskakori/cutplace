@@ -18,7 +18,7 @@ derived from sample data.
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import logging
-import optparse
+import os.path
 import sys
 
 import data
@@ -28,19 +28,27 @@ import _tools
 
 _log = logging.getLogger("cutplace.cutsniff")
 
+
 def main(argv=None):
+    """
+    Main routine that might raise errors but won't ``sys.exit()`` unless ``argv`` is broken.
+    Before calling this, module ``logging`` has to be set up properly. For example, by calling
+    ``logging.basicConfig()``.
+    """
     if argv is None:
         argv = sys.argv
-
-    usage = """usage: %prog [options] ICDFILE DATAFILE
-Write interface control document to ICDFILE describing the data found in
-DATAFILE. The resulting ICD is stored in CSV format.
-
+    assert argv
+    programName = os.path.basename(argv[0])
+    usage = """usage: %s [options] ICDFILE DATAFILE
+  Write interface control document to ICDFILE describing the data found in
+  DATAFILE. The resulting ICD is stored in CSV format.""" % programName
+    epilog = """
 Example:
-%prog --data-format=delimited --data-encoding iso-8859-15 icd_customers.csv some_customers.csv
-   Analyze data file some_customers.csv assuming ISO-8859-15 as character
-   encoding and store the resulting ICD in icd_customers.csv"""
-    parser = optparse.OptionParser(usage=usage, version="%prog " + version.VERSION_TAG)
+  %s --data-format=delimited --data-encoding iso-8859-15 icd_customers.csv some_customers.csv
+    Analyze data file some_customers.csv assuming ISO-8859-15 as character
+    encoding and store the resulting ICD in icd_customers.csv
+""" % programName
+    parser = _tools.OptionParserWithPreformattedEpilog(usage=usage, epilog=epilog, version="%prog " + version.VERSION_TAG)
     parser.add_option("-d", "--icd-delimiter", default=',', metavar="DELIMITER", type="choice",
         choices=(",", ";"), dest="icdDelimiter",
         help="delimiter to separate rows in ICDFILE (default: %default)")
@@ -92,6 +100,10 @@ Example:
         _log.exception(error)
     return exitCode
 
-if __name__ == "__main__":
+
+def mainForScript():
     logging.basicConfig(level=logging.INFO)
     sys.exit(main())
+
+if __name__ == "__main__":
+    mainForScript()
