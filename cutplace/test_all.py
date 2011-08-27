@@ -46,6 +46,7 @@ import _parsers
 import _tools
 import _web
 
+
 def createTestSuite():
     """
     TestSuite including all unit tests and doctests found in the source code.
@@ -86,10 +87,17 @@ def createTestSuite():
 
     return result
 
-def main():
+
+def main(argv=None):
     """
     Run all tests.
     """
+    if argv is None:
+        argv = sys.argv
+    assert argv
+
+    result = 1
+
     testCount = 0
     errorCount = 0
     failureCount = 0
@@ -100,10 +108,11 @@ def main():
     failureCount += len(testResults.failures)
     errorCount += len(testResults.errors)
     print "test_all: ran %d tests with %d failures and %d errors" % (testCount, failureCount, errorCount)
-    if (errorCount + failureCount) > 0:
-        sys.exit(1)
+    if (errorCount + failureCount) == 0:
+        result = 0
+    return result
 
-if __name__ == '__main__': # pragma: no cover
+if __name__ == '__main__':  # pragma: no cover
     logging.basicConfig()
     logging.getLogger("cutplace").setLevel(logging.WARNING)
-    main()
+    sys.exit(main())

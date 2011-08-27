@@ -34,9 +34,13 @@ import _web
 DEFAULT_ICD_ENCODING = "ascii"
 DESCRIPTION = "validate data stored in CSV, PRN, ODS or Excel files"
 
+_log = logging.getLogger("cutplace")
+
+
 def _openForWriteUsingUtf8(targetPath):
     assert targetPath is not None
     return codecs.open(targetPath, encoding="utf-8", mode="w")
+
 
 class _ExitQuietlyOptionError(optparse.OptionError):
     """
@@ -44,6 +48,7 @@ class _ExitQuietlyOptionError(optparse.OptionError):
     was specified.
     """
     pass
+
 
 class _NoExitOptionParser(optparse.OptionParser):
     def exit(self, status=0, msg=None):
@@ -55,11 +60,12 @@ class _NoExitOptionParser(optparse.OptionParser):
     def error(self, msg):
         raise optparse.OptionError(msg, "")
 
-    def print_version(self, file=None):
+    def print_version(self, targetFile=None):
         # No super() due to old style class.
-        optparse.OptionParser.print_version(self, file)
+        optparse.OptionParser.print_version(self, targetFile)
         if self.version:
-            print >> file, "Python %s, %s" % (_tools.pythonVersion(), _tools.platformVersion())
+            print >> targetFile, "Python %s, %s" % (_tools.pythonVersion(), _tools.platformVersion())
+
 
 class CutplaceValidationListener(interface.BaseValidationListener):
     """
@@ -102,6 +108,7 @@ class CutplaceValidationListener(interface.BaseValidationListener):
         else:
             # Write to a text file.
             self.rejectedFile.write("%s%s" % (errorText, os.linesep))
+
 
 class CutPlace(object):
     """
@@ -149,7 +156,7 @@ class CutPlace(object):
         loggingGroup.add_option("-t", "--trace", action="store_true", dest="isLogTrace", help="include Python stack in error messages related to data")
         parser.add_option_group(loggingGroup)
 
-        (self.options, others) = parser.parse_args(argv)
+        (self.options, others) = parser.parse_args(argv[1:])
 
         self._log.setLevel(_tools.LogLevelNameToLevelMap[self.options.logLevel])
         self.icdEncoding = self.options.icdEncoding
@@ -242,18 +249,25 @@ class CutPlace(object):
             fileName = os.path.basename(filePath)
             yield os.path.splitext(fileName)[0]
 
-def main(options):
-    """
-    Main routine that might raise errors but won't ``sys.exit()``.
 
-    ``options`` is string array containing the command line options to process, for example
-    ``sys.argv[1:]``.
+def process(argv=None):
     """
-    logging.basicConfig()
-    logging.getLogger("cutplace").setLevel(logging.INFO)
+    Do whatever the command line options ``argv`` request. In case of error, raise an appropriate
+    ``Exception``.
 
+    Return 0 unless ``argv`` requested to validate one or more files and at least one of them
+    contained rejected data. In this case, the result is 1.
+
+    Before calling this, module ``logging`` has to be set up properly. For example, by calling
+    ``logging.basicConfig()``.
+    """
+    if argv is None:
+        argv = sys.argv
+    assert argv
+
+    result = 0
     cutPlace = CutPlace()
-    cutPlace.setOptions(options)
+    cutPlace.setOptions(argv)
     if cutPlace.isShowEncodings:
         cutPlace._printAvailableEncodings()
     elif cutPlace.isWebServer:
@@ -268,40 +282,49 @@ def main(options):
             except EnvironmentError, error:
                 raise EnvironmentError("cannot read data file %r: %s" % (path, error))
         if not allValidationsOk:
-            sys.exit(1)
+            result = 1
+    return result
 
-def _exitWithError(exitCode, error):
-    """
-    Print ``error`` and ``sys.exit()`` with ``exitCode``.
-    """
-    assert exitCode is not None
-    assert exitCode > 0
-    assert error is not None
 
-    sys.stderr.write("%s%s" % (error, os.linesep))
-    sys.exit(exitCode)
+def main(argv=None):
+    """
+    Main routine that might raise errors but won't ``sys.exit()`` unless ``argv`` is broken.
+
+    Before calling this, module ``logging`` has to be set up properly. For example, by calling
+    ``logging.basicConfig()``.
+    """
+    if argv is None:
+        argv = sys.argv
+    assert argv
+
+    result = 1
+    try:
+        result = process(argv)
+    except EnvironmentError, error:
+        result = 3
+        _log.error(u"%s", error)
+    except tools.CutplaceUnicodeError, error:
+        _log.error(u"%s", error)
+    except tools.CutplaceError, error:
+        _log.error(u"cannot process Excel format: %s", error)
+    except _ExitQuietlyOptionError:
+        # Raised by '--help', '--version', etc., so simply do nothing.
+        pass
+    except optparse.OptionError, error:
+        result = 2
+        _log.error(u"cannot process command line options: %s", error)
+    except Exception, error:
+        result = 4
+        _log.exception(u"cannot handle unexpected error: %s", error)
+    return result
+
 
 def mainForScript():
     """
     Main routine that reports errors in options to ``sys.stderr`` and does ``sys.exit()``.
     """
-    try:
-        main(sys.argv[1:])
-    except EnvironmentError, error:
-        _exitWithError(3, error)
-    except tools.CutplaceUnicodeError, error:
-        _exitWithError(1, error)
-    except tools.CutplaceError, error:
-        _exitWithError(1, "cannot process Excel format: %s" % error)
-    except optparse.OptionError, error:
-        if not isinstance(error, _ExitQuietlyOptionError):
-            _exitWithError(2, "cannot process command line options: %s" % error)
-    except optparse.OptionError, error:
-        if not isinstance(error, _ExitQuietlyOptionError):
-            _exitWithError(2, "cannot process command line options: %s" % error)
-    except Exception, error:
-        traceback.print_exc()
-        _exitWithError(4, "cannot handle unexpected error: %s" % error)
+    logging.basicConfig(level=logging.INFO)
+    sys.exit(main())
 
 if __name__ == '__main__':
     mainForScript()

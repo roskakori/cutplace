@@ -160,7 +160,7 @@ setup(
       entry_points={
         "console_scripts": [
             "cutplace = cutplace._cutplace:mainForScript",
-            "cutsniff = cutplace._cutsniff:main"
+            "cutsniff = cutplace._cutsniff:mainForScript"
         ]
       },
       license="GNU Lesser General Public License 3 or later",
