@@ -75,10 +75,10 @@ class Range(object):
                 upper = None
                 colonFound = False
                 afterHyphen = False
-                next = tokens.next()
-                while not _tools.isEofToken(next) and not _tools.isCommaToken(next):
-                    nextType = next[0]
-                    nextValue = next[1]
+                nextToken = tokens.next()
+                while not _tools.isEofToken(nextToken) and not _tools.isCommaToken(nextToken):
+                    nextType = nextToken[0]
+                    nextValue = nextToken[1]
                     if nextType in (token.NAME, token.NUMBER, token.STRING):
                         if nextType == token.NUMBER:
                             try:
@@ -127,7 +127,7 @@ class Range(object):
                     else:
                         message = "range must be specified using integer numbers, text, symbols and colon (:) but found: %r [token type: %r]" % (nextValue, nextType)
                         raise RangeSyntaxError(message)
-                    next = tokens.next()
+                    nextToken = tokens.next()
                 if afterHyphen:
                     raise RangeSyntaxError("hyphen (-) at end must be followed by number")
 
@@ -160,7 +160,7 @@ class Range(object):
                             raise RangeSyntaxError("range items must not overlap: %r and %r"
                                                    % (self._repr_item(item), self._repr_item(result)))
                     self._items.append(result)
-                if _tools.isEofToken(next):
+                if _tools.isEofToken(nextToken):
                     endReached = True
 
     @property

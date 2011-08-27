@@ -127,25 +127,25 @@ class InterfaceControlDocument(object):
         self.failedChecksAtEndCount = 0
         self.passedChecksAtEndCount = 0
 
-    def _createClass(self, defaultModuleName, type, classNameAppendix, typeName):
+    def _createClass(self, defaultModuleName, classQualifier, classNameAppendix, typeName):
         assert defaultModuleName
-        assert type
+        assert classQualifier
         assert classNameAppendix
         assert typeName
 
         # FIXME: Remove check for "fields." and provide a proper test case in testFieldTypeWithModule
         # using a "real" module.
-        if type.startswith("fields."):
-            type = type[7:]
-        lastDotIndex = type.rfind(".")
+        if classQualifier.startswith("fields."):
+            classQualifier = classQualifier[7:]
+        lastDotIndex = classQualifier.rfind(".")
         if (lastDotIndex >= 0):
             # FIXME: Detect and report errors for  cases ".class" and "module.".
-            moduleName = type[0:lastDotIndex]
-            className = type[lastDotIndex + 1:]
+            moduleName = classQualifier[0:lastDotIndex]
+            className = classQualifier[lastDotIndex + 1:]
             module = __import__(moduleName)
         else:
             moduleName = defaultModuleName
-            className = type
+            className = classQualifier
             try:
                 module = sys.modules[moduleName]
             except KeyError:
@@ -161,7 +161,7 @@ class InterfaceControlDocument(object):
         try:
             result = getattr(module, className)
         except AttributeError:
-            raise fields.FieldSyntaxError("cannot find %s: %s" % (typeName, str(type)), self._location)
+            raise fields.FieldSyntaxError("cannot find %s: %s" % (typeName, str(classQualifier)), self._location)
         return result
 
     def _createFieldFormatClass(self, fieldType):

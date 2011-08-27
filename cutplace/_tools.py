@@ -185,9 +185,9 @@ def validatedPythonName(name, value):
 
     readable = StringIO.StringIO(value.strip())
     toky = tokenize.generate_tokens(readable.readline)
-    next = toky.next()
-    nextType = next[0]
-    result = next[1]
+    nextToken = toky.next()
+    nextType = nextToken[0]
+    result = nextToken[1]
     if tokenize.ISEOF(nextType):
         raise NameError("%s must not be empty but was: %r" % (name, value))
     if nextType != token.NAME:

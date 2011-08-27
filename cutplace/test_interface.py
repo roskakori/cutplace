@@ -91,17 +91,17 @@ C,distinct branches must be within limit,DistinctCount,branch_id <= 3
     return result
 
 
-def createDefaultTestIcd(format, lineDelimiter="\n"):
-    assert format in [data.FORMAT_CSV, data.FORMAT_EXCEL, data.FORMAT_ODS], "format=%r" % format
+def createDefaultTestIcd(dataFormatName, lineDelimiter="\n"):
+    assert dataFormatName in [data.FORMAT_CSV, data.FORMAT_EXCEL, data.FORMAT_ODS], "dataFormatName=%r" % dataFormatName
     assert lineDelimiter
 
     spec = u""","Interface: customer"
 ,
-,"Data format"
+,"Data dataFormatName"
 ,
 "D","Format","%s",
-""" % format
-    if format.lower() == data.FORMAT_CSV:
+""" % dataFormatName
+    if dataFormatName.lower() == data.FORMAT_CSV:
         spec += u""""D","Line delimiter","LF"
 "D","Item delimiter",44
 "D","Encoding","ISO-8859-1"

@@ -29,104 +29,104 @@ class DataFormatTest(unittest.TestCase):
 
     def testCreateDataFormat(self):
         for formatName in [data.FORMAT_CSV, data.FORMAT_DELIMITED, data.FORMAT_FIXED, data.FORMAT_ODS]:
-            format = data.createDataFormat(formatName)
-            self.assertTrue(format)
-            self.assertTrue(format.__str__())
-        self.assertRaises(data.DataFormatSyntaxError, data.createDataFormat, "no-such-format")
+            dataFormat = data.createDataFormat(formatName)
+            self.assertTrue(dataFormat)
+            self.assertTrue(dataFormat.__str__())
+        self.assertRaises(data.DataFormatSyntaxError, data.createDataFormat, "no-such-data-format")
 
     def testCsvDataFormat(self):
-        format = data.CsvDataFormat()
-        self.assertTrue(format.name)
-        self.assertEqual(format.encoding, "ascii")
+        dataFormat = data.CsvDataFormat()
+        self.assertTrue(dataFormat.name)
+        self.assertEqual(dataFormat.encoding, "ascii")
 
-        format.encoding = DataFormatTest._TEST_ENCODING
-        self.assertEqual(format.encoding, DataFormatTest._TEST_ENCODING)
+        dataFormat.encoding = DataFormatTest._TEST_ENCODING
+        self.assertEqual(dataFormat.encoding, DataFormatTest._TEST_ENCODING)
 
-        self.assertEqual(format.get(data.KEY_LINE_DELIMITER), data.ANY)
-        self.assertEqual(format.get(data.KEY_ITEM_DELIMITER), data.ANY)
-        self.assertEqual(format.get(data.KEY_QUOTE_CHARACTER), "\"")
-        self.assertEqual(format.get(data.KEY_ESCAPE_CHARACTER), "\"")
-        format.validateAllRequiredPropertiesHaveBeenSet()
+        self.assertEqual(dataFormat.get(data.KEY_LINE_DELIMITER), data.ANY)
+        self.assertEqual(dataFormat.get(data.KEY_ITEM_DELIMITER), data.ANY)
+        self.assertEqual(dataFormat.get(data.KEY_QUOTE_CHARACTER), "\"")
+        self.assertEqual(dataFormat.get(data.KEY_ESCAPE_CHARACTER), "\"")
+        dataFormat.validateAllRequiredPropertiesHaveBeenSet()
 
     def testDelimitedDataFormat(self):
-        format = data.DelimitedDataFormat()
-        self.assertTrue(format.name)
-        self.assertRaises(data.DataFormatSyntaxError, format.validateAllRequiredPropertiesHaveBeenSet)
+        dataFormat = data.DelimitedDataFormat()
+        self.assertTrue(dataFormat.name)
+        self.assertRaises(data.DataFormatSyntaxError, dataFormat.validateAllRequiredPropertiesHaveBeenSet)
 
         formatWithCr = data.DelimitedDataFormat()
         formatWithCr.set(data.KEY_LINE_DELIMITER, data.CR)
         self.assertEqual(formatWithCr.get(data.KEY_LINE_DELIMITER), "\r")
 
     def testOdsDataFormat(self):
-        format = data.OdsDataFormat()
-        self.assertTrue(format.name)
-        format.validateAllRequiredPropertiesHaveBeenSet()
-        format.set(data.KEY_ALLOWED_CHARACTERS, "32:")
-        self.assertRaises(data.DataFormatSyntaxError, format.set, data.KEY_ENCODING, DataFormatTest._TEST_ENCODING)
+        dataFormat = data.OdsDataFormat()
+        self.assertTrue(dataFormat.name)
+        dataFormat.validateAllRequiredPropertiesHaveBeenSet()
+        dataFormat.set(data.KEY_ALLOWED_CHARACTERS, "32:")
+        self.assertRaises(data.DataFormatSyntaxError, dataFormat.set, data.KEY_ENCODING, DataFormatTest._TEST_ENCODING)
 
     def testHeader(self):
-        format = data.CsvDataFormat()
-        self.assertEquals(0, format.get(data.KEY_HEADER))
-        format.set(data.KEY_HEADER, 17)
-        newHeader = format.get(data.KEY_HEADER)
+        dataFormat = data.CsvDataFormat()
+        self.assertEquals(0, dataFormat.get(data.KEY_HEADER))
+        dataFormat.set(data.KEY_HEADER, 17)
+        newHeader = dataFormat.get(data.KEY_HEADER)
         self.assertEquals(17, newHeader)
 
     def testDecimalAndThousandsSeparator(self):
-        format = data.CsvDataFormat()
-        self.assertEquals(".", format.get(data.KEY_DECIMAL_SEPARATOR))
-        self.assertEquals(",", format.get(data.KEY_THOUSANDS_SEPARATOR))
-        format.set(data.KEY_DECIMAL_SEPARATOR, ",")
-        self.assertEquals(",", format.get(data.KEY_DECIMAL_SEPARATOR))
-        format.set(data.KEY_THOUSANDS_SEPARATOR, ".")
-        self.assertEquals(".", format.get(data.KEY_THOUSANDS_SEPARATOR))
+        dataFormat = data.CsvDataFormat()
+        self.assertEquals(".", dataFormat.get(data.KEY_DECIMAL_SEPARATOR))
+        self.assertEquals(",", dataFormat.get(data.KEY_THOUSANDS_SEPARATOR))
+        dataFormat.set(data.KEY_DECIMAL_SEPARATOR, ",")
+        self.assertEquals(",", dataFormat.get(data.KEY_DECIMAL_SEPARATOR))
+        dataFormat.set(data.KEY_THOUSANDS_SEPARATOR, ".")
+        self.assertEquals(".", dataFormat.get(data.KEY_THOUSANDS_SEPARATOR))
 
     def testTransitionallySameDecimalSeparator(self):
-        format = data.CsvDataFormat()
-        thousandsSeparator = format.get(data.KEY_THOUSANDS_SEPARATOR)
-        format.set(data.KEY_DECIMAL_SEPARATOR, thousandsSeparator)
+        dataFormat = data.CsvDataFormat()
+        thousandsSeparator = dataFormat.get(data.KEY_THOUSANDS_SEPARATOR)
+        dataFormat.set(data.KEY_DECIMAL_SEPARATOR, thousandsSeparator)
 
     def testTransitionallySameThousandsSeparator(self):
-        format = data.CsvDataFormat()
-        decimalSeparator = format.get(data.KEY_DECIMAL_SEPARATOR)
-        format.set(data.KEY_THOUSANDS_SEPARATOR, decimalSeparator)
+        dataFormat = data.CsvDataFormat()
+        decimalSeparator = dataFormat.get(data.KEY_DECIMAL_SEPARATOR)
+        dataFormat.set(data.KEY_THOUSANDS_SEPARATOR, decimalSeparator)
 
     def testBrokenEncoding(self):
-        format = data.CsvDataFormat()
-        self.assertRaises(data.DataFormatValueError, format.set, data.KEY_ENCODING, "broken-encoding")
+        dataFormat = data.CsvDataFormat()
+        self.assertRaises(data.DataFormatValueError, dataFormat.set, data.KEY_ENCODING, "broken-encoding")
 
     def testBrokenLineDelimiter(self):
-        format = data.CsvDataFormat()
-        self.assertRaises(data.DataFormatValueError, format.set, data.KEY_LINE_DELIMITER, "broken-line-delimiter")
+        dataFormat = data.CsvDataFormat()
+        self.assertRaises(data.DataFormatValueError, dataFormat.set, data.KEY_LINE_DELIMITER, "broken-line-delimiter")
 
     def testBrokenEscapeCharacter(self):
-        format = data.CsvDataFormat()
-        self.assertRaises(data.DataFormatValueError, format.set, data.KEY_ESCAPE_CHARACTER, "broken-escape-character")
+        dataFormat = data.CsvDataFormat()
+        self.assertRaises(data.DataFormatValueError, dataFormat.set, data.KEY_ESCAPE_CHARACTER, "broken-escape-character")
 
     def testBrokenQuoteCharacter(self):
-        format = data.CsvDataFormat()
-        self.assertRaises(data.DataFormatValueError, format.set, data.KEY_QUOTE_CHARACTER, "broken-quote-character")
+        dataFormat = data.CsvDataFormat()
+        self.assertRaises(data.DataFormatValueError, dataFormat.set, data.KEY_QUOTE_CHARACTER, "broken-quote-character")
 
     def testBrokenDecimalSeparator(self):
-        format = data.CsvDataFormat()
-        self.assertRaises(data.DataFormatValueError, format.set, data.KEY_DECIMAL_SEPARATOR, "broken-decimal-separator")
+        dataFormat = data.CsvDataFormat()
+        self.assertRaises(data.DataFormatValueError, dataFormat.set, data.KEY_DECIMAL_SEPARATOR, "broken-decimal-separator")
 
         # Attempt to set decimal separator to the same value as thousands separator.
-        thousandsSeparator = format.get(data.KEY_THOUSANDS_SEPARATOR)
-        format.set(data.KEY_THOUSANDS_SEPARATOR, thousandsSeparator)
-        self.assertRaises(data.DataFormatValueError, format.set, data.KEY_DECIMAL_SEPARATOR, thousandsSeparator)
+        thousandsSeparator = dataFormat.get(data.KEY_THOUSANDS_SEPARATOR)
+        dataFormat.set(data.KEY_THOUSANDS_SEPARATOR, thousandsSeparator)
+        self.assertRaises(data.DataFormatValueError, dataFormat.set, data.KEY_DECIMAL_SEPARATOR, thousandsSeparator)
 
     def testBrokenThousandsSeparator(self):
-        format = data.CsvDataFormat()
-        self.assertRaises(data.DataFormatValueError, format.set, data.KEY_THOUSANDS_SEPARATOR, "broken-thousands-separator")
+        dataFormat = data.CsvDataFormat()
+        self.assertRaises(data.DataFormatValueError, dataFormat.set, data.KEY_THOUSANDS_SEPARATOR, "broken-thousands-separator")
 
         # Attempt to set thousands separator to the same value as decimal separator.
-        decimalSeparator = format.get(data.KEY_DECIMAL_SEPARATOR)
-        format.set(data.KEY_DECIMAL_SEPARATOR, decimalSeparator)
-        self.assertRaises(data.DataFormatValueError, format.set, data.KEY_THOUSANDS_SEPARATOR, decimalSeparator)
+        decimalSeparator = dataFormat.get(data.KEY_DECIMAL_SEPARATOR)
+        dataFormat.set(data.KEY_DECIMAL_SEPARATOR, decimalSeparator)
+        self.assertRaises(data.DataFormatValueError, dataFormat.set, data.KEY_THOUSANDS_SEPARATOR, decimalSeparator)
 
     def testBrokenPropertyName(self):
-        format = data.CsvDataFormat()
-        self.assertRaises(data.DataFormatSyntaxError, format.set, "broken-property-name", "")
+        dataFormat = data.CsvDataFormat()
+        self.assertRaises(data.DataFormatSyntaxError, dataFormat.set, "broken-property-name", "")
 
 
 if __name__ == '__main__':

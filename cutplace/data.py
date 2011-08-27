@@ -460,11 +460,11 @@ class DelimitedDataFormat(_BaseTextDataFormat):
         else:
             result = None
             tokens = tokenize.generate_tokens(StringIO.StringIO(value).readline)
-            next = tokens.next()
-            if _tools.isEofToken(next):
+            nextToken = tokens.next()
+            if _tools.isEofToken(nextToken):
                 raise DataFormatSyntaxError("value for data format property %r must be specified" % key)
-            nextType = next[0]
-            nextValue = next[1]
+            nextType = nextToken[0]
+            nextValue = nextToken[1]
             if nextType == token.NUMBER:
                 try:
                     if nextValue[:2].lower() == "0x":
@@ -492,8 +492,8 @@ class DelimitedDataFormat(_BaseTextDataFormat):
             else:
                 raise DataFormatSyntaxError("value for data format property %r must a number, a single character or a symbolic name but is: %r" % (key, value))
             # Ensure there are no further tokens.
-            next = tokens.next()
-            if not _tools.isEofToken(next):
+            nextToken = tokens.next()
+            if not _tools.isEofToken(nextToken):
                 raise DataFormatSyntaxError("value for data format property %r must describe a single character but is: %r" % (key, value))
 
             assert longValue is not None

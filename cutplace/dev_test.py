@@ -52,9 +52,9 @@ def randomDatetime(startText="1900-01-01 00:00:00", endText="2009-03-15 23:59:59
     return (start + timedelta(seconds=random_second))
 
 
-def createTestDateTime(format="%Y-%m-%d %H:%M:%S"):
+def createTestDateTime(timeFormat="%Y-%m-%d %H:%M:%S"):
     somewhen = randomDatetime()
-    return somewhen.strftime(format)
+    return somewhen.strftime(timeFormat)
 
 
 def createTestFirstName(isMale=True):

@@ -276,10 +276,10 @@ Platform: %s</p>
 </table>
 """ % (htmlListener.acceptedCount, htmlListener.rejectedCount, htmlListener.checkAtEndFailedCount))
                             validationHtmlFile.seek(0)
-                            buffer = validationHtmlFile.read(Handler._IO_BUFFER_SIZE)
-                            while buffer:
-                                self.wfile.write(buffer)
-                                buffer = validationHtmlFile.read(Handler._IO_BUFFER_SIZE)
+                            htmlFileBuffer = validationHtmlFile.read(Handler._IO_BUFFER_SIZE)
+                            while htmlFileBuffer:
+                                self.wfile.write(htmlFileBuffer)
+                                htmlFileBuffer = validationHtmlFile.read(Handler._IO_BUFFER_SIZE)
                             self.wfile.write(Handler._FOOTER)
                         except:
                             self.send_error(400, "cannot validate data: %s" % cgi.escape(str(sys.exc_info()[1])))

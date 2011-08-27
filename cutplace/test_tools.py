@@ -106,9 +106,9 @@ class ToolsTest(unittest.TestCase):
         location.advanceCell(17)
         self.assertEqual(str(location), "eggs.ods (Sheet2!R2C18)")
 
-        # Test StringIO input
-        input = StringIO.StringIO("hugo was here")
-        location = tools.InputLocation(input)
+        # Test StringIO input.
+        inputStream = StringIO.StringIO("hugo was here")
+        location = tools.InputLocation(inputStream)
         self.assertEqual(str(location), "<io> (1)")
 
     def testCanAsciifyText(self):

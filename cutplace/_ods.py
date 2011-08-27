@@ -302,13 +302,13 @@ def _isEmptyRow(row):
     return result
 
 
-def toDocBookXml(odsFilePath, xmlTargetPath, id, title, sheet=1):
+def toDocBookXml(odsFilePath, xmlTargetPath, xmlId, title, sheet=1):
     """
     Convert ODS file in `odsFilePath` to DocBook XML and store the result in `xmlTargetPath`.
     """
     assert odsFilePath is not None
     assert xmlTargetPath is not None
-    assert id is not None
+    assert xmlId is not None
     assert title is not None
 
     # Convert ODS to row list.
@@ -338,8 +338,8 @@ def toDocBookXml(odsFilePath, xmlTargetPath, id, title, sheet=1):
     docType = xml.dom.minidom.getDOMImplementation().createDocumentType("table", "-//OASIS//DTD DocBook XML V4.5//EN", "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd")
     dom.appendChild(docType)
     table = dom.createElement("table")
-    # TODO: Validate that `id` is valid.
-    table.setAttribute("id", id)
+    # TODO: Validate that `xmlId` is valid.
+    table.setAttribute("xmlId", xmlId)
     dom.appendChild(table)
     titleElement = dom.createElement("title")
     # TODO: Add option to specify table title.
@@ -417,7 +417,7 @@ def main(arguments):
             elif options.format == _FORMAT_DOCBOOK:
                 # FIXME: Add support for --heading with DocBook.
                 assert not options.firstRowIsHeading
-                toDocBookXml(sourceFilePath, targetFilePath, id=options.id, title=options.title, sheet=options.sheet)
+                toDocBookXml(sourceFilePath, targetFilePath, xmlId=options.id, title=options.title, sheet=options.sheet)
             elif options.format == _FORMAT_RST:
                 toRst(sourceFilePath, targetFilePath, firstRowIsHeading=options.firstRowIsHeading, sheet=options.sheet)
             else:  # pragma: no cover
