@@ -133,11 +133,22 @@
 	</target>
 
 	<target name="reports" depends="sitebase, testdata">
-        <!-- <exec executable="python" error="build-stderr.txt"> -->
-        <exec executable="python">
-            <!-- FIXME: Use platform independent path. -->
-            <arg value="cutplace/dev_reports.py" />
-            <arg value="${reports.dir}" />
+		<exec executable="python" failonerror="true">
+			<arg file="cutplace/dev_reports.py" />
+			<arg value="${reports.dir}" />
+		</exec>
+		<exec executable="sloccount" failonerror="true">
+			<arg value="--details" />
+			<arg value="--wide" />
+			<arg value="setup.py" />
+			<arg value="cutplace" />
+		    <redirector output="sloccount.sc">
+				<outputfilterchain>
+				    <linecontains negate="true">
+						<contains value=".svn"/>
+					</linecontains>
+	            </outputfilterchain>
+			</redirector>
         </exec>
 	</target>
 

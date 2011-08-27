@@ -189,6 +189,7 @@ by navigating to Manage Jenkins > Manage plugins and then choosing them
 from the tab "Available":
 
   * Cobertura Plugin
+  * SLOCCount Plug-in
   * Static Code Analysis Plug-ins
   * Task Scanner Plugin
 
@@ -214,5 +215,7 @@ Next, create a build using the following steps:
 
        * Files to scan: ``**/*.py, **/*.rst``
        * Task tags: High=FIXME, normal=TODO, low=HACK
-    #. Publish JUnit test result report: ``**/nosetests.xml``
+
     #. Publish Cobertura Coverage Report: ``**/coverage.xml``
+    #. Publish JUnit test result report: ``**/nosetests.xml``
+    #. Publish SLOCCount analysis results: SLOCCount reports: ``**/sloccount.sc``
