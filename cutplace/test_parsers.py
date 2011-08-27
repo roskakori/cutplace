@@ -26,6 +26,7 @@ import _parsers
 
 _log = logging.getLogger("cutplace.test_parsers")
 
+
 class AbstractParserTest(unittest.TestCase):
     """
     Abstract TestCase acting as base for the other test cases in this module.
@@ -44,6 +45,7 @@ class AbstractParserTest(unittest.TestCase):
                 self.assertFalse(isinstance(item, str), "item must not be plain string: %r" % item)
             rows.append(row)
         self.assertEqual(rows, expectedRows)
+
 
 class ExcelReaderTest(unittest.TestCase):
 
@@ -76,6 +78,7 @@ class ExcelReaderTest(unittest.TestCase):
         finally:
             readable.close()
 
+
 class FixedParserTest(AbstractParserTest):
     _DEFAULT_FIELD_LENGTHS = [5, 4, 10]
 
@@ -96,6 +99,7 @@ class FixedParserTest(AbstractParserTest):
 
     def testBrokenEndingTooSoon(self):
         self.assertRaises(_parsers.ParserSyntaxError, self._testParse, [], u"38000 123Doe  ")
+
 
 class DelimitedParserTest(AbstractParserTest):
     """
@@ -230,7 +234,7 @@ class DelimitedParserTest(AbstractParserTest):
             self.assertEqual(7, len(row))
         self.assertEqual(1, rowCount)
 
-if __name__ == '__main__': # pragma: no cover
+if __name__ == '__main__':  # pragma: no cover
     logging.basicConfig()
     _log.setLevel(logging.DEBUG)
     unittest.main()

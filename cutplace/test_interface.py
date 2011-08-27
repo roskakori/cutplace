@@ -30,6 +30,7 @@ import _parsers
 
 _log = logging.getLogger("cutplace.test_interface")
 
+
 class _SimpleErrorLoggingValidationListener(interface.BaseValidationListener):
     """
     Listener for validation events that simply logs and counts the delivered events.
@@ -57,6 +58,7 @@ class _SimpleErrorLoggingValidationListener(interface.BaseValidationListener):
         super(_SimpleErrorLoggingValidationListener, self).checkAtEndFailed(error)
 
 _defaultIcdListener = _SimpleErrorLoggingValidationListener()
+
 
 def createDefaultTestFixedIcd():
     spec = u""",Interface: customer
@@ -87,6 +89,7 @@ C,distinct branches must be within limit,DistinctCount,branch_id <= 3
     result = interface.InterfaceControlDocument()
     result.read(StringIO.StringIO(spec))
     return result
+
 
 def createDefaultTestIcd(format, lineDelimiter="\n"):
     assert format in [data.FORMAT_CSV, data.FORMAT_EXCEL, data.FORMAT_ODS], "format=%r" % format
@@ -126,6 +129,7 @@ def createDefaultTestIcd(format, lineDelimiter="\n"):
     result.read(readable)
     return result
 
+
 class ValidatedRowsTest(unittest.TestCase):
     """Tests for ``validatedRows()``."""
     def setUp(self):
@@ -156,7 +160,7 @@ class ValidatedRowsTest(unittest.TestCase):
         for _ in interface.validatedRows(self._icd, self._validCostumersCsvPath, errors="yield"):
             pass
         errorCount = 0
-        rowCount= 0
+        rowCount = 0
         for rowOrError in interface.validatedRows(self._icd, self._brokenCostumersCsvPath, errors="yield"):
             if isinstance(rowOrError, Exception):
                 errorCount += 1
@@ -179,6 +183,7 @@ class ValidatedRowsTest(unittest.TestCase):
             pass
         except ImportError, error:
             _log.warning("ignoring test due to missing import: %s", error)
+
 
 class InterfaceControlDocumentTest(unittest.TestCase):
     """Tests  for InterfaceControlDocument."""
@@ -626,7 +631,6 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 """
         self._testBroken(spec, interface.IcdSyntaxError)
 
-
     def testBrokenFieldNameMissing(self):
         spec = ""","Broken Interface with missing field name"
 "D","Format","CSV"
@@ -946,8 +950,8 @@ Mike,male,23.12.1974"""
         icd = createDefaultTestIcd(data.FORMAT_CSV)
         emptyRow = []
         self.assertRaises(data.DataFormatValueError, icd.getFieldValueFor, "branch_id", emptyRow)
-        
-if __name__ == '__main__': # pragma: no cover
+
+if __name__ == '__main__':  # pragma: no cover
     logging.basicConfig()
     logging.getLogger("cutplace").setLevel(logging.INFO)
     logging.getLogger("cutplace.test_interface").setLevel(logging.INFO)

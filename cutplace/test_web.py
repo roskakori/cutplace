@@ -27,6 +27,7 @@ import urllib2
 import dev_test
 import _web
 
+
 class MultiPartForm(object):
     """Accumulate the data to be used when posting a form."""
     # For details, see <http://broadcast.oreilly.com/2009/07/pymotw-urllib2.html>.
@@ -64,7 +65,8 @@ class MultiPartForm(object):
 
         # Add the form fields
         parts.extend(
-            [ part_boundary,
+            [
+                part_boundary,
                 'Content-Disposition: form-data; name="%s"' % name,
                 '',
                 value,
@@ -74,7 +76,8 @@ class MultiPartForm(object):
 
         # Add the files to upload
         parts.extend(
-            [ part_boundary,
+            [
+                part_boundary,
                 'Content-Disposition: file; name="%s"; filename="%s"' % \
                 (field_name, filename),
                 'Content-Type: %s' % content_type,
@@ -91,6 +94,7 @@ class MultiPartForm(object):
         flattened.append('')
         return '\r\n'.join(flattened)
 
+
 class WebThread(threading.Thread):
     """Thread to run the test web server in."""
 
@@ -99,6 +103,7 @@ class WebThread(threading.Thread):
     def run(self):
         _web.main(WebThread.PORT, allowShutDown=True)
         # FIXME: Let exception result in the test case to fail.
+
 
 class WebTest(unittest.TestCase):
     """TestCase for web module."""
@@ -185,7 +190,7 @@ class WebTest(unittest.TestCase):
         # TODO: Implement: testValidateBrokenIcd
         pass
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     logging.basicConfig()
     logging.getLogger("cutplace").setLevel(logging.INFO)
     logging.getLogger("cutplace.web").setLevel(logging.INFO)

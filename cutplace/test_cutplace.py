@@ -27,6 +27,7 @@ import _tools
 
 _log = logging.getLogger("cutplace")
 
+
 class CutplaceTest(unittest.TestCase):
     """Test cases for cutplace command line interface."""
 
@@ -129,6 +130,7 @@ class CutplaceTest(unittest.TestCase):
         icdPath = dev_test.getTestIcdPath("customers.ods")
         self.assertRaises(EnvironmentError, _cutplace.main, [icdPath, "no-such-data.nix"])
 
+
 class LotsOfCustomersTest(unittest.TestCase):
     """Test case for performance profiling."""
 
@@ -139,7 +141,7 @@ class LotsOfCustomersTest(unittest.TestCase):
         _cutplace.main([icdOdsPath, locCsvPath])
         # TODO: Assert number of errors detected in dataPath is 0.
 
-if __name__ == '__main__': # pragma: no cover
+if __name__ == '__main__':  # pragma: no cover
     logging.basicConfig()
     logging.getLogger("cutplace").setLevel(logging.WARNING)
     unittest.main()

@@ -23,6 +23,7 @@ import dev_test
 import tools
 import _tools
 
+
 class ToolsTest(unittest.TestCase):
     """TestCase for tools module."""
 
@@ -142,5 +143,5 @@ class ToolsTest(unittest.TestCase):
         self.assertEqual(_tools.namified(u"\r"), "x")
         self.assertEqual(_tools.namified(u"a\rb"), "a_b")
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     unittest.main()

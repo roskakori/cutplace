@@ -22,6 +22,7 @@ import unittest
 import dev_test
 import _ods
 
+
 class OdsTest(unittest.TestCase):
 
     def testConvertToCsv(self):
@@ -67,7 +68,7 @@ class OdsTest(unittest.TestCase):
                 hasRow = False
         producer.join()
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     logging.basicConfig()
     logging.getLogger("cutplace").setLevel(logging.INFO)
     logging.getLogger("cutplace.ods").setLevel(logging.INFO)

@@ -20,6 +20,7 @@ import unittest
 
 import data
 
+
 class DataFormatTest(unittest.TestCase):
     """
     Tests for data formats.
@@ -113,7 +114,6 @@ class DataFormatTest(unittest.TestCase):
         thousandsSeparator = format.get(data.KEY_THOUSANDS_SEPARATOR)
         format.set(data.KEY_THOUSANDS_SEPARATOR, thousandsSeparator)
         self.assertRaises(data.DataFormatValueError, format.set, data.KEY_DECIMAL_SEPARATOR, thousandsSeparator)
-
 
     def testBrokenThousandsSeparator(self):
         format = data.CsvDataFormat()

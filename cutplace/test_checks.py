@@ -22,6 +22,7 @@ import unittest
 
 import tools
 
+
 def _createFieldMap(fieldNames, fieldValues):
     assert fieldNames
     assert fieldValues
@@ -33,8 +34,10 @@ def _createFieldMap(fieldNames, fieldValues):
         result[fieldNames[fieldIndex]] = fieldValues[fieldIndex]
     return result
 
+
 def _getTestFieldNames():
     return "branch_id customer_id first_name surname gender date_of_birth".split()
+
 
 class _AbstractCheckTest(unittest.TestCase):
 
@@ -59,6 +62,7 @@ class _AbstractCheckTest(unittest.TestCase):
         check = checks.AbstractCheck("test check", "", fieldNames)
         location = tools.InputLocation(self.testCheckRow, hasCell=True)
         check.checkRow([], location)
+
 
 class IsUniqueCheckTest(_AbstractCheckTest):
     def testIsUniqueCheck(self):
@@ -102,6 +106,7 @@ class IsUniqueCheckTest(_AbstractCheckTest):
         fieldNames = _getTestFieldNames()
         self.assertRaises(checks.CheckSyntaxError, checks.IsUniqueCheck, "test check", "branch_id customer_id", fieldNames)
 
+
 class DistinctCountCheckTest(unittest.TestCase):
     def testDistinctCountCheck(self):
         fieldNames = _getTestFieldNames()
@@ -125,6 +130,6 @@ class DistinctCountCheckTest(unittest.TestCase):
         self.assertRaises(checks.CheckSyntaxError, checks.DistinctCountCheck, "broken", "branch_id ! broken ^ 5ynt4x ?!?", fieldNames)
         self.assertRaises(checks.CheckSyntaxError, checks.DistinctCountCheck, "broken", "branch_id + 123", fieldNames)
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     logging.basicConfig(level=logging.INFO)
     unittest.main()

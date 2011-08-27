@@ -24,6 +24,7 @@ import dev_test
 import _cutsniff
 import interface
 
+
 class SniffTest(unittest.TestCase):
 
     def testCreateDataFormat(self):

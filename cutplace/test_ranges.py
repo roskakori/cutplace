@@ -19,6 +19,7 @@ import unittest
 
 import ranges
 
+
 class RangeTest(unittest.TestCase):
     """
     Test cases for ranges.
@@ -149,5 +150,5 @@ class RangeTest(unittest.TestCase):
         self.assertRaises(ranges.RangeValueError, multiRange.validate, "x", 723)
 
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     unittest.main()
