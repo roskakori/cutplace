@@ -141,16 +141,12 @@
 		<exec executable="sloccount" failonerror="true">
 			<arg value="--details" />
 			<arg value="--wide" />
-			<arg value="setup.py" />
 			<arg value="cutplace" />
 		    <redirector output="sloccount.sc">
 				<outputfilterchain>
 				    <linecontains negate="true">
 						<contains value=".svn"/>
 					</linecontains>
-					<linecontainsregexp>
-					    <regexp pattern="^\d+\t.+\t.+\t.+" />
-					</linecontainsregexp>
 				</outputfilterchain>
 			</redirector>
         </exec>
