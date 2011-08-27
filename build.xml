@@ -137,6 +137,7 @@
 			<arg file="cutplace/dev_reports.py" />
 			<arg value="${reports.dir}" />
 		</exec>
+	    <echo message="build sloccount report" />
 		<exec executable="sloccount" failonerror="true">
 			<arg value="--details" />
 			<arg value="--wide" />
@@ -147,7 +148,10 @@
 				    <linecontains negate="true">
 						<contains value=".svn"/>
 					</linecontains>
-	            </outputfilterchain>
+					<linecontainsregexp>
+					    <regexp pattern="^\d+\t.+\t.+\t.+" />
+					</linecontainsregexp>
+				</outputfilterchain>
 			</redirector>
         </exec>
 	</target>
