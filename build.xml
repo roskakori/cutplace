@@ -39,7 +39,7 @@
         <delete>
             <fileset defaultexcludes="false" dir="." includes="**/.DS_Store" />
         </delete>
-        <exec executable="python">
+        <exec executable="python" failonerror="true">
             <arg value="setup.py" />
             <arg value="sdist" />
             <arg value="--formats=zip" />
@@ -51,7 +51,7 @@
         <delete>
             <fileset defaultexcludes="false" dir="." includes="**/.DS_Store" />
         </delete>
-        <exec executable="python">
+        <exec executable="python" failonerror="true">
             <arg value="setup.py" />
             <arg value="sdist" />
             <arg value="--formats=zip" />
@@ -66,7 +66,7 @@
 
     <target name="bdist_egg_upload" depends="docs" description="build binary distribution and upload it to PyPI">
         <tstamp />
-        <exec executable="python">
+        <exec executable="python" failonerror="true">
             <arg value="setup.py" />
             <arg value="bdist_egg" />
             <arg value="upload" />
@@ -75,7 +75,7 @@
 
     <target name="bdist_wininst_upload" depends="docs" description="build Windows installer and upload it to PyPI">
         <tstamp />
-        <exec executable="python">
+        <exec executable="python" failonerror="true">
             <arg value="setup.py" />
             <arg value="bdist_wininst" />
             <arg value="upload" />
@@ -83,13 +83,15 @@
     </target>
 
     <target name="testdata" description="generate test data">
-        <exec executable="python">
+        <exec executable="python" failonerror="true">
             <arg value="cutplace/dev_test.py" />
         </exec>
     </target>
 
     <target name="test" depends="testdata" description="run test suite">
         <exec executable="nosetests">
+            <arg value="--where" />
+            <arg value="cutplace" />
             <arg value="--with-coverage" />
             <arg value="--with-doctest" />
             <arg value="--with-xunit" />
@@ -101,7 +103,7 @@
             <!-- TODO: Implement automatic test cases for web interface. -->
             <arg value=".*test_web.*" />
         </exec>
-        <exec executable="coverage">
+        <exec executable="coverage" failonerror="true">
             <arg value="xml" />
         </exec>
     </target>
