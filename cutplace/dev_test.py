@@ -96,7 +96,7 @@ def getTestFolder(folder):
             testFolder = os.path.join(basePath, "tests")
             testFolderfound = os.path.exists(testFolder)
     if not os.path.exists(testFolder):
-        raise IOError("cannot find test folder: test must run from project folder or project folder must be passed as command line option; currently attempting to find test folder in: %r" % testFolder)
+        raise IOError(u"cannot find test folder: test must run from project folder or project folder must be passed as command line option; currently attempting to find test folder in: %r" % testFolder)
     result = os.path.join(testFolder, folder)
     return result
 
@@ -171,7 +171,7 @@ def createLotsOfCustomersCsv(targetCsvPath):
     assert targetCsvPath is not None
 
     targetCsvFile = open(targetCsvPath, "w")
-    _log.info("write lots of customers to %r", targetCsvPath)
+    _log.info(u"write lots of customers to \"%s\"", targetCsvPath)
     try:
         csvWriter = csv.writer(targetCsvFile)
         for customerId in range(1000):

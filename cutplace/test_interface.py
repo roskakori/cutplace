@@ -41,11 +41,11 @@ class _SimpleErrorLoggingValidationListener(interface.BaseValidationListener):
         self.checksAtEndFailedCount = 0
 
     def _logError(self, row, error):
-        _log.warning("error during validation: %s %r", error, row)
+        _log.warning(u"error during validation: %s %r", error, row)
 
     def acceptedRow(self, row, location):
         self.acceptedRowCount += 1
-        _log.info("accepted: %r", row)
+        _log.info(u"accepted: %r", row)
 
     def rejectedRow(self, row, error):
         self.rejectedRowCount += 1
@@ -182,7 +182,7 @@ class ValidatedRowsTest(unittest.TestCase):
             # Ignore expected error cause by wrong data format.
             pass
         except ImportError, error:
-            _log.warning("ignoring test due to missing import: %s", error)
+            _log.warning(u"ignoring test due to missing import: %s", error)
 
 
 class InterfaceControlDocumentTest(unittest.TestCase):
@@ -457,7 +457,7 @@ F,first_name,John,X,15,Text
             self.assertEqual(icd.rejectedCount, 0)
             self.assertEqual(icd.acceptedCount, 3)
         except _parsers.CutplaceXlrdImportError:
-            _log.warning("ignored ImportError caused by missing xlrd")
+            _log.warning(u"ignored ImportError caused by missing xlrd")
         finally:
             icd.removeValidationListener(_defaultIcdListener)
 
@@ -470,7 +470,7 @@ F,first_name,John,X,15,Text
             self.assertEqual(icd.rejectedCount, 0)
             self.assertEqual(icd.acceptedCount, 4)
         except _parsers.CutplaceXlrdImportError:
-            _log.warning("ignored ImportError caused by missing xlrd")
+            _log.warning(u"ignored ImportError caused by missing xlrd")
         finally:
             icd.removeValidationListener(_defaultIcdListener)
 

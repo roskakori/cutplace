@@ -87,14 +87,14 @@ def createDataFormat(readable, **keywords):
     assert encoding is not None
 
     icdHeader = readable.read(4)
-    _log.debug("header=%r", icdHeader)
+    _log.debug(u"header=%r", icdHeader)
     if _tools.isEqualBytes(icdHeader, _ODS_HEADER):
         # Consider ICD to be ODS.
         dataFormatName = data.FORMAT_ODS
     else:
         icdHeader += readable.read(4)
-        assert isinstance(icdHeader, str), "icdHeader=%r but must be a string; use open(..., 'rb') instead of codecs.open()" % icdHeader
-        assert isinstance(_EXCEL_HEADER, str), "_EXCEL_HEADER=%r" % _EXCEL_HEADER
+        assert isinstance(icdHeader, str), u"icdHeader=%r but must be a string; use open(..., 'rb') instead of codecs.open()" % icdHeader
+        assert isinstance(_EXCEL_HEADER, str), u"_EXCEL_HEADER=%r" % _EXCEL_HEADER
         if _tools.isEqualBytes(icdHeader, _EXCEL_HEADER):
             # Consider ICD to be Excel.
             dataFormatName = data.FORMAT_EXCEL
@@ -129,7 +129,7 @@ def createReader(readable, **keywords):
 
     result = None
     icdHeader = readable.read(4)
-    _log.debug("header=%r", icdHeader)
+    _log.debug(u"header=%r", icdHeader)
     if icdHeader == _ODS_HEADER:
         # Consider ICD to be ODS.
         readable.seek(0)
@@ -200,7 +200,7 @@ def delimitedOptions(readable, **keywords):
                 actualLineDelimiter = CRLF
             else:
                 actualLineDelimiter = LF
-        _log.debug("  detected line delimiter: %r", actualLineDelimiter)
+        _log.debug(u"  detected line delimiter: %r", actualLineDelimiter)
     else:
         actualLineDelimiter = lineDelimiter
     if itemDelimiter == data.ANY:
@@ -217,7 +217,7 @@ def delimitedOptions(readable, **keywords):
             if itemDelimiterToCountMap[possibleItemDelimiter] > delimiterCount:
                 delimiterCount = itemDelimiterToCountMap[possibleItemDelimiter]
                 actualItemDelimiter = possibleItemDelimiter
-            _log.debug("  detected item delimiter: %r", actualItemDelimiter)
+            _log.debug(u"  detected item delimiter: %r", actualItemDelimiter)
     else:
         actualItemDelimiter = itemDelimiter
 
@@ -336,11 +336,11 @@ def createCidRows(readable, **keywords):
     if isinstance(fieldNames, basestring):
         fieldNames = [name.strip() for name in fieldNames.split(",")]
     elif fieldNames is not None:
-        assert isinstance(fieldNames, list), "field names must be a list or string but is: %s" % type(fieldNames)
+        assert isinstance(fieldNames, list), u"field names must be a list or string but is: %s" % type(fieldNames)
 
     NO_COUNT = -1
 
-    _log.debug("find longest segment of rows with same column count")
+    _log.debug(u"find longest segment of rows with same column count")
     currentSegmentColumnCount = None
     longestSegmentColumnCount = NO_COUNT
     longestSegmentRowCount = NO_COUNT
@@ -363,7 +363,7 @@ def createCidRows(readable, **keywords):
         if isReadFieldNamesFromHeader and (rowIndex == headerRowsToSkip - 1):
             fieldNames = rowToAnalyze
         if (rowIndex >= headerRowsToSkip) and (columnCount != currentSegmentColumnCount):
-            _log.debug("  segment starts in row %d after %d rows", rowIndex, currentSegmentRowCount)
+            _log.debug(u"  segment starts in row %d after %d rows", rowIndex, currentSegmentRowCount)
             if currentSegmentRowCount > longestSegmentRowCount:
                 rowIndexWhereLongestSegmentStarts = rowIndexWhereCurrentSegmentStarted
                 longestSegmentRowCount = currentSegmentRowCount
@@ -383,7 +383,7 @@ def createCidRows(readable, **keywords):
         else:
             location = None
         if not fieldNames:
-            raise data.DataFormatSyntaxError("the field names specified must contain at least 1 name", location)
+            raise data.DataFormatSyntaxError(u"the field names specified must contain at least 1 name", location)
         uniquefieldNames = set()
         for nameIndex in range(len(fieldNames)):
             fieldNameToCheck = fieldNames[nameIndex]
@@ -391,26 +391,26 @@ def createCidRows(readable, **keywords):
                 fieldNameToCheck = _tools.namified(fieldNameToCheck)
             fieldNameToCheck = fields.validatedFieldName(fieldNameToCheck, location)
             if fieldNameToCheck in uniquefieldNames:
-                raise fields.FieldSyntaxError("field name must be unique: %s" % fieldNameToCheck, location)
+                raise fields.FieldSyntaxError(u"field name must be unique: %s" % fieldNameToCheck, location)
             fieldNames[nameIndex] = fieldNameToCheck
             uniquefieldNames.add(fieldNameToCheck)
             if location:
                 location.advanceCell()
 
     # Handle the case that the whole file can be one large segment.
-    _log.debug("last segment started in row %d and lasted for %d rows", rowIndexWhereCurrentSegmentStarted, currentSegmentRowCount)
+    _log.debug(u"last segment started in row %d and lasted for %d rows", rowIndexWhereCurrentSegmentStarted, currentSegmentRowCount)
     if currentSegmentRowCount > longestSegmentRowCount:
         rowIndexWhereLongestSegmentStarts = rowIndexWhereCurrentSegmentStarted
         longestSegmentRowCount = currentSegmentRowCount
         longestSegmentColumnCount = currentSegmentColumnCount
 
     if longestSegmentRowCount < 1:
-        raise CutplaceSniffError("content must contain data for format to be sniffed")
-    _log.debug("found longest segment starting in row %d lasting for %d rows having %d columns",
+        raise CutplaceSniffError(u"content must contain data for format to be sniffed")
+    _log.debug(u"found longest segment starting in row %d lasting for %d rows having %d columns",
         rowIndexWhereLongestSegmentStarts, longestSegmentRowCount, longestSegmentColumnCount)
 
     assert rowIndexWhereLongestSegmentStarts is not None
-    _log.debug("skip %d rows until longest segment starts", rowIndexWhereLongestSegmentStarts)
+    _log.debug(u"skip %d rows until longest segment starts", rowIndexWhereLongestSegmentStarts)
     readable.seek(0)
     reader = createReader(readable, **keywords)
     rowIndex = 0
@@ -420,7 +420,7 @@ def createCidRows(readable, **keywords):
         location.advanceLine()
         rowIndex += 1
 
-    _log.info("analyze longest segment of rows with same column count")
+    _log.info(u"analyze longest segment of rows with same column count")
     columnInfos = []
     for columnIndex in range(longestSegmentColumnCount):
         columnInfoToAppend = _ColumnSniffInfo(columnIndex, dataFormat)
@@ -433,7 +433,7 @@ def createCidRows(readable, **keywords):
         if rowIndex >= headerRowsToSkip:
             columnCountOfRowToAnalyze = len(rowToAnalyze)
             if columnCountOfRowToAnalyze != longestSegmentColumnCount:
-                raise CutplaceSniffError("data must not change between sniffer passes, but row %d now has %d columns instead of %d" \
+                raise CutplaceSniffError(u"data must not change between sniffer passes, but row %d now has %d columns instead of %d" \
                     % (rowIndex + 1, columnCountOfRowToAnalyze, longestSegmentColumnCount), location)
             for itemIndex in range(longestSegmentColumnCount):
                 value = rowToAnalyze[itemIndex]
@@ -442,7 +442,7 @@ def createCidRows(readable, **keywords):
         rowIndex += 1
 
     for columnIndex in range(longestSegmentColumnCount):
-        _log.debug("  %s" % columnInfos[columnIndex].asFieldFormat())
+        _log.debug(u"  %s" % columnInfos[columnIndex].asFieldFormat())
 
     icdRows = []
     icdRows.append(["", "Interface: <Name>"])

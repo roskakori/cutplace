@@ -157,11 +157,11 @@ class InterfaceControlDocument(object):
         assert className
         assert moduleName
         className += classNameAppendix
-        _log.debug("create from %s class %s", str(moduleName), className)
+        _log.debug(u"create from %s class %s", str(moduleName), className)
         try:
             result = getattr(module, className)
         except AttributeError:
-            raise fields.FieldSyntaxError("cannot find %s: %s" % (typeName, str(classQualifier)), self._location)
+            raise fields.FieldSyntaxError(u"cannot find %s: %s" % (typeName, str(classQualifier)), self._location)
         return result
 
     def _createFieldFormatClass(self, fieldType):
@@ -185,13 +185,13 @@ class InterfaceControlDocument(object):
                 if self._dataFormat is None:
                     self._dataFormat = data.createDataFormat(value)
                 else:
-                    raise data.DataFormatSyntaxError("data format must be set only once, but has been set already to: %r" % self._dataFormat.name, self._location)
+                    raise data.DataFormatSyntaxError(u"data format must be set only once, but has been set already to: %r" % self._dataFormat.name, self._location)
             elif self._dataFormat is not None:
                 self._dataFormat.set(key, value)
             else:
-                raise data.DataFormatSyntaxError("first data format property name is %r but must be %r" % (key, data.KEY_FORMAT), self._location)
+                raise data.DataFormatSyntaxError(u"first data format property name is %r but must be %r" % (key, data.KEY_FORMAT), self._location)
         else:
-            raise data.DataFormatSyntaxError("data format line (marked with %r) must contain at least 2 columns" % InterfaceControlDocument._ID_DATA_FORMAT, self._location)
+            raise data.DataFormatSyntaxError(u"data format line (marked with %r) must contain at least 2 columns" % InterfaceControlDocument._ID_DATA_FORMAT, self._location)
 
     def addFieldFormat(self, items):
         """
@@ -212,7 +212,7 @@ class InterfaceControlDocument(object):
         assert self._location is not None
 
         if self._dataFormat is None:
-            raise IcdSyntaxError("data format must be specified before first field", self._location)
+            raise IcdSyntaxError(u"data format must be specified before first field", self._location)
 
         # Assert that the various lists and maps related to fields are in a consistent state.
         # Ideally this would be a class invariant, but this is Python, not Eiffel.
@@ -247,7 +247,7 @@ class InterfaceControlDocument(object):
                 if fieldIsAllowedToBeEmptyText == InterfaceControlDocument._EMPTY_INDICATOR:
                     fieldIsAllowedToBeEmpty = True
                 elif fieldIsAllowedToBeEmptyText:
-                    raise fields.FieldSyntaxError("mark for empty field must be %r or empty but is %r"
+                    raise fields.FieldSyntaxError(u"mark for empty field must be %r or empty but is %r"
                                                   % (InterfaceControlDocument._EMPTY_INDICATOR,
                                                      fieldIsAllowedToBeEmptyText), self._location)
 
@@ -268,9 +268,9 @@ class InterfaceControlDocument(object):
                             if fieldType:
                                 fieldType += "."
                             fieldType += _tools.validatedPythonName("field type part", part)
-                        assert fieldType, "empty field type must be detected by validatedPythonName()"
+                        assert fieldType, u"empty field type must be detected by validatedPythonName()"
                     except NameError, error:
-                        raise fields.FieldSyntaxError(str(error), self._location)
+                        raise fields.FieldSyntaxError(unicode(error), self._location)
 
             # Obtain rule.
             if itemCount >= 6:
@@ -281,7 +281,7 @@ class InterfaceControlDocument(object):
             if not fieldType:
                 fieldType = "Text"
             fieldClass = self._createFieldFormatClass(fieldType)
-            _log.debug("create field: %s(%r, %r, %r)", fieldClass.__name__, fieldName, fieldType, fieldRule)
+            _log.debug(u"create field: %s(%r, %r, %r)", fieldClass.__name__, fieldName, fieldType, fieldRule)
             fieldFormat = fieldClass.__new__(fieldClass, fieldName, fieldIsAllowedToBeEmpty, fieldLength, fieldRule)
             fieldFormat.__init__(fieldName, fieldIsAllowedToBeEmpty, fieldLength, fieldRule, self._dataFormat)
 
@@ -291,11 +291,11 @@ class InterfaceControlDocument(object):
                 try:
                     fieldFormat.validated(fieldExample)
                 except fields.FieldValueError, error:
-                    raise IcdSyntaxError("cannot validate example for field %r: %s" % (fieldName, error), self._location)
+                    raise IcdSyntaxError(u"cannot validate example for field %r: %s" % (fieldName, error), self._location)
 
             # Validate that field name is unique.
             if fieldName in self._fieldNameToFormatMap:
-                raise fields.FieldSyntaxError("field name must be used for only one field: %s" % fieldName,
+                raise fields.FieldSyntaxError(u"field name must be used for only one field: %s" % fieldName,
                                               self._location)
 
             self._location.setCell(1)
@@ -304,7 +304,7 @@ class InterfaceControlDocument(object):
             self._fieldNames.append(fieldName)
             self._fieldFormats.append(fieldFormat)
             # TODO: Remember location where field format was defined to later include it in error message
-            _log.info("%s: defined field: %s", self._location, fieldFormat)
+            _log.info(u"%s: defined field: %s", self._location, fieldFormat)
 
             # Validate field length for fixed format.
             if isinstance(self._dataFormat, data.FixedDataFormat):
@@ -315,17 +315,17 @@ class InterfaceControlDocument(object):
                         (lower, upper) = fieldFormat.length.items[0]
                         if lower == upper:
                             if lower < 1:
-                                raise fields.FieldSyntaxError("length of field %r for fixed data format must be at least 1 but is : %s" % (fieldName, fieldFormat.length),
+                                raise fields.FieldSyntaxError(u"length of field %r for fixed data format must be at least 1 but is : %s" % (fieldName, fieldFormat.length),
                                                               self._location)
                             fieldLengthIsBroken = False
                     if fieldLengthIsBroken:
-                        raise fields.FieldSyntaxError("length of field %r for fixed data format must be a single value but is: %s" % (fieldName, fieldFormat.length),
+                        raise fields.FieldSyntaxError(u"length of field %r for fixed data format must be a single value but is: %s" % (fieldName, fieldFormat.length),
                                                       self._location)
                 else:
-                    raise fields.FieldSyntaxError("length of field %r must be specified with fixed data format" % fieldName,
+                    raise fields.FieldSyntaxError(u"length of field %r must be specified with fixed data format" % fieldName,
                                                   self._location)
         else:
-            raise fields.FieldSyntaxError("field format row (marked with %r) must at least contain a field name" % InterfaceControlDocument._ID_FIELD_RULE,
+            raise fields.FieldSyntaxError(u"field format row (marked with %r) must at least contain a field name" % InterfaceControlDocument._ID_FIELD_RULE,
                                           self._location)
 
         assert fieldName
@@ -337,7 +337,7 @@ class InterfaceControlDocument(object):
         assert items is not None
         itemCount = len(items)
         if itemCount < 2:
-            raise checks.CheckSyntaxError("check row (marked with %r) must contain at least 2 columns" % InterfaceControlDocument._ID_CHECK,
+            raise checks.CheckSyntaxError(u"check row (marked with %r) must contain at least 2 columns" % InterfaceControlDocument._ID_CHECK,
                                           self._location)
         checkDescription = items[0]
         checkType = items[1]
@@ -345,14 +345,14 @@ class InterfaceControlDocument(object):
             checkRule = items[2]
         else:
             checkRule = ""
-        _log.debug("create check: %s(%r, %r)", checkType, checkDescription, checkRule)
+        _log.debug(u"create check: %s(%r, %r)", checkType, checkDescription, checkRule)
         checkClass = self._createCheckClass(checkType)
         check = checkClass.__new__(checkClass, checkDescription, checkRule, self._fieldNames, self._location)
         check.__init__(checkDescription, checkRule, self._fieldNames, self._location)
         self._location.setCell(1)
         existingCheck = self._checkNameToCheckMap.get(checkDescription)
         if existingCheck:
-            raise checks.CheckSyntaxError("check description must be used only once: %r" % (checkDescription),
+            raise checks.CheckSyntaxError(u"check description must be used only once: %r" % (checkDescription),
                                           self._location, "initial declaration", existingCheck.location)
         self._checkNameToCheckMap[checkDescription] = check
         self._checkNames.append(checkDescription)
@@ -365,7 +365,7 @@ class InterfaceControlDocument(object):
         """
         assert icdRowToProcess is not None
         assert self._location
-        _log.debug("%s: parse %r", self._location, icdRowToProcess)
+        _log.debug(u"%s: parse %r", self._location, icdRowToProcess)
         if len(icdRowToProcess) >= 1:
             rowId = str(icdRowToProcess[0]).lower()
             if rowId == InterfaceControlDocument._ID_CHECK:
@@ -378,7 +378,7 @@ class InterfaceControlDocument(object):
                 # FIXME: Validate data format (required properties, contradictions)
                 self.addFieldFormat(icdRowToProcess[1:])
             elif rowId.strip():
-                raise IcdSyntaxError("first item in icdRowToProcess is %r but must be empty or one of: %s"
+                raise IcdSyntaxError(u"first item in icdRowToProcess is %r but must be empty or one of: %s"
                                      % (icdRowToProcess[0], _tools.humanReadableList(InterfaceControlDocument._VALID_IDS)),
                                      self._location)
         self._location.advanceLine()
@@ -386,10 +386,10 @@ class InterfaceControlDocument(object):
     def _checkAfterRead(self):
         assert self._location
         if self._dataFormat is None:
-            raise IcdSyntaxError("ICD must contain a section describing the data format (rows starting with %r)"
+            raise IcdSyntaxError(u"ICD must contain a section describing the data format (rows starting with %r)"
                                  % InterfaceControlDocument._ID_DATA_FORMAT)
         if not self._fieldFormats:
-            raise IcdSyntaxError("ICD must contain a section describing at least one field format (rows starting with %r)"
+            raise IcdSyntaxError(u"ICD must contain a section describing at least one field format (rows starting with %r)"
                                  % InterfaceControlDocument._ID_FIELD_RULE)
         # FIXME: In the end of read(), the following needs to be set: self._location = None
 
@@ -415,7 +415,7 @@ class InterfaceControlDocument(object):
             for icdRowToProcess in reader:
                 self._processRow(icdRowToProcess)
         except tools.CutplaceUnicodeError, error:
-            raise tools.CutplaceUnicodeError("ICD must conform to encoding %r: %s" % (encoding, error))
+            raise tools.CutplaceUnicodeError(u"ICD must conform to encoding %r: %s" % (encoding, error))
         finally:
             if needsOpen:
                 icdFile.close()
@@ -465,7 +465,7 @@ class InterfaceControlDocument(object):
             else:
                 dataFile = dataFileToValidatePath
         else:  # pragma: no cover
-            raise NotImplementedError("data format: %r" % self._dataFormat.name)
+            raise NotImplementedError(u"data format: %r" % self._dataFormat.name)
 
         return (dataFile, location, needsOpen)
 
@@ -475,10 +475,10 @@ class InterfaceControlDocument(object):
         assert location
         isExceptionReason = isinstance(reason, Exception)
         isStringReason = isinstance(reason, types.StringTypes)
-        assert isExceptionReason or isStringReason, "reason=%s:%r" % (type(reason), reason)
+        assert isExceptionReason or isStringReason, u"reason=%s:%r" % (type(reason), reason)
         assert isinstance(location, tools.InputLocation)
-        _log.debug("rejected: %s", row)
-        _log.debug(reason, exc_info=self.logTrace)
+        _log.debug(u"rejected: %s", row)
+        _log.debug(u"%s", reason, exc_info=self.logTrace)
         self.rejectedCount += 1
         if isExceptionReason:
             error = reason
@@ -517,7 +517,7 @@ class InterfaceControlDocument(object):
             sheet = self.dataFormat.get(data.KEY_SHEET)
             reader = _parsers.odsReader(dataFile, sheet)
         else:  # pragma: no cover
-            raise NotImplementedError("data format: %r" % self.dataFormat.name)
+            raise NotImplementedError(u"data format: %r" % self.dataFormat.name)
         return reader
 
     def validate(self, dataFileToValidatePath):
@@ -529,7 +529,7 @@ class InterfaceControlDocument(object):
         # FIXME: Split up `validate()` in several smaller methods.
         assert dataFileToValidatePath is not None
 
-        _log.info("validate \"%s\"", dataFileToValidatePath)
+        _log.info(u"validate \"%s\"", dataFileToValidatePath)
         self._resetCounts()
         for checkName in self.checkNames:
             check = self.getCheck(checkName)
@@ -556,33 +556,33 @@ class InterfaceControlDocument(object):
                             rowMap = {}
                             while location.cell < maxItemCount:
                                 item = row[location.cell]
-                                assert not isinstance(item, str), "%s: item must be Unicode string instead of plain string: %r" % (location, item)
+                                assert not isinstance(item, str), u"%s: item must be Unicode string instead of plain string: %r" % (location, item)
                                 fieldFormat = self._fieldFormats[location.cell]
                                 if __debug__:
-                                    _log.debug("validate item %d/%d: %r with %s <- %r", location.cell + 1, len(self._fieldFormats), item, fieldFormat, row)
+                                    _log.debug(u"validate item %d/%d: %r with %s <- %r", location.cell + 1, len(self._fieldFormats), item, fieldFormat, row)
                                 rowMap[fieldFormat.fieldName] = fieldFormat.validated(item)
                                 location.advanceCell()
                             if location.cell != len(row):
-                                raise checks.CheckError("unexpected data must be removed after item %d" % (location.cell), location)
+                                raise checks.CheckError(u"unexpected data must be removed after item %d" % (location.cell), location)
                             elif len(row) < len(self._fieldFormats):
                                 missingFieldNames = self._fieldNames[(len(row) - 1):]
-                                raise checks.CheckError("row must contain items for the following fields: %r" % missingFieldNames, location)
+                                raise checks.CheckError(u"row must contain items for the following fields: %r" % missingFieldNames, location)
 
                             # Validate row checks.
                             for checkName in self.checkNames:
                                 check = self.getCheck(checkName)
                                 try:
                                     if __debug__:
-                                        _log.debug("check row: ", check)
+                                        _log.debug(u"check row: ", check)
                                     check.checkRow(rowMap, location)
                                 except checks.CheckError, error:
-                                    raise checks.CheckError("row check failed: %r: %s" % (check.description, error), location)
-                            _log.debug("accepted: %s", row)
+                                    raise checks.CheckError(u"row check failed: %r: %s" % (check.description, error), location)
+                            _log.debug(u"accepted: %s", row)
                             self.acceptedCount += 1
                             for listener in self._validationListeners:
                                 listener.acceptedRow(row, location)
                         except data.DataFormatValueError, error:
-                            raise data.DataFormatValueError("cannot process data format", location, cause=error)
+                            raise data.DataFormatValueError(u"cannot process data format", location, cause=error)
                         except tools.CutplaceError, error:
                             isFieldValueError = isinstance(error, fields.FieldValueError)
                             if isFieldValueError:
@@ -593,7 +593,7 @@ class InterfaceControlDocument(object):
                     location.advanceLine()
             except tools.CutplaceUnicodeError, error:
                 self._rejectRow([], error, location)
-                # raise data.DataFormatValueError("cannot read row %d: %s" % (rowNumber + 2, error))
+                # raise data.DataFormatValueError(u"cannot read row %d: %s" % (rowNumber + 2, error))
         finally:
             if needsOpen:
                 dataFile.close()
@@ -603,12 +603,12 @@ class InterfaceControlDocument(object):
         for checkName in self.checkNames:
             check = self.getCheck(checkName)
             try:
-                _log.debug("checkAtEnd: %s", check)
+                _log.debug(u"checkAtEnd: %s", check)
                 check.checkAtEnd(location)
                 self.passedChecksAtEndCount += 1
             except checks.CheckError, message:
-                reason = "check at end of data failed: %r: %s" % (check.description, message)
-                _log.error(reason)
+                reason = u"check at end of data failed: %r: %s" % (check.description, message)
+                _log.error(u"%s", reason)
                 self.failedChecksAtEndCount += 1
                 for listener in self._validationListeners:
                     listener.checkAtEndFailed(reason)
@@ -621,7 +621,7 @@ class InterfaceControlDocument(object):
         try:
             result = self._fieldNameToIndexMap[fieldName]
         except KeyError:
-            raise fields.FieldLookupError("unknown field name %r must be replaced by one of: %s" % (fieldName, _tools.humanReadableList(sorted(self.fieldNames))))
+            raise fields.FieldLookupError(u"unknown field name %r must be replaced by one of: %s" % (fieldName, _tools.humanReadableList(sorted(self.fieldNames))))
         return result
 
     def getFieldValueFor(self, fieldName, row):
@@ -637,7 +637,7 @@ class InterfaceControlDocument(object):
         expectedRowCount = len(self.fieldNames)
         if actualRowCount != expectedRowCount:
             location = tools.createCallerInputLocation()
-            raise data.DataFormatValueError("row must have %d items but has %d: %s" % (expectedRowCount, actualRowCount, row), location)
+            raise data.DataFormatValueError(u"row must have %d items but has %d: %s" % (expectedRowCount, actualRowCount, row), location)
 
         fieldIndex = self.getFieldNameIndex(fieldName)
         # The following condition must be ``true`` because any deviations should be been detected
@@ -773,7 +773,7 @@ def  validatedRows(icd, dataFileToValidatePath, errors="strict"):
             assert dataFileToValidatePath is not None
             assert rowOrErrorQueue is not None
             assert errors in InterfaceControlDocument._ALL_ERRORS_VALUES, \
-                "errors=%r but must be one of: %s" % (errors, InterfaceControlDocument._ALL_ERRORS_VALUES)
+                u"errors=%r but must be one of: %s" % (errors, InterfaceControlDocument._ALL_ERRORS_VALUES)
 
             super(ValidationThread, self).__init__()
             self._icd = icd
@@ -805,8 +805,8 @@ def  validatedRows(icd, dataFileToValidatePath, errors="strict"):
             elif errors == InterfaceControlDocument._ERRORS_YIELD:
                 yield rowOrError
             elif errors != InterfaceControlDocument._ERRORS_IGNORE:
-                raise NotImplementedError("errors=%r" % errors)
+                raise NotImplementedError(u"errors=%r" % errors)
         else:
-            assert isinstance(rowOrError, types.ListType), "rowOrError=%s: %r" % (type(rowOrError), rowOrError)
+            assert isinstance(rowOrError, types.ListType), u"rowOrError=%s: %r" % (type(rowOrError), rowOrError)
             yield rowOrError
         rowOrError = rowOrErrorQueue.get()

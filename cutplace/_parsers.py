@@ -94,7 +94,7 @@ def _excelCellValue(cell, datemode):
 
     if cell.ctype == xlrd.XL_CELL_DATE:
         cellTuple = xlrd.xldate_as_tuple(cell.value, datemode)
-        assert len(cellTuple) == 6, "cellTuple=%r" % cellTuple
+        assert len(cellTuple) == 6, u"cellTuple=%r" % cellTuple
         if cellTuple[:3] == (0, 0, 0):
             timeTuple = cellTuple[3:]
             result = unicode(str(datetime.time(*timeTuple)), "ascii")
@@ -126,7 +126,7 @@ def excelReader(readable, sheetIndex=1):
     try:
         import xlrd
     except ImportError:
-        raise CutplaceXlrdImportError("to read Excel data the xlrd package must be installed, see <http://pypi.python.org/pypi/xlrd> for more information")
+        raise CutplaceXlrdImportError(u"to read Excel data the xlrd package must be installed, see <http://pypi.python.org/pypi/xlrd> for more information")
 
     contents = readable.read()
     workbook = xlrd.open_workbook(file_contents=contents)
@@ -295,7 +295,7 @@ class _DelimitedParser(object):
         else:
             self.item = None
             self.atEndOfFile = True
-        self._log.debug("(%d:%d) %r [%d;%d]", self.lineNumber, self.itemNumber, self.item, self.atEndOfLine, self.atEndOfFile)
+        self._log.debug(u"(%d:%d) %r [%d;%d]", self.lineNumber, self.itemNumber, self.item, self.atEndOfLine, self.atEndOfFile)
 
 
 class _FixedParser(object):
@@ -340,7 +340,7 @@ class _FixedParser(object):
         else:
             actualLength = len(self.item)
             if actualLength != expectedLength:
-                self._raiseSyntaxError("item must have %d characters but data already end after %d yielding: %r" % (expectedLength, actualLength, self.item))
+                self._raiseSyntaxError(u"item must have %d characters but data already end after %d yielding: %r" % (expectedLength, actualLength, self.item))
             self.columnNumberInRow += actualLength
             if self.itemNumberInRow == len(self.fieldLengths) - 1:
                 self.atEndOfLine = True

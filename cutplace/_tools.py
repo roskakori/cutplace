@@ -59,7 +59,7 @@ class UTF8Recoder:
             result = self.reader.next().encode("utf-8")
         except UnicodeError, error:
             from tools import CutplaceUnicodeError
-            raise CutplaceUnicodeError("cannot decode input: %s" % error, cause=error)
+            raise CutplaceUnicodeError(u"cannot decode input: %s" % error, cause=error)
         return result
 
 
@@ -189,14 +189,14 @@ def validatedPythonName(name, value):
     nextType = nextToken[0]
     result = nextToken[1]
     if tokenize.ISEOF(nextType):
-        raise NameError("%s must not be empty but was: %r" % (name, value))
+        raise NameError(u"%s must not be empty but was: %r" % (name, value))
     if nextType != token.NAME:
-        raise NameError("%s must contain only ASCII letters, digits and underscore (_) but is: %r"
+        raise NameError(u"%s must contain only ASCII letters, digits and underscore (_) but is: %r"
                          % (name, value))
     secondToken = toky.next()
     secondTokenType = secondToken[0]
     if not tokenize.ISEOF(secondTokenType):
-        raise NameError("%s must be a single word, but after %r there also is %r" % (name, result, secondToken[1]))
+        raise NameError(u"%s must be a single word, but after %r there also is %r" % (name, result, secondToken[1]))
     return result
 
 
@@ -205,7 +205,7 @@ def camelized(key, firstIsLower=False):
     Camelized name of possibly multiple words separated by blanks that can be used for variables.
     """
     assert key is not None
-    assert key == key.strip(), "key must be trimmed"
+    assert key == key.strip(), u"key must be trimmed"
     result = ""
     for part in key.split():
         result += part[0].upper() + part[1:].lower()
@@ -230,7 +230,7 @@ def decamelized(name):
     ''
     """
     assert name is not None
-    assert name == name.strip(), "name must be trimmed"
+    assert name == name.strip(), u"name must be trimmed"
     if name:
         result = name[0]
         for c in name[1:]:
@@ -388,7 +388,7 @@ def asciified(text):
     """
     assert text is not None
     if not isinstance(text, unicode):
-        raise ValueError("text must be unicode instead of %s" % type(text))
+        raise ValueError(u"text must be unicode instead of %s" % type(text))
     result = u""
     for ch in text:
         decomp = unicodedata.decomposition(ch)

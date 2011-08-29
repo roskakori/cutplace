@@ -142,7 +142,7 @@ class DelimitedParserTest(AbstractParserTest):
             reader = _parsers.delimitedReader(actualReadable, actualDialect)
             for dummy in reader:
                 pass
-            # FIXME: self.fail("readable must raise %s" % _parsers.ParserSyntaxError.__name__)
+            # FIXME: self.fail(u"readable must raise %s" % _parsers.ParserSyntaxError.__name__)
         except _parsers.ParserSyntaxError:
             # Ignore expected error.
             pass

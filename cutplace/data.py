@@ -85,7 +85,7 @@ def createDataFormat(name):
     if formatClass is None:
         dataFormatNames = _NAME_TO_FORMAT_MAP.keys()
         dataFormatNames.sort()
-        raise DataFormatSyntaxError("data format is %r but must be one of: %r"
+        raise DataFormatSyntaxError(u"data format is %r but must be one of: %r"
                                     % (actualName, _tools.humanReadableList(dataFormatNames)))
     result = formatClass()
     return result
@@ -147,7 +147,7 @@ class _BaseDataFormat(object):
         self._allKeys.extend(self.requiredKeys)
         self._allKeys.extend(self.optionalKeyValueMap.keys())
         for key in self._allKeys:
-            assert key == self._normalizedKey(key), "key must be normalized: %r" % (key)
+            assert key == self._normalizedKey(key), u"key must be normalized: %r" % (key)
 
     def _normalizedKey(self, key):
         assert key is not None
@@ -162,7 +162,7 @@ class _BaseDataFormat(object):
 
         # Validate key.
         if result not in self._allKeys:
-            raise DataFormatSyntaxError("data format property is %r but must be one of: %s"
+            raise DataFormatSyntaxError(u"data format property is %r but must be one of: %s"
                                         % (result, _tools.humanReadableList(self._allKeys)))
 
         return result
@@ -175,7 +175,7 @@ class _BaseDataFormat(object):
         assert key
         assert choices
         if value not in choices:
-            raise DataFormatValueError("value for data format property %r is %r but must be one of: %s"
+            raise DataFormatValueError(u"value for data format property %r is %r but must be one of: %s"
                                        % (key, value, _tools.humanReadableList(choices)))
         return value
 
@@ -190,14 +190,14 @@ class _BaseDataFormat(object):
         try:
             result = long(value)
         except ValueError:
-            raise DataFormatValueError("value for data format property %r must be an integer number but is: %r" % (key, value))
+            raise DataFormatValueError(u"value for data format property %r must be an integer number but is: %r" % (key, value))
         if lowerLimit is not None:
             if result < lowerLimit:
-                raise DataFormatValueError("value for data format property %r is %d but must be at least %d" % (key, result, lowerLimit))
+                raise DataFormatValueError(u"value for data format property %r is %d but must be at least %d" % (key, result, lowerLimit))
         return result
 
     def _raiseDecimalThousandsSeparatorClash(self, propertyToBeSet, propertyExisting, clashingValue):
-        raise DataFormatValueError("value for property %r is %r but must differ from property %r"
+        raise DataFormatValueError(u"value for property %r is %r but must differ from property %r"
             % (propertyToBeSet, propertyExisting, clashingValue))
 
     def validated(self, key, value):
@@ -216,7 +216,7 @@ class _BaseDataFormat(object):
             try:
                 result = ranges.Range(value)
             except ranges.RangeSyntaxError, error:
-                raise DataFormatValueError("value for property %r must be a valid range: %s" % (key, error))
+                raise DataFormatValueError(u"value for property %r must be a valid range: %s" % (key, error))
         elif key == KEY_DECIMAL_SEPARATOR:
             result = self._validatedChoice(key, value, _VALID_DECIMAL_SEPARATORS)
             thousandsSeparatorSoFar = self.get(KEY_THOUSANDS_SEPARATOR, False)
@@ -240,7 +240,7 @@ class _BaseDataFormat(object):
         """
         for requiredKey in self.requiredKeys:
             if requiredKey not in self.properties:
-                raise DataFormatSyntaxError("required data format property must be set: %r" % requiredKey)
+                raise DataFormatSyntaxError(u"required data format property must be set: %r" % requiredKey)
 
     def set(self, key, value):
         r"""
@@ -265,7 +265,7 @@ class _BaseDataFormat(object):
         """
         normalizedKey = self._normalizedKey(key)
         if normalizedKey in self.properties:
-            raise DataFormatValueError("data format property %r has already been set: %r" % (key, self.properties[normalizedKey]))
+            raise DataFormatValueError(u"data format property %r has already been set: %r" % (key, self.properties[normalizedKey]))
         self.properties[normalizedKey] = self.validated(normalizedKey, value)
 
     def get(self, key, useDefault=True):
@@ -352,7 +352,7 @@ class _BaseTextDataFormat(_BaseDataFormat):
                 # Validate encoding name.
                 codecs.lookup(value)
             except:
-                raise DataFormatValueError("value for data format property %r is %r but must be a valid encoding" % (key, value))
+                raise DataFormatValueError(u"value for data format property %r is %r but must be a valid encoding" % (key, value))
             result = value
         elif key == KEY_LINE_DELIMITER:
             lowerValue = value.lower()
@@ -462,7 +462,7 @@ class DelimitedDataFormat(_BaseTextDataFormat):
             tokens = tokenize.generate_tokens(StringIO.StringIO(value).readline)
             nextToken = tokens.next()
             if _tools.isEofToken(nextToken):
-                raise DataFormatSyntaxError("value for data format property %r must be specified" % key)
+                raise DataFormatSyntaxError(u"value for data format property %r must be specified" % key)
             nextType = nextToken[0]
             nextValue = nextToken[1]
             if nextType == token.NUMBER:
@@ -474,27 +474,27 @@ class DelimitedDataFormat(_BaseTextDataFormat):
                         base = 10
                     longValue = long(nextValue, base)
                 except ValueError:
-                    raise DataFormatSyntaxError("numeric value for data format property %r must be an integer but is: %r" % (key, value))
+                    raise DataFormatSyntaxError(u"numeric value for data format property %r must be an integer but is: %r" % (key, value))
             elif nextType == token.NAME:
                 try:
                     longValue = tools.SYMBOLIC_NAMES_MAP[nextValue.lower()]
                 except KeyError:
                     validSymbols = _tools.humanReadableList(sorted(tools.SYMBOLIC_NAMES_MAP.keys()))
-                    raise DataFormatSyntaxError("symbolic name %r for data format property %r must be one of: %s" % (value, key, validSymbols))
+                    raise DataFormatSyntaxError(u"symbolic name %r for data format property %r must be one of: %s" % (value, key, validSymbols))
             elif nextType == token.STRING:
                 if len(nextValue) != 3:
-                    raise DataFormatSyntaxError("text for data format property %r must be a single character but is: %r" % (key, value))
+                    raise DataFormatSyntaxError(u"text for data format property %r must be a single character but is: %r" % (key, value))
                 leftQuote = nextValue[0]
                 rightQuote = nextValue[2]
-                assert leftQuote in "\"\'", "leftQuote=%r" % leftQuote
-                assert rightQuote in "\"\'", "rightQuote=%r" % rightQuote
+                assert leftQuote in "\"\'", u"leftQuote=%r" % leftQuote
+                assert rightQuote in "\"\'", u"rightQuote=%r" % rightQuote
                 longValue = ord(nextValue[1])
             else:
-                raise DataFormatSyntaxError("value for data format property %r must a number, a single character or a symbolic name but is: %r" % (key, value))
+                raise DataFormatSyntaxError(u"value for data format property %r must a number, a single character or a symbolic name but is: %r" % (key, value))
             # Ensure there are no further tokens.
             nextToken = tokens.next()
             if not _tools.isEofToken(nextToken):
-                raise DataFormatSyntaxError("value for data format property %r must describe a single character but is: %r" % (key, value))
+                raise DataFormatSyntaxError(u"value for data format property %r must describe a single character but is: %r" % (key, value))
 
             assert longValue is not None
             assert longValue >= 0

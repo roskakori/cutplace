@@ -36,7 +36,7 @@ this number is unassigned.
 """
 DEFAULT_PORT = 8778
 
-_SERVER_VERSION = "cutplace/%s" % version.VERSION_NUMBER
+_SERVER_VERSION = u"cutplace/%s" % version.VERSION_NUMBER
 
 _allowShutDown = False
 _readyToShutDown = False
@@ -49,7 +49,7 @@ class _HtmlWritingValidationListener(interface.BaseValidationListener):
     def __init__(self, htmlTargetFile, itemCount):
         assert htmlTargetFile is not None
         assert itemCount is not None
-        assert itemCount > 0, "itemCount=%r" % itemCount
+        assert itemCount > 0, u"itemCount=%r" % itemCount
         self._htmlTargetFile = htmlTargetFile
         self._itemCount = itemCount
         self.acceptedCount = 0
@@ -58,16 +58,16 @@ class _HtmlWritingValidationListener(interface.BaseValidationListener):
 
     def _writeRow(self, row, cssClass):
         assert cssClass is not None
-        self._htmlTargetFile.write("<tr>\n")
+        self._htmlTargetFile.write(u"<tr>\n")
         for item in row:
-            self._htmlTargetFile.write("<td class=\"%s\">%s</td>\n" % (cssClass, cgi.escape(item)))
-        self._htmlTargetFile.write("</tr>\n")
+            self._htmlTargetFile.write(u"<td class=\"%s\">%s</td>\n" % (cssClass, cgi.escape(item)))
+        self._htmlTargetFile.write(u"</tr>\n")
 
     def _writeTextRow(self, text):
         assert text is not None
-        self._htmlTargetFile.write("<tr>\n")
-        self._htmlTargetFile.write("<td colspan=\"%d\">%s</td>\n" % (self._itemCount, cgi.escape(text)))
-        self._htmlTargetFile.write("</tr>\n")
+        self._htmlTargetFile.write(u"<tr>\n")
+        self._htmlTargetFile.write(u"<td colspan=\"%d\">%s</td>\n" % (self._itemCount, cgi.escape(text)))
+        self._htmlTargetFile.write(u"</tr>\n")
 
     def acceptedRow(self, row, location):
         assert row is not None
@@ -79,18 +79,18 @@ class _HtmlWritingValidationListener(interface.BaseValidationListener):
         assert error is not None
         self.rejectedCount += 1
         self._writeRow(row, "error")
-        self._writeTextRow("%s" % error)
+        self._writeTextRow(u"%s" % error)
 
     def checkAtEndFailed(self, error):
         assert error is not None
         self.checkAtEndFailedCount += 1
-        self._writeTextRow("check at end failed: %s" % error)
+        self._writeTextRow(u"check at end failed: %s" % error)
 
 
 class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
     server_version = _SERVER_VERSION
     _IO_BUFFER_SIZE = 8192
-    _STYLE = """
+    _STYLE = u"""
     body {
       background-color: #ffffff;
       color: #000000;
@@ -117,9 +117,9 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
       background-color: #ffdddd;
     }
 """
-    _FOOTER = "<hr><a href=\"http://cutplace.sourceforge.net/\">cutplace</a> %s" % version.VERSION_NUMBER
+    _FOOTER = u"<hr><a href=\"http://cutplace.sourceforge.net/\">cutplace</a> %s" % version.VERSION_NUMBER
 
-    _FORM = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+    _FORM = u"""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <html>
 <head>
   <title>Cutplace</title>
@@ -147,7 +147,7 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
 </body></html>
 """ % (_STYLE, _FOOTER)
 
-    _ABOUT = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+    _ABOUT = u"""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <html>
 <head>
   <title>About cutplace</title>
@@ -162,7 +162,7 @@ Platform: %s</p>
 </body></html>
 """ % (_STYLE, version.VERSION_TAG, cgi.escape(_tools.pythonVersion()), cgi.escape(_tools.platformVersion()), _FOOTER)
 
-    _SHUTDOWN = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+    _SHUTDOWN = u"""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <html>
 <head>
   <title>Cutplace</title>
@@ -178,7 +178,7 @@ Platform: %s</p>
     def do_GET(self):
 
         log = logging.getLogger("cutplace.web")
-        log.info("%s %r" % (self.command, self.path))
+        log.info(u"%s %r", self.command, self.path)
 
         if (self.path == "/"):
             self.send_response(200)
@@ -203,7 +203,7 @@ Platform: %s</p>
                 self.wfile.close()
                 _readyToShutDown = True
             else:
-                self.send_error(400, "cannot shutdown server: the shutdown feature must be enabled when starting the server")
+                self.send_error(400, u"cannot shutdown server: the shutdown feature must be enabled when starting the server")
         else:
             self.send_error(404)
 
@@ -239,12 +239,12 @@ Platform: %s</p>
                 if dataContent:
                     validationHtmlFile = tempfile.TemporaryFile(suffix=".html", prefix="cutplace-web-")
                     try:
-                        log.debug("writing html to temporary file: %r" % validationHtmlFile.name)
-                        validationHtmlFile.write("<table><tr>")
+                        log.debug(u"writing html to temporary file: %r", validationHtmlFile.name)
+                        validationHtmlFile.write(u"<table><tr>")
                         # Write table headings.
                         for title in icd.fieldNames:
-                            validationHtmlFile.write("<th>%s</th>" % cgi.escape(title))
-                        validationHtmlFile.write("</tr>")
+                            validationHtmlFile.write(u"<th>%s</th>" % cgi.escape(title))
+                        validationHtmlFile.write(u"</tr>")
 
                         # Start listening to validation events.
                         htmlListener = _HtmlWritingValidationListener(validationHtmlFile, len(icd.fieldNames))
@@ -260,7 +260,7 @@ Platform: %s</p>
                             self.end_headers()
 
                             # Write the contents of the temporary HTML file to the web page.
-                            self.wfile.write("""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+                            self.wfile.write(u"""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <html>
 <head>
   <title>Validation results</title>
@@ -269,7 +269,7 @@ Platform: %s</p>
 </head><body>
 <h1>Validation results</h1>
 """ % (Handler._STYLE))
-                            self.wfile.write("""<table>
+                            self.wfile.write(u"""<table>
   <tr><td>Rows accepted:</td><td>%d</td></tr>
   <tr><td>Rows rejected:</td><td>%d</td></tr>
   <tr><td>Checks at end failed:</td><td>%d</td></tr>
@@ -282,7 +282,7 @@ Platform: %s</p>
                                 htmlFileBuffer = validationHtmlFile.read(Handler._IO_BUFFER_SIZE)
                             self.wfile.write(Handler._FOOTER)
                         except:
-                            self.send_error(400, "cannot validate data: %s" % cgi.escape(str(sys.exc_info()[1])))
+                            self.send_error(400, u"cannot validate data: %s" % cgi.escape(str(sys.exc_info()[1])))
                     finally:
                         validationHtmlFile.close()
                 else:
@@ -290,14 +290,14 @@ Platform: %s</p>
                     self.send_response(200)
                     self.send_header("Content-type", "text/html")
                     self.end_headers()
-                    self.wfile.write("ICD file is valid.")
+                    self.wfile.write(u"ICD file is valid.")
             except:
-                log.error("cannot parse ICD", exc_info=1)
-                self.send_error(400, "cannot parse ICD: %s" % cgi.escape(str(sys.exc_info()[1])))
+                log.error(u"cannot parse ICD", exc_info=1)
+                self.send_error(400, u"cannot parse ICD: %s" % cgi.escape(str(sys.exc_info()[1])))
         else:
             errorMessage = "ICD file must be specified"
             log.error(errorMessage)
-            self.send_error(400, "%s." % cgi.escape(errorMessage))
+            self.send_error(400, u"%s." % cgi.escape(errorMessage))
 
 
 class WaitForServerToBeReadyThread(threading.Thread):
@@ -318,7 +318,7 @@ class WaitForServerToBeReadyThread(threading.Thread):
         log = logging.getLogger("cutplace.web.wait")
         self.siteAvailable = False
         retries = 0
-        log.info("wait for server to be ready")
+        log.info(u"wait for server to be ready")
         while not self.siteAvailable and (retries < self.maxRetries):
             try:
                 # Attempt to open the validation form.
@@ -326,7 +326,7 @@ class WaitForServerToBeReadyThread(threading.Thread):
                 urllib.urlopen(self.site, proxies={}).close()
                 self.siteAvailable = True
             except IOError:
-                log.error("cannot find server yet, retry=%d/%d" % (retries, self.maxRetries), exc_info=1)
+                log.error(u"cannot find server yet, retry=%d/%d", retries, self.maxRetries, exc_info=1)
                 time.sleep(self.delayBetweenRetryInSeconds)
                 retries += 1
 
@@ -338,16 +338,16 @@ class OpenBrowserThread(WaitForServerToBeReadyThread):
 
         log = logging.getLogger("cutplace.browser")
         if self.siteAvailable:
-            log.info("open web browser")
+            log.info(u"open web browser")
             try:
                 # HACK: Attempt to import webbrowser only here because this module is not available
                 # for Jython 2.5.
                 import webbrowser
                 webbrowser.open(self.site)
             except ImportError, error:
-                log.warning("cannot browse site %r: %s" % (self.site, error))
+                log.warning(u"cannot browse site %r: %s" % (self.site, error))
         else:
-            log.warning("cannot find server at <%s>, giving up; try to connect manually" % self.site)
+            log.warning(u"cannot find server at <%s>, giving up; try to connect manually", self.site)
 
 
 def main(port=DEFAULT_PORT, isOpenBrowser=False, allowShutDown=False):
@@ -359,21 +359,21 @@ def main(port=DEFAULT_PORT, isOpenBrowser=False, allowShutDown=False):
     _allowShutDown = allowShutDown
     httpd = BaseHTTPServer.HTTPServer(("", port), Handler)
     site = "http://localhost:%d/" % port
-    log.info(_SERVER_VERSION)
-    log.debug("site=%r, isOpenBrowser=%r" % (site, isOpenBrowser))
+    log.info(u"%s", _SERVER_VERSION)
+    log.debug(u"site=%r, isOpenBrowser=%r" % (site, isOpenBrowser))
     if isOpenBrowser:
         browserOpener = OpenBrowserThread()
         browserOpener.site = site
         browserOpener.start()
-    log.info("Visit <%s> to connect" % site)
-    log.info("Press Control-C to shut down")
+    log.info(u"Visit <%s> to connect", site)
+    log.info(u"Press Control-C to shut down")
     try:
         while not _readyToShutDown:
             httpd.handle_request()
     except KeyboardInterrupt:
         # Ignore Control-C and proceed with shut down.
         pass
-    log.info("Shut down")
+    log.info(u"Shut down")
 
 if __name__ == '__main__':
     logging.basicConfig()

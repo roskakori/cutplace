@@ -85,7 +85,7 @@ class CutplaceTest(unittest.TestCase):
         try:
             self._testValidIcd("xls")
         except _parsers.CutplaceXlrdImportError:
-            _log.warning("skipped test due lack of xlrd module")
+            _log.warning(u"skipped test due lack of xlrd module")
 
     def testValidCsvs(self):
         VALID_PREFIX = "valid_"

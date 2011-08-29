@@ -83,7 +83,7 @@ class CutplaceValidationListener(interface.BaseValidationListener):
     def acceptedRow(self, row, location):
         self.acceptedRowCount += 1
         if self.acceptedFile is None:
-            self.log.info("accepted: %r" % row)
+            self.log.info(u"accepted: %r", row)
         else:
             # Write to a csv.writer.
             self.acceptedFile.writerow(row)
@@ -93,8 +93,8 @@ class CutplaceValidationListener(interface.BaseValidationListener):
         rowText = "items: %r" % row
         errorText = "field error: %s" % error
         if self.rejectedFile is None:
-            self.log.error(rowText)
-            self.log.error(errorText)
+            self.log.error(u"%s", rowText)
+            self.log.error(u"%s", errorText)
         else:
             # Write to a text file.
             self.rejectedFile.write("%s%s" % (rowText, os.linesep))
@@ -104,7 +104,7 @@ class CutplaceValidationListener(interface.BaseValidationListener):
         errorText = "check at end failed: %s" % error
         self.checksAtEndFailedCount += 1
         if self.rejectedFile is None:
-            self.log.error(errorText)
+            self.log.error(u"%s", errorText)
         else:
             # Write to a text file.
             self.rejectedFile.write("%s%s" % (errorText, os.linesep))
@@ -128,7 +128,7 @@ class CutPlace(object):
         """Reset options and set them again from argument list such as sys.argv[1:]."""
         assert argv is not None
 
-        usage = """
+        usage = u"""
   cutplace [options] ICD-FILE
     validate interface control document in ICD-FILE
   cutplace [options] ICD-FILE DATA-FILE(S)
@@ -173,15 +173,15 @@ class CutPlace(object):
                 try:
                     self.setIcdFromFile(icdPath)
                 except EnvironmentError, error:
-                    raise IOError("cannot read ICD file %r: %s" % (icdPath, error))
+                    raise IOError(u"cannot read ICD file %r: %s" % (icdPath, error))
                 if len(others) >= 2:
                     self.dataToValidatePaths = others[1:]
             else:
-                parser.error("file containing ICD must be specified")
+                parser.error(u"file containing ICD must be specified")
 
-        self._log.debug("cutplace %s", version.VERSION_TAG)
-        self._log.debug("options=%s", self.options)
-        self._log.debug("others=%s", others)
+        self._log.debug(u"cutplace %s", version.VERSION_TAG)
+        self._log.debug(u"options=%s", self.options)
+        self._log.debug(u"others=%s", others)
 
     def validate(self, dataFilePath):
         """

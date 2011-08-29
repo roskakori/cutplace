@@ -54,7 +54,7 @@ class AbstractCheck(object):
         assert availableFieldNames is not None
 
         if not availableFieldNames:
-            raise fields.FieldLookupError("field names must be specified", locationOfDefinition)
+            raise fields.FieldLookupError(u"field names must be specified", locationOfDefinition)
         self._description = description
         self._rule = rule
         self._fieldNames = availableFieldNames
@@ -154,7 +154,7 @@ class IsUniqueCheck(AbstractCheck):
             if afterComma:
                 # TODO: Report error when the same field name shows up again.
                 if tokenType != tokenize.NAME:
-                    raise CheckSyntaxError("field name must contain only ASCII letters, numbers and underscores (_) "
+                    raise CheckSyntaxError(u"field name must contain only ASCII letters, numbers and underscores (_) "
                                            + "but found: %r [token type=%r]" % (tokenValue, tokenType))
                 try:
                     fields.getFieldNameIndex(tokenValue, availableFieldNames)
@@ -162,11 +162,11 @@ class IsUniqueCheck(AbstractCheck):
                     raise CheckSyntaxError(str(error))
                 self.fieldNamesToCheck.append(tokenValue)
             elif not _tools.isCommaToken(nextToken):
-                raise CheckSyntaxError("after field name a comma (,) must follow but found: %r" % (tokenValue))
+                raise CheckSyntaxError(u"after field name a comma (,) must follow but found: %r" % (tokenValue))
             afterComma = not afterComma
             nextToken = toky.next()
         if not len(self.fieldNamesToCheck):
-            raise CheckSyntaxError("rule must contain at least one field name to check for uniqueness")
+            raise CheckSyntaxError(u"rule must contain at least one field name to check for uniqueness")
         self.reset()
 
     def reset(self):
@@ -180,7 +180,7 @@ class IsUniqueCheck(AbstractCheck):
         keyText = repr(key)
         seeAlsoLocation = self.uniqueValues.get(keyText)
         if seeAlsoLocation is not None:
-            raise CheckError("unique %r has already occurred: %s" % (self.fieldNamesToCheck, keyText),
+            raise CheckError(u"unique %r has already occurred: %s" % (self.fieldNamesToCheck, keyText),
                 location, seeAlsoMessage="location of previous occurrence", seeAlsoLocation=seeAlsoLocation)
         else:
             self.uniqueValues[keyText] = copy.copy(location)
@@ -200,7 +200,7 @@ class DistinctCountCheck(AbstractCheck):
 
         # Obtain and validate field to count.
         if firstToken[0] != tokenize.NAME:
-            raise CheckSyntaxError("rule must start with a field name but found: %r" % firstToken[1])
+            raise CheckSyntaxError(u"rule must start with a field name but found: %r" % firstToken[1])
         self.fieldNameToCount = firstToken[1]
         fields.getFieldNameIndex(self.fieldNameToCount, availableFieldNames)
         lineWhereFieldNameEnds, columnWhereFieldNameEnds = firstToken[3]
@@ -223,9 +223,9 @@ class DistinctCountCheck(AbstractCheck):
         try:
             result = eval(self.expression, {}, localVariables)
         except Exception, message:
-            raise CheckSyntaxError("cannot evaluate count expression %r: %s" % (self.expression, message))
+            raise CheckSyntaxError(u"cannot evaluate count expression %r: %s" % (self.expression, message))
         if result not in [True, False]:
-            raise CheckSyntaxError("count expression %r must result in %r or %r, but test resulted in: %r" % (self.expression, True, False, result))
+            raise CheckSyntaxError(u"count expression %r must result in %r or %r, but test resulted in: %r" % (self.expression, True, False, result))
         return result
 
     def checkRow(self, rowMap, location):
@@ -237,4 +237,4 @@ class DistinctCountCheck(AbstractCheck):
 
     def checkAtEnd(self, location):
         if not self._eval():
-            raise CheckError("distinct count is %d but check requires: %r" % (self._distinctCount(), self.expression), location)
+            raise CheckError(u"distinct count is %d but check requires: %r" % (self._distinctCount(), self.expression), location)

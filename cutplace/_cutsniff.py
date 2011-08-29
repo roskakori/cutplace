@@ -17,6 +17,8 @@ derived from sample data.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import with_statement
+
 import logging
 import os.path
 import sys
@@ -39,10 +41,10 @@ def main(argv=None):
         argv = sys.argv
     assert argv
     programName = os.path.basename(argv[0])
-    usage = """usage: %s [options] ICDFILE DATAFILE
+    usage = u"""usage: %s [options] ICDFILE DATAFILE
   Write interface control document to ICDFILE describing the data found in
   DATAFILE. The resulting ICD is stored in CSV format.""" % programName
-    epilog = """
+    epilog = u"""
 Example:
   %s --data-format=delimited --data-encoding iso-8859-15 icd_customers.csv some_customers.csv
     Analyze data file some_customers.csv assuming ISO-8859-15 as character
@@ -70,11 +72,11 @@ Example:
     (options, others) = parser.parse_args(argv[1:])
     othersCount = len(others)
     if othersCount == 0:
-        parser.error("ICDFILE and DATAFILE must be specified")
+        parser.error(u"ICDFILE and DATAFILE must be specified")
     elif othersCount == 1:
-        parser.error("DATAFILE must be specified")
+        parser.error(u"DATAFILE must be specified")
     elif othersCount > 2:
-        parser.error("only ICDFILE and DATAFILE must be specified but also found: %s" % others[2:])
+        parser.error(u"only ICDFILE and DATAFILE must be specified but also found: %s" % others[2:])
 
     if options.fieldNameList:
         fieldNames = [fieldName.strip() for fieldName in options.fieldNameList.split(",")]
@@ -91,7 +93,6 @@ Example:
             )
             with open(dataPath, "rb") as dataFile:
                 for icdRowToWrite in sniff.createCidRows(dataFile, dataFormat=options.dataFormat, encoding=options.dataEncoding, header=options.head, fieldNames=fieldNames, stopAfter=options.stopAfter):
-                    print "rowToWrite=", icdRowToWrite
                     icdCsvWriter.writerow(icdRowToWrite)
         exitCode = 0
     except EnvironmentError, error:

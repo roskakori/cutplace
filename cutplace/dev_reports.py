@@ -28,7 +28,7 @@ try:
     import cProfile
     import pstats
 except ImportError, error:
-    _log.warning("developer reports will not work: %s", error)
+    _log.warning(u"some developer reports will not work: %s", error)
 
 
 def _testLotsOfCustomers():
@@ -83,10 +83,10 @@ if __name__ == '__main__':
     logging.getLogger("cutplace").setLevel(logging.WARNING)
     logging.getLogger("cutplace.dev_reports").setLevel(logging.INFO)
 
-    usage = "usage: %prog FOLDER"
+    usage = u"usage: %prog FOLDER"
     parser = optparse.OptionParser(usage)
     options, others = parser.parse_args()
     if not others:
-        parser.error("target folder for reports must be specified")
+        parser.error(u"target folder for reports must be specified")
     baseFolder = others[0]
     createReports(baseFolder)
