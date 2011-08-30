@@ -48,14 +48,16 @@ The class
 represents an ICD. In case you have an ICD stored in a file and want to read
 it, use:
 
+>>> import os
 >>> import os.path
 >>> from cutplace import interface
 >>>
->>> # Compute the path of a test file in a system independent manner.
->>> icdPath = os.path.join("tests", "input", "icds", "customers.csv")
+>>> # Compute the path of a test file in a system independent manner,
+>>> # assuming that the current folder is "docs".
+>>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>>
 >>> icd = interface.InterfaceControlDocument()
->>> icd.read(icdPath)
+>>> icd.read(os.path.abspath(icdPath))
 >>> icd.fieldNames
 [u'branch_id', u'customer_id', u'first_name', u'surname', u'gender', u'date_of_birth']
 
@@ -78,7 +80,7 @@ familiar with Python's ``csv.reader()``, you already know how to use it.
 
 Here is a trivial example that reads all rows from a valid CSV file:
 
->>> validCsvPath = os.path.join("tests", "input", "valid_customers.csv")
+>>> validCsvPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> for row in interface.validatedRows(icd, validCsvPath):
 ...   pass # We could also do something useful with the data in ``row`` here.
 
@@ -88,7 +90,7 @@ body to process them in any meaningful such a inserting them in a database.
 Now what happens if the data do not conform with the interface? Let's take a
 look at it:
 
->>> brokenCsvPath = os.path.join("tests", "input", "broken_customers.csv")
+>>> brokenCsvPath = os.path.join(os.pardir, "tests", "input", "broken_customers.csv")
 >>> for row in interface.validatedRows(icd, brokenCsvPath):
 ...   pass
 Traceback (most recent call last):
@@ -110,7 +112,7 @@ of results properly.
 Here is an example the prints any data related errors detected during validation:
 
 >>> from cutplace import tools
->>> brokenCsvPath = os.path.join("tests", "input", "broken_customers.csv")
+>>> brokenCsvPath = os.path.join(os.pardir, "tests", "input", "broken_customers.csv")
 >>> for rowOrError in interface.validatedRows(icd, brokenCsvPath, errors="yield"):
 ...     if isinstance(rowOrError, tools.CutplaceError):
 ...         # Print data related error details and move on.
@@ -178,8 +180,8 @@ validation code:
 >>> import os.path
 >>> from cutplace import interface
 >>> # Change this to use your own files.
->>> icdPath = os.path.join("tests", "input", "icds", "customers.csv")
->>> dataPath = os.path.join("tests", "input", "valid_customers.csv")
+>>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> # Define the interface.
 >>> icd = interface.InterfaceControlDocument()
 >>> icd.read(icdPath)
@@ -273,16 +275,16 @@ Validating with listeners
 
 Once the ICD is set up, you can validate data using ``validate()``:
 
->>> icdPath = os.path.join("tests", "input", "icds", "customers.csv")
+>>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>> icd = interface.InterfaceControlDocument()
 >>> icd.read(icdPath)
 >>>
->>> validCsvPath = os.path.join("tests", "input", "valid_customers.csv")
+>>> validCsvPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> icd.validate(validCsvPath)
 
 So what happens if the data contain errors? Let's give it a try:
 
->>> brokenCsvPath = os.path.join("tests", "input", "broken_customers.csv")
+>>> brokenCsvPath = os.path.join(os.pardir, "tests", "input", "broken_customers.csv")
 >>> icd.validate(brokenCsvPath)
 
 Again, the validation runs through without any ``Exception`` or other

@@ -90,18 +90,13 @@
 
     <target name="test" depends="testdata" description="run test suite">
         <exec executable="nosetests">
-            <arg value="--where" />
-            <arg value="cutplace" />
             <arg value="--with-coverage" />
             <arg value="--with-doctest" />
             <arg value="--with-xunit" />
             <arg value="--cover-erase" />
-            <arg value="--doctest-extension=rst" />
-            <arg value="--include" />
-            <arg value="docs" />
             <arg value="--exclude" />
             <!-- TODO: Implement automatic test cases for web interface. -->
-            <arg value=".*test_web.*" />
+            <arg value="(.*setup.*)|(.*test_web.*)" />
         </exec>
         <exec executable="coverage" failonerror="true">
             <arg value="xml" />
@@ -131,6 +126,12 @@
     </target>
 
     <target description="build documentation" name="docs" depends="sitebase, testdata">
+        <exec executable="nosetests" failonerror="true">
+            <arg value="--with-doctest" />
+            <arg value="--doctest-extension=rst" />
+            <arg value="--where" />
+            <arg value="docs" />
+        </exec>
         <pyst command="docs" />
     </target>
 
