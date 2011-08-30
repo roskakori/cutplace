@@ -306,8 +306,6 @@ class _FixedParser(object):
 
         self.readable = readable
         self.fieldLengths = fieldLengths
-        # TODO: Obtain name of file to parse, if there is one.
-        self.fileName = None
         self.itemNumberInRow = - 1
         self.columnNumberInRow = 0
         self.rowNumber = 0
