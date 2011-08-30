@@ -66,24 +66,6 @@ def _copyFilesToFolder(sourceFolder, targetFolder, pattern=".*"):
                 print "copying %r to %r" % (sourceFilePath, targetFilePath)
                 shutil.copy(sourceFilePath, targetFilePath)
 
-class _ApiCommand(Command):
-    """
-    Command for setuptools to build API documentation.
-    """
-    description = "build API documentation"
-    user_options = []
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        epydocCall = ["epydoc", "--config", epydocSettings]
-        print " ".join(epydocCall)
-        subprocess.check_call(epydocCall)
-
 class _DocsCommand(Command):
     """
     Command for setuptools to build the documentation.
@@ -114,9 +96,6 @@ class _DocsCommand(Command):
 
     def run(self):
         self._convertAllOdsToCsvAndRst("examples")
-        # TODO: Remove dead code below.
-        # _copyFilesToFolder(tutorialFolder, buildSiteFolder, ".*\\.csv$")
-        # _copyFilesToFolder(tutorialFolder, buildSiteFolder, ".*\\.ods$")
         sphinxCall = ["sphinx-build", "-b", "html", "-N", "-q", docsFolder, buildSiteFolder]
         print " ".join(sphinxCall)
         subprocess.check_call(sphinxCall)
@@ -195,7 +174,6 @@ thinking. It acts as "executable specification" which cutplace can use to valida
           "Topic :: Software Development :: Testing"
       ],
       cmdclass={
-          "api": _ApiCommand,
           "docs": _DocsCommand,
           "reports":_ReportsCommand
       }

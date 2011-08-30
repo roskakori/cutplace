@@ -173,7 +173,10 @@
         </exec>
     </target>
 
-    <target name="api" depends="sitebase">
-        <pyst command="api" />
+    <target name="api" depends="sitebase" description="build API documentation">
+        <exec executable="epydoc" failonerror="true">
+            <arg value="--config" />
+            <arg file=".settings/epydoc.config" />
+        </exec>
     </target>
 </project>
