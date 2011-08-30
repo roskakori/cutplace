@@ -23,7 +23,6 @@ import logging
 import optparse
 import os
 import sys
-import traceback
 
 import interface
 import tools
