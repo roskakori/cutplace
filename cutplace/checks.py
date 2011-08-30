@@ -148,18 +148,21 @@ class IsUniqueCheck(AbstractCheck):
         toky = tokenize.generate_tokens(ruleReadLine)
         afterComma = True
         nextToken = toky.next()
+        uniqueFieldNames = set()
         while not _tools.isEofToken(nextToken):
             tokenType = nextToken[0]
             tokenValue = nextToken[1]
             if afterComma:
-                # TODO: Report error when the same field name shows up again.
                 if tokenType != tokenize.NAME:
                     raise CheckSyntaxError(u"field name must contain only ASCII letters, numbers and underscores (_) "
                                            + "but found: %r [token type=%r]" % (tokenValue, tokenType))
                 try:
                     fields.getFieldNameIndex(tokenValue, availableFieldNames)
+                    if tokenValue in uniqueFieldNames:
+                        raise CheckSyntaxError(u"duplicate field name for unique check must be removed: %s" % tokenValue)
+                    uniqueFieldNames.add(tokenValue)
                 except fields.FieldLookupError, error:
-                    raise CheckSyntaxError(str(error))
+                    raise CheckSyntaxError(unicode(error))
                 self.fieldNamesToCheck.append(tokenValue)
             elif not _tools.isCommaToken(nextToken):
                 raise CheckSyntaxError(u"after field name a comma (,) must follow but found: %r" % (tokenValue))

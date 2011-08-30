@@ -106,6 +106,11 @@ class IsUniqueCheckTest(_AbstractCheckTest):
         fieldNames = _getTestFieldNames()
         self.assertRaises(checks.CheckSyntaxError, checks.IsUniqueCheck, "test check", "branch_id customer_id", fieldNames)
 
+    def testFailsOnDuplicateFieldName(self):
+        fieldNames = _getTestFieldNames()
+        firstFieldName = fieldNames[0]
+        brokenUniqueFieldNames = ", ".join([firstFieldName, firstFieldName])
+        self.assertRaises(checks.CheckSyntaxError, checks.IsUniqueCheck, "test check", brokenUniqueFieldNames, fieldNames)
 
 class DistinctCountCheckTest(unittest.TestCase):
     def testDistinctCountCheck(self):
