@@ -192,6 +192,7 @@ from the tab "Available":
   * SLOCCount Plug-in
   * Static Code Analysis Plug-ins
   * Task Scanner Plugin
+  * Violations plugin
 
 Next, create a build using the following steps:
 
@@ -219,3 +220,4 @@ Next, create a build using the following steps:
     #. Publish Cobertura Coverage Report: ``**/coverage.xml``
     #. Publish JUnit test result report: ``**/nosetests.xml``
     #. Publish SLOCCount analysis results: SLOCCount reports: ``**/sloccount.sc``
+    #. Report Violations: pep8: XML filename pattern: ``**/pep8.txt``
