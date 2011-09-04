@@ -31,10 +31,13 @@ except ImportError, error:
     _log.warning(u"some developer reports will not work: %s", error)
 
 
-def _testLotsOfCustomers():
-    import test_cutplace
+def _testPerformance():
+    """
+    Run performance test.
+    """
+    import test_performace
     loader = unittest.TestLoader()
-    suite = loader.loadTestsFromTestCase(test_cutplace.LotsOfCustomersTest)
+    suite = loader.loadTestsFromTestCase(test_performace.PerformanceTest)
     unittest.TextTestRunner(verbosity=2).run(suite)
 
 
@@ -60,10 +63,10 @@ def createProfilerReport(targetBasePath):
     targetProfilePath = os.path.join(targetBasePath, itemName) + ".profile"
     targetReportPath = os.path.join(targetBasePath, itemName) + ".txt"
     try:
-        cProfile.run("_testLotsOfCustomers()", targetProfilePath)
+        cProfile.run("_testPerformance()", targetProfilePath)
     except NameError:
         # HACK: Use explicit module prefix when run from setup.py.
-        cProfile.run("dev_reports._testLotsOfCustomers()", targetProfilePath)
+        cProfile.run("dev_reports._testPerformance()", targetProfilePath)
     targetReportFile = open(targetReportPath, "w")
     try:
         stats = pstats.Stats(targetProfilePath, stream=targetReportFile)
