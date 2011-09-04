@@ -20,6 +20,7 @@ import csv
 import datetime
 import logging
 import Queue
+import threading
 
 import data
 import sniff
@@ -36,49 +37,55 @@ _VALID_LINE_DELIMITERS = [AUTO, CR, CRLF, LF]
 
 class CutplaceXlrdImportError(tools.CutplaceError):
     """
-    Error raised if xlrd package to read Excel can not be imported.
+    Error raised if ``xlrd`` package to read Excel needs to be installed.
     """
 
 
-def delimitedReader(readable, dialect, encoding="ascii"):
-    """Generator yielding the "readable" row by row using "dialect"."""
-    assert readable is not None
-    assert dialect is not None
-    assert encoding is not None
+class _AbstractRowProducerThread(threading.Thread):
+    """
+    Thread to produce the contents of a row reader to a queue where a consumer can get it.
 
-    parser = _DelimitedParser(readable, dialect, encoding)
-    columns = []
-    while not parser.atEndOfFile:
-        if parser.item is not None:
-            columns.append(parser.item)
-        if parser.atEndOfLine:
-            yield columns
-            columns = []
-        parser.advance()
+    Consumers should call ``Queue.get()`` until it returns ``None``. Possible exceptions raised
+    in the background during `run()` are raised again when calling `join()` so no special means
+    are necessary for the consumer to handle exceptions in the producer thread.
+    """
+    def __init__(self, readable, targetQueue):
+        assert readable is not None
+        assert targetQueue is not None
+        super(_AbstractRowProducerThread, self).__init__()
+        self.readable = readable
+        self._targetQueue = targetQueue
+        self._error = None
 
+    def reader(self):
+        """
+        Reader to yield ``readable`` row by row.
+        """
+        raise NotImplementedError(u'reader() must be implemented')
 
-def fixedReader(readable, fieldLengths):
-    """Generator yielding the "readable" row by row using "fieldLengths"."""
-    assert readable is not None
-    assert fieldLengths
-    assert len(fieldLengths) > 0
+    def run(self):
+        try:
+            for row in self.reader():
+                self._targetQueue.put(row)
+        except Exception, error:
+            # Remember _error information to raise it later during `join()`.
+            self._error = error
+        finally:
+            # The last row always is a `None` to mark the end.
+            self._targetQueue.put(None)
 
-    parser = _FixedParser(readable, fieldLengths)
-    columns = []
-    while not parser.atEndOfFile:
-        if parser.item is not None:
-            columns.append(parser.item)
-        if parser.atEndOfLine:
-            yield columns
-            columns = []
-        parser.advance()
+    def join(self):
+        super(_AbstractRowProducerThread, self).join()
+        if self._error is not None:
+            raise self._error
 
 
 def _excelCellValue(cell, datemode):
     """
-    The value of `cell` as text taking into account the way excel encodes dates and times.
+    The value of ``cell`` as text taking into account the way excel encodes dates and times.
 
-    Numeric Excel types (Currency,  Fractional, Number, Percent, Scientific) simply yield the decimal number without any special formatting.
+    Numeric Excel types (Currency,  Fractional, Number, Percent, Scientific) simply yield the decimal number
+    without any special formatting.
 
     Dates result in a text using the format "YYYY-MM-DD", times in a text using the format "hh:mm:ss".
 
@@ -88,8 +95,8 @@ def _excelCellValue(cell, datemode):
     """
     assert cell is not None
 
-    # Just import without sanitizing the error message.
-    # If we got that far, the import should have worked already.
+    # Just import without sanitizing the _error message. If we got that far, the import should have worked
+    # already.
     import xlrd
 
     if cell.ctype == xlrd.XL_CELL_DATE:
@@ -97,46 +104,92 @@ def _excelCellValue(cell, datemode):
         assert len(cellTuple) == 6, u"cellTuple=%r" % cellTuple
         if cellTuple[:3] == (0, 0, 0):
             timeTuple = cellTuple[3:]
+            # TODO: Use unicode() instead of unicode(str())
             result = unicode(str(datetime.time(*timeTuple)), "ascii")
         else:
+            # TODO: Use unicode() instead of unicode(str())
             result = unicode(str(datetime.datetime(*cellTuple)), "ascii")
     elif cell.ctype == xlrd.XL_CELL_ERROR:
         defaultErrorText = xlrd.error_text_from_code[0x2a]  # same as "#N/A!"
         errorCode = cell.value
+        # TODO: Use unicode() instead of unicode(str())
         result = unicode(xlrd.error_text_from_code.get(errorCode, defaultErrorText), "ascii")
     elif isinstance(cell.value, unicode):
         result = cell.value
     else:
+        # TODO: Use unicode() instead of unicode(str())
         result = unicode(str(cell.value), "ascii")
         if (cell.ctype == xlrd.XL_CELL_NUMBER) and (result.endswith(u".0")):
-            result = result[: - 2]
+            result = result[:-2]
 
     return result
 
 
+class _ExcelRowProducerThread(_AbstractRowProducerThread):
+    def __init__(self, readable, targetQueue, sheetIndex=1):
+        assert sheetIndex is not None
+        assert sheetIndex >= 1
+        super(_ExcelRowProducerThread, self).__init__(readable, targetQueue)
+        self.sheetIndex = sheetIndex
+
+    def reader(self):
+        try:
+            import xlrd
+        except ImportError:
+            raise CutplaceXlrdImportError(u"to read Excel data the xlrd package must be installed, see <http://pypi.python.org/pypi/xlrd> for more information")
+
+        contents = self.readable.read()
+        workbook = xlrd.open_workbook(file_contents=contents)
+        datemode = workbook.datemode
+        sheet = workbook.sheet_by_index(self.sheetIndex - 1)
+        for y in range(sheet.nrows):
+            row = []
+            for x in range(sheet.ncols):
+                row.append(_excelCellValue(sheet.cell(y, x), datemode))
+            yield row
+
+
+def delimitedReader(readable, dialect, encoding="ascii"):
+    """
+    Generator yielding the ``readable`` row by row using `DelimitedDialect` ``dialect`` and ``encoding``.
+    """
+    assert readable is not None
+    assert dialect is not None
+    assert encoding is not None
+
+    rowQueue = Queue.Queue()
+    producer = _DelimitedRowProducerThread(readable, rowQueue, dialect, encoding)
+    producer.start()
+    hasRow = True
+    while hasRow:
+        row = rowQueue.get()
+        if row is not None:
+            yield row
+        else:
+            hasRow = False
+    producer.join()
+
+
 def excelReader(readable, sheetIndex=1):
     """
-    Generator yielding the Excel spreadsheet located in the workbook stored in `readable` at index `sheetIndex` row
-    by row.
+    Generator yielding the Excel spreadsheet located in the workbook stored in ``readable`` at index
+    ``sheetIndex`` row by row.
     """
     assert readable is not None
     assert sheetIndex is not None
     assert sheetIndex >= 1
 
-    try:
-        import xlrd
-    except ImportError:
-        raise CutplaceXlrdImportError(u"to read Excel data the xlrd package must be installed, see <http://pypi.python.org/pypi/xlrd> for more information")
-
-    contents = readable.read()
-    workbook = xlrd.open_workbook(file_contents=contents)
-    datemode = workbook.datemode
-    sheet = workbook.sheet_by_index(sheetIndex - 1)
-    for y in range(sheet.nrows):
-        row = []
-        for x in range(sheet.ncols):
-            row.append(_excelCellValue(sheet.cell(y, x), datemode))
-        yield row
+    rowQueue = Queue.Queue()
+    producer = _ExcelRowProducerThread(readable, rowQueue, sheetIndex)
+    producer.start()
+    hasRow = True
+    while hasRow:
+        row = rowQueue.get()
+        if row is not None:
+            yield row
+        else:
+            hasRow = False
+    producer.join()
 
 
 def odsReader(readable, sheetIndex=1):
@@ -196,7 +249,7 @@ class DelimitedDialect(object):
 
 class ParserSyntaxError(tools.CutplaceError):
     """
-    Syntax error detected while parsing the data.
+    Syntax _error detected while parsing the data.
     """
     def __init__(self, message, lineNumber=None, itemNumberInLine=None, columnNumberInLine=None):
         super(Exception, self).__init__(message)
@@ -212,24 +265,29 @@ class ParserSyntaxError(tools.CutplaceError):
         self.itemNumberInLine = itemNumberInLine
         self.columnNumberInLine = columnNumberInLine
 
-    def __str__(self):
-        result = "(" + _tools.valueOr("%d" % (self.lineNumber + 1), "?")
+    def __unicode__(self):
+        result = u"(" + _tools.valueOr(u"%d" % (self.lineNumber + 1), u"?")
         if self.columnNumberInLine is not None:
-            result += ";%d" % self.columnNumberInLine
+            result += u";%d" % self.columnNumberInLine
         if self.itemNumberInLine is not None:
-            result += "@%d" % (self.itemNumberInLine + 1)
-        result += "): %s" % self.message
+            result += u"@%d" % (self.itemNumberInLine + 1)
+        result += u"): %s" % self.message
         return result
 
+    def __str__(self):
+        unicode(self).encode('utf-8')
 
-class _DelimitedParser(object):
-    """Parser for data where items are separated by delimiters."""
-    def __init__(self, readable, dialect, encoding="ascii"):
-        assert readable is not None
+    def __repr__(self):
+        return "ParserSyntaxError(%s)" % self.__str__()
+
+
+class _DelimitedRowProducerThread(_AbstractRowProducerThread):
+    def __init__(self, readable, targetQueue, dialect, encoding="ascii"):
         assert dialect is not None
-        assert encoding is not None
         assert dialect.lineDelimiter is not None
         assert dialect.itemDelimiter is not None
+        assert encoding is not None
+        super(_DelimitedRowProducerThread, self).__init__(readable, targetQueue)
 
         self._log = logging.getLogger("cutplace.parsers")
 
@@ -243,59 +301,30 @@ class _DelimitedParser(object):
         delimitedOptions = sniff.delimitedOptions(readable, **dialectKeyowrds)
 
         self.readable = readable
+        self.encoding = encoding
         self.lineDelimiter = delimitedOptions[sniff._LINE_DELIMITER]
         self.itemDelimiter = delimitedOptions[sniff._ITEM_DELIMITER]
         self.quoteChar = delimitedOptions[sniff._QUOTE_CHARACTER]
         self.escapeChar = delimitedOptions[sniff._ESCAPE_CHARACTER]
         self.blanksAroundItemDelimiter = dialect.blanksAroundItemDelimiter
 
-        self.item = None
-
-        # FIXME: Read delimited items without holding the whole file into memory.
-        self.rows = []
-        # HACK: Convert delimiters using `str()` because `csv.reader()` cannot handle Unicode strings,
-        # thus u"," becomes "," which can be processed.
-        reader = _tools.UnicodeCsvReader(readable, delimiter=str(self.itemDelimiter), lineterminator=str(self.lineDelimiter),
-                              quotechar=str(self.quoteChar), doublequote=(self.quoteChar == self.escapeChar), encoding=encoding)
-        for row in reader:
-            # TODO: Convert all items in row to Unicode.
-            self.rows.append(row)
-        self.rowCount = len(self.rows)
-        self.itemNumber = 0
-        if self.rowCount:
-            self.atEndOfFile = False
-            self.atEndOfLine = False
-            self.lineNumber = 1
-            # Attempt to read the first item.
-            self.advance()
-        else:
-            # Handle empty `readable`.
-            self.atEndOfFile = True
-            self.atEndOfLine = True
-            self.lineNumber = 0
-
-    def advance(self):
-        """
-        Advance one item and make it available in the attribute ``item``.
-        """
-        assert not self.atEndOfFile
-
-        self.itemNumber += 1
-        if self.itemNumber - 1 >= len(self.rows[self.lineNumber - 1]):
-            self.itemNumber = 1
-            self.lineNumber += 1
-        if self.lineNumber <= len(self.rows):
-            row = self.rows[self.lineNumber - 1]
-            if len(row):
-                self.item = row[self.itemNumber - 1]
+    def reader(self):
+        rowReader = _tools.UnicodeCsvReader(self.readable, delimiter=str(self.itemDelimiter),
+            lineterminator=str(self.lineDelimiter), quotechar=str(self.quoteChar),
+            doublequote=(self.quoteChar == self.escapeChar), encoding=self.encoding)
+        hasData = False
+        hasDelayedEmptyRow = False
+        for row in rowReader:
+            if not hasData and not hasDelayedEmptyRow and not row:
+                # if the first row is an empty row, suppress it unless further rows are coming. This ensures
+                # that an empty data set results in an empty list of rows.
+                hasDelayedEmptyRow = True
             else:
-                # Represent empty line as `None`.
-                self.item = None
-            self.atEndOfLine = (self.itemNumber >= len(row))
-        else:
-            self.item = None
-            self.atEndOfFile = True
-        self._log.debug(u"(%d:%d) %r [%d;%d]", self.lineNumber, self.itemNumber, self.item, self.atEndOfLine, self.atEndOfFile)
+                if hasDelayedEmptyRow:
+                    hasDelayedEmptyRow = False
+                    hasData = True
+                    yield []
+                yield row
 
 
 class _FixedParser(object):
@@ -342,3 +371,41 @@ class _FixedParser(object):
             self.columnNumberInRow += actualLength
             if self.itemNumberInRow == len(self.fieldLengths) - 1:
                 self.atEndOfLine = True
+
+
+class _FixedRowProducerThread(_AbstractRowProducerThread):
+    def __init__(self, readable, targetQueue, fieldLengths):
+        assert fieldLengths
+        assert len(fieldLengths) > 0
+        super(_FixedRowProducerThread, self).__init__(readable, targetQueue)
+        self.fieldLengths = fieldLengths
+
+    def reader(self):
+        parser = _FixedParser(self.readable, self.fieldLengths)
+        columns = []
+        while not parser.atEndOfFile:
+            if parser.item is not None:
+                columns.append(parser.item)
+            if parser.atEndOfLine:
+                yield columns
+                columns = []
+            parser.advance()
+
+
+def fixedReader(readable, fieldLengths):
+    """
+    Generator yielding the ``readable`` row by row using ``fieldLengths``.
+    """
+    assert readable is not None
+    assert fieldLengths
+    assert len(fieldLengths) > 0
+
+    parser = _FixedParser(readable, fieldLengths)
+    columns = []
+    while not parser.atEndOfFile:
+        if parser.item is not None:
+            columns.append(parser.item)
+        if parser.atEndOfLine:
+            yield columns
+            columns = []
+        parser.advance()
