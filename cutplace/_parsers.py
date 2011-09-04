@@ -198,7 +198,8 @@ def excelReader(readable, sheetIndex=1):
 
 def odsReader(readable, sheetIndex=1):
     """
-    Generator yielding the Open Document spreadsheet stored in `readable`.
+    Generator yielding the Open Document spreadsheet stored in ``readable`` in sheet number ``sheetIndex``
+    starting with 1.
     """
     assert readable is not None
     assert sheetIndex is not None

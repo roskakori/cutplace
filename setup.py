@@ -56,7 +56,7 @@ def _copyFilesToFolder(sourceFolder, targetFolder, pattern=".*"):
 
     If an error occurs, no cleanup is performed and a partially copied target file might remain.
     """
-    # TODO: Support recursive copy.
+    # TODO: Support recursive copy, possibly using scunch's ``AntPattern``.
     fileNameToCopyRegEx = re.compile(pattern)
     for baseFolder, subFolders, fileNames in os.walk(sourceFolder):
         for fileName in fileNames:
@@ -102,7 +102,7 @@ class _DocsCommand(Command):
 
 class _ReportsCommand(Command):
     """
-    Command for setuptools to build the developer reports.
+    Command for setuptools to build those developer reports that cannot be built by ant or Jenkins.
     """
     description = "build developer reports"
     user_options = []
@@ -114,10 +114,6 @@ class _ReportsCommand(Command):
         pass
 
     def run(self):
-        # FIXME: Report generation from setup.py is broke: instead of creating
-        # "build/site/reports/coverage_<module>.py.html", all reports go to
-        # "build/site/reports/coverage___init__.py.html". As workaround, use
-        # "ant reports" for now.
         dev_reports.createReports(buildSiteReportsFolder)
 
 setup(
