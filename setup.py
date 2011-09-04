@@ -27,7 +27,6 @@ from setuptools import setup, find_packages, Command
 import logging
 logging.basicConfig()
 
-from cutplace import dev_reports
 from cutplace import version
 from cutplace import _ods
 from cutplace import _tools
@@ -46,7 +45,6 @@ buildSiteReportsFolder = os.path.join(buildSiteFolder, "reports")
 docsFolder = "docs"
 examplesFolder = "examples"
 tutorialFolder = examplesFolder
-epydocSettings = os.path.join(".settings", "epydoc.config")
 
 def _copyFilesToFolder(sourceFolder, targetFolder, pattern=".*"):
     """
@@ -99,22 +97,6 @@ class _DocsCommand(Command):
         sphinxCall = ["sphinx-build", "-b", "html", "-N", "-q", docsFolder, buildSiteFolder]
         print " ".join(sphinxCall)
         subprocess.check_call(sphinxCall)
-
-class _ReportsCommand(Command):
-    """
-    Command for setuptools to build those developer reports that cannot be built by ant or Jenkins.
-    """
-    description = "build developer reports"
-    user_options = []
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        dev_reports.createReports(buildSiteReportsFolder)
 
 setup(
       name="cutplace",
@@ -171,6 +153,5 @@ thinking. It acts as "executable specification" which cutplace can use to valida
       ],
       cmdclass={
           "docs": _DocsCommand,
-          "reports":_ReportsCommand
       }
 )

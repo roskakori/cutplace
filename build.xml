@@ -103,7 +103,7 @@
         </exec>
     </target>
 
-    <target name="performance" description="run performance test">
+    <target name="performance" description="run performance test" depends="sitebase">
         <!-- 
           Note: No failonerror="true" because this test is so basic that
           failure is a reason for immediate investigation.
@@ -112,7 +112,7 @@
             <arg value="--with-xunit" />
             <arg value="--xunit-file" />
             <arg file="nosetests_performance.xml" />
-            <arg file="cutplace/test_performace.py" />
+            <arg file="cutplace/test_performance.py" />
         </exec>
     </target>
 
@@ -149,12 +149,7 @@
         <pyst command="docs" />
     </target>
 
-    <target name="reports" depends="sitebase, pep8, sloccount, testdata">
-        <exec executable="python" failonerror="true">
-            <arg file="cutplace/dev_reports.py" />
-            <arg value="${reports.dir}" />
-        </exec>
-    </target>
+    <target name="reports" depends="sitebase, pep8, sloccount, testdata, performance" description="build developer reports" />
 
     <target name="sloccount">
         <echo message="build sloccount report" />
