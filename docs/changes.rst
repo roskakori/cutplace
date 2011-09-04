@@ -4,6 +4,26 @@ Revision history
 
 This chapter describes improvements compared to earlier versions of cutplace.
 
+Version 0.7.0, 2011-09-xx
+=========================
+
+* Reduced memory foot print of CSV reading (Ticket #32). As a side effect,
+  all formats now read and validate in separate threads, which should
+  result in a slight performance improvement on systems with multiple CPU
+  cores.
+
+* Cleaned up developer reports (Ticket #40). Most of the reports are now
+  built using Jenkins as described in :ref:`jenkins`, the only exception
+  being the profiler report to monitor performance. Also changed build
+  instructions to favor ``ant`` over ``setup.py``.
+
+* Cleaned up API:
+
+  * cutplace and cutsniff have a similar ``main()`` that returns an
+    integer exit code without actually calling ``sys.exit()``.
+
+* Cleaned up formatting to conform to PEP8 style.
+
 Version 0.6.8, 2011-07-26
 =========================
 
@@ -399,7 +419,7 @@ Version 0.3.0, 2009-04-28
   minutes. To avoid any confusion, disable the cell format auto detection of
   the spreadsheet application by changing all cells to contain "Text".
 
-Version 0.2.2, 04-07-2009
+Version 0.2.2, 2009-04-07
 =========================
 
 * Added support to use data encodings other than ASCII by specifying them in
