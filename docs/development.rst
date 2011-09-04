@@ -20,18 +20,19 @@ First there are a couple of Python packages:
 * coverage
 * epydoc
 * nose
+* pep8
 * profiler
 * sphinx
 
 The easiest way to install them is running::
 
-  easy_install coverage epydoc nose profiler sphinx
+  $ easy_install coverage epydoc nose pep8 profiler sphinx
 
 If you are using Ubuntu, you should instead use ``apt-get``::
 
-  sudo apt-get install python-setuptools
-  sudo apt-get install python-profiler
-  sudo easy_install coverage epydoc nose sphinx
+  $ sudo apt-get install python-setuptools
+  $ sudo apt-get install python-profiler
+  $ sudo easy_install coverage epydoc nose pep8 sphinx
 
 .. index:: epydoc
 
@@ -58,13 +59,41 @@ with ``# FIXED`` comments::
              break
      summary_pieces.append(child)
 
-And finally you might need `ant <http://ant.apache.org/>`_,  a build tool popular in the Java world.
-Although most of the build process is covered by ``setup.py`` and a some custom
-Python modules, a few things use ant. The reason for that is partially because
-it is more robust and portable than using shell scripts for the same thing
-and partially because it seems easier to write and maintain an ant target
-than adding a new ``setup.py`` command. Ideally though there would be no need for
-ant and everything would be covered by ``setup.py``.
+Once these packages are installed, you should be able to build the
+distribution archive using::
+
+  $ python setup.py sdist
+
+.. index:: ant
+
+For everything else related to the build, use
+`ant <http://ant.apache.org/>`_, a build tool popular in the Java world.
+To get an overview of the available ant targets, run::
+
+  $ ant -projecthelp
+
+To build for example the source distribution, run::
+
+  $ ant sdist
+
+Using ant in a Python project might seem unusual, but there are good
+reasons for that:
+
+* ant is more robust and portable than using shell scripts for the same
+  thing.
+
+* It seems easier to write and maintain an ant target than adding a new
+  ``setup.py`` command.
+
+* ant is easy to use for continuous integration driven by Jenkins as
+  described in :ref:`jenkins`.
+
+.. index:: sloccount
+
+To monitor the source code size in Jenkins, you need ``sloccount``
+available from http://www.dwheeler.com/sloccount/. For Linux, your
+distribution most likely has a binary package. For Mac OS X, use the
+package provided by Mac Ports.
 
 .. index:: repository, source code
 
@@ -113,15 +142,15 @@ tool ant.
 To check out the current version using the standard Subversion command line
 client, run::
 
-  svn checkout https://cutplace.svn.sourceforge.net/svnroot/cutplace/trunk cutplace
+  $ svn checkout https://cutplace.svn.sourceforge.net/svnroot/cutplace/trunk cutplace
 
 After the checkout, change to the cutplace folder::
 
-  cd cutplace
+  $ cd cutplace
 
 To just build a binary distribution, run::
 
-  python setup.py bdist_egg
+  $ ant bdist_egg
 
 The output should look something like this::
 
@@ -133,15 +162,15 @@ The output should look something like this::
 
 To run all test cases::
 
-  python setup.py test
+  $ ant test
 
 To build the user guide, developer reports and web site::
 
-  ant site
+  $ ant site
 
 To remove files generated during the build process::
 
-  ant clean
+  $ ant clean
 
 Contributing source code
 ========================
@@ -162,11 +191,11 @@ Install a developer build
 
 To install the current work copy as a developer build, use::
 
-  sudo python setup.py develop
+  $ sudo python setup.py develop
 
 Once the related version is published, you can install it using::
 
-  sudo easy_install --upgrade cutplace
+  $ sudo easy_install --upgrade cutplace
 
 This ensures that the current version found on PyPI is installed even if
 a locally installed developer build has the same version.
@@ -177,18 +206,31 @@ Add a release tag
 When publishing a new release, a tag should be added to the repository. This
 can be done using the following template::
 
-  svn copy -m "Added tag for version 0.x.x." https://cutplace.svn.sourceforge.net/svnroot/cutplace/trunk https://cutplace.svn.sourceforge.net/svnroot/cutplace/tags/0.x.x
+  $ svn copy -m "Added tag for version 0.x.x." https://cutplace.svn.sourceforge.net/svnroot/cutplace/trunk https://cutplace.svn.sourceforge.net/svnroot/cutplace/tags/0.x.x
 
 Simply replace ``0.x.x`` with the current version number.
+
+
+.. index:: ant
+
+.. _jenkins:
 
 Set up Jenkins
 --------------
 
-To set up Jenkins for continuous integration, install the following plugins
-by navigating to Manage Jenkins > Manage plugins and then choosing them
-from the tab "Available":
+Jenkins is a continuous integration server available from
+http://jenkins-ci.org/. It can periodically check for changes committed to
+the repository and run then run tests and collect reports.
+
+This section describes how to configure a Jenkins job for cutplace. It
+assumes that Jenkins is already installed an running.
+
+First, install the following plugins by navigating to
+:menuselection:`Manage Jenkins --> Manage plugins` and then choosing them
+from the tab :guilabel:`Available`:
 
   * Cobertura Plugin
+  * Performance Plugin
   * SLOCCount Plug-in
   * Static Code Analysis Plug-ins
   * Task Scanner Plugin
@@ -206,9 +248,7 @@ Next, create a build using the following steps:
 
   * Build:
 
-    #. Invoke ant: targets: ``test``
-    #. Invoke ant: targets: ``site``
-    #. Execute shell: commands: ``python setup.py sdist``
+    #. Invoke ant: targets: ``test site sdist bdist_egg``
 
   * Post-build actions:
 
@@ -219,5 +259,10 @@ Next, create a build using the following steps:
 
     #. Publish Cobertura Coverage Report: ``**/coverage.xml``
     #. Publish JUnit test result report: ``**/nosetests.xml``
+    #. Publish Performance test result report:
+
+       * Choose :menuselection:`Add a new report --> JUnit`
+       * :guilabel:`Report files`: ``**/nosetests.xml``
+
     #. Publish SLOCCount analysis results: SLOCCount reports: ``**/sloccount.sc``
     #. Report Violations: pep8: XML filename pattern: ``**/pep8.txt``
