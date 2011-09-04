@@ -130,16 +130,6 @@ class CutplaceTest(unittest.TestCase):
         self.assertRaises(EnvironmentError, _cutplace.process, ["test_cutplace.py", icdPath, "no-such-data.nix"])
 
 
-class LotsOfCustomersTest(unittest.TestCase):
-    """Test case for performance profiling."""
-
-    def testLotsOfCustomersCsv(self):
-        icdOdsPath = dev_test.getTestIcdPath("customers.ods")
-        locCsvPath = dev_test.getTestFile("input", "lots_of_customers.csv")
-        dev_test.createLotsOfCustomersCsv(locCsvPath)
-        exitCode = _cutplace.main(["test_cutplace.py", icdOdsPath, locCsvPath])
-        self.assertEqual(exitCode, 0)
-
 if __name__ == '__main__':  # pragma: no cover
     logging.basicConfig()
     logging.getLogger("cutplace").setLevel(logging.WARNING)

@@ -166,7 +166,7 @@ def createIcdsCustomerCsv():
     _ods.toCsv(sourceOdsPath, targetCsvPath)
 
 
-def createLotsOfCustomersCsv(targetCsvPath):
+def createLotsOfCustomersCsv(targetCsvPath, customerCount=1000):
     # TODO: Use a random seed to generate the same data every time.
     assert targetCsvPath is not None
 
@@ -174,7 +174,7 @@ def createLotsOfCustomersCsv(targetCsvPath):
     _log.info(u"write lots of customers to \"%s\"", targetCsvPath)
     try:
         csvWriter = csv.writer(targetCsvFile)
-        for customerId in range(1000):
+        for customerId in range(customerCount):
             csvWriter.writerow(createTestCustomerRow(customerId))
     finally:
         targetCsvFile.close()

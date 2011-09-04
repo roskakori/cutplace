@@ -89,17 +89,30 @@
     </target>
 
     <target name="test" depends="testdata" description="run test suite">
-        <exec executable="nosetests">
+        <exec executable="nosetests" failonerror="false">
             <arg value="--with-coverage" />
             <arg value="--with-doctest" />
             <arg value="--with-xunit" />
             <arg value="--cover-erase" />
             <arg value="--exclude" />
             <!-- TODO: Implement automatic test cases for web interface. -->
-            <arg value="(.*setup.*)|(.*test_web.*)" />
+            <arg value="(.*setup.*)|(.*test_performance.*)|(.*test_web.*)" />
         </exec>
         <exec executable="coverage" failonerror="true">
             <arg value="xml" />
+        </exec>
+    </target>
+
+    <target name="performance" description="run performance test">
+        <!-- 
+          Note: No failonerror="true" because this test is so basic that
+          failure is a reason for immediate investigation.
+        -->
+        <exec executable="nosetests">
+            <arg value="--with-xunit" />
+            <arg value="--xunit-file" />
+            <arg file="nosetests_performance.xml" />
+            <arg file="cutplace/test_performace.py" />
         </exec>
     </target>
 
@@ -108,11 +121,12 @@
         <pyst command="clean" />
         <delete>
             <fileset dir="." includes="**/*.pyc, **/*$py.class" />
-            <fileset dir="." includes="coverage.xml, nosetests.xml, pep8.txt, sloccount.sc" />
+            <fileset dir="." includes="coverage.xml, nosetests.xml, nosetests_performance.xml, pep8.txt, sloccount.sc" />
         </delete>
         <delete includeemptydirs="true">
             <fileset dir="${tests-output.dir}" includes="**/*" />
         </delete>
+        <delete dir="${build}" />
     </target>
 
     <target name="site" depends="reports, docs, api" description="build web site">

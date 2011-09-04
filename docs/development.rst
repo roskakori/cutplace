@@ -255,6 +255,7 @@ Next, create a build using the following steps:
     #. Scan workspace for open tasks:
 
        * Files to scan: ``**/*.py, **/*.rst``
+       * Files to exclude: ``build/**``
        * Task tags: High=FIXME, normal=TODO, low=HACK
 
     #. Publish Cobertura Coverage Report: ``**/coverage.xml``
@@ -262,7 +263,7 @@ Next, create a build using the following steps:
     #. Publish Performance test result report:
 
        * Choose :menuselection:`Add a new report --> JUnit`
-       * :guilabel:`Report files`: ``**/nosetests.xml``
+       * :guilabel:`Report files`: ``**/nosetests_performance.xml``
 
     #. Publish SLOCCount analysis results: SLOCCount reports: ``**/sloccount.sc``
     #. Report Violations: pep8: XML filename pattern: ``**/pep8.txt``
