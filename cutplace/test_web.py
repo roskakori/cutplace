@@ -20,12 +20,14 @@ import logging
 import mimetools
 import mimetypes
 import os.path
-import threading
 import unittest
 import urllib2
 
 import dev_test
 import _web
+
+# Port to use for test web server.
+_PORT = 8642
 
 
 class MultiPartForm(object):
@@ -95,16 +97,6 @@ class MultiPartForm(object):
         return '\r\n'.join(flattened)
 
 
-class WebThread(threading.Thread):
-    """Thread to run the test web server in."""
-
-    PORT = 8642
-
-    def run(self):
-        _web.main(WebThread.PORT, allowShutDown=True)
-        # FIXME: Let exception result in the test case to fail.
-
-
 class WebTest(unittest.TestCase):
     """TestCase for web module."""
     def _createOpener(self):
@@ -125,7 +117,7 @@ class WebTest(unittest.TestCase):
         form.add_file("icd", os.path.split(icdPath)[1], open(icdPath, "rb"))
 
         # Build the request
-        request = urllib2.Request("http://localhost:%d/cutplace" % (WebThread.PORT))
+        request = urllib2.Request("http://localhost:%d/cutplace" % (_PORT))
         request.add_header("User-agent", "test_web.py")
         body = str(form)
         request.add_header("Content-type", form.get_content_type())
@@ -145,7 +137,7 @@ class WebTest(unittest.TestCase):
 
     def _getHtmlText(self, relativeUrl=""):
         assert relativeUrl is not None
-        response = self._get("http://localhost:%d/%s" % (WebThread.PORT, relativeUrl))
+        response = self._get("http://localhost:%d/%s" % (_PORT, relativeUrl))
         try:
             self.assertEquals(response.info()["Content-type"], "text/html")
             result = response.read()
@@ -154,18 +146,12 @@ class WebTest(unittest.TestCase):
         return result
 
     def setUp(self):
-        self._webThread = WebThread()
-        self._webThread.start()
-        waitForServerThread = _web.WaitForServerToBeReadyThread()
-        waitForServerThread.site = "http://localhost:%d/" % WebThread.PORT
-        waitForServerThread.start()
-        waitForServerThread.join()
+        self._webServer = _web.WebServer(_PORT)
+        self._webServer.start()
 
     def tearDown(self):
-        text = self._getHtmlText("shutdown").lower()
-        self.assertTrue(text.find("cutplace") >= 0)
-        self._webThread.join()
-        self._webThread = None
+        self._webServer.stop()
+        self._webServer = None
 
     def testAbout(self):
         text = self._getHtmlText("about").lower()

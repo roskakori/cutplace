@@ -21,9 +21,6 @@ import logging
 import StringIO
 import sys
 import tempfile
-import threading
-import time
-import urllib
 
 import interface
 import version
@@ -38,8 +35,8 @@ DEFAULT_PORT = 8778
 
 _SERVER_VERSION = u"cutplace/%s" % version.VERSION_NUMBER
 
-_allowShutDown = False
-_readyToShutDown = False
+# Sleep time for server related polling.
+_TICK_IN_SECONDS = 0.1
 
 
 class _HtmlWritingValidationListener(interface.BaseValidationListener):
@@ -192,18 +189,6 @@ Platform: %s</p>
             self.end_headers()
             self.wfile.write(Handler._ABOUT)
             self.wfile.close()
-        elif (self.path == "/shutdown"):
-            global _allowShutDown
-            global _readyToShutDown
-            if _allowShutDown:
-                self.send_response(200)
-                self.send_header("Content-type", "text/html")
-                self.end_headers()
-                self.wfile.write(Handler._SHUTDOWN)
-                self.wfile.close()
-                _readyToShutDown = True
-            else:
-                self.send_error(400, u"cannot shutdown server: the shutdown feature must be enabled when starting the server")
         else:
             self.send_error(404)
 
@@ -300,82 +285,41 @@ Platform: %s</p>
             self.send_error(400, u"%s." % cgi.escape(errorMessage))
 
 
-class WaitForServerToBeReadyThread(threading.Thread):
-    """Thread to wait for server to be ready."""
-    def __init__(self, group=None, target=None, name=None,
-                 args=(), kwargs=None):
-        super(WaitForServerToBeReadyThread, self).__init__(group, target, name, args, kwargs)
-        self.site = None
-        self.maxRetries = 100
-        self.delayBetweenRetryInSeconds = 0.2
-        self.siteAvailable = False
+class WebServer(_tools.StoppableThread):
+    """
+    Simple web server running in an own thread. It can only process one request at a time. Use `stop()` to
+    stop the server.
+    """
+    def __init__(self, port=DEFAULT_PORT):
+        super(WebServer, self).__init__("cutplace.web.server")
+        self.site = "http://localhost:%d/" % port
+        self._httpd = BaseHTTPServer.HTTPServer(("", port), Handler)
+        self._httpd.timeout = _TICK_IN_SECONDS
 
     def run(self):
-        assert self.site is not None
-        assert self.maxRetries > 0
-        assert self.delayBetweenRetryInSeconds > 0
-
-        log = logging.getLogger("cutplace.web.wait")
-        self.siteAvailable = False
-        retries = 0
-        log.info(u"wait for server to be ready")
-        while not self.siteAvailable and (retries < self.maxRetries):
-            try:
-                # Attempt to open the validation form.
-                # Use no proxy because it is a local-only connection anyway.
-                urllib.urlopen(self.site, proxies={}).close()
-                self.siteAvailable = True
-            except IOError:
-                log.error(u"cannot find server yet, retry=%d/%d", retries, self.maxRetries, exc_info=1)
-                time.sleep(self.delayBetweenRetryInSeconds)
-                retries += 1
+        self.log.info(u"%s", _SERVER_VERSION)
+        self.log.info(u"Visit <%s> to connect", self.site)
+        self.log.info(u"Press Control-C to shut down")
+        while not self.stopped:
+            self._httpd.handle_request()
+        self.log.info("shut down finished")
 
 
-class OpenBrowserThread(WaitForServerToBeReadyThread):
-    """Thread to open the cutplace's validation form in the web browser."""
-    def run(self):
-        super(OpenBrowserThread, self).run()
-
-        log = logging.getLogger("cutplace.browser")
-        if self.siteAvailable:
-            log.info(u"open web browser")
-            try:
-                # HACK: Attempt to import webbrowser only here because this module is not available
-                # for Jython 2.5.
-                import webbrowser
-                webbrowser.open(self.site)
-            except ImportError, error:
-                log.warning(u"cannot browse site %r: %s" % (self.site, error))
-        else:
-            log.warning(u"cannot find server at <%s>, giving up; try to connect manually", self.site)
-
-
-def main(port=DEFAULT_PORT, isOpenBrowser=False, allowShutDown=False):
-    # TODO: Get rid of super ugly global `_allowShutDown`.
-    global _allowShutDown
-    global _readyToShutDown
-
-    log = logging.getLogger("cutplace.web")
-    _allowShutDown = allowShutDown
-    httpd = BaseHTTPServer.HTTPServer(("", port), Handler)
-    site = "http://localhost:%d/" % port
-    log.info(u"%s", _SERVER_VERSION)
-    log.debug(u"site=%r, isOpenBrowser=%r" % (site, isOpenBrowser))
-    if isOpenBrowser:
-        browserOpener = OpenBrowserThread()
-        browserOpener.site = site
-        browserOpener.start()
-    log.info(u"Visit <%s> to connect", site)
-    log.info(u"Press Control-C to shut down")
+def main(port=DEFAULT_PORT, isOpenBrowser=False):
+    server = WebServer(port)
+    server.start()
     try:
-        while not _readyToShutDown:
-            httpd.handle_request()
+        if isOpenBrowser:
+            import webbrowser
+            webbrowser.open(server.site)
+        while server.isAlive():
+            server.join(_TICK_IN_SECONDS)
     except KeyboardInterrupt:
-        # Ignore Control-C and proceed with shut down.
-        pass
-    log.info(u"Shut down")
+        server.stop()
+    finally:
+        server.join()
 
 if __name__ == '__main__':
-    logging.basicConfig()
+    logging.basicConfig(level=logging.INFO)
     logging.getLogger("cutplace").setLevel(logging.INFO)
     main()

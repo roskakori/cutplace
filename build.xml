@@ -96,7 +96,7 @@
             <arg value="--cover-erase" />
             <arg value="--exclude" />
             <!-- TODO: Implement automatic test cases for web interface. -->
-            <arg value="(.*setup.*)|(.*test_performance.*)|(.*test_web.*)" />
+            <arg value="(.*setup.*)|(.*test_performance.*)" />
         </exec>
         <exec executable="coverage" failonerror="true">
             <arg value="xml" />
@@ -151,7 +151,7 @@
 
     <target name="reports" depends="sitebase, pep8, sloccount, testdata, performance" description="build developer reports" />
 
-    <target name="sloccount">
+    <target name="sloccount" description="build sloccount report">
         <echo message="build sloccount report" />
         <exec executable="sloccount" failonerror="true">
             <arg value="--details" />
@@ -167,7 +167,7 @@
         </exec>
     </target>
 
-    <target name="pep8">
+    <target name="pep8" description="build pep8 violations report">
         <echo message="build pep8 violations report" />
         <exec executable="pep8">
             <!--

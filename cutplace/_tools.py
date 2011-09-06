@@ -23,14 +23,15 @@ import csv
 import errno
 import keyword
 import logging
+import optparse
 import os
 import platform
 import re
 import StringIO
 import token
 import tokenize
+import threading
 import unicodedata
-import optparse
 
 
 # Mapping for value of --log to logging level.
@@ -128,6 +129,45 @@ def valueOr(value, noneValue):
     else:
         result = value
     return result
+
+
+class StoppableThread(threading.Thread):
+    """
+    Thread with a `stop()` method. The thread itself has to check regularly
+    for the `stopped()` condition.
+
+    Based on code published at
+    http://stackoverflow.com/questions/5849484/how-to-exit-a-multithreaded-program.
+    """
+    def __init__(self, name):
+        assert name
+        super(StoppableThread, self).__init__()
+        self._stopEvent = threading.Event()
+        self._log = logging.getLogger(name)
+
+    def stop(self):
+        """
+        Stop the thread and wait for it to finish.
+        """
+        if self.isAlive():
+            self.log.info(u"stopped")
+            # Set event to signal thread to terminate.
+            self._stopEvent.set()
+            # Block calling thread until thread really has terminated.
+            self.join()
+        else:
+            self.log.warning(u"ignored attempt to stop finished thread")
+
+    @property
+    def log(self):
+        return self._log
+
+    @property
+    def stopped(self):
+        """
+        ``True`` if `stop()` has been called.
+        """
+        return self._stopEvent.isSet()
 
 
 def listdirMatching(folder, pattern, patternToExclude=None):
