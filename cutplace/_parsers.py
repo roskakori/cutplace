@@ -76,7 +76,7 @@ class _AbstractRowProducerThread(threading.Thread):
             for row in self.reader():
                 self._targetQueue.put(row)
         except Exception, error:
-            # Remember _rror information to raise it later during `join()`.
+            # Remember error information to raise it later during `join()`.
             self._error = error
         finally:
             # The last row always is a `None` to mark the end.
