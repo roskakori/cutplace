@@ -55,7 +55,7 @@ class UTF8Recoder:
     def __iter__(self):
         return self
 
-    def next(self):
+    def next(self):  # @ReservedAssignment
         try:
             result = self.reader.next().encode("utf-8")
         except UnicodeError, error:
@@ -74,7 +74,7 @@ class UnicodeCsvReader:
         f = UTF8Recoder(f, encoding)
         self.reader = csv.reader(f, dialect=dialect, **kwds)
 
-    def next(self):
+    def next(self):  # @ReservedAssignment
         row = self.reader.next()
         return [unicode(s, "utf-8") for s in row]
 
