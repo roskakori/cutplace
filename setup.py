@@ -133,6 +133,7 @@ architecturally very different systems like mainframes.
 With cutplace you can describe these data in a simple and human readable spreadsheets using popular applications
 like Calc or Excel. Unlike a lot of documentation these days, this description does not only describe wishful
 thinking. It acts as "executable specification" which cutplace can use to validate that data actually conform to it.""",
+      keywords="validate check csv ods excel prn fixed format",
       classifiers=[
           "Development Status :: 4 - Beta",
           "Environment :: Console",
