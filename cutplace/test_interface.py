@@ -178,11 +178,11 @@ class ValidatedRowsTest(unittest.TestCase):
             for _ in interface.validatedRows(icd, self._validCostumersCsvPath):
                 pass
             self.fail("XLRDError expected")
+        except ImportError, error:
+            _log.warning(u"ignoring test due to missing import: %s", error)
         except xlrd.XLRDError, error:
             # Ignore expected error cause by wrong data format.
             pass
-        except ImportError, error:
-            _log.warning(u"ignoring test due to missing import: %s", error)
 
 
 class InterfaceControlDocumentTest(unittest.TestCase):
