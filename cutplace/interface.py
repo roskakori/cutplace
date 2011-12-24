@@ -120,6 +120,8 @@ class InterfaceControlDocument(object):
         self._logTrace = False
         self._resetCounts()
         self._location = None
+        self. _checkNameToClassMap = self._createNameToClassMap(checks.AbstractCheck)
+        self. _fieldFormatNameToClassMap = self._createNameToClassMap(fields.AbstractFieldFormat)
 
     def _resetCounts(self):
         self.acceptedCount = 0
@@ -127,50 +129,38 @@ class InterfaceControlDocument(object):
         self.failedChecksAtEndCount = 0
         self.passedChecksAtEndCount = 0
 
-    def _createClass(self, defaultModuleName, classQualifier, classNameAppendix, typeName):
-        assert defaultModuleName
+    def _createNameToClassMap(self, baseClass):
+        assert baseClass is not None
+        result = {}
+        for classToProcess in baseClass.__subclasses__():
+            qualifiedClassName = classToProcess.__name__
+            plainClassName = qualifiedClassName.split('.')[-1]
+            clashingClass = result.get(plainClassName)
+            if clashingClass is not None:
+                raise tools.CutplaceError(u"clashing class names must be resolved: %s and %s" % (clashingClass, classToProcess))
+            result[plainClassName] = classToProcess
+        return result
+
+    def _createClass(self, nameToClassMap, classQualifier, classNameAppendix, typeName, errorToRaiseOnUnknownClass):
+        assert nameToClassMap
         assert classQualifier
         assert classNameAppendix
         assert typeName
-
-        # FIXME: Remove check for "fields." and provide a proper test case in testFieldTypeWithModule
-        # using a "real" module.
-        if classQualifier.startswith("fields."):
-            classQualifier = classQualifier[7:]
-        lastDotIndex = classQualifier.rfind(".")
-        if (lastDotIndex >= 0):
-            # FIXME: Detect and report errors for  cases ".class" and "module.".
-            moduleName = classQualifier[0:lastDotIndex]
-            className = classQualifier[lastDotIndex + 1:]
-            module = __import__(moduleName)
-        else:
-            moduleName = defaultModuleName
-            className = classQualifier
-            try:
-                module = sys.modules[moduleName]
-            except KeyError:
-                # TODO: Learn Python and remove hack to resolve "fields" vs "cutplace.fields" module names.
-                # HACK: This is a workaround for the fact that during development for example the fields
-                # module is referred to as "fields" while after installation it is "cutplace.fields".
-                moduleName = "cutplace." + defaultModuleName
-                module = sys.modules[moduleName]
-        assert className
-        assert moduleName
-        className += classNameAppendix
-        _log.debug(u"create from %s class %s", str(moduleName), className)
-        try:
-            result = getattr(module, className)
-        except AttributeError:
-            raise fields.FieldSyntaxError(u"cannot find %s: %s" % (typeName, str(classQualifier)), self._location)
+        assert errorToRaiseOnUnknownClass is not None
+        className = classQualifier.split(".")[-1] + classNameAppendix
+        result = nameToClassMap.get(className)
+        if result is None:
+            raise errorToRaiseOnUnknownClass(u"cannot find class for %s %s: related class is %s but must be one of: %s" 
+                % (typeName, classQualifier, className, nameToClassMap.keys()))
         return result
 
     def _createFieldFormatClass(self, fieldType):
         assert fieldType
-        return self._createClass("fields", fieldType, "FieldFormat", "field format")
+        return self._createClass(self._fieldFormatNameToClassMap, fieldType, "FieldFormat", "field", fields.FieldSyntaxError)
 
     def _createCheckClass(self, checkType):
         assert checkType
-        return self._createClass("checks", checkType, "Check", "check")
+        return self._createClass(self._checkNameToClassMap, checkType, "Check", "check", checks.CheckSyntaxError)
 
     def addDataFormat(self, items):
         assert items is not None
