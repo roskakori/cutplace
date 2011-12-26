@@ -15,6 +15,6 @@ class CapitalizedTextFieldFormat(fields.AbstractFieldFormat):
     def validatedValue(self, value):
         if value:
             firstChar = value[0]
-            if firstChar != firstChar.upper():
-                raise fields.FieldValueError(u"value must be capitalized bust starts with %r: %r" % (firstChar, value))
+            if not firstChar.isupper():
+                raise fields.FieldValueError(u"first character %r must be changed to upper case: %r" % (firstChar, value))
         return value
