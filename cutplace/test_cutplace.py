@@ -129,8 +129,18 @@ class CutplaceTest(unittest.TestCase):
         icdPath = dev_test.getTestIcdPath("customers.ods")
         self.assertRaises(EnvironmentError, _cutplace.process, ["test_cutplace.py", icdPath, "no-such-data.nix"])
 
+    def testCanValidateIcdWithPlugins(self):
+        icdPath = dev_test.getTestIcdPath("customers_with_plugins.ods")
+        exitCode = _cutplace.main(["test_cutplace.py", "--plugins", dev_test.getTestPluginsPath(), icdPath])
+        self.assertEqual(exitCode, 0)
+
+    def testCanValidateDataWithPlugins(self):
+        icdPath = dev_test.getTestIcdPath("customers_with_plugins.ods")
+        dataPath = dev_test.getTestInputPath("valid_customers.csv")
+        exitCode = _cutplace.main(["test_cutplace.py", "--plugins", dev_test.getTestPluginsPath(), icdPath, dataPath])
+        self.assertEqual(exitCode, 0)
 
 if __name__ == '__main__':  # pragma: no cover
     logging.basicConfig()
-    logging.getLogger("cutplace").setLevel(logging.WARNING)
+    logging.getLogger("cutplace").setLevel(logging.INFO)
     unittest.main()

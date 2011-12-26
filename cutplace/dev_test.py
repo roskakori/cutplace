@@ -136,6 +136,13 @@ def getTestIcdPath(fileName):
     return getTestFile(os.path.join("input", "icds"), fileName)
 
 
+def getTestPluginsPath():
+    """
+    Path for folder containing test plugins.
+    """
+    return getTestFolder("input")
+
+
 def getLotsOfCustomersCsvPath():
     return getTestInputPath("lots_of_customers.csv")
 

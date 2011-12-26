@@ -16,7 +16,10 @@ Tests for interface control documents.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import imp
 import logging
+import os
 import StringIO
 import unittest
 
@@ -950,6 +953,30 @@ Mike,male,23.12.1974"""
         icd = createDefaultTestIcd(data.FORMAT_CSV)
         emptyRow = []
         self.assertRaises(data.DataFormatValueError, icd.getFieldValueFor, "branch_id", emptyRow)
+
+
+class PluginsTest(unittest.TestCase):
+    def testCanValidateFieldFormatFromPlugin(self):
+        spec = ""","Interface for data with plugged field format"
+"D","Format","CSV"
+"D","Line delimiter","Any"
+"D","Item delimiter",","
+,
+,"Name","Example","Empty","Length","Type","Rule"
+"F","first_name","John","X",,"Text"
+"F","sirname","Smith","X",,"CapitalizedText"
+"""
+        _log.info(u"subclasses before=%s", sorted(fields.AbstractFieldFormat.__subclasses__()))
+        interface.importPlugins(dev_test.getTestPluginsPath())
+        _log.info(u"subclasses after=%s", sorted(fields.AbstractFieldFormat.__subclasses__()))
+        icd = interface.InterfaceControlDocument()
+        icd.read(StringIO.StringIO(spec))
+        dataText = """First Name,Gender,Date of birth
+John,Smith
+Bärbel,Müller"""
+        dataReadable = StringIO.StringIO(dataText)
+        icd.validate(dataReadable)
+
 
 if __name__ == '__main__':  # pragma: no cover
     logging.basicConfig()

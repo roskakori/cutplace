@@ -23,6 +23,7 @@ import logging
 import optparse
 import os
 import sys
+import xlrd
 
 import interface
 import tools
@@ -140,10 +141,12 @@ class CutPlace(object):
         parser.add_option("--list-encodings", action="store_true", dest="isShowEncodings", help="show list of available character encodings and exit")
         validationGroup = optparse.OptionGroup(parser, "Validation options", "Specify how to validate data and how to report the results")
         validationGroup.add_option("-e", "--icd-encoding", metavar="ENCODING", dest="icdEncoding",
-                                   help="character encoding to use when reading the ICD (default: %default)")
+                help="character encoding to use when reading the ICD (default: %default)")
+        validationGroup.add_option("-P", "--plugins", metavar="FOLDER", dest="pluginsFolderPath",
+                help="folder to scan for plugins (default: %default)")
         validationGroup.add_option("-s", "--split", action="store_true", dest="isSplit",
-                                   help="split data in a CSV file containing the accepted rows and a raw text file "
-                                   + "containing rejected rows with both using UTF-8 as character encoding")
+                help="split data in a CSV file containing the accepted rows and a raw text file "
+                + "containing rejected rows with both using UTF-8 as character encoding")
         parser.add_option_group(validationGroup)
         webGroup = optparse.OptionGroup(parser, "Web options", "Provide a  GUI for validation using a simple web server")
         webGroup.add_option("-w", "--web", action="store_true", dest="isWebServer", help="launch web server")
@@ -165,6 +168,9 @@ class CutPlace(object):
         self.isWebServer = self.options.isWebServer
         self.port = self.options.port
         self.isSplit = self.options.isSplit
+
+        if self.options.pluginsFolderPath is not None:
+            interface.importPlugins(self.options.pluginsFolderPath)
 
         if not self.isShowEncodings and not self.isWebServer:
             if len(others) >= 1:
@@ -269,19 +275,20 @@ def process(argv=None):
     cutPlace.setOptions(argv)
     if cutPlace.isShowEncodings:
         cutPlace._printAvailableEncodings()
-    elif cutPlace.isWebServer:
-        _web.main(cutPlace.port, cutPlace.isOpenBrowser)
-    elif cutPlace.dataToValidatePaths:
-        allValidationsOk = True
-        for path in cutPlace.dataToValidatePaths:
-            try:
-                cutPlace.validate(path)
-                if not cutPlace.lastValidationWasOk:
-                    allValidationsOk = False
-            except EnvironmentError, error:
-                raise EnvironmentError("cannot read data file %r: %s" % (path, error))
-        if not allValidationsOk:
-            result = 1
+    else:
+        if cutPlace.isWebServer:
+            _web.main(cutPlace.port, cutPlace.isOpenBrowser)
+        elif cutPlace.dataToValidatePaths:
+            allValidationsOk = True
+            for path in cutPlace.dataToValidatePaths:
+                try:
+                    cutPlace.validate(path)
+                    if not cutPlace.lastValidationWasOk:
+                        allValidationsOk = False
+                except EnvironmentError, error:
+                    raise EnvironmentError("cannot read data file %r: %s" % (path, error))
+            if not allValidationsOk:
+                result = 1
     return result
 
 
@@ -305,6 +312,8 @@ def main(argv=None):
     except tools.CutplaceUnicodeError, error:
         _log.error(u"%s", error)
     except tools.CutplaceError, error:
+        _log.error(u"%s", error)
+    except xlrd.XLRDError, error:
         _log.error(u"cannot process Excel format: %s", error)
     except _ExitQuietlyOptionError:
         # Raised by '--help', '--version', etc., so simply do nothing.

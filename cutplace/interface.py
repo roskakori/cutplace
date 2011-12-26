@@ -17,9 +17,12 @@ Interface control document (ICD) describing all aspects of a data driven interfa
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import checks
 import codecs
+import glob
+import imp
+import inspect
 import logging
+import os
 import Queue
-import sys
 import threading
 import types
 
@@ -129,16 +132,35 @@ class InterfaceControlDocument(object):
         self.failedChecksAtEndCount = 0
         self.passedChecksAtEndCount = 0
 
+    def _classInfo(self, someClass):
+        assert someClass is not None
+        qualifiedName = someClass.__module__ + "." + someClass.__name__
+        try:
+            sourcePath = inspect.getsourcefile(someClass)
+        except TypeError:
+            sourcePath = "(internal)"
+        result = qualifiedName + u" (see: \"" + sourcePath + u"\")"
+        return result
+
     def _createNameToClassMap(self, baseClass):
         assert baseClass is not None
         result = {}
-        for classToProcess in baseClass.__subclasses__():
+        # Note: we use a ``set`` of sub classes to ignore duplicates.
+        for classToProcess in set(baseClass.__subclasses__()):
             qualifiedClassName = classToProcess.__name__
             plainClassName = qualifiedClassName.split('.')[-1]
             clashingClass = result.get(plainClassName)
             if clashingClass is not None:
-                raise tools.CutplaceError(u"clashing class names must be resolved: %s and %s" % (clashingClass, classToProcess))
-            result[plainClassName] = classToProcess
+                clashingClassInfo = self._classInfo(clashingClass)
+                classToProcessInfo = self._classInfo(classToProcess)
+                if clashingClassInfo == classToProcessInfo:
+                    # HACK: Ignore duplicate class.es Such classes can occur after `importPlugins`
+                    # has been called more than once.
+                    classToProcess = None
+                else:
+                    raise tools.CutplaceError(u"clashing plugin class names must be resolved: %s and %s" % (clashingClassInfo, classToProcessInfo))
+            if classToProcess is not None:
+                result[plainClassName] = classToProcess
         return result
 
     def _createClass(self, nameToClassMap, classQualifier, classNameAppendix, typeName, errorToRaiseOnUnknownClass):
@@ -150,8 +172,8 @@ class InterfaceControlDocument(object):
         className = classQualifier.split(".")[-1] + classNameAppendix
         result = nameToClassMap.get(className)
         if result is None:
-            raise errorToRaiseOnUnknownClass(u"cannot find class for %s %s: related class is %s but must be one of: %s" 
-                % (typeName, classQualifier, className, nameToClassMap.keys()))
+            raise errorToRaiseOnUnknownClass(u"cannot find class for %s %s: related class is %s but must be one of: %s"
+                % (typeName, classQualifier, className, _tools.humanReadableList(sorted(nameToClassMap.keys()))))
         return result
 
     def _createFieldFormatClass(self, fieldType):
@@ -800,3 +822,19 @@ def  validatedRows(icd, dataFileToValidatePath, errors="strict"):
             assert isinstance(rowOrError, types.ListType), u"rowOrError=%s: %r" % (type(rowOrError), rowOrError)
             yield rowOrError
         rowOrError = rowOrErrorQueue.get()
+
+
+def importPlugins(folderToScanPath):
+    """
+    Import all Python modules found in folder ``folderToScanPath`` (non recursively) consequently
+    making the contained field formats and checks available for ICDs.
+    """
+    _log.info(u"import plugins from \"%s\"", folderToScanPath)
+    modulesToImport = set()
+    patternToScan = os.path.join(folderToScanPath, u"*.py")
+    for moduleToImportPath in glob.glob(patternToScan):
+        moduleName = os.path.splitext(os.path.basename(moduleToImportPath))[0]
+        modulesToImport.add((moduleName, moduleToImportPath))
+    for moduleNameToImport, modulePathToImport in modulesToImport:
+        _log.info(u"  import %s", moduleNameToImport)
+        imp.load_source(moduleNameToImport, modulePathToImport)
