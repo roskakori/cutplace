@@ -15,17 +15,20 @@ Interface control document (ICD) describing all aspects of a data driven interfa
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import checks
 import codecs
+import copy
 import glob
 import imp
 import inspect
 import logging
 import os
+import proconex
 import Queue
+import sys
 import threading
 import types
 
+import checks
 import data
 import fields
 import sniff
@@ -370,7 +373,7 @@ class InterfaceControlDocument(object):
         self._checkNames.append(checkDescription)
         assert len(self.checkNames) == len(self._checkNameToCheckMap)
 
-    def _processRow(self, icdRowToProcess):
+    def _processIcdRow(self, icdRowToProcess):
         """
         Process a single row read from an ICD file ignoring empty rows and rows where the first
         column is empty.
@@ -425,7 +428,7 @@ class InterfaceControlDocument(object):
         try:
             reader = sniff.createReader(icdFile, encoding=encoding)
             for icdRowToProcess in reader:
-                self._processRow(icdRowToProcess)
+                self._processIcdRow(icdRowToProcess)
         except tools.CutplaceUnicodeError, error:
             raise tools.CutplaceUnicodeError(u"ICD must conform to encoding %r: %s" % (encoding, error))
         finally:
@@ -437,7 +440,7 @@ class InterfaceControlDocument(object):
         assert rows is not None
         self._location = tools.InputLocation(":memory:", hasCell=True)
         for icdRowToProcess in rows:
-            self._processRow(icdRowToProcess)
+            self._processIcdRow(icdRowToProcess)
         self._checkAfterRead()
 
     def setLocationToSourceCode(self):
@@ -531,6 +534,146 @@ class InterfaceControlDocument(object):
         else:  # pragma: no cover
             raise NotImplementedError(u"data format: %r" % self.dataFormat.name)
         return reader
+
+    def  validatedRows(self, dataFileToValidatePath, errors="strict"):
+        """
+        Generator for rows described using ``icd`` in the data set found at ``dataFileToValidatePath``.
+        This provides a convenient way to read and process data without having to implement an own
+        reader.
+
+        The ``errors`` parameter defines how to handle errors and takes the following values:
+
+        * "strict" - raise an exception and stop processing data.
+        * "ignore" - silently ignore errors and keep processing data.
+        * "yield" - yield the error (inheriting from ``Exception``) instead of a rowOrError array; its up to
+          the caller to check the return type before deciding how to process the result.
+        """
+        assert dataFileToValidatePath is not None
+        assert errors in InterfaceControlDocument._ALL_ERRORS_VALUES, \
+            "errors=%r but must be one of: %s" % (errors, InterfaceControlDocument._ALL_ERRORS_VALUES)
+
+        class ValidatingProducer(proconex.Producer):
+            def __init__(self, reader, location, dataFormat):
+                assert reader is not None
+                assert location is not None
+                assert dataFormat is not None
+
+                super(ValidatingProducer, self).__init__("producer")
+                self._reader = reader
+                self._location = location
+                self._dataFormat = dataFormat
+
+            def items(self):
+                # Obtain values from the data format that will be used by various checks.
+                firstRowToValidateFieldsIn = self._dataFormat.get(data.KEY_HEADER)
+                assert firstRowToValidateFieldsIn is not None
+                assert firstRowToValidateFieldsIn >= 0
+
+                # Read data row by row.
+                # FIXME: Set location.sheet to actual sheet to validate
+                try:
+                    for rowOrError in self._reader:
+                        if location.line >= firstRowToValidateFieldsIn:
+                            yield rowOrError, copy.copy(location)
+                        location.advanceLine()
+                except tools.CutplaceUnicodeError, error:
+                    errorInfo = tools.ErrorInfo(data.DataFormatValueError(u"cannot read row %d: %s" % (location.line + 1, error)))
+                    errorInfo.reraise()
+
+        class ValidatingConsumer(proconex.ConvertingConsumer):
+            def __init__(self, icd):
+                assert icd is not None
+                super(ValidatingConsumer, self).__init__("consumer")
+                self._icd = icd
+
+            def consume(self, rowAndLocation):
+                assert rowAndLocation is not None
+                rowOrError, location = rowAndLocation
+                try:
+                    fieldFormats = self._icd._fieldFormats
+                    fieldFormatCount = len(fieldFormats)
+                    # Validate all items of the current row and collect their values in `rowMap`.
+                    maxItemCount = min(len(rowOrError), len(fieldFormats))
+                    rowMap = {}
+                    while location.cell < maxItemCount:
+                        item = rowOrError[location.cell]
+                        assert not isinstance(item, str), u"%s: item must be Unicode string instead of plain string: %r" % (location, item)
+                        fieldFormat = fieldFormats[location.cell]
+                        if __debug__:
+                            _log.debug(u"validate item %d/%d: %r with %s <- %r", location.cell + 1, fieldFormatCount, item, fieldFormat, rowOrError)
+                        rowMap[fieldFormat.fieldName] = fieldFormat.validated(item)
+                        location.advanceCell()
+                    if location.cell != len(rowOrError):
+                        raise checks.CheckError(u"unexpected data must be removed after item %d" % (location.cell), location)
+                    elif len(rowOrError) < fieldFormatCount:
+                        missingFieldNames = self._fieldNames[(len(rowOrError) - 1):]
+                        raise checks.CheckError(u"row must contain items for the following fields: %r" % missingFieldNames, location)
+
+                    # Validate rowOrError checks.
+                    for checkName in self._icd.checkNames:
+                        check = self._icd.getCheck(checkName)
+                        try:
+                            if __debug__:
+                                _log.debug(u"check row: ", check)
+                            check.checkRow(rowMap, location)
+                        except checks.CheckError, error:
+                            raise checks.CheckError(u"row check failed: %r: %s" % (check.description, error), location)
+                    self.addItem(rowOrError)
+                except data.DataFormatValueError, error:
+                    raise data.DataFormatValueError(u"cannot process data format", location, cause=error)
+                except tools.CutplaceError, error:
+                    isFieldValueError = isinstance(error, fields.FieldValueError)
+                    if isFieldValueError:
+                        fieldName = self._icd._fieldNames[location.cell]
+                        reason = "field %r must match format: %s" % (fieldName, error)
+                        error = fields.FieldValueError(reason, location)
+                    self.addItem(tools.ErrorInfo(error))
+
+        self._resetCounts()
+        for checkName in self.checkNames:
+            check = self.getCheck(checkName)
+            check.reset()
+
+        (dataFile, location, needsOpen) = self._obtainReadable(dataFileToValidatePath)
+        try:
+            reader = self._reader(dataFile)
+            producer = ValidatingProducer(reader, location, self._dataFormat)
+            consumer = ValidatingConsumer(self)
+            with proconex.Converter(producer, consumer) as converter:
+                for rowOrError in converter.items():
+                    if isinstance(rowOrError, tools.ErrorInfo):
+                        _log.debug(u"rejected: %s", rowOrError)
+                        if errors == "strict":
+                            rowOrError.reraise()
+                        elif errors == "yield":
+                            yield rowOrError
+                        else:
+                            assert errors == "ignore", "errors=%r" % errors
+                    else:
+                        # Yield data.
+                        _log.debug(u"accepted: %s", rowOrError)
+                        yield rowOrError
+        finally:
+            if needsOpen:
+                dataFile.close()
+
+        # Validate checks at end of data.
+        # TODO: For checks at end, reset location to beginning of file and sheet
+        for checkName in self.checkNames:
+            check = self.getCheck(checkName)
+            try:
+                _log.debug(u"checkAtEnd: %s", check)
+                check.checkAtEnd(location)
+                self.passedChecksAtEndCount += 1
+            except checks.CheckError, error:
+                reason = u"check at end of data failed: %r: %s" % (check.description, error)
+                _log.error(u"%s", reason)
+                self.failedChecksAtEndCount += 1
+                errorInfo = tools.ErrorInfo(error)
+                if errors == "strict":
+                    errorInfo.reraise()
+                elif errors == "yield":
+                    yield errorInfo
 
     def validate(self, dataFileToValidatePath):
         """
@@ -750,78 +893,7 @@ def  validatedRows(icd, dataFileToValidatePath, errors="strict"):
     assert errors in InterfaceControlDocument._ALL_ERRORS_VALUES, \
         "errors=%r but must be one of: %s" % (errors, InterfaceControlDocument._ALL_ERRORS_VALUES)
 
-    class ProducingValidationListener(BaseValidationListener):
-        """
-        Validation listener implementing a producer for rows or errors encountered while
-        validating a data set.
-        """
-        def __init__(self, rowOrErrorQueue, errors):
-            assert errors in InterfaceControlDocument._ALL_ERRORS_VALUES, \
-                "errors=%r but must be one of: %s" % (errors, InterfaceControlDocument._ALL_ERRORS_VALUES)
-            self._errors = errors
-            self._rowOrErrorQueue = rowOrErrorQueue
-
-        def produce(self, rowOrError):
-            """
-            Append ``rowOrError`` to producer queue with ``None`` indicating the end of the input.
-            """
-            self._rowOrErrorQueue.put(rowOrError)
-
-        def acceptedRow(self, row, location):
-            self.produce(row)
-
-        def rejectedRow(self, row, error):
-            self.produce(error)
-
-        def checkAtEndFailed(self, error):
-            self.produce(error)
-
-    class ValidationThread(threading.Thread):
-        """
-        Thread to run a validation in order to produce rows and errors.
-        """
-        def __init__(self, icd, dataFileToValidatePath, rowOrErrorQueue, errors):
-            assert icd is not None
-            assert dataFileToValidatePath is not None
-            assert rowOrErrorQueue is not None
-            assert errors in InterfaceControlDocument._ALL_ERRORS_VALUES, \
-                u"errors=%r but must be one of: %s" % (errors, InterfaceControlDocument._ALL_ERRORS_VALUES)
-
-            super(ValidationThread, self).__init__()
-            self._icd = icd
-            self._dataFileToValidatePath = dataFileToValidatePath
-            self._rowOrErrorQueue = Queue.Queue(3)
-            self._producingValidationListener = ProducingValidationListener(rowOrErrorQueue, errors)
-
-        def run(self):
-            self._icd.addValidationListener(self._producingValidationListener)
-            try:
-                self._icd.validate(self._dataFileToValidatePath)
-                # Mark the end of the data set.
-                self._producingValidationListener.produce(None)
-            except Exception, error:
-                self._producingValidationListener.produce(error)
-            finally:
-                self._icd.removeValidationListener(self._producingValidationListener)
-
-    rowOrErrorQueue = Queue.Queue(3)
-    validationThread = ValidationThread(icd, dataFileToValidatePath, rowOrErrorQueue, errors)
-    validationThread.start()
-    rowOrError = rowOrErrorQueue.get()
-    while rowOrError is not None:
-        isError = isinstance(rowOrError, Exception)
-        if isError:
-            if errors == InterfaceControlDocument._ERRORS_STRICT:
-                # FIXME: Stop ``validationThread`` somehow to remove listener.
-                raise rowOrError
-            elif errors == InterfaceControlDocument._ERRORS_YIELD:
-                yield rowOrError
-            elif errors != InterfaceControlDocument._ERRORS_IGNORE:
-                raise NotImplementedError(u"errors=%r" % errors)
-        else:
-            assert isinstance(rowOrError, types.ListType), u"rowOrError=%s: %r" % (type(rowOrError), rowOrError)
-            yield rowOrError
-        rowOrError = rowOrErrorQueue.get()
+    return icd.validatedRows(dataFileToValidatePath, errors)
 
 
 def importPlugins(folderToScanPath):

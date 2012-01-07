@@ -16,12 +16,10 @@ Tests for interface control documents.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-import imp
 import logging
-import os
 import StringIO
 import unittest
+import xlrd
 
 import checks
 import data
@@ -143,10 +141,10 @@ class ValidatedRowsTest(unittest.TestCase):
         self._icd.read(icdPath)
 
     def testValidatedRowsStrict(self):
-        for _ in interface.validatedRows(self._icd, self._validCostumersCsvPath):
+        for _ in self._icd.validatedRows(self._validCostumersCsvPath):
             pass
         try:
-            for _ in interface.validatedRows(self._icd, self._brokenCostumersCsvPath):
+            for _ in self._icd.validatedRows(self._brokenCostumersCsvPath):
                 pass
             self.fail("CutplaceError expected")
         except tools.CutplaceError:
@@ -154,18 +152,18 @@ class ValidatedRowsTest(unittest.TestCase):
             pass
 
     def testValidatedRowsIgnore(self):
-        for _ in interface.validatedRows(self._icd, self._validCostumersCsvPath, errors="ignore"):
+        for _ in self._icd.validatedRows(self._validCostumersCsvPath, errors="ignore"):
             pass
-        for _ in interface.validatedRows(self._icd, self._brokenCostumersCsvPath, errors="ignore"):
+        for _ in self._icd.validatedRows(self._brokenCostumersCsvPath, errors="ignore"):
             pass
 
     def testValidatedRowsYield(self):
-        for _ in interface.validatedRows(self._icd, self._validCostumersCsvPath, errors="yield"):
+        for _ in self._icd.validatedRows(self._validCostumersCsvPath, errors="yield"):
             pass
         errorCount = 0
         rowCount = 0
-        for rowOrError in interface.validatedRows(self._icd, self._brokenCostumersCsvPath, errors="yield"):
-            if isinstance(rowOrError, Exception):
+        for rowOrError in self._icd.validatedRows(self._brokenCostumersCsvPath, errors="yield"):
+            if isinstance(rowOrError, tools.ErrorInfo):
                 errorCount += 1
             else:
                 rowCount += 1
@@ -174,16 +172,13 @@ class ValidatedRowsTest(unittest.TestCase):
 
     def testValidatedRowsWithBrokenDataFormat(self):
         try:
-            import xlrd
             icdPath = dev_test.getTestIcdPath("native_excel_formats.ods")
             icd = interface.InterfaceControlDocument()
             icd.read(icdPath)
-            for _ in interface.validatedRows(icd, self._validCostumersCsvPath):
+            for _ in icd.validatedRows(self._validCostumersCsvPath):
                 pass
             self.fail("XLRDError expected")
-        except ImportError, error:
-            _log.warning(u"ignoring test due to missing import: %s", error)
-        except xlrd.XLRDError, error:
+        except xlrd.XLRDError:
             # Ignore expected error cause by wrong data format.
             pass
 
@@ -966,9 +961,9 @@ class PluginsTest(unittest.TestCase):
 "F","first_name","John","X",,"Text"
 "F","sirname","Smith","X",,"CapitalizedText"
 """
-        _log.info(u"subclasses before=%s", sorted(fields.AbstractFieldFormat.__subclasses__()))
+        _log.info(u"subclasses before=%s", sorted(fields.AbstractFieldFormat.__subclasses__()))  # @UndefinedVariable
         interface.importPlugins(dev_test.getTestPluginsPath())
-        _log.info(u"subclasses after=%s", sorted(fields.AbstractFieldFormat.__subclasses__()))
+        _log.info(u"subclasses after=%s", sorted(fields.AbstractFieldFormat.__subclasses__()))  # @UndefinedVariable
         icd = interface.InterfaceControlDocument()
         icd.read(StringIO.StringIO(spec))
         dataText = """First Name,Gender,Date of birth

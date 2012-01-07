@@ -18,6 +18,7 @@ Various utility classes and functions.
 import copy
 import os
 import traceback
+import sys
 import types
 
 """
@@ -84,6 +85,11 @@ class InputLocation(object):
         self._hasColumn = hasColumn
         self._hasCell = hasCell
         self._hasSheet = hasSheet
+
+    def __copy__(self):
+        result = type(self)(self.filePath)
+        result.__dict__.update(self.__dict__)
+        return result
 
     def advanceColumn(self, amount=1):
         assert amount is not None
@@ -280,3 +286,30 @@ class CutplaceUnicodeError(_BaseCutplaceError):
     This error is not derived from `CutplaceError` because it will not be handled in
     any meaningful way and simply results in the the termination of the validation.
     """
+
+
+class ErrorInfo(object):
+    """
+    Container for ``sys.exc_info()`` that also can `reraise()` an existing exception while preserving the
+    stack trace.
+    """
+    def __init__(self, error=None):
+        assert error is not None
+        assert isinstance(error, Exception)
+
+        excInfo = sys.exc_info()
+        self.errorType = excInfo[0]
+        if error is None:
+            self.error = excInfo[1]
+        else:
+            self.error = error
+        self.errorTrace = excInfo[2]
+
+    def reraise(self):
+        raise self.errorType, self.error, self.errorTrace
+
+    def __unicode__(self):
+        return unicode(self.error)
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')

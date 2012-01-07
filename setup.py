@@ -105,7 +105,7 @@ setup(
       author="Thomas Aglassinger",
       author_email="roskakori@users.sourceforge.net",
       url="http://cutplace.sourceforge.net/",
-      install_requires=["coverage", "xlrd"],
+      install_requires=["coverage", "proconex>=0.3", "xlrd"],
       packages=["cutplace"],
       data_files=[
           ("", ["setup.py"]),
