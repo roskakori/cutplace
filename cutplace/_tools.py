@@ -131,41 +131,41 @@ def valueOr(value, noneValue):
     return result
 
 
-class StoppableThread(threading.Thread):
+class FinishableThread(threading.Thread):
     """
-    Thread with a `stop()` method. The thread itself has to check regularly
-    for the `stopped()` condition.
+    Thread with a `finish()` method. The thread itself has to check regularly
+    for the `finished()` condition.
 
     Based on code published at
     http://stackoverflow.com/questions/5849484/how-to-exit-a-multithreaded-program.
     """
     def __init__(self, name):
         assert name
-        super(StoppableThread, self).__init__()
+        super(FinishableThread, self).__init__()
         self._stopEvent = threading.Event()
         self._log = logging.getLogger(name)
 
-    def stop(self):
+    def finish(self):
         """
         Stop the thread and wait for it to finish.
         """
         if self.isAlive():
-            self.log.info(u"stopped")
+            self.log.info(u"finished")
             # Set event to signal thread to terminate.
             self._stopEvent.set()
             # Block calling thread until thread really has terminated.
             self.join()
         else:
-            self.log.warning(u"ignored attempt to stop finished thread")
+            self.log.warning(u"ignored attempt to finish finished thread")
 
     @property
     def log(self):
         return self._log
 
     @property
-    def stopped(self):
+    def finished(self):
         """
-        ``True`` if `stop()` has been called.
+        ``True`` if `finish()` has been called.
         """
         return self._stopEvent.isSet()
 

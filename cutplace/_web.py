@@ -285,10 +285,10 @@ Platform: %s</p>
             self.send_error(400, u"%s." % cgi.escape(errorMessage))
 
 
-class WebServer(_tools.StoppableThread):
+class WebServer(_tools.FinishableThread):
     """
-    Simple web server running in an own thread. It can only process one request at a time. Use `stop()` to
-    stop the server.
+    Simple web server running in an own thread. It can only process one request at a time. Use `finish()` to
+    finish the server.
     """
     def __init__(self, port=DEFAULT_PORT):
         super(WebServer, self).__init__("cutplace.web.server")
@@ -300,7 +300,7 @@ class WebServer(_tools.StoppableThread):
         self.log.info(u"%s", _SERVER_VERSION)
         self.log.info(u"Visit <%s> to connect", self.site)
         self.log.info(u"Press Control-C to shut down")
-        while not self.stopped:
+        while not self.finished:
             self._httpd.handle_request()
         self.log.info("shut down finished")
 
@@ -315,7 +315,7 @@ def main(port=DEFAULT_PORT, isOpenBrowser=False):
         while server.isAlive():
             server.join(_TICK_IN_SECONDS)
     except KeyboardInterrupt:
-        server.stop()
+        server.finish()
     finally:
         server.join()
 

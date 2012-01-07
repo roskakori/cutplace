@@ -150,7 +150,7 @@ class WebTest(unittest.TestCase):
         self._webServer.start()
 
     def tearDown(self):
-        self._webServer.stop()
+        self._webServer.finish()
         self._webServer = None
 
     def testAbout(self):
