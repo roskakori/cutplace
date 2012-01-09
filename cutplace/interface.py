@@ -23,9 +23,6 @@ import inspect
 import logging
 import os
 import proconex
-import Queue
-import sys
-import threading
 import types
 
 import checks
@@ -901,12 +898,22 @@ def importPlugins(folderToScanPath):
     Import all Python modules found in folder ``folderToScanPath`` (non recursively) consequently
     making the contained field formats and checks available for ICDs.
     """
+    def logImportedItems(itemName, baseSet, currentSet):
+        newItems = [item.__name__ for item in (currentSet - baseSet)]
+        _log.info(u"    %s found: %s", itemName, newItems)
+
     _log.info(u"import plugins from \"%s\"", folderToScanPath)
     modulesToImport = set()
+    baseChecks = set(checks.AbstractCheck.__subclasses__())  # @UndefinedVariable
+    baseFieldFormats = set(fields.AbstractFieldFormat.__subclasses__())  # @UndefinedVariable
     patternToScan = os.path.join(folderToScanPath, u"*.py")
     for moduleToImportPath in glob.glob(patternToScan):
         moduleName = os.path.splitext(os.path.basename(moduleToImportPath))[0]
         modulesToImport.add((moduleName, moduleToImportPath))
     for moduleNameToImport, modulePathToImport in modulesToImport:
-        _log.info(u"  import %s", moduleNameToImport)
+        _log.info(u"  import %s from \"%s\"", moduleNameToImport, modulePathToImport)
         imp.load_source(moduleNameToImport, modulePathToImport)
+    currentChecks = set(checks.AbstractCheck.__subclasses__())  # @UndefinedVariable
+    currentFieldFormats = set(fields.AbstractFieldFormat.__subclasses__())  # @UndefinedVariable
+    logImportedItems("fields", baseFieldFormats, currentFieldFormats)
+    logImportedItems("checks", baseChecks, currentChecks)
