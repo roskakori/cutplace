@@ -1,7 +1,7 @@
 """
 Cutplace version information.
 """
-# Copyright (C) 2009-2011 Thomas Aglassinger
+# Copyright (C) 2009-2012 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
@@ -16,8 +16,8 @@ Cutplace version information.
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 VERSION = 0
-RELEASE = 6
-REVISION = 8
+RELEASE = 7
+REVISION = 0
 
 try:
     REPOSITORY_ID, VERSION_DATE = "$Id$".split()[2:4]

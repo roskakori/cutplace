@@ -4,8 +4,15 @@ Revision history
 
 This chapter describes improvements compared to earlier versions of cutplace.
 
-Version 0.7.0, 2011-09-xx
+Version 0.7.0, 2012-01-09
 =========================
+
+* Added command line option ``--plugins`` to specify a folder where cutplace
+  looks for plugins declaring additional field formats and checks. For
+  details, see :ref:`using-own-check-and-field-formats`.
+
+* Changed ``interface.validatedRows(..., errors="yield")`` to yield
+  ``tools.ErrorInfo`` in case of error instead of ``Exception``.
 
 * Reduced memory foot print of CSV reading (Ticket #32). As a side effect,
   all formats now read and validate in separate threads, which should
