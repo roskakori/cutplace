@@ -573,9 +573,9 @@ the rule can look solely depends on the type of the check.
     A check to validate that a field value or a combination of field
     values is unique in each row compared with all other rows.
 
-.. _cutsniff:
-
 .. index:: cutsniff
+
+.. _cutsniff:
 
 Sniffing drafts from data
 =========================

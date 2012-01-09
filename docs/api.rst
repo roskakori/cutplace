@@ -11,8 +11,9 @@ Additionally to the command line tool ``cutplace`` all functions are available
 as Python API. For a complete reference about all public classes and functions,
 visit <http://cutplace.sourceforge.net/api/>.
 
-The remainder of this chapter focuses on describing how to perform a basic
-validation of a simple CSV file containing data about some customers.
+This chapter describes how to perform a basic validation of a simple CSV file
+containing data about some customers. It also explains how to extend
+cutplace's fields formats and checks.
 
 Set up logging
 ==============
@@ -114,12 +115,13 @@ Here is an example the prints any data related errors detected during validation
 >>> from cutplace import tools
 >>> brokenCsvPath = os.path.join(os.pardir, "tests", "input", "broken_customers.csv")
 >>> for rowOrError in interface.validatedRows(icd, brokenCsvPath, errors="yield"):
-...     if isinstance(rowOrError, tools.CutplaceError):
-...         # Print data related error details and move on.
-...         print rowOrError
-...     elif isinstance(rowOrError, Exception):
-...         # Let other, more severe errors terminate the validation.
-...         raise rowOrError
+...     if isinstance(rowOrError, tools.ErrorInfo):
+...         if isinstance(rowOrError.error, tools.CutplaceError):
+...             # Print data related error details and move on.
+...             print rowOrError.error
+...         else:
+...             # Let other, more severe errors terminate the validation.
+...             rowOrError.reraise()
 ...     else:
 ...         pass # We could also do something useful with the data in ``row`` here.
 broken_customers.csv (R4C1): field u'branch_id' must match format: value u'12345' must match regular expression: u'38\\d\\d\\d'
@@ -448,11 +450,6 @@ Let's give it a try:
 >>> colorField.validated("")
 (0.0, 0.0, 0.0)
 
-Now that you know how to write your own field format, it would be nice to
-actually utilize it in an ICD.
-
-TODO: Describe how to write a ``myfields.py`` and extend the Python path.
-
 Writing checks
 --------------
 
@@ -597,4 +594,72 @@ store them in instance variables.
 Because our ``FullNameLengthIsInRangeCheck`` does not need to do anything here,
 we can omit it and keep inherit an empty implementation from ``AbstractCheck``.
 
-TODO: Describe how to write mychecks.py and extend Python path.
+.. _using-own-check-and-field-formats:
+
+Using your own checks and field format
+--------------------------------------
+
+Now that you know how to write your own field format, it would be nice to
+actually utilize it in an ICD. For this purpose, cutplace lets you import
+plugins that can define their own fields.
+
+Plugins are standard Python modules that define classes based on
+``fields.AbstractFieldFormat`` and ``checks.AbstractCheck``. For our
+example, create a folder named ``~/cutplace_plugins`` and store a Python 
+module named ``myplugins.py`` in it with the following contents:
+
+.. literalinclude:: ../examples/plugins.py
+
+The ICD can now refer to ``ColorFieldFormat`` as ``Color`` (without
+``FieldFormat``) and to ``FullNameLengthIsInRangeCheck`` as
+``FullNameLengthIsInRange`` (without ``Check``). For example:
+
++-+-----------------+-------+------+------+-----+----+
++ +Interface: colors+       +      +      +     +    +
++-+-----------------+-------+------+------+-----+----+
++ +                 +       +      +      +     +    +
++-+-----------------+-------+------+------+-----+----+
++ +Data format      +       +      +      +     +    +
++-+-----------------+-------+------+------+-----+----+
++D+Format           +CSV    +      +      +     +    +
++-+-----------------+-------+------+------+-----+----+
++D+Header           +1      +      +      +     +    +
++-+-----------------+-------+------+------+-----+----+
++ +                 +       +      +      +     +    +
++-+-----------------+-------+------+------+-----+----+
++ +Fields           +       +      +      +     +    +
++-+-----------------+-------+------+------+-----+----+
++ +Name             +Example+Empty?+Length+Type +Rule+
++-+-----------------+-------+------+------+-----+----+
++F+item             +tree   +      +      +     +    +
++-+-----------------+-------+------+------+-----+----+
++F+color            +green  +      +      +Color+    +
++-+-----------------+-------+------+------+-----+----+
+
+See: :download:`icd_colors.csv <../examples/icd_colors.csv>`
+or :download:`icd_colors.ods <../examples/icd_colors.ods>`
+
+Here is a data file where all but one row conforms to the ICD:
+
+.. literalinclude:: ../examples/colors.csv
+
+See: :download:`colors.csv <../examples/colors.csv>`
+
+To tell cutplace where the plugins folder is located, use the command line
+option ``--plugins``. Assuming that your ``myplugins.py`` is stored in
+``~/cutplace_plugins`` you can run::
+
+  cutplace --plugins ~/cutplace_plugins icd_colors.ods colors.csv
+
+The output is::
+
+  ERROR:cutplace:field error: colors.csv (R5C2): field u'color' must match format: color name is u'yellow' but must be one of: red, green, blue
+
+If you are unsure what exactly cutplace imports, use ``--log=info``. For
+example the output could contain::
+
+  INFO:cutplace:import plugins from "."
+  INFO:cutplace:  import plugins from "cutplace_plugins/myplugins.py"
+  INFO:cutplace:    fields found: ['ColorFieldFormat']
+  INFO:cutplace:    checks found: ['FullNameLengthIsInRangeCheck']
+

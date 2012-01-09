@@ -78,6 +78,24 @@ example::
 In case the data do not conform to the ICD, error messages show up in the
 console.
 
+.. index:: pair: command line option; --plugins
+
+Import plugsins
+===============
+
+You can define your own field format and checks in simple Pyhton modules and
+tell cutplace to import them. For more information on how to write such
+modules see :ref:`using-own-check-and-field-formats`.
+
+To import all plugins located in the folder ``~/cutplace-plugins``, use::
+
+  cutplace --plugins ~/cutplace-plugins ...
+
+This will import and initialize all ``*.py`` files in this folder. To see
+which checks and field formats are actually recognized, also specify
+``--log=info``.
+
+
 Dealing with errors
 ===================
 

@@ -41,9 +41,9 @@ address in column 3 without violating the requirements for time fields.
 Below you will find a detailed description of each of these concepts
 accompanied by many examples.
 
-.. _data-formats:
-
 .. index:: data format
+
+.. _data-formats:
 
 Data formats
 ============
@@ -152,17 +152,18 @@ Escape character
     The escape character necessary to use the quote character in item values.
     Possible values are: double quote (").
 
-.. _decimal-separator:
 .. index:: pair: data format property; decimal separator
+
+.. _decimal-separator:
 
 Decimal separator
 	The character to separate the fractional part of a number, for example
 	in `17.23`. Typical values are: dot (.) and comma (,). The default is dot
 	(.).
 
-.. _thousands-separator:
 .. index:: pair: data format property; thousands separator
 
+.. _thousands-separator:
 
 Thousands separator
     The character to optionally group digits in large numbers, for example in
@@ -224,8 +225,9 @@ F   Encoding        ISO-8859-15
 F   Item delimiter  ;
 ==  ==============  ===========
 
-.. _format-excel:
 .. index:: pair: data format; Excel
+
+.. _format-excel:
 
 Excel data
 ----------
@@ -334,8 +336,9 @@ F   Header    2
 F   Sheet     5
 ==  ========  =====
 
-.. _field-formats:
 .. index:: field format
+
+.. _field-formats:
 
 Field formats
 =============
@@ -429,8 +432,9 @@ F   weight  72              0:      Integer  0:
 F   id      1337            5       Integer  1:99999
 ==  ======  =======  =====  ======  =======  =======
 
-.. _field-format-decimal:
 .. index:: double: field format; Decimal
+
+.. _field-format-decimal:
 
 Decimal
 -------
@@ -517,9 +521,9 @@ F   date_of_birth    1969-11-03                 DateTime  YYYY-MM-DD
 F   time_of_arrival  17:23                      DateTime  hh:mm
 ==  ===============  ==========  =====  ======  ========  ==========
 
-.. _field-format-pattern:
-
 .. index:: double: field format; Pattern
+
+.. _field-format-pattern:
 
 Pattern
 -------
@@ -540,8 +544,9 @@ F   dos_filename         1:12    Pattern  ?*.*
 F   branch_id                    Pattern  B???-????-?*
 ==  ============  =====  ======  =======  ============
 
-.. _field-format-regex:
 .. index:: double: field format; RegEx
+
+.. _field-format-regex:
 
 RegEx
 -----
@@ -585,8 +590,9 @@ the ICD, a row describing the check requires the following columns:
 The remainder of this section describes the available checks in detail and
 gives specific examples.
 
-.. _check-distinct-count:
 .. index:: pair: checks; DistinctCount
+
+.. _check-distinct-count:
 
 DistinctCount
 -------------
@@ -609,8 +615,9 @@ C   distinct branches must be within limit  DistinctCount  branch_id < 5
 To describe the rule you can use any comparison operator or mathematical
 expression available to the Python language.
 
-.. _check-is-unique:
 .. index:: pair: checks; IsUnique
+
+.. _check-is-unique:
 
 IsUnique
 --------
@@ -658,8 +665,9 @@ In particular this constitutes:
   Property name, value). Because of that you can write any text starting with
   column number 4.
 
-.. _ranges:
 .. index:: ranges
+
+.. _ranges:
 
 Ranges
 ======
