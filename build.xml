@@ -104,11 +104,7 @@
     </target>
 
     <target name="performance" description="run performance test" depends="sitebase">
-        <!-- 
-          Note: No failonerror="true" because this test is so basic that
-          failure is a reason for immediate investigation.
-        -->
-        <exec executable="nosetests">
+        <exec executable="nosetests" failonerror="false">
             <arg value="--with-xunit" />
             <arg value="--xunit-file" />
             <arg file="nosetests_performance.xml" />
