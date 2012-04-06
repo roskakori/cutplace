@@ -12,6 +12,7 @@
     <property name="site.dir" location="${build}/site" />
     <property name="reports.dir" location="${site.dir}/reports" />
     <property name="api.dir" location="${site.dir}/api" />
+    <property name="slocdata.dir" location="${basedir}/slocdata" />
 
     <macrodef name="pyst">
         <!-- Macro to run a setup.py command. -->
@@ -123,6 +124,7 @@
             <fileset dir="${tests-output.dir}" includes="**/*" />
         </delete>
         <delete dir="${build}" />
+        <delete dir="${slocdata.dir}" />
     </target>
 
     <target name="site" depends="reports, docs, api" description="build web site">
@@ -148,10 +150,13 @@
     <target name="reports" depends="sitebase, pep8, sloccount, testdata, performance" description="build developer reports" />
 
     <target name="sloccount" description="build sloccount report">
+        <mkdir dir="${slocdata.dir}" />
         <echo message="build sloccount report" />
         <exec executable="sloccount" failonerror="true">
             <arg value="--details" />
             <arg value="--wide" />
+            <arg value="--datadir" />
+            <arg file="${slocdata.dir}" />
             <arg value="cutplace" />
             <redirector output="sloccount.sc">
                 <outputfilterchain>
@@ -161,6 +166,7 @@
                 </outputfilterchain>
             </redirector>
         </exec>
+        <delete dir="${slocdata.dir}" />
     </target>
 
     <target name="pep8" description="build pep8 violations report">
