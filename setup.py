@@ -110,9 +110,9 @@ setup(
       data_files=[
           ("", ["setup.py"]),
           ("", ["license.txt", "README.txt"]),
-          ("docs", glob.glob("docs/*.*")),
-          ("docs/_static", glob.glob("docs/_static/*.*")),
-          ("examples", glob.glob("examples/*.csv") + glob.glob("examples/*.ods"))
+          ("docs", glob.glob(os.path.join("docs", "*.*"))),
+          ("docs/_static", glob.glob(os.path.join("docs", "_static", "*.*"))),
+          ("examples", glob.glob(os.path.join("examples", "*.csv")) + glob.glob(os.path.join("examples", "*.ods")))
       ],
       entry_points={
         "console_scripts": [
