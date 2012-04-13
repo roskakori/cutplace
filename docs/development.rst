@@ -236,6 +236,15 @@ from the tab :guilabel:`Available`:
   * Task Scanner Plugin
   * Violations plugin
 
+In case Jenkins runs as a deamon on Mac OS X and you are using MacPorts,
+navigate to
+:menuselection:`Manage Jenkins --> Configure System --> Global Properties`
+and add the following environment variables::
+
+  LC_ALL=en_US.UTF-8
+  LC_CTYPE=UTF-8
+  PATH=/opt/local/bin:/opt/local/sbin:$PATH
+
 Next, create a build using the following steps:
 
   * Source code management:
