@@ -1,7 +1,7 @@
 """
 Interface control document (ICD) describing all aspects of a data driven interface.
 """
-# Copyright (C) 2009-2011 Thomas Aglassinger
+# Copyright (C) 2009-2012 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
@@ -501,11 +501,7 @@ class InterfaceControlDocument(object):
 
     def _reader(self, dataFile):
         if self.dataFormat.name in (data.FORMAT_CSV, data.FORMAT_DELIMITED):
-            dialect = _parsers.DelimitedDialect()
-            dialect.lineDelimiter = self.dataFormat.get(data.KEY_LINE_DELIMITER)
-            dialect.itemDelimiter = self.dataFormat.get(data.KEY_ITEM_DELIMITER)
-            dialect.quoteChar = self.dataFormat.get(data.KEY_QUOTE_CHARACTER)
-            # FIXME: Set escape char according to ICD.
+            dialect = _createDelimitedDialect(self)
             reader = _parsers.delimitedReader(dataFile, dialect, encoding=self.dataFormat.encoding)
         elif self.dataFormat.name == data.FORMAT_EXCEL:
             sheet = self.dataFormat.get(data.KEY_SHEET)
@@ -852,6 +848,80 @@ class InterfaceControlDocument(object):
         doc="If ``True``, log stack trace on rejected data items or rows.")
 
 
+class Writer(object):
+    """
+    Writer to write data to a filelike output while validating that they conform to an
+    `InterfaceControlDocument`.
+    """
+    def __init__(self, icd, out):
+        assert icd is not None
+        assert out is not None
+
+        dataFormatName = icd.dataFormat.name
+        self._icd = icd
+        self._out = out
+        if dataFormatName in (data.FORMAT_CSV, data.FORMAT_DELIMITED):
+            csvDialect = _createDelimitedDialect(self._icd).asCsvDialect()
+            self._writer = _tools.UnicodeCsvWriter(self._out, dialect=csvDialect)
+        else:
+            raise NotImplementedError("format=%r" % dataFormatName)
+        assert self._writer is not None
+
+        # Write header.
+        headerRowIndex = self._icd.dataFormat.get(data.KEY_HEADER)
+        assert headerRowIndex is not None
+        assert headerRowIndex >= 0
+        if headerRowIndex > 0:
+            for _ in xrange(headerRowIndex):
+                self._writeRow([])
+            self._writeRow(self._icd.fieldNames)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, errorType, error, traceback):
+        if not error:
+            # There's no point in calling `close()` in case of previous errors
+            # because it most likely will cause another error and thus discard
+            # the original error which holds actually useful information.
+            self.close()
+
+    @property
+    def out(self):
+        """
+        The filelike output to which data are written.
+        """
+        return self._out
+
+    def _writeRow(self, row):
+        """
+        Write ``row`` without any validation. This is useful to write header rows.
+        """
+        assert row is not None
+        # TODO: Keep track of location.
+        self._writer.writerow(row)
+
+    def writeRow(self, row):
+        """
+        Write ``row`` to ``out``.
+        """
+        assert row is not None
+        # FIXME: Validate row.
+        self._writeRow(row)
+
+    def writeRows(self, rows):
+        """
+        Write all ``rows`` to ``out``.
+        """
+        assert rows is not None
+        for row in rows:
+            self.writeRow(row)
+
+    def close(self):
+        # TODO: Validate checks at end.
+        pass
+
+
 def createSniffedInterfaceControlDocument(readable, **keywords):
     """
     `InterfaceControlDocument` created by examining the contents of ``readable``.
@@ -891,6 +961,17 @@ def  validatedRows(icd, dataFileToValidatePath, errors="strict"):
         "errors=%r but must be one of: %s" % (errors, InterfaceControlDocument._ALL_ERRORS_VALUES)
 
     return icd.validatedRows(dataFileToValidatePath, errors)
+
+
+def _createDelimitedDialect(icd):
+    assert icd is not None
+    assert icd.dataFormat.name in (data.FORMAT_CSV, data.FORMAT_DELIMITED), "icd.dataFormat=%r" % icd.dataFormat.name
+    result = _parsers.DelimitedDialect()
+    result.lineDelimiter = icd.dataFormat.get(data.KEY_LINE_DELIMITER)
+    result.itemDelimiter = icd.dataFormat.get(data.KEY_ITEM_DELIMITER)
+    result.quoteChar = icd.dataFormat.get(data.KEY_QUOTE_CHARACTER)
+    # FIXME: Set escape char according to ICD.
+    return result
 
 
 def importPlugins(folderToScanPath):

@@ -240,13 +240,15 @@ class DelimitedDialect(object):
         """
         Represent dialect as csv.Dialect.
         """
-        result = csv.Dialect()
+        result = csv.excel()
         result.lineterminator = self.lineDelimiter
-        result.delimiter = self.itemDelimiter
-        result.quotechar = self.quoteChar
+        result.delimiter = str(self.itemDelimiter)
+        result.quotechar = str(self.quoteChar)
         result.doublequote = (self.escapeChar == self.quoteChar)
-        if not result.doublequote:
-            result.escapechar = self.escapeChar
+        if self.escapeChar is None:
+            result.escapechar = None
+        else:
+            result.escapechar = str(self.escapeChar)
         result.skipinitialspace = (self.blanksAroundItemDelimiter)
 
         return result

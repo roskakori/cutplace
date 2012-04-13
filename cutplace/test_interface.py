@@ -20,6 +20,7 @@ import logging
 import StringIO
 import unittest
 import xlrd
+from contextlib import closing
 
 import checks
 import data
@@ -972,6 +973,14 @@ Bärbel,Müller"""
         dataReadable = StringIO.StringIO(dataText)
         icd.validate(dataReadable)
 
+
+class WriterTest(unittest.TestCase):
+    def testCanWriteValidDataToCsv(self):
+        icd = createDefaultTestIcd(data.FORMAT_CSV)
+        with closing(StringIO.StringIO()) as out:
+            csvWriter = interface.Writer(icd, out)
+            csvWriter.writeRow([u"38123", u"12345", u"John", u"Doe", u"male", u"08.03.1957"])
+            self.assertEqual(out.getvalue(), u"38123,12345,John,Doe,male,08.03.1957\n")
 
 if __name__ == '__main__':  # pragma: no cover
     logging.basicConfig()
