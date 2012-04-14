@@ -7,8 +7,11 @@ This chapter describes improvements compared to earlier versions of cutplace.
 Version 0.7.1, 2012-04-xx
 =========================
 
-* Added validating writer, see ``interface.Writer`` for more information
-  (Ticket #45).
+* Improved API:
+
+  * Added validating writer, see ``interface.Writer`` for more information
+    (Ticket #45).
+  * Added property ``example`` for ``*FieldFormat`` (Ticket #41).
 
 * Cleaned up build and the section on :ref:`jenkins` so that everything works
   as described even if Jenkins runs as deamon with MacPorts.

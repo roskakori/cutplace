@@ -160,6 +160,19 @@ class IntegerFieldFormatTest(unittest.TestCase):
         self.assertEquals(items, None)
         self.assertEquals(fieldFormat.asIcdRow(), ["x", "", "", "", "Integer", "1:10"])
 
+    def testCanProcessValidExample(self):
+        fieldFormat = fields.IntegerFieldFormat("x", False, None, "1:10", _anyFormat)
+        fieldFormat.example = "3"
+        self.assertEqual(fieldFormat.example, "3")
+
+    def testFailsOnInvalidExample(self):
+        fieldFormat = fields.IntegerFieldFormat("x", False, None, "1:10", _anyFormat)
+        try:
+            fieldFormat.example = "11"
+        except fields.FieldValueError:
+            # Ignore expected error.
+            pass
+
 
 class RegExFieldFormatTest(unittest.TestCase):
     """

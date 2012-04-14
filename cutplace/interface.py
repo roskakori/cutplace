@@ -249,8 +249,6 @@ class InterfaceControlDocument(object):
             if itemCount >= 2:
                 self._location.advanceCell()
                 fieldExample = items[1]
-            else:
-                fieldExample = ""
 
             # Obtain "empty" flag.
             if itemCount >= 3:
@@ -306,7 +304,7 @@ class InterfaceControlDocument(object):
             # Set and validate example in case there is one.
             if fieldExample:
                 try:
-                    fieldFormat.validated(fieldExample)
+                    fieldFormat.example = fieldExample
                 except fields.FieldValueError, error:
                     self._location.setCell(2)
                     raise IcdSyntaxError(u"cannot validate example for field %r: %s" % (fieldName, error), self._location)
@@ -342,7 +340,6 @@ class InterfaceControlDocument(object):
                                           self._location)
 
         assert fieldName
-        assert fieldExample is not None
         assert fieldType
         assert fieldRule is not None
 

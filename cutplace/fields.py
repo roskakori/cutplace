@@ -70,6 +70,7 @@ class AbstractFieldFormat(object):
         self._rule = rule
         self._dataFormat = dataFormat
         self._emptyValue = emptyValue
+        self._example = None
 
     @property
     def fieldName(self):
@@ -112,6 +113,16 @@ class AbstractFieldFormat(object):
         The result of `validated(value)` in case ``value`` is an empty string.
         """
         return self._emptyValue
+
+    def _example(self):
+        return self._example
+
+    def _setExample(self, newExample):
+        if newExample is not None:
+            self.validated(newExample)
+        self._example = newExample
+
+    example = property(_example, _setExample, doc="Example value or ``None`` if no example is provided.")
 
     def validateCharacters(self, value):
         validCharacterRange = self.dataFormat.get(data.KEY_ALLOWED_CHARACTERS)
