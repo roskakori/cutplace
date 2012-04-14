@@ -297,26 +297,19 @@ class InterfaceControlDocument(object):
             fieldFormat = fieldClass.__new__(fieldClass, fieldName, fieldIsAllowedToBeEmpty, fieldLength, fieldRule)
             fieldFormat.__init__(fieldName, fieldIsAllowedToBeEmpty, fieldLength, fieldRule, self._dataFormat)
 
-            # Validate example in case there is one.
-            if fieldExample:
-                self._location.setCell(2)
-                try:
-                    fieldFormat.validated(fieldExample)
-                except fields.FieldValueError, error:
-                    raise IcdSyntaxError(u"cannot validate example for field %r: %s" % (fieldName, error), self._location)
-
             # Validate that field name is unique.
             if fieldName in self._fieldNameToFormatMap:
+                self._location.setCell(1)
                 raise fields.FieldSyntaxError(u"field name must be used for only one field: %s" % fieldName,
                                               self._location)
 
-            self._location.setCell(1)
-            self._fieldNameToFormatMap[fieldName] = fieldFormat
-            self._fieldNameToIndexMap[fieldName] = len(self._fieldNames)
-            self._fieldNames.append(fieldName)
-            self._fieldFormats.append(fieldFormat)
-            # TODO: Remember location where field format was defined to later include it in error message
-            _log.info(u"%s: defined field: %s", self._location, fieldFormat)
+            # Set and validate example in case there is one.
+            if fieldExample:
+                try:
+                    fieldFormat.validated(fieldExample)
+                except fields.FieldValueError, error:
+                    self._location.setCell(2)
+                    raise IcdSyntaxError(u"cannot validate example for field %r: %s" % (fieldName, error), self._location)
 
             # Validate field length for fixed format.
             if isinstance(self._dataFormat, data.FixedDataFormat):
@@ -336,6 +329,14 @@ class InterfaceControlDocument(object):
                 else:
                     raise fields.FieldSyntaxError(u"length of field %r must be specified with fixed data format" % fieldName,
                                                   self._location)
+
+            self._location.setCell(1)
+            self._fieldNameToFormatMap[fieldName] = fieldFormat
+            self._fieldNameToIndexMap[fieldName] = len(self._fieldNames)
+            self._fieldNames.append(fieldName)
+            self._fieldFormats.append(fieldFormat)
+            # TODO: Remember location where field format was defined to later include it in error message
+            _log.info(u"%s: defined field: %s", self._location, fieldFormat)
         else:
             raise fields.FieldSyntaxError(u"field format row (marked with %r) must at least contain a field name" % InterfaceControlDocument._ID_FIELD_RULE,
                                           self._location)
