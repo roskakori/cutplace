@@ -40,7 +40,6 @@ def _getTestFieldNames():
 
 
 class _AbstractCheckTest(unittest.TestCase):
-
     def testStr(self):
         fieldNames = _getTestFieldNames()
         # TODO: Create an instance of the current class instead of _AbstractCheck even for ancestors.
@@ -79,6 +78,7 @@ class IsUniqueCheckTest(_AbstractCheckTest):
         except checks.CheckError, error:
             self.assertTrue(error.seeAlsoLocation)
             self.assertNotEqual(location, error.seeAlsoLocation)
+            self.assertEqual(error.location.cell, 0)
 
         # These methods should not do anything, but call them anyway for test sake.
         check.checkAtEnd(location)

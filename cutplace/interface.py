@@ -715,6 +715,7 @@ class InterfaceControlDocument(object):
                                 raise checks.CheckError(u"row must contain items for the following fields: %r" % missingFieldNames, location)
 
                             # Validate row checks.
+                            location.setCell(0)
                             for checkName in self.checkNames:
                                 check = self.getCheck(checkName)
                                 try:

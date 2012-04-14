@@ -7,6 +7,9 @@ This chapter describes improvements compared to earlier versions of cutplace.
 Version 0.7.1, 2012-04-xx
 =========================
 
+* Changed error location of failed row checks to use the first column instead
+  of a number one past the actual number of columns (Ticket #42).
+
 * Improved API:
 
   * Added validating writer, see ``interface.Writer`` for more information
