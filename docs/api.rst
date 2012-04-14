@@ -605,7 +605,7 @@ plugins that can define their own fields.
 
 Plugins are standard Python modules that define classes based on
 ``fields.AbstractFieldFormat`` and ``checks.AbstractCheck``. For our
-example, create a folder named ``~/cutplace_plugins`` and store a Python 
+example, create a folder named ``~/cutplace_plugins`` and store a Python
 module named ``myplugins.py`` in it with the following contents:
 
 .. literalinclude:: ../examples/plugins.py
@@ -654,12 +654,13 @@ option ``--plugins``. Assuming that your ``myplugins.py`` is stored in
 The output is::
 
   ERROR:cutplace:field error: colors.csv (R5C2): field u'color' must match format: color name is u'yellow' but must be one of: red, green, blue
+  colors.csv: rejected 1 of 5 rows. 0 final checks failed.
 
-If you are unsure what exactly cutplace imports, use ``--log=info``. For
-example the output could contain::
+If you are unsure which plugins exactly cutplace imports, use ``--log=info``.
+For example, the output could contain::
 
-  INFO:cutplace:import plugins from "."
-  INFO:cutplace:  import plugins from "cutplace_plugins/myplugins.py"
+  INFO:cutplace:import plugins from "/Users/me/cutplace_plugins"
+  INFO:cutplace:  import plugins from "/Users/me/cutplace_plugins/myplugins.py"
   INFO:cutplace:    fields found: ['ColorFieldFormat']
   INFO:cutplace:    checks found: ['FullNameLengthIsInRangeCheck']
 
