@@ -932,46 +932,6 @@ class Validator(object):
     logTrace = property(_getLogTrace, _setLogTrace,
         doc="If ``True``, log stack trace on rejected data items or rows.")
 
-    def validate(self, dataFileToValidatePath):
-        # TODO: Remove this unused method.
-        """
-        Validate that all rows and items in ``dataFileToValidatePath`` conform to this interface.
-        If a validation listener has been attached using `addValidationListener`, it will be
-        notified about any event occurring during validation.
-        """
-        # FIXME: Split up `validate()` in several smaller methods.
-        assert dataFileToValidatePath is not None
-
-        _log.info(u"validate \"%s\"", dataFileToValidatePath)
-        self._resetCounts()
-        for checkName in self.checkNames:
-            check = self.getCheck(checkName)
-            check.reset()
-
-        (dataFile, location, needsOpen) = self._obtainReadable(dataFileToValidatePath)
-        try:
-            reader = self._reader(dataFile)
-            # TODO: Replace rowNumber by position in parser.
-
-            # Obtain values from the data format that will be used by various checks.
-            firstRowToValidateFieldsIn = self._dataFormat.get(data.KEY_HEADER)
-            assert firstRowToValidateFieldsIn is not None
-            assert firstRowToValidateFieldsIn >= 0
-
-            # Validate data row by row.
-            # FIXME: Set location.sheet to actual sheet to validate
-            try:
-                for row in reader:
-                    if location.line >= firstRowToValidateFieldsIn:
-                        pass
-                    location.advanceLine()
-            except tools.CutplaceUnicodeError, error:
-                self._rejectRow([], error, location)
-                # raise data.DataFormatValueError(u"cannot read row %d: %s" % (rowNumber + 2, error))
-        finally:
-            if needsOpen:
-                dataFile.close()
-
     def _errorForRejectedRow(self, row, reason):
         assert row is not None
         assert reason
