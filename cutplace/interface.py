@@ -388,7 +388,7 @@ class InterfaceControlDocument(object):
                 # FIXME: Validate data format (required properties, contradictions)
                 self.addFieldFormat(icdRowToProcess[1:])
             elif rowId.strip():
-                raise IcdSyntaxError(u"first item in icdRowToProcess is %r but must be empty or one of: %s"
+                raise IcdSyntaxError(u"first item in row is %r but must be empty or one of: %s"
                                      % (icdRowToProcess[0], _tools.humanReadableList(InterfaceControlDocument._VALID_IDS)),
                                      self._location)
         self._location.advanceLine()
@@ -445,6 +445,18 @@ class InterfaceControlDocument(object):
         etc. instead of using a file.
         """
         self._location = tools.createCallerInputLocation(hasCell=True)
+
+    @property
+    def sheet(self):
+        """
+        The sheet on which the described data are located, or ``None`` if `dataFormat` does not support sheets.
+        """
+        hasSheet = (self._dataFormat.name not in (data.FORMAT_CSV, data.FORMAT_DELIMITED))
+        if hasSheet:
+            result = self._dataFormat.get(data.KEY_SHEET)
+        else:
+            result = None
+        return result
 
     def _obtainReadable(self, dataFileToValidatePath):
         """
@@ -822,10 +834,36 @@ class InterfaceControlDocument(object):
         The `fields.AbstractFieldFormat` for ``fieldName``. If no such field has been defined,
         raise a ``KeyError`` .
         """
+        # TODO: Replace all occurrences with `fieldFormatFor()`.
         assert fieldName is not None
         return self._fieldNameToFormatMap[fieldName]
 
+    def fieldFormatFor(self, fieldName):
+        """
+        The `fields.AbstractFieldFormat` for ``fieldName``. If no such field has been defined,
+        raise a ``KeyError`` .
+        """
+        assert fieldName is not None
+        return self._fieldNameToFormatMap[fieldName]
+
+    def fieldFormatAt(self, fieldIndex):
+        """
+        The `fields.AbstractFieldFormat` at ``fieldIndex``. If no such field has been defined,
+        raise an ``IndexError`` .
+        """
+        assert fieldIndex is not None
+        return self._fieldFormats[fieldIndex]
+
     def getCheck(self, checkName):
+        """
+        The `checks.AbstractCheck` for ``checkName``. If no such check has been defined,
+        raise a ``KeyError`` .
+        """
+        # TODO: Replace all occurrences with `checkFor()`.
+        assert checkName is not None
+        return self._checkNameToCheckMap[checkName]
+
+    def checkFor(self, checkName):
         """
         The `checks.AbstractCheck` for ``checkName``. If no such check has been defined,
         raise a ``KeyError`` .
@@ -847,6 +885,186 @@ class InterfaceControlDocument(object):
         doc="If ``True``, log stack trace on rejected data items or rows.")
 
 
+class Validator(object):
+    """
+    Validator for tabular data organized in rows described by an `InterfaceControlDocument`.
+    """
+    def __init__(self, icd):
+        assert icd is not None
+
+        self._icd = icd
+        self._location = None
+        self._opened = False
+
+    def open(self, location):
+        assert location is not None
+
+        self._location = location
+        self._logTrace = False
+        self.acceptedCount = 0
+        self.rejectedCount = 0
+        self.failedChecksAtEndCount = 0
+        self.passedChecksAtEndCount = 0
+        self._opened = True
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, errorType, error, traceback):
+        if not error:
+            if self._opened:
+                self.close()
+
+    @property
+    def location(self):
+        return self._location
+
+    @property
+    def icd(self):
+        return self._icd
+
+    def _getLogTrace(self):
+        return self._logTrace
+
+    def _setLogTrace(self, value):
+        self._logTrace = value
+
+    logTrace = property(_getLogTrace, _setLogTrace,
+        doc="If ``True``, log stack trace on rejected data items or rows.")
+
+    def validate(self, dataFileToValidatePath):
+        # TODO: Remove this unused method.
+        """
+        Validate that all rows and items in ``dataFileToValidatePath`` conform to this interface.
+        If a validation listener has been attached using `addValidationListener`, it will be
+        notified about any event occurring during validation.
+        """
+        # FIXME: Split up `validate()` in several smaller methods.
+        assert dataFileToValidatePath is not None
+
+        _log.info(u"validate \"%s\"", dataFileToValidatePath)
+        self._resetCounts()
+        for checkName in self.checkNames:
+            check = self.getCheck(checkName)
+            check.reset()
+
+        (dataFile, location, needsOpen) = self._obtainReadable(dataFileToValidatePath)
+        try:
+            reader = self._reader(dataFile)
+            # TODO: Replace rowNumber by position in parser.
+
+            # Obtain values from the data format that will be used by various checks.
+            firstRowToValidateFieldsIn = self._dataFormat.get(data.KEY_HEADER)
+            assert firstRowToValidateFieldsIn is not None
+            assert firstRowToValidateFieldsIn >= 0
+
+            # Validate data row by row.
+            # FIXME: Set location.sheet to actual sheet to validate
+            try:
+                for row in reader:
+                    if location.line >= firstRowToValidateFieldsIn:
+                        pass
+                    location.advanceLine()
+            except tools.CutplaceUnicodeError, error:
+                self._rejectRow([], error, location)
+                # raise data.DataFormatValueError(u"cannot read row %d: %s" % (rowNumber + 2, error))
+        finally:
+            if needsOpen:
+                dataFile.close()
+
+    def _errorForRejectedRow(self, row, reason):
+        assert row is not None
+        assert reason
+        isExceptionReason = isinstance(reason, Exception)
+        isStringReason = isinstance(reason, types.StringTypes)
+        assert isExceptionReason or isStringReason, u"reason=%s:%r" % (type(reason), reason)
+        if isExceptionReason:
+            result = reason
+        else:
+            result = tools.CutplaceError(reason, self.location)
+        assert isinstance(result, Exception)
+        return result
+
+    def validatedRow(self, row):
+        assert self._opened, "open() must be called before validatedRow()"
+        assert row is not None
+        try:
+            # Validate all items of the current row and collect their values in `rowMap`.
+            fieldCount = len(self.icd.fieldNames)
+            maxItemCount = min(len(row), fieldCount)
+            rowMap = {}
+            while self.location.cell < maxItemCount:
+                item = row[self.location.cell]
+                assert not isinstance(item, str), u"%s: item must be Unicode string instead of plain string: %r" % (self.location, item)
+                fieldFormat = self.icd.fieldFormatAt(self.location.cell)
+                if __debug__:
+                    _log.debug(u"validate item %d/%d: %r with %s <- %r", self.location.cell + 1, fieldCount, item, fieldFormat, row)
+                rowMap[fieldFormat.fieldName] = fieldFormat.validated(item)
+                self.location.advanceCell()
+
+            # Validate number of rows.
+            if self.location.cell != len(row):
+                raise checks.CheckError(u"unexpected data must be removed after item %d" % (self.location.cell), self.location)
+            elif len(row) < fieldCount:
+                missingFieldNames = self._fieldNames[(len(row) - 1):]
+                raise checks.CheckError(u"row must contain items for the following fields: %r" % missingFieldNames, self.location)
+
+            # Validate row checks.
+            self.location.setCell(0)
+            for checkName in self.icd.checkNames:
+                check = self.icd.checkFor(checkName)
+                try:
+                    if __debug__:
+                        _log.debug(u"check row: ", check)
+                    check.checkRow(rowMap, self.location)
+                except checks.CheckError, error:
+                    raise checks.CheckError(u"row check failed: %r: %s" % (check.description, error), self.location)
+            _log.debug(u"accepted: %s", row)
+            self.acceptedCount += 1
+            result = row
+        except data.DataFormatValueError, error:
+            raise data.DataFormatValueError(u"cannot process data format", self.location, cause=error)
+        except tools.CutplaceError, error:
+            isFieldValueError = isinstance(error, fields.FieldValueError)
+            if isFieldValueError:
+                fieldName = self.icd.fieldNames[self.location.cell]
+                reason = u"field '%s' must match format: %s" % (fieldName, error)
+                error = fields.FieldValueError(reason, self.location)
+            errorWithReason = self._errorForRejectedRow(row, error)
+            _log.debug(u"rejected: %s", row)
+            _log.debug(u"%s", errorWithReason, exc_info=self.logTrace)
+            self.rejectedCount += 1
+            raise errorWithReason
+        # TODO: If requested, return native row or map.
+        return result
+
+    def close(self):
+        """
+        Validate checks at end of data. In case any checks fail, log them and raise a `checks.CheckError` for the first one.
+        """
+        assert self._opened, u"open() must be called before close()"
+
+        self._opened = False
+        firstError = None
+        try:
+            for checkName in self.icd.checkNames:
+                check = self.icd.getCheck(checkName)
+                try:
+                    _log.debug(u"checkAtEnd: %s", check)
+                    check.checkAtEnd(self.location)
+                    self.passedChecksAtEndCount += 1
+                except checks.CheckError, error:
+                    if firstError is None:
+                        firstError = error
+                    reason = u"check at end of data failed: %r: %s" % (check.description, error)
+                    _log.error(u"%s", reason)
+                    self.failedChecksAtEndCount += 1
+        finally:
+            self._location = None
+            if firstError is not None:
+                raise firstError
+
+
 class Writer(object):
     """
     Writer to write data to a filelike output while validating that they conform to an
@@ -859,6 +1077,13 @@ class Writer(object):
         dataFormatName = icd.dataFormat.name
         self._icd = icd
         self._out = out
+        self._opened = True
+        locationHasSheet = (icd.sheet is not None)
+        location = tools.InputLocation(out, hasCell=True, hasSheet=locationHasSheet)
+        if icd.sheet is not None:
+            location.sheet = icd.sheet
+        self._validator = Validator(icd)
+        self._validator.open(location)
         if dataFormatName in (data.FORMAT_CSV, data.FORMAT_DELIMITED):
             csvDialect = _createDelimitedDialect(self._icd).asCsvDialect()
             self._writer = _tools.UnicodeCsvWriter(self._out, dialect=csvDialect)
@@ -875,15 +1100,18 @@ class Writer(object):
                 self._writeRow([])
             self._writeRow(self._icd.fieldNames)
 
+    def close(self):
+        assert self._opened, u"Writer.close() must be called only once"
+        self._opened = False
+        self._validator.close()
+
     def __enter__(self):
         return self
 
     def __exit__(self, errorType, error, traceback):
         if not error:
-            # There's no point in calling `close()` in case of previous errors
-            # because it most likely will cause another error and thus discard
-            # the original error which holds actually useful information.
-            self.close()
+            if self._opened:
+                self.close()
 
     @property
     def out(self):
@@ -892,33 +1120,36 @@ class Writer(object):
         """
         return self._out
 
+    @property
+    def location(self):
+        """
+        Output location the next row will be written to.
+        """
+        return self._validator.location
+
     def _writeRow(self, row):
         """
         Write ``row`` without any validation. This is useful to write header rows.
         """
         assert row is not None
-        # TODO: Keep track of location.
         self._writer.writerow(row)
+        self.location.advanceLine()
 
     def writeRow(self, row):
         """
-        Write ``row`` to ``out``.
+        Validate ``row`` and if valid, write it to `out`.
         """
         assert row is not None
-        # FIXME: Validate row.
+        _ = self._validator.validatedRow(row)
         self._writeRow(row)
 
     def writeRows(self, rows):
         """
-        Write all ``rows`` to ``out``.
+        Write all ``rows`` to `out`.
         """
         assert rows is not None
         for row in rows:
             self.writeRow(row)
-
-    def close(self):
-        # TODO: Validate checks at end.
-        pass
 
 
 def createSniffedInterfaceControlDocument(readable, **keywords):

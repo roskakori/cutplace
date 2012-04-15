@@ -141,27 +141,36 @@ class InputLocation(object):
         """The current line or row in the input."""
         return self._line
 
-    @property
-    def sheet(self):
-        """The current sheet in the input."""
+    def _getSheet(self):
         assert self._hasSheet
         return self._sheet
 
-    def __repr__(self):
+    def _setSheet(self, newSheet):
+        self._sheet = newSheet
+
+    sheet = property(_getSheet, _setSheet, doc="The current sheet in the input.")
+
+    def __unicode__(self):
         """
         Human readable representation of the input location; see `__init__()` for some examples.
         """
-        result = os.path.basename(self.filePath) + " ("
+        result = u"" + os.path.basename(self.filePath) + u" ("
         if self._hasCell:
             if self._hasSheet:
-                result += "Sheet%d!" % (self.sheet + 1)
-            result += "R%dC%d" % (self.line + 1, self.cell + 1)
+                result += u"Sheet%d!" % (self.sheet + 1)
+            result += u"R%dC%d" % (self.line + 1, self.cell + 1)
         else:
-            result += "%d" % (self.line + 1)
+            result += u"%d" % (self.line + 1)
         if self._hasColumn:
-            result += ";%d" % (self.column + 1)
-        result += ")"
+            result += u";%d" % (self.column + 1)
+        result += u")"
         return result
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
+
+    def __repr__(self):
+        return self.__str__()
 
     def __cmp__(self, other):
         assert other is not None
@@ -260,16 +269,19 @@ class _BaseCutplaceError(Exception):
         return self._cause
 
     def __str__(self):
-        result = ""
+        return unicode(self).encode('utf-8')
+
+    def __unicode__(self):
+        result = u""
         if self._location:
-            result += str(self.location) + ": "
+            result += unicode(self.location) + u": "
         # Note: We cannot use `super` because `Exception` is an old style class.
         result += Exception.__str__(self)
         if self.seeAlsoMessage:
-            result += " (see also: "
+            result += u" (see also: "
             if self.seeAlsoLocation:
-                result += str(self.seeAlsoLocation) + ": "
-            result += self.seeAlsoMessage + ")"
+                result += unicode(self.seeAlsoLocation) + u": "
+            result += self.seeAlsoMessage + u")"
         return result
 
 

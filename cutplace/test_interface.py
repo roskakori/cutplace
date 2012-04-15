@@ -32,6 +32,11 @@ import _parsers
 
 _log = logging.getLogger("cutplace.test_interface")
 
+_TooManyTestBranchIds = [
+    u"38123", u"38234", u"38345", u"38456", u"38567",
+    u"38678", u"38789", u"38890", u"38901", u"38902"
+]
+
 
 class _SimpleErrorLoggingValidationListener(interface.BaseValidationListener):
     """
@@ -124,8 +129,8 @@ def createDefaultTestIcd(dataFormatName, lineDelimiter="\n"):
 ,
 ,"Description","Type","Rule"
 "C","customer must be unique","IsUnique","branch_id, customer_id"
-"C","number of branches must be in range","DistinctCount","branch_id < 10"
-"""
+"C","number of branches must be in range","DistinctCount","branch_id < %d"
+""" % len(_TooManyTestBranchIds)
     result = interface.InterfaceControlDocument()
     readable = StringIO.StringIO(spec)
     result.read(readable)
@@ -974,6 +979,62 @@ Bärbel,Müller"""
         icd.validate(dataReadable)
 
 
+class ValidatorTest(unittest.TestCase):
+    def testCanValidateValidData(self):
+        icd = createDefaultTestIcd(data.FORMAT_CSV)
+        with interface.Validator(icd) as validator:
+            location = tools.createCallerInputLocation(hasCell=True)
+            validator.open(location)
+            TestRow = [u"38123", u"12345", u"John", u"Doe", u"male", u"08.03.1957"]
+            row = validator.validatedRow(TestRow)
+            self.assertEqual(row, TestRow)
+            validator.close()
+            self.assertEqual(validator.acceptedCount, 1)
+            self.assertEqual(validator.rejectedCount, 0)
+
+    def testFailsOnFieldValueError(self):
+        icd = createDefaultTestIcd(data.FORMAT_CSV)
+        with interface.Validator(icd) as validator:
+            location = tools.createCallerInputLocation(hasCell=True)
+            validator.open(location)
+            TestRow = [u"38123", u"12345", u"John", u"Doe", u"some", u"08.03.1957"]
+            self.assertRaises(fields.FieldValueError, validator.validatedRow, TestRow)
+            self.assertEqual(validator.acceptedCount, 0)
+            self.assertEqual(validator.rejectedCount, 1)
+            validator.close()
+
+    def testFailsOnRowCheckError(self):
+        icd = createDefaultTestIcd(data.FORMAT_CSV)
+        with interface.Validator(icd) as validator:
+            location = tools.createCallerInputLocation(hasCell=True)
+            validator.open(location)
+            TestRow = [u"38123", u"12345", u"John", u"Doe", u"male", u"08.03.1957"]
+            _ = validator.validatedRow(TestRow)
+            location.advanceLine()
+            self.assertRaises(checks.CheckError, validator.validatedRow, TestRow)
+            self.assertEqual(validator.acceptedCount, 1)
+            self.assertEqual(validator.rejectedCount, 1)
+            validator.close()
+
+    def testFailsOnCheckAtEndError(self):
+        icd = createDefaultTestIcd(data.FORMAT_CSV)
+        try:
+            with interface.Validator(icd) as validator:
+                location = tools.createCallerInputLocation(hasCell=True)
+                validator.open(location)
+                for branchId in _TooManyTestBranchIds:
+                    rowToValidate = [branchId, u"12345", u"John", u"Doe", u"male", u"08.03.1957"]
+                    row = validator.validatedRow(rowToValidate)
+                    self.assertEqual(row, rowToValidate)
+                    location.advanceLine()
+            self.fail("check 'distinct branches must be within limit' must fail")
+        except checks.CheckError, error:
+            errorMessage = u"%s" % error
+            self.assertTrue("distinct count" in errorMessage, u"errorMessage=%r" % errorMessage)
+        self.assertEqual(validator.acceptedCount, len(_TooManyTestBranchIds))
+        self.assertEqual(validator.rejectedCount, 0)
+
+
 class WriterTest(unittest.TestCase):
     def testCanWriteValidDataToCsv(self):
         icd = createDefaultTestIcd(data.FORMAT_CSV)
@@ -981,6 +1042,27 @@ class WriterTest(unittest.TestCase):
             csvWriter = interface.Writer(icd, out)
             csvWriter.writeRow([u"38123", u"12345", u"John", u"Doe", u"male", u"08.03.1957"])
             self.assertEqual(out.getvalue(), u"38123,12345,John,Doe,male,08.03.1957\n")
+
+    def testFailsOnFieldValueError(self):
+        icd = createDefaultTestIcd(data.FORMAT_CSV)
+        with closing(StringIO.StringIO()) as out:
+            csvWriter = interface.Writer(icd, out)
+            self.assertRaises(fields.FieldValueError, csvWriter.writeRow, [u"38123", u"12345", u"John", u"Doe", u"some", u"08.03.1957"])
+            self.assertEqual(out.getvalue(), u"")
+
+    def testFailsOnCheckAtEndError(self):
+        icd = createDefaultTestIcd(data.FORMAT_CSV)
+        try:
+            with closing(StringIO.StringIO()) as out:
+                with interface.Writer(icd, out) as csvWriter:
+                    for branchId in _TooManyTestBranchIds:
+                        rowToWrite = [branchId, u"12345", u"John", u"Doe", u"male", u"08.03.1957"]
+                        csvWriter.writeRow(rowToWrite)
+            self.fail("check 'distinct branches must be within limit' must fail")
+        except checks.CheckError, error:
+            errorMessage = u"%s" % error
+            self.assertTrue("distinct count" in errorMessage, u"errorMessage=%r" % errorMessage)
+
 
 if __name__ == '__main__':  # pragma: no cover
     logging.basicConfig()

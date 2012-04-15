@@ -2,7 +2,7 @@
 """
 Cutplace setup for setuptools.
 """
-# Copyright (C) 2009-2011 Thomas Aglassinger
+# Copyright (C) 2009-2012 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
@@ -105,7 +105,7 @@ setup(
       author="Thomas Aglassinger",
       author_email="roskakori@users.sourceforge.net",
       url="http://cutplace.sourceforge.net/",
-      install_requires=["coverage", "proconex>=0.3", "xlrd"],
+      install_requires=["coverage", "proconex>=0.4", "xlrd"],
       packages=["cutplace"],
       data_files=[
           ("", ["setup.py"]),
