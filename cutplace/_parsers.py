@@ -2,7 +2,7 @@
 Parsers to read tabular data from various input formats and yield each row as a Python array
 containing the columns.
 """
-# Copyright (C) 2009-2011 Thomas Aglassinger
+# Copyright (C) 2009-2012 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
