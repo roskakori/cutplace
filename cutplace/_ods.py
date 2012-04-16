@@ -29,6 +29,8 @@ import zipfile
 
 import _tools
 
+_log = logging.getLogger("cutplace.ods")
+
 
 class AbstractOdsContentHandler(xml.sax.ContentHandler):
     """
@@ -39,7 +41,7 @@ class AbstractOdsContentHandler(xml.sax.ContentHandler):
 
         xml.sax.ContentHandler.__init__(self)
         self.tablesToSkip = sheet
-        self._log = logging.getLogger("cutplace.ods")
+        self._log = _log
 
     def startDocument(self):
         self.row = None
@@ -395,9 +397,8 @@ def main(arguments):
     options, others = parser.parse_args(arguments)
 
     # TODO: If no output file is specified, derive name from input file.
-    log = logging.getLogger("cutplace.ods")
     if options.sheet < 1:
-        log.error("option --sheet is %d but must be at least 1" % options.sheet)
+        _log.error("option --sheet is %d but must be at least 1" % options.sheet)
         sys.exit(1)
     elif len(others) in [1, 2]:
         sourceFilePath = others[0]
@@ -407,11 +408,11 @@ def main(arguments):
             assert options.format in _FORMAT_TO_SUFFIX_MAP
             suffix = _FORMAT_TO_SUFFIX_MAP[options.format]
             targetFilePath = _tools.withSuffix(sourceFilePath, suffix)
-        log.info("convert %r to %r using format %r" % (sourceFilePath, targetFilePath, options.format))
+        _log.info("convert %r to %r using format %r" % (sourceFilePath, targetFilePath, options.format))
         try:
             if options.format == _FORMAT_CSV:
                 if options.firstRowIsHeading:
-                    log.error("option --heading can not be used with --format=csv")
+                    _log.error("option --heading can not be used with --format=csv")
                     sys.exit(1)
                 toCsv(sourceFilePath, targetFilePath, sheet=options.sheet)
             elif options.format == _FORMAT_DOCBOOK:
@@ -423,16 +424,15 @@ def main(arguments):
             else:  # pragma: no cover
                 raise NotImplementedError(u"format=%r" % (options.format))
         except EnvironmentError, error:
-            logging.getLogger("cutplace.ods").error("cannot convert ods to csv: %s" % error)
+            _log.error("cannot convert ods to csv: %s" % error)
             sys.exit(1)
         except Exception, error:
-            logging.getLogger("cutplace.ods").error("cannot convert ods to csv: %s" % error, exc_info=1)
+            _log.error("cannot convert ods to csv: %s" % error, exc_info=1)
             sys.exit(1)
     else:
-        log.error("ODS-FILE must be specified")
+        _log.error("ODS-FILE must be specified")
         sys.exit(1)
 
 if __name__ == '__main__':  # pragma: no cover
-    logging.basicConfig()
-    logging.getLogger("cutplace.ods").setLevel(logging.INFO)
+    logging.basicConfig(level=logging.INFO)
     main(sys.argv[1:])
