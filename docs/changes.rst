@@ -8,13 +8,16 @@ Version 0.7.1, 2012-04-xx
 =========================
 
 * Changed error location of failed row checks to use the first column instead
-  of a number one past the actual number of columns (Ticket #42).
+  of a number one past the actual number of columns (issue #42).
+
+* Moved project and repository to <https://github.com/roskakori/cutplace>
+  (issue #47).
 
 * Improved API:
 
   * Added validating writer, see ``interface.Writer`` for more information
-    (Ticket #45).
-  * Added property ``example`` for ``*FieldFormat`` (Ticket #41).
+    (issue #45).
+  * Added property ``example`` for ``*FieldFormat`` (issue #41).
 
 * Cleaned up build and the section on :ref:`jenkins` so that everything works
   as described even if Jenkins runs as deamon with MacPorts.
@@ -172,7 +175,7 @@ Version 0.6.1, 2010-04-25
   and :file:`cutplace/range.pyc` (in case it exists).
 
 * Added API documentation available from
-  <http://cutplace.sourceforge.net/api/>.
+  <http://roskakori.github.com/cutplace/api/>.
 
 Version 0.6.0, 2010-03-29
 =========================
