@@ -100,9 +100,8 @@ package provided by Mac Ports.
 Obtaining and building the source code
 ======================================
 
-The source code for cutplace is available via a Subversion repository from
-https://cutplace.svn.sourceforge.net/svnroot/cutplace/trunk. You can browse it
-at https://apps.sourceforge.net/trac/cutplace/browser/trunk.
+The source code for cutplace is available via a Git repository from
+<https://github.com/roskakori/cutplace>.
 
 The source code consists of:
 
@@ -133,20 +132,14 @@ The source code consists of:
 
 If Eclipse and PyDev are your developer environment of choice, you can check
 out the repository directly from Eclipse using
-:menuselection:`File --> New --> Other...` and select
-:menuselection:`SVN --> Checkout projects from SVN`.
+:menuselection:`File --> Import...` and select
+:menuselection:`Git --> Projects from Git`.
 
-If you prefer the command line, you need any Subversion client and the build
-tool ant.
+If you prefer the command line, you need a Git client. Visit
+<http://help.github.com/> to learn how to browse or fork the source code.
 
-To check out the current version using the standard Subversion command line
-client, run::
-
-  $ svn checkout https://cutplace.svn.sourceforge.net/svnroot/cutplace/trunk cutplace
-
-After the checkout, change to the cutplace folder::
-
-  $ cd cutplace
+Once you have your local copy of the source code, use ant to build and test
+cutplace.
 
 To just build a binary distribution, run::
 
@@ -176,10 +169,8 @@ Contributing source code
 ========================
 
 In case you fixed any bugs or added improvements to cutplace, feel free to
-contribute your changes.
-
-The easiest way to do this is by posting your patch to the
-`developer forum <http://apps.sourceforge.net/phpbb/cutplace/viewforum.php?f=4>`_
+contribute your changes by forking the repository and issuing a pull request
+as described at <http://help.github.com/fork-a-repo/>.
 
 Developer notes
 ===============
@@ -206,7 +197,8 @@ Add a release tag
 When publishing a new release, a tag should be added to the repository. This
 can be done using the following template::
 
-  $ svn copy -m "Added tag for version 0.x.x." https://cutplace.svn.sourceforge.net/svnroot/cutplace/trunk https://cutplace.svn.sourceforge.net/svnroot/cutplace/tags/0.x.x
+  $ git tag -a -m "Tagged version 0.x.x." 0.x.x
+  $ git push --tags
 
 Simply replace ``0.x.x`` with the current version number.
 
@@ -249,7 +241,7 @@ Next, create a build using the following steps:
 
   * Source code management:
 
-    * Subversion: ``https://cutplace.svn.sourceforge.net/svnroot/cutplace/trunk``
+    * Git: ``git://github.com/roskakori/cutplace.git``
 
   * Build triggers:
 

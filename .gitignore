@@ -1,0 +1,9 @@
+*.pyc
+*.pyo
+/.coverage
+/build
+/coverage.xml
+/dist
+/nosetests*.xml
+/pep8.txt
+/sloccount.sc

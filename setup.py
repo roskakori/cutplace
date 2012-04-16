@@ -104,7 +104,7 @@ setup(
       description=_cutplace.DESCRIPTION,
       author="Thomas Aglassinger",
       author_email="roskakori@users.sourceforge.net",
-      url="http://cutplace.sourceforge.net/",
+      url="http://roskakori.github.com/cutplace/",
       install_requires=["coverage", "proconex>=0.4", "xlrd"],
       packages=["cutplace"],
       data_files=[

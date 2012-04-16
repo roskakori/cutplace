@@ -114,7 +114,7 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
       background-color: #ffdddd;
     }
 """
-    _FOOTER = u"<hr><a href=\"http://cutplace.sourceforge.net/\">cutplace</a> %s" % version.VERSION_NUMBER
+    _FOOTER = u"<hr><a href=\"http://roskakori.github.com/cutplace/\">cutplace</a> %s" % version.VERSION_NUMBER
 
     _FORM = u"""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <html>
