@@ -17,17 +17,14 @@ concerning the whole set of data.
 * Read the :doc:`application programmer interface tutorial <api>` to learn how
   to integrate cutplace based validations in your own application. For a
   complete reference, browse the
-  `API reference documentation <http://cutplace.sourceforge.net/api/>`_.
-
-* `Visit the forums <http://apps.sourceforge.net/phpbb/cutplace/>`_ to ask
-  questions and exchanged experiences with other users.
+  `API reference documentation <http://roskakori.github.com/cutplace/api/>`_.
 
 * Take a look at the
-  `roadmap <https://apps.sourceforge.net/trac/cutplace/roadmap>`_ to find out
-  what the future has in store.
+  `roadmap <https://github.com/roskakori/cutplace/issues/milestones>`_ to
+  find out what the future has in store.
 
 * Read the :doc:`developer guide <development>` to learn how to obtain the
   source code, build a distribution archive and contribute patches.
 
 To find out more, take a look at the :doc:`table of contents <contents>` or
-visit the `project site <https://apps.sourceforge.net/trac/cutplace/>`_.
+visit the `project site <https://github.com/roskakori/cutplace>`_.

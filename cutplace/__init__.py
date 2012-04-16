@@ -5,7 +5,7 @@ Cutplace API documentation
 This is the API documentation for cutplace, a tool to validate that tabular and
 flat data conform to an interface control document (ICD).
 
-For more information about cutplace, visit http://cutplace.sourceforge.net.
+For more information about cutplace, visit https://github.com/roskakori/cutplace.
 """
 # Copyright (C) 2009-2012 Thomas Aglassinger
 #

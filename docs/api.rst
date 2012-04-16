@@ -9,7 +9,7 @@ Overview
 
 Additionally to the command line tool ``cutplace`` all functions are available
 as Python API. For a complete reference about all public classes and functions,
-visit <http://cutplace.sourceforge.net/api/>.
+visit <http://roskakori.github.com/cutplace/api/>.
 
 This chapter describes how to perform a basic validation of a simple CSV file
 containing data about some customers. It also explains how to extend
