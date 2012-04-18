@@ -186,14 +186,16 @@ def excelReader(readable, sheetIndex=1):
     rowQueue = _createRowQueue()
     producer = _ExcelRowProducerThread(readable, rowQueue, sheetIndex)
     producer.start()
-    hasRow = True
-    while hasRow:
-        row = rowQueue.get()
-        if row is not None:
-            yield row
-        else:
-            hasRow = False
-    producer.join()
+    try:
+        hasRow = True
+        while hasRow:
+            row = rowQueue.get()
+            if row is not None:
+                yield row
+            else:
+                hasRow = False
+    finally:
+        producer.join()
 
 
 def odsReader(readable, sheetIndex=1):
@@ -210,16 +212,18 @@ def odsReader(readable, sheetIndex=1):
     try:
         producer = _ods.ProducerThread(contentXmlReadable, rowQueue, sheetIndex)
         producer.start()
-        hasRow = True
-        while hasRow:
-            row = rowQueue.get()
-            if row is not None:
-                yield row
-            else:
-                hasRow = False
+        try:
+            hasRow = True
+            while hasRow:
+                row = rowQueue.get()
+                if row is not None:
+                    yield row
+                else:
+                    hasRow = False
+        finally:
+            producer.join()
     finally:
         contentXmlReadable.close()
-    producer.join()
 
 
 class DelimitedDialect(object):
