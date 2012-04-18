@@ -241,6 +241,7 @@ class _ColumnSniffInfo(object):
         self.columnIndex = columnIndex
         self.dataFormat = dataFormat
         self.name = "column_" + _tools.basedText(columnIndex, 26, string.ascii_lowercase)
+        self.example = None
         self.emptyCount = 0
         self.decimalCount = 0
         self.longCount = 0
@@ -273,6 +274,8 @@ class _ColumnSniffInfo(object):
 
         length = len(value)
         if length:
+            if not self.example:
+                self.example = value
             if not self.textCount:
                 if self._isLong(value):
                     self.longCount += 1
@@ -300,6 +303,7 @@ class _ColumnSniffInfo(object):
         # TODO: Detect decimal and integer format.
         # TODO: Detect date format.
         result = fields.TextFieldFormat(self.name, isAllowedToBeEmpty, lengthText, "", self.dataFormat)
+        result.example = self.example
         return result
 
 

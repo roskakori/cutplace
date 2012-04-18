@@ -10,6 +10,10 @@ Version 0.7.1, 2012-04-xx
 * Changed error location of failed row checks to use the first column instead
   of a number one past the actual number of columns (issue #42).
 
+* Improved ``cutsniff``:
+
+  * Added first none empty field value as example.
+
 * Moved project and repository to <https://github.com/roskakori/cutplace>
   (issue #47).
 

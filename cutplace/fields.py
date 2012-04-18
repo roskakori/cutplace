@@ -189,6 +189,10 @@ class AbstractFieldFormat(object):
         The description of the field format as row that can be written to an ICD except for the
         leading row mark "f".
         """
+        if self.example is not None:
+            exampleText = self.example
+        else:
+            exampleText = u""
         if self.isAllowedToBeEmpty:
             isAllowedToBeEmptyMark = "X"
         else:
@@ -202,7 +206,7 @@ class AbstractFieldFormat(object):
         fieldTypeName = fieldTypeName[:len(fieldTypeName) - len(_FieldFormatClassSuffix)]
         result = [
             self._fieldName,
-            "",  # No example.
+            exampleText,
             isAllowedToBeEmptyMark,
             lengthText,
             fieldTypeName,
