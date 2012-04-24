@@ -27,30 +27,30 @@ import _tools
 class ToolsTest(unittest.TestCase):
     """TestCase for tools module."""
 
-    def testCreateTestDateTime(self):
+    def testCanCreateTestDateTime(self):
         for _ in range(15):
             dateTime = dev_test.createTestDateTime()
             self.assertTrue(dateTime is not None)
             self.assertNotEqual(dateTime, "")
 
-    def testCreateTestName(self):
+    def testCanCreateTestName(self):
         for _ in range(15):
             name = dev_test.createTestName()
             self.assertTrue(name is not None)
             self.assertNotEqual(name, "")
 
-    def testCreateTestCustomerRow(self):
+    def testCanCreateTestCustomerRow(self):
         for customderId in range(15):
             row = dev_test.createTestCustomerRow(customderId)
             self.assertTrue(row is not None)
             self.assertEqual(len(row), 6)
 
-    def testVersion(self):
+    def testCanQueryVersion(self):
         # Simply exercise these functions, their results do not really matter.
         _tools.platformVersion()
         _tools.pythonVersion()
 
-    def testValidatedPythonName(self):
+    def testCanValidatePythonName(self):
         self.assertEqual(_tools.validatedPythonName("x", "abc_123"), "abc_123")
         self.assertEqual(_tools.validatedPythonName("x", " abc_123 "), "abc_123")
         self.assertRaises(NameError, _tools.validatedPythonName, "x", "1337")
@@ -58,7 +58,7 @@ class ToolsTest(unittest.TestCase):
         self.assertRaises(NameError, _tools.validatedPythonName, "x", " ")
         self.assertRaises(NameError, _tools.validatedPythonName, "x", "a.b")
 
-    def testHumanReadableList(self):
+    def testCanBuildHumanReadableList(self):
         self.assertEqual(_tools.humanReadableList([]), "")
         self.assertEqual(_tools.humanReadableList(["a"]), "'a'")
         self.assertEqual(_tools.humanReadableList(["a", "b"]), "'a' or 'b'")
@@ -68,14 +68,14 @@ class ToolsTest(unittest.TestCase):
         actualPath = _tools.withSuffix(pathToTest, suffixToTest)
         self.assertEqual(expectedPath, actualPath)
 
-    def testWithSuffix(self):
+    def testCanBuildNameWithSuffix(self):
         self._testWithSuffix("hugo.pas", "hugo.txt", ".pas")
         self._testWithSuffix("hugo", "hugo.txt", "")
         self._testWithSuffix("hugo.", "hugo.txt", ".")
         self._testWithSuffix("hugo.txt", "hugo", ".txt")
         self._testWithSuffix(os.path.join("eggs", "hugo.pas"), os.path.join("eggs", "hugo.txt"), ".pas")
 
-    def testInputLocation(self):
+    def testCanWorkWithInputLocation(self):
         location = tools.InputLocation("eggs.txt", hasColumn=True)
         self.assertEqual(location.line, 0)
         self.assertEqual(location.column, 0)
