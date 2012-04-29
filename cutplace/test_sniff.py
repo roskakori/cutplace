@@ -26,8 +26,7 @@ import interface
 
 
 class SniffTest(unittest.TestCase):
-
-    def testCreateDataFormat(self):
+    def testCanFindOutSniffDataFormat(self):
         fileNameToExpectedFormatMap = {
             "valid_customers.csv": data.FORMAT_DELIMITED,
             "valid_customers.ods": data.FORMAT_ODS,
@@ -44,7 +43,7 @@ class SniffTest(unittest.TestCase):
             finally:
                 testFile.close()
 
-    def testDelimitedOptions(self):
+    def testCanFindOutDelimitedOptions(self):
         fileNameToExpectedOptionsMap = {
             "valid_customers.csv": {
                 sniff._ITEM_DELIMITER: ",",
@@ -71,7 +70,7 @@ class SniffTest(unittest.TestCase):
             finally:
                 testFile.close()
 
-    def testCreateReader(self):
+    def testCanCreateSniffedReader(self):
         testFileNames = [
             "valid_customers.csv",
             "valid_customers.ods",
@@ -89,7 +88,7 @@ class SniffTest(unittest.TestCase):
             finally:
                 testFile.close()
 
-    def testEmpty(self):
+    def testCanCreateSniffedReaderForEmptyData(self):
         emptyReadable = StringIO.StringIO("")
 
         self.assertTrue(sniff.delimitedOptions(emptyReadable))
@@ -105,11 +104,24 @@ class SniffTest(unittest.TestCase):
             rowCount += 1
         self.assertEqual(rowCount, 0)
 
-    def testCreateEmptyInterfaceControlDocument(self):
+    def testFailsToCreateEmptyInterfaceControlDocument(self):
         emptyReadable = StringIO.StringIO("")
         self.assertRaises(sniff.CutplaceSniffError, sniff.createCidRows, emptyReadable)
 
-    def testCreateInterfaceControlDocument(self):
+    def testCanCreateInterfaceControlDocument(self):
+        def assertFieldTypeEquals(cidRows, fieldName, typeName):
+            fieldRowIndex = None
+            rowToExamineIndex = 0
+            while (rowToExamineIndex < len(cidRows)) and (fieldRowIndex is None):
+                cidRowToExamine = cidRows[rowToExamineIndex]
+                if (len(cidRowToExamine) >= 6) and (cidRowToExamine[0] == u"f") and (cidRowToExamine[1] == fieldName):
+                    fieldRowIndex = rowToExamineIndex
+                else:
+                    rowToExamineIndex += 1
+            assert fieldRowIndex is not None, "field must be found in cid rows: %r <-- %s" % (fieldName, cidRows)
+            typeNameFromCidRow = cidRowToExamine[5]
+            self.assertEqual(typeName, typeNameFromCidRow)
+
         testFileNames = [
             "valid_customers.csv",
             "valid_customers.ods",
@@ -119,8 +131,10 @@ class SniffTest(unittest.TestCase):
             testFilePath = dev_test.getTestInputPath(testFileName)
             testFile = open(testFilePath, "rb")
             try:
-                # TODO: Add assertions to actually test instead of just exercise.
-                sniff.createCidRows(testFile)
+                cidRows = sniff.createCidRows(testFile)
+                assertFieldTypeEquals(cidRows, u"column_a", u"Integer")  # branch
+                assertFieldTypeEquals(cidRows, u"column_c", u"Text")  # first name
+                assertFieldTypeEquals(cidRows, u"column_f", u"Text")  # date of birth
             finally:
                 testFile.close()
 
@@ -142,6 +156,8 @@ class SniffTest(unittest.TestCase):
             finally:
                 testFile.close()
 
+
+class SniffMainTest(unittest.TestCase):
     def testCanSniffAndValidateUsingMain(self):
         testIcdPath = dev_test.getTestOutputPath("icd_sniffed_valid_customers.csv")
         testDataPath = dev_test.getTestInputPath("valid_customers.csv")
@@ -187,5 +203,5 @@ class SniffTest(unittest.TestCase):
 if __name__ == "__main__":
     import logging
     logging.basicConfig()
-    logging.getLogger("cutplace").setLevel(logging.DEBUG)
+    logging.getLogger("cutplace").setLevel(logging.INFO)
     unittest.main()

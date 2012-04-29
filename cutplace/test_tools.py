@@ -15,6 +15,7 @@ Test for `tools` module.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import decimal
 import os.path
 import StringIO
 import unittest
@@ -26,7 +27,6 @@ import _tools
 
 class ToolsTest(unittest.TestCase):
     """TestCase for tools module."""
-
     def testCanCreateTestDateTime(self):
         for _ in range(15):
             dateTime = dev_test.createTestDateTime()
@@ -142,6 +142,28 @@ class ToolsTest(unittest.TestCase):
     def testCanNamifyControlCharacters(self):
         self.assertEqual(_tools.namified(u"\r"), "x")
         self.assertEqual(_tools.namified(u"a\rb"), "a_b")
+
+
+class NumberedTest(unittest.TestCase):
+    def testCanDetectNoneNumber(self):
+        self.assertEqual(_tools.numbered(u"123abc"), (None, u"123abc"))
+        self.assertEqual(_tools.numbered(u"01.02.2014"), (None, u"01.02.2014"))
+
+    def testCanDetectInteger(self):
+        self.assertEqual(_tools.numbered("123"), (_tools.NUMBER_INTEGER, 123))
+
+    def testCanDetectDecimalWithPoint(self):
+        self.assertEqual(_tools.numbered("123.45"), (_tools.NUMBER_DECIMAL_POINT, decimal.Decimal("123.45")))
+        self.assertEqual(_tools.numbered("123,456.78"), (_tools.NUMBER_DECIMAL_POINT, decimal.Decimal("123456.78")))
+
+    def testCanDetectDecimalWithComma(self):
+        actual = _tools.numbered("123,45", decimalDelimiter=",", thousandsDelimiter=".")
+        expected = (_tools.NUMBER_DECIMAL_COMMA, decimal.Decimal("123.45"))
+        self.assertEqual(actual, expected)
+        actual = _tools.numbered("123.456,78", decimalDelimiter=",", thousandsDelimiter=".")
+        expected = (_tools.NUMBER_DECIMAL_COMMA, decimal.Decimal("123456.78"))
+        self.assertEqual(actual, expected)
+
 
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()

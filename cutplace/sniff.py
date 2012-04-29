@@ -244,30 +244,68 @@ class _ColumnSniffInfo(object):
         self.example = None
         self.emptyCount = 0
         self.decimalCount = 0
-        self.longCount = 0
         self.maxLength = 0
         self.minLength = None
-        self.textCount = 0
         self.distinctValues = set([])
+        self._isAlwaysNumber = {
+            _tools.NUMBER_DECIMAL_COMMA: True,
+            _tools.NUMBER_DECIMAL_POINT: True,
+            _tools.NUMBER_INTEGER: True,
+        }
 
-    def _isLong(self, value):
+    @property
+    def isInteger(self):
+        return self._isAlwaysNumber[_tools.NUMBER_INTEGER]
+
+    @property
+    def isDecimalComma(self):
+        return self._isAlwaysNumber[_tools.NUMBER_DECIMAL_COMMA]
+
+    @property
+    def isDecimalPoint(self):
+        return self._isAlwaysNumber[_tools.NUMBER_DECIMAL_POINT]
+
+    @property
+    def isNumber(self):
+        return True in set(self._isAlwaysNumber.values())
+
+    def _numberType(self, value):
         assert value is not None
-        try:
-            long(value)
-            result = True
-        except ValueError:
-            result = False
+        assert len(value) > 0, "empty values must be handled by caller"
+
+        result, _ = _tools.numbered(value)
+        if result == None:
+            result, _ = _tools.numbered(value, ",", ".")
         return result
 
-    def _isDecimal(self, value):
+    def _processAsNumber(self, value):
         assert value is not None
-        # TODO: Consider thousands and decimal separator.
-        try:
-            decimal.Decimal(value)
-            result = True
-        except decimal.InvalidOperation:
-            result = False
-        return result
+
+        if self.isNumber:
+            numberTypeOfValue = self._numberType(value)
+            if numberTypeOfValue == _tools.NUMBER_DECIMAL_COMMA:
+                self._isAlwaysNumber[_tools.NUMBER_DECIMAL_POINT] = False
+                self._isAlwaysNumber[_tools.NUMBER_INTEGER] = False
+                _log.info(u"field '%s' cannot be long or decimal point number: %r", self.name, value)
+            elif numberTypeOfValue == _tools.NUMBER_DECIMAL_POINT:
+                self._isAlwaysNumber[_tools.NUMBER_DECIMAL_COMMA] = False
+                self._isAlwaysNumber[_tools.NUMBER_INTEGER] = False
+                _log.info(u"field '%s' cannot be long or decimal comma number: %r", self.name, value)
+            elif numberTypeOfValue is None:
+                self._isAlwaysNumber[_tools.NUMBER_DECIMAL_COMMA] = False
+                self._isAlwaysNumber[_tools.NUMBER_DECIMAL_POINT] = False
+                self._isAlwaysNumber[_tools.NUMBER_INTEGER] = False
+                _log.info(u"field '%s' cannot be long number (and neither decimal): %r", self.name, value)
+            else:
+                assert numberTypeOfValue == _tools.NUMBER_INTEGER
+            if not self.isNumber:
+                _log.info(u"field '%s' cannot be any number: %r", self.name, value)
+
+    def changeToTextField(self):
+        self._isAlwaysNumber[_tools.NUMBER_DECIMAL_COMMA] = False
+        self._isAlwaysNumber[_tools.NUMBER_DECIMAL_POINT] = False
+        self._isAlwaysNumber[_tools.NUMBER_INTEGER] = False
+        assert not self.isNumber
 
     def process(self, value):
         assert value is not None
@@ -276,11 +314,7 @@ class _ColumnSniffInfo(object):
         if length:
             if not self.example:
                 self.example = value
-            if not self.textCount:
-                if self._isLong(value):
-                    self.longCount += 1
-                else:
-                    self.textCount += 1
+            self._processAsNumber(value)
             if (self.minLength is None) or (length < self.minLength):
                 self.minLength = length
             if length > self.maxLength:
@@ -300,9 +334,14 @@ class _ColumnSniffInfo(object):
                 lengthText += unicode(self.minLength)
             lengthText += ":%d" % self.maxLength
 
-        # TODO: Detect decimal and integer format.
         # TODO: Detect date format.
-        result = fields.TextFieldFormat(self.name, isAllowedToBeEmpty, lengthText, "", self.dataFormat)
+        # TODO: Collect range for Integer and Decimal fields.
+        if self._isAlwaysNumber[_tools.NUMBER_INTEGER]:
+            result = fields.IntegerFieldFormat(self.name, isAllowedToBeEmpty, u"", u"", self.dataFormat)
+        elif self._isAlwaysNumber[_tools.NUMBER_DECIMAL_COMMA] or self._isAlwaysNumber[_tools.NUMBER_DECIMAL_POINT]:
+            result = fields.DecimalFieldFormat(self.name, isAllowedToBeEmpty, u"", u"", self.dataFormat)
+        else:
+            result = fields.TextFieldFormat(self.name, isAllowedToBeEmpty, lengthText, u"", self.dataFormat)
         result.example = self.example
         return result
 
@@ -445,6 +484,24 @@ def createCidRows(readable, **keywords):
         location.advanceLine()
         rowIndex += 1
 
+    # Make sure that decimal fields either use comma or point.
+    decimalCommaColumnCount = 0
+    decimalPointColumnCount = 0
+    for columnInfo in columnInfos:
+        if columnInfo.isNumber:
+            if columnInfo.isDecimalComma:
+                decimalCommaColumnCount += 1
+            elif columnInfo.isDecimalPoint:
+                decimalPointColumnCount += 1
+    if (decimalCommaColumnCount > 0) and (decimalPointColumnCount > 0):
+        _log.warning(u"columns use different decimal separators: %d use comma, %d use point",
+            decimalCommaColumnCount, decimalPointColumnCount)
+        hasToChangeDecimalComma = (decimalCommaColumnCount < decimalPointColumnCount)
+        for columnInfo in columnInfos:
+            if (columnInfo.isDecimalComma and hasToChangeDecimalComma) or columnInfo.isDecimalPoint and not hasToChangeDecimalComma:
+                _log.warn(u"  change '%s' to text field", columnInfo.name)
+                columnInfo.changeToTextField()
+
     for columnIndex in range(longestSegmentColumnCount):
         _log.debug(u"  %s" % columnInfos[columnIndex].asFieldFormat())
 
@@ -463,5 +520,6 @@ def createCidRows(readable, **keywords):
         fieldRow = ["f"]
         fieldRow.extend(fieldFormat.asIcdRow())
         icdRows.append(fieldRow)
+        _log.debug(u"  %s", fieldRow)
     # TODO: Create interface.InterfaceControlDocument and use it as icdRows.
     return icdRows
