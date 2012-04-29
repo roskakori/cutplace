@@ -20,6 +20,7 @@ from the Python documentation.
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import codecs
 import csv
+import decimal
 import errno
 import keyword
 import logging
@@ -42,6 +43,10 @@ LogLevelNameToLevelMap = {
     "error": logging.ERROR,
     "critical": logging.CRITICAL
 }
+
+NUMBER_DECIMAL_COMMA = "decimalComma"
+NUMBER_DECIMAL_POINT = "decimalPoint"
+NUMBER_INTEGER = "integer"
 
 
 class UTF8Recoder:
@@ -463,3 +468,49 @@ def namified(text):
         result += "_"
     assert result
     return result
+
+
+def numbered(value, decimalDelimiter=".", thousandsDelimiter=","):
+    """
+    Tuple describing ``value`` as type and numberized value.
+    """
+    assert value is not None
+    assert decimalDelimiter in (".", ",")
+    assert thousandsDelimiter in (".", ",")
+    assert decimalDelimiter != thousandsDelimiter
+    resultValue = value
+    resultType = None
+    lastThousandsDelimiterIndex = None
+    hasBrokenThousandsDelimiter = False
+    try:
+        resultValue = long(value)
+        resultType = NUMBER_INTEGER
+    except ValueError:
+        decimalText = u""
+        decimalDelimiterCount = 0
+        charIndex = 0
+        charCount = len(value)
+        while (charIndex < charCount) and (decimalDelimiterCount <= 1) and not hasBrokenThousandsDelimiter:
+            charToExamine = value[charIndex]
+            if charToExamine == thousandsDelimiter:
+                if lastThousandsDelimiterIndex is not None:
+                    if (charIndex - lastThousandsDelimiterIndex) != 4:
+                        hasBrokenThousandsDelimiter = True
+                lastThousandsDelimiterIndex = charIndex
+            else:
+                if charToExamine == decimalDelimiter:
+                    charToExamine = u"."
+                    decimalDelimiterCount += 1
+                decimalText += charToExamine
+            charIndex += 1
+        if (decimalDelimiterCount <= 1) and not hasBrokenThousandsDelimiter:
+            try:
+                resultValue = decimal.Decimal(decimalText)
+                if decimalDelimiter == ".":
+                    resultType = NUMBER_DECIMAL_POINT
+                else:
+                    resultType = NUMBER_DECIMAL_COMMA
+            except decimal.InvalidOperation:
+                # Keep default result.
+                pass
+    return resultType, resultValue
