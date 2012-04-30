@@ -137,6 +137,14 @@
         <mkdir dir="${api.dir}" />
     </target>
 
+	<target description="copy web site to github pages for publication" name="gh-pages" depends="site">
+		<copy todir="../gh-pages-cutplace" overwrite="true" preservelastmodified="true">
+            <fileset dir="${site.dir}">
+                <exclude name=".buildinfo" />
+                <exclude name=".doctrees/**" />
+            </fileset>
+		</copy>
+	</target>
     <target description="build documentation" name="docs" depends="sitebase, testdata">
         <exec executable="nosetests" failonerror="true">
             <arg value="--with-doctest" />
