@@ -470,18 +470,19 @@ def namified(text):
     return result
 
 
-def numbered(value, decimalDelimiter=".", thousandsDelimiter=","):
+def numbered(value, decimalSeparator=".", thousandsSeparator=","):
     """
     Tuple describing ``value`` as type and numberized value.
     """
     assert value is not None
-    assert decimalDelimiter in (".", ",")
-    assert thousandsDelimiter in (".", ",")
-    assert decimalDelimiter != thousandsDelimiter
-    resultValue = value
+    assert decimalSeparator in (".", ",")
+    assert thousandsSeparator in (".", ",")
+    assert decimalSeparator != thousandsSeparator
     resultType = None
-    lastThousandsDelimiterIndex = None
-    hasBrokenThousandsDelimiter = False
+    resultUsesThousandsSeparator = False
+    resultValue = value
+    lastThousandsSeparatorIndex = None
+    hasBrokenThousandsSeparator = False
     try:
         resultValue = long(value)
         resultType = NUMBER_INTEGER
@@ -490,27 +491,32 @@ def numbered(value, decimalDelimiter=".", thousandsDelimiter=","):
         decimalDelimiterCount = 0
         charIndex = 0
         charCount = len(value)
-        while (charIndex < charCount) and (decimalDelimiterCount <= 1) and not hasBrokenThousandsDelimiter:
+        while (charIndex < charCount) and (decimalDelimiterCount <= 1) and not hasBrokenThousandsSeparator:
             charToExamine = value[charIndex]
-            if charToExamine == thousandsDelimiter:
-                if lastThousandsDelimiterIndex is not None:
-                    if (charIndex - lastThousandsDelimiterIndex) != 4:
-                        hasBrokenThousandsDelimiter = True
-                lastThousandsDelimiterIndex = charIndex
+            if charToExamine == thousandsSeparator:
+                if lastThousandsSeparatorIndex is not None:
+                    if (charIndex - lastThousandsSeparatorIndex) == 4:
+                        resultUsesThousandsSeparator = True
+                    else:
+                        hasBrokenThousandsSeparator = True
+                        resultUsesThousandsSeparator = False
+                else:
+                    resultUsesThousandsSeparator = True
+                lastThousandsSeparatorIndex = charIndex
             else:
-                if charToExamine == decimalDelimiter:
+                if charToExamine == decimalSeparator:
                     charToExamine = u"."
                     decimalDelimiterCount += 1
                 decimalText += charToExamine
             charIndex += 1
-        if (decimalDelimiterCount <= 1) and not hasBrokenThousandsDelimiter:
+        if (decimalDelimiterCount <= 1) and not hasBrokenThousandsSeparator:
             try:
                 resultValue = decimal.Decimal(decimalText)
-                if decimalDelimiter == ".":
+                if decimalSeparator == ".":
                     resultType = NUMBER_DECIMAL_POINT
                 else:
                     resultType = NUMBER_DECIMAL_COMMA
             except decimal.InvalidOperation:
                 # Keep default result.
                 pass
-    return resultType, resultValue
+    return resultType, resultUsesThousandsSeparator, resultValue

@@ -15,14 +15,18 @@ Test for `sniff` module.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import with_statement
+
 import unittest
 import StringIO
 
 import data
+import fields
+import interface
 import sniff
+
 import dev_test
 import _cutsniff
-import interface
 
 
 class SniffTest(unittest.TestCase):
@@ -155,6 +159,17 @@ class SniffTest(unittest.TestCase):
                 self.assertTrue(rowCount > 0)
             finally:
                 testFile.close()
+
+    def testCanSniffStandardFieldFormats(self):
+        testFilePath = dev_test.getTestInputPath("valid_alltypes.csv")
+        with open(testFilePath, "rb") as testFile:
+            cid = sniff.createCid(testFile, header=1)
+            self.assertEqual(cid.fieldNames, [u'customer_id', u'short_name', u'gender', u'date_of_birth', u'balance'])
+            self.assertEqual(cid.fieldFormatFor('customer_id').__class__, fields.IntegerFieldFormat)
+            self.assertEqual(cid.fieldFormatFor('short_name').__class__, fields.TextFieldFormat)
+            self.assertEqual(cid.fieldFormatFor('gender').__class__, fields.TextFieldFormat)
+            self.assertEqual(cid.fieldFormatFor('date_of_birth').__class__, fields.TextFieldFormat)
+            self.assertEqual(cid.fieldFormatFor('balance').__class__, fields.DecimalFieldFormat)
 
 
 class SniffMainTest(unittest.TestCase):

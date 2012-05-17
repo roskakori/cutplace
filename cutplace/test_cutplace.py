@@ -100,6 +100,11 @@ class CutplaceTest(unittest.TestCase):
             # Compute the full path of the related ICD.
             icdBaseName = baseFileNameWithoutValidPrefixAndCsvSuffix.split("_")[0]
             icdPath = dev_test.getTestIcdPath(icdBaseName + ".csv")
+            if not os.path.exists(icdPath):
+                icdPath = dev_test.getTestIcdPath(icdBaseName + ".ods")
+                self.assertTrue(os.path.exists(icdPath),
+                        u"icd '%s' (or '*.csv') for data file '%s' must be created" % (icdPath, dataPath))
+
             # Now validate the data.
             exitCode = _cutplace.main(["test_cutplace.py", icdPath, dataPath])
             self.assertEqual(exitCode, 0)

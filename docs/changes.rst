@@ -4,7 +4,7 @@ Revision history
 
 This chapter describes improvements compared to earlier versions of cutplace.
 
-Version 0.7.1, 2012-04-xx
+Version 0.7.1, 2012-05-xx
 =========================
 
 * Changed error location of failed row checks to use the first column instead
@@ -12,6 +12,7 @@ Version 0.7.1, 2012-04-xx
 
 * Improved ``cutsniff``:
 
+  * Added sniffing of numeric fields (#48).
   * Added first none empty field value as example.
 
 * Moved project and repository to <https://github.com/roskakori/cutplace>
