@@ -16,6 +16,7 @@ Standard field formats supported by cutplace.
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import decimal
+import fnmatch
 import keyword
 import re
 import sys
@@ -384,17 +385,8 @@ class PatternFieldFormat(AbstractFieldFormat):
     """
     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue=""):
         super(PatternFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue)
-        # TODO: Use fnmatch. Ticket #37.
-        pattern = ""
-        for character in rule:
-            if character == "?":
-                pattern += "."
-            elif character == "*":
-                pattern += ".*"
-            else:
-                pattern += re.escape(character)
-        self.regex = re.compile(pattern, re.IGNORECASE | re.MULTILINE)
-        self.pattern = pattern
+        self.pattern = fnmatch.translate(rule)
+        self.regex = re.compile(self.pattern, re.IGNORECASE | re.MULTILINE)
 
     def validatedValue(self, value):
         assert value

@@ -10,6 +10,9 @@ Version 0.7.1, 2012-05-xx
 * Changed error location of failed row checks to use the first column instead
   of a number one past the actual number of columns (issue #42).
 
+* Changed ``Pattern`` field format to allow shell patterns instead of only
+   simple DOS patterns (issue #37).
+
 * Improved ``cutsniff``:
 
   * Added sniffing of numeric fields (#48).
