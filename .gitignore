@@ -1,9 +1,11 @@
 .~lock.*
+.DS_Store
 *.pyc
 *.pyo
 /.coverage
 /build
 /coverage.xml
+/cutplace.egg-info
 /dist
 /nosetests*.xml
 /pep8.txt
