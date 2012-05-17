@@ -15,7 +15,6 @@ Heuristic data analysis to figure out file types and field formats.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import decimal
 import logging
 import string
 
@@ -252,6 +251,7 @@ class _ColumnSniffInfo(object):
             _tools.NUMBER_DECIMAL_POINT: True,
             _tools.NUMBER_INTEGER: True,
         }
+        self._usesThousandsSeparator = False
 
     @property
     def isInteger(self):
@@ -266,6 +266,10 @@ class _ColumnSniffInfo(object):
         return self._isAlwaysNumber[_tools.NUMBER_DECIMAL_POINT]
 
     @property
+    def usesThousandsSeparator(self):
+        return self._usesThousandsSeparator
+
+    @property
     def isNumber(self):
         return True in set(self._isAlwaysNumber.values())
 
@@ -273,33 +277,39 @@ class _ColumnSniffInfo(object):
         assert value is not None
         assert len(value) > 0, "empty values must be handled by caller"
 
-        result, _ = _tools.numbered(value)
-        if result == None:
-            result, _ = _tools.numbered(value, ",", ".")
-        return result
+        resultType, resultUsesThousandsSeparator, _ = _tools.numbered(value)
+        if resultType == None:
+            resultType, resultUsesThousandsSeparator, _ = _tools.numbered(value, ",", ".")
+        return resultType, resultUsesThousandsSeparator
 
     def _processAsNumber(self, value):
         assert value is not None
 
         if self.isNumber:
-            numberTypeOfValue = self._numberType(value)
+            numberTypeOfValue, usesThousandsSeparator = self._numberType(value)
             if numberTypeOfValue == _tools.NUMBER_DECIMAL_COMMA:
                 self._isAlwaysNumber[_tools.NUMBER_DECIMAL_POINT] = False
                 self._isAlwaysNumber[_tools.NUMBER_INTEGER] = False
-                _log.info(u"field '%s' cannot be long or decimal point number: %r", self.name, value)
+                if usesThousandsSeparator and not self.usesThousandsSeparator:
+                    _log.debug(u"field '%s' uses thousands separator because of value %r", self.name, value)
+                    self._usesThousandsSeparator = usesThousandsSeparator
+                _log.debug(u"field '%s' cannot be long or decimal point number: %r", self.name, value)
             elif numberTypeOfValue == _tools.NUMBER_DECIMAL_POINT:
                 self._isAlwaysNumber[_tools.NUMBER_DECIMAL_COMMA] = False
                 self._isAlwaysNumber[_tools.NUMBER_INTEGER] = False
-                _log.info(u"field '%s' cannot be long or decimal comma number: %r", self.name, value)
+                if usesThousandsSeparator and not self.usesThousandsSeparator:
+                    _log.debug(u"field '%s' uses thousands separator because of value %r", self.name, value)
+                    self._usesThousandsSeparator = usesThousandsSeparator
+                _log.debug(u"field '%s' cannot be long or decimal comma number: %r", self.name, value)
             elif numberTypeOfValue is None:
                 self._isAlwaysNumber[_tools.NUMBER_DECIMAL_COMMA] = False
                 self._isAlwaysNumber[_tools.NUMBER_DECIMAL_POINT] = False
                 self._isAlwaysNumber[_tools.NUMBER_INTEGER] = False
-                _log.info(u"field '%s' cannot be long number (and neither decimal): %r", self.name, value)
+                _log.debug(u"field '%s' cannot be long number (and neither decimal): %r", self.name, value)
             else:
                 assert numberTypeOfValue == _tools.NUMBER_INTEGER
             if not self.isNumber:
-                _log.info(u"field '%s' cannot be any number: %r", self.name, value)
+                _log.debug(u"field '%s' cannot be any number: %r", self.name, value)
 
     def changeToTextField(self):
         self._isAlwaysNumber[_tools.NUMBER_DECIMAL_COMMA] = False
@@ -380,6 +390,14 @@ def createCidRows(readable, **keywords):
         fieldNames = [name.strip() for name in fieldNames.split(",")]
     elif fieldNames is not None:
         assert isinstance(fieldNames, list), u"field names must be a list or string but is: %s" % type(fieldNames)
+
+    def decimalRows(hasDecimals, usesThousandsSeparator, decimalSeparator, thousandsSeparator):
+        result = []
+        if hasDecimals:
+            result.append(["d", data.KEY_DECIMAL_SEPARATOR, decimalSeparator])
+            if usesThousandsSeparator:
+                result.append(["d", data.KEY_THOUSANDS_SEPARATOR, thousandsSeparator])
+        return result
 
     NO_COUNT = -1
 
@@ -463,7 +481,7 @@ def createCidRows(readable, **keywords):
         location.advanceLine()
         rowIndex += 1
 
-    _log.info(u"analyze longest segment of rows with same column count")
+    _log.debug(u"analyze longest segment of rows with same column count")
     columnInfos = []
     for columnIndex in range(longestSegmentColumnCount):
         columnInfoToAppend = _ColumnSniffInfo(columnIndex, dataFormat)
@@ -487,24 +505,40 @@ def createCidRows(readable, **keywords):
     # Make sure that decimal fields either use comma or point.
     decimalCommaColumnCount = 0
     decimalPointColumnCount = 0
+    usesThousandSeparator = False
     for columnInfo in columnInfos:
-        if columnInfo.isNumber:
+        if columnInfo.isNumber and not columnInfo.isInteger:
             if columnInfo.isDecimalComma:
+                _log.debug(u"field is decimal with comma as separator: %s", columnInfo.name)
                 decimalCommaColumnCount += 1
+                if columnInfo.usesThousandsSeparator:
+                    _log.debug(u"  decimal field uses point as thousands separator: %s", columnInfo.name)
+                    usesThousandSeparator = True
             elif columnInfo.isDecimalPoint:
+                _log.debug(u"field is decimal with point as separator: %s", columnInfo.name)
                 decimalPointColumnCount += 1
+                if columnInfo.usesThousandsSeparator:
+                    _log.debug(u"  decimal field uses comma as thousands separator: %s", columnInfo.name)
+                    usesThousandSeparator = True
+
     if (decimalCommaColumnCount > 0) and (decimalPointColumnCount > 0):
         _log.warning(u"columns use different decimal separators: %d use comma, %d use point",
             decimalCommaColumnCount, decimalPointColumnCount)
         hasToChangeDecimalComma = (decimalCommaColumnCount < decimalPointColumnCount)
+        if hasToChangeDecimalComma:
+            decimalCommaColumnCount = 0
+        else:
+            decimalPointColumnCount = 0
         for columnInfo in columnInfos:
             if (columnInfo.isDecimalComma and hasToChangeDecimalComma) or columnInfo.isDecimalPoint and not hasToChangeDecimalComma:
                 _log.warn(u"  change '%s' to text field", columnInfo.name)
                 columnInfo.changeToTextField()
+    assert (decimalCommaColumnCount == 0) or (decimalPointColumnCount == 0)
 
     for columnIndex in range(longestSegmentColumnCount):
         _log.debug(u"  %s" % columnInfos[columnIndex].asFieldFormat())
 
+    # Build rows for CID: data data format.
     icdRows = []
     icdRows.append(["", "Interface: <Name>"])
     icdRows.append([])
@@ -512,8 +546,12 @@ def createCidRows(readable, **keywords):
         dataFormatCsvRow = ['d']
         dataFormatCsvRow.extend(dataFormatRow)
         icdRows.append(dataFormatCsvRow)
+    _log.info(u"number of decimal fields: %d with comma, %d with point", decimalCommaColumnCount, decimalPointColumnCount)
+    icdRows.extend(decimalRows(decimalCommaColumnCount > 0, usesThousandSeparator, ",", "."))
+    icdRows.extend(decimalRows(decimalPointColumnCount > 0, usesThousandSeparator, ".", ","))
     icdRows.append([])
 
+    # Build rows for CID: data field formats.
     icdRows.append(["", "Field", "Example", "Empty?", "Length", "Type", "Rule"])
     for columnInfo in columnInfos:
         fieldFormat = columnInfo.asFieldFormat()
@@ -521,5 +559,13 @@ def createCidRows(readable, **keywords):
         fieldRow.extend(fieldFormat.asIcdRow())
         icdRows.append(fieldRow)
         _log.debug(u"  %s", fieldRow)
-    # TODO: Create interface.InterfaceControlDocument and use it as icdRows.
+
     return icdRows
+
+
+def createCid(readable, **keywords):
+    import interface
+    result = interface.InterfaceControlDocument()
+    icdRows = createCidRows(readable, **keywords)
+    result.readFromRows(icdRows)
+    return result

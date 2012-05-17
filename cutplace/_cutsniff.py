@@ -20,11 +20,14 @@ derived from sample data.
 from __future__ import with_statement
 
 import logging
+import optparse
 import os.path
 import sys
+import xlrd
 
 import data
 import sniff
+import tools
 import version
 import _tools
 
@@ -70,6 +73,8 @@ Example:
         help="set log level to LEVEL (default: %default)")
 
     (options, others) = parser.parse_args(argv[1:])
+
+    logging.getLogger("cutplace").setLevel(_tools.LogLevelNameToLevelMap[options.logLevel])
     othersCount = len(others)
     if othersCount == 0:
         parser.error(u"ICDFILE and DATAFILE must be specified")
@@ -96,14 +101,25 @@ Example:
                     icdCsvWriter.writerow(icdRowToWrite)
         exitCode = 0
     except EnvironmentError, error:
-        _log.exception(error)
+        exitCode = 3
+        _log.error(u"%s", error)
+    except tools.CutplaceUnicodeError, error:
+        _log.error(u"%s", error)
+    except tools.CutplaceError, error:
+        _log.error(u"%s", error)
+    except xlrd.XLRDError, error:
+        _log.error(u"cannot process Excel format: %s", error)
+    except optparse.OptionError, error:
+        exitCode = 2
+        _log.error(u"cannot process command line options: %s", error)
     except Exception, error:
-        _log.exception(error)
+        exitCode = 4
+        _log.exception(u"cannot handle unexpected error: %s", error)
     return exitCode
 
 
 def mainForScript():
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
     sys.exit(main())
 
 if __name__ == "__main__":
