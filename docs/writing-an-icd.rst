@@ -531,9 +531,16 @@ Pattern
 The Pattern type is similar to the Text type but additionally allows to use
 special characters as place holders:
 
-* "?" mean "exactly 1 character".
+* "?" means "exactly 1 character".
 
-* "*" means "none or any characters"
+* "*" means "none or any characters".
+
+* "[sequence]" means any character in sequence.
+
+* "[!sequence]" means any character not in sequence.
+
+A ``sequence`` can be a list of characters such as ``[abc123]`` or a range
+like ``[a-z]``.
 
 Examples for Pattern fields
 
