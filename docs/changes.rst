@@ -4,7 +4,7 @@ Revision history
 
 This chapter describes improvements compared to earlier versions of cutplace.
 
-Version 0.7.1, 2012-05-xx
+Version 0.7.1, 2012-05-20
 =========================
 
 * Changed error location of failed row checks to use the first column instead
