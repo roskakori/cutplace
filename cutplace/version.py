@@ -19,12 +19,4 @@ VERSION = 0
 RELEASE = 7
 REVISION = 0
 
-try:
-    REPOSITORY_ID, VERSION_DATE = "$Id$".split()[2:4]
-except ValueError:
-    # Fall back if SCM does not support $Id.
-    REPOSITORY_ID = "0"
-    VERSION_DATE = "0000-01-01"
-
 VERSION_NUMBER = "%d.%d.%d" % (VERSION, RELEASE, REVISION)
-VERSION_TAG = "%s (%s, r%s)" % (VERSION_NUMBER, VERSION_DATE, REPOSITORY_ID)

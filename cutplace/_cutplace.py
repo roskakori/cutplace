@@ -136,7 +136,7 @@ class CutPlace(object):
   cutplace --web [options]
     launch web server providing a web interface for validation"""
 
-        parser = _NoExitOptionParser(usage=usage, version="%prog " + version.VERSION_TAG)
+        parser = _NoExitOptionParser(usage=usage, version="%prog " + version.VERSION_NUMBER)
         parser.set_defaults(icdEncoding=DEFAULT_ICD_ENCODING, isLogTrace=False, isOpenBrowser=False, logLevel="warning", port=_web.DEFAULT_PORT)
         parser.add_option("--list-encodings", action="store_true", dest="isShowEncodings", help="show list of available character encodings and exit")
         validationGroup = optparse.OptionGroup(parser, "Validation options", "Specify how to validate data and how to report the results")
@@ -184,7 +184,7 @@ class CutPlace(object):
             else:
                 parser.error(u"file containing ICD must be specified")
 
-        self._log.debug(u"cutplace %s", version.VERSION_TAG)
+        self._log.debug(u"cutplace %s", version.VERSION_NUMBER)
         self._log.debug(u"options=%s", self.options)
         self._log.debug(u"others=%s", others)
 
