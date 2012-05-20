@@ -17,6 +17,6 @@ Cutplace version information.
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 VERSION = 0
 RELEASE = 7
-REVISION = 0
+REVISION = 1
 
 VERSION_NUMBER = "%d.%d.%d" % (VERSION, RELEASE, REVISION)
