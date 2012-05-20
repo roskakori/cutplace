@@ -157,7 +157,7 @@ Python: Version %s<br>
 Platform: %s</p>
 %s
 </body></html>
-""" % (_STYLE, version.VERSION_TAG, cgi.escape(_tools.pythonVersion()), cgi.escape(_tools.platformVersion()), _FOOTER)
+""" % (_STYLE, version.VERSION_NUMBER, cgi.escape(_tools.pythonVersion()), cgi.escape(_tools.platformVersion()), _FOOTER)
 
     _SHUTDOWN = u"""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <html>

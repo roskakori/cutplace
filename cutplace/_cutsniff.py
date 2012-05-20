@@ -53,7 +53,7 @@ Example:
     Analyze data file some_customers.csv assuming ISO-8859-15 as character
     encoding and store the resulting ICD in icd_customers.csv
 """ % programName
-    parser = _tools.OptionParserWithPreformattedEpilog(usage=usage, epilog=epilog, version="%prog " + version.VERSION_TAG)
+    parser = _tools.OptionParserWithPreformattedEpilog(usage=usage, epilog=epilog, version="%prog " + version.VERSION_NUMBER)
     parser.add_option("-d", "--icd-delimiter", default=',', metavar="DELIMITER", type="choice",
         choices=(",", ";"), dest="icdDelimiter",
         help="delimiter to separate rows in ICDFILE (default: %default)")
