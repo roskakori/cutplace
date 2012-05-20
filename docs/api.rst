@@ -197,6 +197,44 @@ loop by whatever needs to be done.
 In case you want to continue even if a row was rejected, use the optional
 parameter ``errors="yield"`` as described earlier.
 
+Writting data
+-------------
+
+To validate written data, use ``interface.Writer``. A ``Writer`` needs an ICD
+tovalidate against and an output to write to. The output can be any filelike
+object such as a file or a ``StringIO``. For example::
+
+  >>> import StringIO
+  >>> out = StringIO.StringIO()
+
+Now you can create a writer and write a valid row to it::
+
+  >>> writer = interface.Writer(icd, out)
+  >>> writer.writeRow([u'38000', u'234', u'John', u'Doe', u'male', u'08.03.1957'])
+
+Attempting to write broken data results in an ``Exception`` derived from
+``CutplaceError``::
+
+  >>> writer.writeRow([u'38000', u'not a number', u'Jane', u'Miller', u'female', u'04.10.1946']) #doctest: +IGNORE_EXCEPTION_DETAIL
+  Traceback (most recent call last):
+  FieldValueError: <io> (R1C2): field 'customer_id' must match format: value must be an integer number: u'not a number'
+
+Note that after a ``CutplaceError`` you can continue writing. For any other
+``Exception`` such as ``IOError`` it is recommended to stop writing and
+consider it an unrecoverable situation.
+
+Once done, close both the writer and the output::
+
+  >>> writer.close()
+  >>> out.close()
+
+As ``interface.Writer`` implements the context management protocoll, you can
+also use the ``with`` statement to automatically ``close()`` it when done.
+
+Note that ``Writer.close()`` performs cutplace checks and consequently can
+raise a ``CheckError``.
+
+
 Advanced usage
 ==============
 
@@ -265,12 +303,11 @@ happened.
 ['id', 'name', 'dateOfBirth']
 
 If any of this methods cannot handle the parameters you passed, they raise a
-``CutplaceError`` with a message describing what went wrong. For example:
+``CutplaceError`` with a message describing what went wrong. For example::
 
->>> icd.addCheck([])
-Traceback (most recent call last):
-    ...
-CheckSyntaxError: <source> (R1C2): check row (marked with 'c') must contain at least 2 columns
+  >>> icd.addCheck([]) #doctest: +IGNORE_EXCEPTION_DETAIL
+  Traceback (most recent call last):
+  CheckSyntaxError: <source> (R1C2): check row (marked with 'c') must contain at least 2 columns
 
 Validating with listeners
 -------------------------
@@ -328,7 +365,6 @@ error: broken_customers.csv (R6C6): field u'date_of_birth' must match format: da
 When you are done, remove the listener::
 
 >>> icd.removeValidationListener(errorPrintingValidationListener)
-
 
 
 Writing field formats
