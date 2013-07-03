@@ -4,6 +4,13 @@ Revision history
 
 This chapter describes improvements compared to earlier versions of cutplace.
 
+
+Version 0.7.2, 2013-07-03
+=========================
+
+* Fixed ``ImportError`` during installation without xlrd already installed
+  (issue #50).
+
 Version 0.7.1, 2012-05-20
 =========================
 

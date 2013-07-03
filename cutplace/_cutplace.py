@@ -23,7 +23,13 @@ import logging
 import optparse
 import os
 import sys
-import xlrd
+try:
+    from xlrd import XLRDError
+except ImportError:
+    # HACK: declare dummy XLRDError so even without xlrd installed, the
+    # exception handler in main() works.
+    class XLRDError(Exception):
+        pass
 
 import interface
 import tools
@@ -313,7 +319,7 @@ def main(argv=None):
         _log.error(u"%s", error)
     except tools.CutplaceError, error:
         _log.error(u"%s", error)
-    except xlrd.XLRDError, error:
+    except XLRDError, error:
         _log.error(u"cannot process Excel format: %s", error)
     except _ExitQuietlyOptionError:
         # Raised by '--help', '--version', etc., so simply do nothing.
