@@ -99,7 +99,9 @@
             <!-- TODO: Implement automatic test cases for web interface. -->
             <arg value="(.*setup.*)|(.*test_performance.*)" />
         </exec>
-        <exec executable="coverage" failonerror="true">
+        <exec executable="python" failonerror="true">
+            <arg value="-m" />
+            <arg value="coverage" />
             <arg value="xml" />
         </exec>
     </target>
