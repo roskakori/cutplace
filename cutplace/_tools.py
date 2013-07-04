@@ -4,7 +4,7 @@ Various internal utility functions.
 Note: The original source code for `UTF8Recoder`, `UnicodeReader` and `UnicodeWriter` is available
 from the Python documentation.
 """
-# Copyright (C) 2009-2012 Thomas Aglassinger
+# Copyright (C) 2009-2013 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by

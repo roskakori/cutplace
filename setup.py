@@ -2,7 +2,7 @@
 """
 Cutplace setup for setuptools.
 """
-# Copyright (C) 2009-2012 Thomas Aglassinger
+# Copyright (C) 2009-2013 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
