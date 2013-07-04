@@ -25,3 +25,4 @@ import version
 
 __version_info__ = (version.VERSION, version.RELEASE, version.REVISION)
 __version__ = version.VERSION_NUMBER
+

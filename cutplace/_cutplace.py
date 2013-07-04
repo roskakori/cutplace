@@ -23,13 +23,7 @@ import logging
 import optparse
 import os
 import sys
-try:
-    from xlrd import XLRDError
-except ImportError:
-    # HACK: declare dummy XLRDError so even without xlrd installed, the
-    # exception handler in main() works.
-    class XLRDError(Exception):
-        pass
+import xlrd
 
 import interface
 import tools
@@ -38,7 +32,6 @@ import _tools
 import _web
 
 DEFAULT_ICD_ENCODING = "ascii"
-DESCRIPTION = "validate data stored in CSV, PRN, ODS or Excel files"
 
 _log = logging.getLogger("cutplace")
 
@@ -319,7 +312,7 @@ def main(argv=None):
         _log.error(u"%s", error)
     except tools.CutplaceError, error:
         _log.error(u"%s", error)
-    except XLRDError, error:
+    except xlrd.XLRDError, error:
         _log.error(u"cannot process Excel format: %s", error)
     except _ExitQuietlyOptionError:
         # Raised by '--help', '--version', etc., so simply do nothing.
