@@ -30,7 +30,6 @@ logging.basicConfig()
 from cutplace import version
 from cutplace import _ods
 from cutplace import _tools
-from cutplace import _cutplace
 
 import os.path
 import re
@@ -101,10 +100,10 @@ class _DocsCommand(Command):
 setup(
       name="cutplace",
       version=version.VERSION_NUMBER,
-      description=_cutplace.DESCRIPTION,
+      description="validate data stored in CSV, PRN, ODS or Excel files",
       author="Thomas Aglassinger",
       author_email="roskakori@users.sourceforge.net",
-      url="http://roskakori.github.com/cutplace/",
+      url="https://github.com/roskakori/cutplace",
       install_requires=["coverage", "proconex>=0.4", "xlrd"],
       packages=["cutplace"],
       data_files=[
