@@ -19,7 +19,7 @@ Read and convert ODS files created by OpenOffice.org's Calc.
 import csv
 import logging
 import optparse
-import StringIO
+import io
 import sys
 import threading
 import types
@@ -27,7 +27,7 @@ import xml.dom.minidom
 import xml.sax
 import zipfile
 
-import _tools
+from . import _tools
 
 _log = logging.getLogger("cutplace.ods")
 
@@ -53,36 +53,36 @@ class AbstractOdsContentHandler(xml.sax.ContentHandler):
         self.indent += 1
         if name == "table:table":
             self.tablesToSkip -= 1
-            self._log.debug(u"%s<%s> #%d", " " * 2 * self.indent, name, self.tablesToSkip)
+            self._log.debug("%s<%s> #%d", " " * 2 * self.indent, name, self.tablesToSkip)
         elif (name == "table:table-cell") and (self.tablesToSkip == 0):
             try:
-                self.numberColumnsRepeated = long(attributes.getValue("table:number-columns-repeated"))
+                self.numberColumnsRepeated = int(attributes.getValue("table:number-columns-repeated"))
             except KeyError:
                 self.numberColumnsRepeated = 1
-            self._log.debug(u"%s<%s> (%d) %r", " " * 2 * self.indent, name, self.numberColumnsRepeated, attributes.items())
+            self._log.debug("%s<%s> (%d) %r", " " * 2 * self.indent, name, self.numberColumnsRepeated, list(attributes.items()))
             self.insideCell = True
-            self.cellText = u""
+            self.cellText = ""
         elif (name == "table:table-row") and (self.tablesToSkip == 0):
-            self._log.debug(u"%s<%s>", " " * 2 * self.indent, name)
+            self._log.debug("%s<%s>", " " * 2 * self.indent, name)
             self.row = []
 
     def characters(self, text):
         if self.insideCell and (self.tablesToSkip == 0):
-            self._log.debug(u"%s%r", " " * 2 * (self.indent + 1), text)
+            self._log.debug("%s%r", " " * 2 * (self.indent + 1), text)
             self.cellText += text
 
     def endElement(self, name):
         if (name == "table:table-cell") and (self.tablesToSkip == 0):
-            self._log.debug(u"%s</%s>", " " * 2 * self.indent, name)
+            self._log.debug("%s</%s>", " " * 2 * self.indent, name)
             assert self.cellText is not None
             self.insideCell = False
             for _ in range(self.numberColumnsRepeated):
                 cellType = type(self.cellText)
-                assert cellType == types.UnicodeType, u"type(%r)=%r" % (self.cellText, cellType)
+                assert cellType == str, "type(%r)=%r" % (self.cellText, cellType)
                 self.row.append(self.cellText)
             self.cellText = None
         if (name == "table:table-row") and (self.tablesToSkip == 0):
-            self._log.debug(u"%s</%s>", " " * 2 * self.indent, name)
+            self._log.debug("%s</%s>", " " * 2 * self.indent, name)
             assert self.row is not None
             self.rowCompleted()
             self.row = None
@@ -92,7 +92,7 @@ class AbstractOdsContentHandler(xml.sax.ContentHandler):
         """
         Actions to be performed once ``self.row`` is complete and can be processed.
         """
-        raise NotImplementedError(u"rowCompleted must be implemented")
+        raise NotImplementedError("rowCompleted must be implemented")
 
 
 class OdsToCsvContentHandler(AbstractOdsContentHandler):
@@ -177,7 +177,7 @@ class ProducerThread(threading.Thread):
     def run(self):
         try:
             xml.sax.parse(self.readable, RowProducingContentHandler(self.targetQueue, self.sheet))
-        except Exception, error:
+        except Exception as error:
             # Remember error information to raise it later during `join()`.
             self.error = error
         finally:
@@ -206,7 +206,7 @@ def _writeRstRow(rstTargetFile, columnLengths, items):
         assert columnLength >= itemLength
         # FIXME: Add support for items containing line separators .
         if ("\n" in item) or ("\r" in item):
-            raise NotImplementedError(u"item must not contain line separator: %r" % item)
+            raise NotImplementedError("item must not contain line separator: %r" % item)
         rstTargetFile.write("+%s%s" % (item, " " * (columnLength - itemLength)))
     rstTargetFile.write("+\n")
 
@@ -233,7 +233,7 @@ def odsContent(odsSourceFilePath):
     try:
         # TODO: Consider switching to 2.6 and use ZipFile.open(). This would need less memory.
         xmlData = zipArchive.read("content.xml")
-        result = StringIO.StringIO(xmlData)
+        result = io.StringIO(xmlData)
     finally:
         zipArchive.close()
 
@@ -269,10 +269,10 @@ def toRst(odsFilePath, rstTargetPath, firstRowIsHeading=True, sheet=1):
                 lengths[columnIndex] = itemLength
 
     if not lengths:
-        raise ValueError(u"file must contain columns: \"%s\"" % odsFilePath)
+        raise ValueError("file must contain columns: \"%s\"" % odsFilePath)
     for columnIndex in range(len(lengths)):
         if lengths[columnIndex] == 0:
-            raise ValueError(u"column %d in file %r must not always be empty" % (columnIndex + 1, odsFilePath))
+            raise ValueError("column %d in file %r must not always be empty" % (columnIndex + 1, odsFilePath))
 
     rstTargetFile = open(rstTargetPath, "w")
     try:
@@ -422,11 +422,11 @@ def main(arguments):
             elif options.format == _FORMAT_RST:
                 toRst(sourceFilePath, targetFilePath, firstRowIsHeading=options.firstRowIsHeading, sheet=options.sheet)
             else:  # pragma: no cover
-                raise NotImplementedError(u"format=%r" % (options.format))
-        except EnvironmentError, error:
+                raise NotImplementedError("format=%r" % (options.format))
+        except EnvironmentError as error:
             _log.error("cannot convert ods to csv: %s" % error)
             sys.exit(1)
-        except Exception, error:
+        except Exception as error:
             _log.error("cannot convert ods to csv: %s" % error, exc_info=1)
             sys.exit(1)
     else:

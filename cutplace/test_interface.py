@@ -17,24 +17,24 @@ Tests for interface control documents.
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import logging
-import StringIO
+import io
 import unittest
 import xlrd
 from contextlib import closing
 
-import checks
-import data
-import dev_test
-import fields
-import interface
-import tools
-import _parsers
+from . import checks
+from . import data
+from . import dev_test
+from . import fields
+from . import interface
+from . import tools
+from . import _parsers
 
 _log = logging.getLogger("cutplace.test_interface")
 
 _TooManyTestBranchIds = [
-    u"38123", u"38234", u"38345", u"38456", u"38567",
-    u"38678", u"38789", u"38890", u"38901", u"38902"
+    "38123", "38234", "38345", "38456", "38567",
+    "38678", "38789", "38890", "38901", "38902"
 ]
 
 
@@ -48,11 +48,11 @@ class _SimpleErrorLoggingValidationListener(interface.BaseValidationListener):
         self.checksAtEndFailedCount = 0
 
     def _logError(self, row, error):
-        _log.warning(u"error during validation: %s %r", error, row)
+        _log.warning("error during validation: %s %r", error, row)
 
     def acceptedRow(self, row, location):
         self.acceptedRowCount += 1
-        _log.info(u"accepted: %r", row)
+        _log.info("accepted: %r", row)
 
     def rejectedRow(self, row, error):
         self.rejectedRowCount += 1
@@ -68,7 +68,7 @@ _defaultIcdListener = _SimpleErrorLoggingValidationListener()
 
 
 def createDefaultTestFixedIcd():
-    spec = u""",Interface: customer
+    spec = """,Interface: customer
 ,
 ,Data format
 ,
@@ -94,7 +94,7 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 C,distinct branches must be within limit,DistinctCount,branch_id <= 3
 """
     result = interface.InterfaceControlDocument()
-    result.read(StringIO.StringIO(spec))
+    result.read(io.StringIO(spec))
     return result
 
 
@@ -102,19 +102,19 @@ def createDefaultTestIcd(dataFormatName, lineDelimiter="\n"):
     assert dataFormatName in [data.FORMAT_CSV, data.FORMAT_EXCEL, data.FORMAT_ODS], "dataFormatName=%r" % dataFormatName
     assert lineDelimiter
 
-    spec = u""","Interface: customer"
+    spec = ""","Interface: customer"
 ,
 ,"Data dataFormatName"
 ,
 "D","Format","%s",
 """ % dataFormatName
     if dataFormatName.lower() == data.FORMAT_CSV:
-        spec += u""""D","Line delimiter","LF"
+        spec += """"D","Line delimiter","LF"
 "D","Item delimiter",44
 "D","Encoding","ISO-8859-1"
 "D","Allowed characters","32:"
 """
-    spec += u""",
+    spec += """,
 ,"Fields"
 ,
 ,"Name","Example","Empty","Length","Type","Rule"
@@ -132,7 +132,7 @@ def createDefaultTestIcd(dataFormatName, lineDelimiter="\n"):
 "C","number of branches must be in range","DistinctCount","branch_id < %d"
 """ % len(_TooManyTestBranchIds)
     result = interface.InterfaceControlDocument()
-    readable = StringIO.StringIO(spec)
+    readable = io.StringIO(spec)
     result.read(readable)
     return result
 
@@ -196,17 +196,17 @@ class InterfaceControlDocumentTest(unittest.TestCase):
         assert spec is not None
         assert expectedError is not None
         icd = interface.InterfaceControlDocument()
-        self.assertRaises(expectedError, icd.read, StringIO.StringIO(spec), "iso-8859-1")
+        self.assertRaises(expectedError, icd.read, io.StringIO(spec), "iso-8859-1")
 
     def testBrokenFirstItem(self):
-        spec = u""","Broken Interface with a row where the first item is not a valid row id"
+        spec = ""","Broken Interface with a row where the first item is not a valid row id"
 "D","Format","CSV"
 "x"
 """
         self._testBroken(spec, interface.IcdSyntaxError)
 
     def testBrokenFixedFieldWithoutLength(self):
-        spec = u""",Broken interface with a fixed field without length
+        spec = """,Broken interface with a fixed field without length
 ,
 ,Data format
 ,
@@ -225,7 +225,7 @@ F,first_name,John,X,15,Text
         self._testBroken(spec, fields.FieldSyntaxError)
 
     def testBrokenFixedFieldWithLowerAndUpperLength(self):
-        spec = u""",Broken interface with a fixed field with a lower and upper length
+        spec = """,Broken interface with a fixed field with a lower and upper length
 ,
 ,Data format
 ,
@@ -242,7 +242,7 @@ F,first_name,John,X,15,Text
         self._testBroken(spec, fields.FieldSyntaxError)
 
     def testBrokenFixedFieldWithZeroLength(self):
-        spec = u""",Broken interface with a fixed field with a length of 0
+        spec = """,Broken interface with a fixed field with a length of 0
 ,
 ,Data format
 ,
@@ -259,7 +259,7 @@ F,first_name,John,X,15,Text
         self._testBroken(spec, fields.FieldSyntaxError)
 
     def testBrokenDuplicateFieldName(self):
-        spec = u""",Broken interface with a duplicate field name
+        spec = """,Broken interface with a duplicate field name
 ,
 ,Data format
 ,
@@ -286,7 +286,7 @@ F,first_name,John,X,15,Text
 38000,23,"Mike","Webster","male","23.12.1974"
 38000,59,"Jane","Miller","female","04.10.1946"
 """
-        dataReadable = StringIO.StringIO(dataText)
+        dataReadable = io.StringIO(dataText)
         icd.addValidationListener(_defaultIcdListener)
         try:
             icd.validate(dataReadable)
@@ -311,7 +311,7 @@ F,first_name,John,X,15,Text
 38009,23,"Mike","Webster","male","23.12.1974"
 38010,23,"Mike","Webster","male","23.12.1974"
 """
-        dataReadable = StringIO.StringIO(dataText)
+        dataReadable = io.StringIO(dataText)
         icd.addValidationListener(_defaultIcdListener)
         try:
             icd.validate(dataReadable)
@@ -339,7 +339,7 @@ F,first_name,John,X,15,Text
 38009,23,"Mike","Webster","male","23.12.1974"
 38010,23,"Mike","Webster","male","23.12.1974"
 """
-        dataReadable = StringIO.StringIO(dataText)
+        dataReadable = io.StringIO(dataText)
         icd.validate(dataReadable)
         self.assertEqual(icd.acceptedCount, 11)
         self.assertEqual(icd.rejectedCount, 1)
@@ -349,7 +349,7 @@ F,first_name,John,X,15,Text
         # Now try valid data with the same ICD.
         dataText = """38000,23,"John","Doe","male","08.03.1957"
 """
-        dataReadable = StringIO.StringIO(dataText)
+        dataReadable = io.StringIO(dataText)
         icd.validate(dataReadable)
         self.assertEqual(icd.acceptedCount, 1)
         self.assertEqual(icd.rejectedCount, 0)
@@ -357,9 +357,9 @@ F,first_name,John,X,15,Text
         self.assertEqual(icd.failedChecksAtEndCount, 0)
 
     def testBrokenAsciiIcd(self):
-        spec = u",Broken ASCII interface with with non ASCII character\n,\u00fd"
+        spec = ",Broken ASCII interface with with non ASCII character\n,\u00fd"
         icd = interface.InterfaceControlDocument()
-        readable = StringIO.StringIO(spec)
+        readable = io.StringIO(spec)
         self.assertRaises(tools.CutplaceUnicodeError, icd.read, readable)
 
         # FIXME: When called from eclipse, this just works, but when called from console it failes with:
@@ -387,7 +387,7 @@ F,first_name,John,X,15,Text
 38000,59,"Bärbel","Müller","female","04.10.1946"
 38000,23,"Mike","Webster","male","23.12.1974"
 """
-        dataReadable = StringIO.StringIO(dataText)
+        dataReadable = io.StringIO(dataText)
         icd.addValidationListener(_defaultIcdListener)
         try:
             icd.validate(dataReadable)
@@ -402,7 +402,7 @@ F,first_name,John,X,15,Text
 38000,59,"Bärbel","Müller","female","04.10.1946"
 38000,23,"Mike","Webster","male","23.12.1974"
 """
-        dataReadable = StringIO.StringIO(dataText)
+        dataReadable = io.StringIO(dataText)
         icd.validate(dataReadable)
 
     def testBrokenInvalidCharacter(self):
@@ -410,22 +410,22 @@ F,first_name,John,X,15,Text
         dataText = """38000,23,"John","Doe","male","08.03.1957"
 38000,23,"Ja\ne","Miller","female","23.12.1974"
 """
-        dataReadable = StringIO.StringIO(dataText)
+        dataReadable = io.StringIO(dataText)
         icd.validate(dataReadable)
         self.assertEqual(icd.rejectedCount, 1)
         self.assertEqual(icd.acceptedCount, 1)
 
         icd = createDefaultTestFixedIcd()
-        dataText = u"3800012345John           Doe            male   08.03.19573800012346Ja\ne           Miller         female 04.10.1946"
-        dataReadable = StringIO.StringIO(dataText)
+        dataText = "3800012345John           Doe            male   08.03.19573800012346Ja\ne           Miller         female 04.10.1946"
+        dataReadable = io.StringIO(dataText)
         icd.validate(dataReadable)
         self.assertEqual(icd.rejectedCount, 1)
         self.assertEqual(icd.acceptedCount, 1)
 
     def testSimpleFixedIcd(self):
         icd = createDefaultTestFixedIcd()
-        dataText = u"3800012345John           Doe            male   08.03.19573800012346Jane           Miller         female 04.10.1946"
-        dataReadable = StringIO.StringIO(dataText)
+        dataText = "3800012345John           Doe            male   08.03.19573800012346Jane           Miller         female 04.10.1946"
+        dataReadable = io.StringIO(dataText)
         icd.validate(dataReadable)
         self.assertEqual(icd.rejectedCount, 0)
         self.assertEqual(icd.acceptedCount, 2)
@@ -461,7 +461,7 @@ F,first_name,John,X,15,Text
             self.assertEqual(icd.rejectedCount, 0)
             self.assertEqual(icd.acceptedCount, 3)
         except _parsers.CutplaceXlrdImportError:
-            _log.warning(u"ignored ImportError caused by missing xlrd")
+            _log.warning("ignored ImportError caused by missing xlrd")
         finally:
             icd.removeValidationListener(_defaultIcdListener)
 
@@ -474,7 +474,7 @@ F,first_name,John,X,15,Text
             self.assertEqual(icd.rejectedCount, 0)
             self.assertEqual(icd.acceptedCount, 4)
         except _parsers.CutplaceXlrdImportError:
-            _log.warning(u"ignored ImportError caused by missing xlrd")
+            _log.warning("ignored ImportError caused by missing xlrd")
         finally:
             icd.removeValidationListener(_defaultIcdListener)
 
@@ -491,11 +491,11 @@ F,first_name,John,X,15,Text
 "F","date_of_birth",08.03.1957,,,"DateTime","DD.MM.YYYY"
 """
         icd = interface.InterfaceControlDocument()
-        readable = StringIO.StringIO(spec)
+        readable = io.StringIO(spec)
         icd.read(readable)
         dataText = """"John",,"08.03.1957"
 "Jane","female","04.10.1946" """
-        dataReadable = StringIO.StringIO(dataText)
+        dataReadable = io.StringIO(dataText)
         icd.validate(dataReadable)
 
     def testFieldTypeWithModule(self):
@@ -509,10 +509,10 @@ F,first_name,John,X,15,Text
 "F","first_name","John","X",,"fields.Text"
 """
         icd = interface.InterfaceControlDocument()
-        icd.read(StringIO.StringIO(spec))
+        icd.read(io.StringIO(spec))
         dataText = """"John"
 Jane"""
-        dataReadable = StringIO.StringIO(dataText)
+        dataReadable = io.StringIO(dataText)
         icd.validate(dataReadable)
 
     def testEmptyChoiceWithLength(self):
@@ -528,11 +528,11 @@ Jane"""
 "F","date_of_birth",08.03.1957,,,"DateTime","DD.MM.YYYY"
 """
         icd = interface.InterfaceControlDocument()
-        readable = StringIO.StringIO(spec)
+        readable = io.StringIO(spec)
         icd.read(readable)
         dataText = """"John",,"08.03.1957"
 "Jane","female","04.10.1946" """
-        dataReadable = StringIO.StringIO(dataText)
+        dataReadable = io.StringIO(dataText)
         icd.validate(dataReadable)
 
     def testBrokenCheckDuplicateDescription(self):
@@ -553,8 +553,8 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 """
         icd = interface.InterfaceControlDocument()
         try:
-            icd.read(StringIO.StringIO(spec), "iso-8859-15")
-        except checks.CheckSyntaxError, error:
+            icd.read(io.StringIO(spec), "iso-8859-15")
+        except checks.CheckSyntaxError as error:
             errorText = str(error)
             self.assertTrue("check description must be used only once" in errorText, "unexpected error text: %r" % errorText)
             self.assertTrue("see also:" in errorText, "unexpected error text: %r" % errorText)
@@ -574,7 +574,7 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 C,customer must be unique,IsUnique,"branch_id, customer_id"
 """
         icd = interface.InterfaceControlDocument()
-        readable = StringIO.StringIO(baseSpec)
+        readable = io.StringIO(baseSpec)
         icd.read(readable)
 
         spec = baseSpec + "C"
@@ -672,7 +672,7 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
         # First of all,  make sure `baseSpec` is in order by building a valid ICD.
         spec = baseSpec + "F,customer_id"
         icd = interface.InterfaceControlDocument()
-        readable = StringIO.StringIO(spec)
+        readable = io.StringIO(spec)
         icd.read(readable)
 
         # Now comes the real meat: broken ICD with incomplete field formats.
@@ -853,9 +853,9 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "F","first_name","John","X",,"Text"
 """
         icd = interface.InterfaceControlDocument()
-        icd.read(StringIO.StringIO(spec))
+        icd.read(io.StringIO(spec))
         dataText = "John, Doe"
-        dataReadable = StringIO.StringIO(dataText)
+        dataReadable = io.StringIO(dataText)
         icd.validate(dataReadable)
         self.assertEqual(icd.rejectedCount, 1)
 
@@ -871,11 +871,11 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "F","first_name","John","X",,"Text"
 """
         icd = interface.InterfaceControlDocument()
-        icd.read(StringIO.StringIO(spec))
+        icd.read(io.StringIO(spec))
         dataText = """123,John
 234,
 """
-        dataReadable = StringIO.StringIO(dataText)
+        dataReadable = io.StringIO(dataText)
         icd.addValidationListener(_defaultIcdListener)
         try:
             icd.validate(dataReadable)
@@ -897,9 +897,9 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 """
         # Test that a specifically empty item is rejected.
         icd = interface.InterfaceControlDocument()
-        icd.read(StringIO.StringIO(spec))
+        icd.read(io.StringIO(spec))
         dataText = "123,"
-        dataReadable = StringIO.StringIO(dataText)
+        dataReadable = io.StringIO(dataText)
         icd.addValidationListener(_defaultIcdListener)
         try:
             icd.validate(dataReadable)
@@ -910,7 +910,7 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 
         # Test that a missing item is rejected.
         dataText = "234"
-        dataReadable = StringIO.StringIO(dataText)
+        dataReadable = io.StringIO(dataText)
         icd.addValidationListener(_defaultIcdListener)
         try:
             icd.validate(dataReadable)
@@ -932,22 +932,22 @@ C,customer must be unique,IsUnique,"branch_id, customer_id"
 "F","date_of_birth",08.03.1957,,,"DateTime","DD.MM.YYYY"
 """
         icd = interface.InterfaceControlDocument()
-        icd.read(StringIO.StringIO(spec))
+        icd.read(io.StringIO(spec))
         dataText = """First Name,Gender,Date of birth
 John,male,08.03.1957
 Mike,male,23.12.1974"""
-        dataReadable = StringIO.StringIO(dataText)
+        dataReadable = io.StringIO(dataText)
         icd.validate(dataReadable)
 
     def testCanGetFieldValue(self):
         icd = createDefaultTestIcd(data.FORMAT_CSV)
-        validRow = [u"38123", u"12345", u"John", u"Doe", u"male", u"08.03.1957"]
-        self.assertEqual(icd.getFieldValueFor("branch_id", validRow), u"38123")
-        self.assertEqual(icd.getFieldValueFor("date_of_birth", validRow), u"08.03.1957")
+        validRow = ["38123", "12345", "John", "Doe", "male", "08.03.1957"]
+        self.assertEqual(icd.getFieldValueFor("branch_id", validRow), "38123")
+        self.assertEqual(icd.getFieldValueFor("date_of_birth", validRow), "08.03.1957")
 
     def testFailsOnGetUnknownFieldValue(self):
         icd = createDefaultTestIcd(data.FORMAT_CSV)
-        validRow = [u"38123", u"12345", u"John", u"Doe", u"male", u"08.03.1957"]
+        validRow = ["38123", "12345", "John", "Doe", "male", "08.03.1957"]
         self.assertRaises(fields.FieldLookupError, icd.getFieldValueFor, "no_such_field", validRow)
 
     def testFailsOnGetFieldValueForEmptyRow(self):
@@ -967,15 +967,15 @@ class PluginsTest(unittest.TestCase):
 "F","first_name","John","X",,"Text"
 "F","sirname","Smith","X",,"CapitalizedText"
 """
-        _log.info(u"subclasses before=%s", sorted(fields.AbstractFieldFormat.__subclasses__()))  # @UndefinedVariable
+        _log.info("subclasses before=%s", sorted(fields.AbstractFieldFormat.__subclasses__()))  # @UndefinedVariable
         interface.importPlugins(dev_test.getTestPluginsPath())
-        _log.info(u"subclasses after=%s", sorted(fields.AbstractFieldFormat.__subclasses__()))  # @UndefinedVariable
+        _log.info("subclasses after=%s", sorted(fields.AbstractFieldFormat.__subclasses__()))  # @UndefinedVariable
         icd = interface.InterfaceControlDocument()
-        icd.read(StringIO.StringIO(spec))
+        icd.read(io.StringIO(spec))
         dataText = """First Name,Gender,Date of birth
 John,Smith
 Bärbel,Müller"""
-        dataReadable = StringIO.StringIO(dataText)
+        dataReadable = io.StringIO(dataText)
         icd.validate(dataReadable)
 
 
@@ -985,7 +985,7 @@ class ValidatorTest(unittest.TestCase):
         with interface.Validator(icd) as validator:
             location = tools.createCallerInputLocation(hasCell=True)
             validator.open(location)
-            TestRow = [u"38123", u"12345", u"John", u"Doe", u"male", u"08.03.1957"]
+            TestRow = ["38123", "12345", "John", "Doe", "male", "08.03.1957"]
             row = validator.validatedRow(TestRow)
             self.assertEqual(row, TestRow)
             validator.close()
@@ -997,7 +997,7 @@ class ValidatorTest(unittest.TestCase):
         with interface.Validator(icd) as validator:
             location = tools.createCallerInputLocation(hasCell=True)
             validator.open(location)
-            TestRow = [u"38123", u"12345", u"John", u"Doe", u"some", u"08.03.1957"]
+            TestRow = ["38123", "12345", "John", "Doe", "some", "08.03.1957"]
             self.assertRaises(fields.FieldValueError, validator.validatedRow, TestRow)
             self.assertEqual(validator.acceptedCount, 0)
             self.assertEqual(validator.rejectedCount, 1)
@@ -1008,7 +1008,7 @@ class ValidatorTest(unittest.TestCase):
         with interface.Validator(icd) as validator:
             location = tools.createCallerInputLocation(hasCell=True)
             validator.open(location)
-            TestRow = [u"38123", u"12345", u"John", u"Doe", u"male", u"08.03.1957"]
+            TestRow = ["38123", "12345", "John", "Doe", "male", "08.03.1957"]
             _ = validator.validatedRow(TestRow)
             location.advanceLine()
             self.assertRaises(checks.CheckError, validator.validatedRow, TestRow)
@@ -1023,14 +1023,14 @@ class ValidatorTest(unittest.TestCase):
                 location = tools.createCallerInputLocation(hasCell=True)
                 validator.open(location)
                 for branchId in _TooManyTestBranchIds:
-                    rowToValidate = [branchId, u"12345", u"John", u"Doe", u"male", u"08.03.1957"]
+                    rowToValidate = [branchId, "12345", "John", "Doe", "male", "08.03.1957"]
                     row = validator.validatedRow(rowToValidate)
                     self.assertEqual(row, rowToValidate)
                     location.advanceLine()
             self.fail("check 'distinct branches must be within limit' must fail")
-        except checks.CheckError, error:
-            errorMessage = u"%s" % error
-            self.assertTrue("distinct count" in errorMessage, u"errorMessage=%r" % errorMessage)
+        except checks.CheckError as error:
+            errorMessage = "%s" % error
+            self.assertTrue("distinct count" in errorMessage, "errorMessage=%r" % errorMessage)
         self.assertEqual(validator.acceptedCount, len(_TooManyTestBranchIds))
         self.assertEqual(validator.rejectedCount, 0)
 
@@ -1038,30 +1038,30 @@ class ValidatorTest(unittest.TestCase):
 class WriterTest(unittest.TestCase):
     def testCanWriteValidDataToCsv(self):
         icd = createDefaultTestIcd(data.FORMAT_CSV)
-        with closing(StringIO.StringIO()) as out:
+        with closing(io.StringIO()) as out:
             csvWriter = interface.Writer(icd, out)
-            csvWriter.writeRow([u"38123", u"12345", u"John", u"Doe", u"male", u"08.03.1957"])
-            self.assertEqual(out.getvalue(), u"38123,12345,John,Doe,male,08.03.1957\n")
+            csvWriter.writeRow(["38123", "12345", "John", "Doe", "male", "08.03.1957"])
+            self.assertEqual(out.getvalue(), "38123,12345,John,Doe,male,08.03.1957\n")
 
     def testFailsOnFieldValueError(self):
         icd = createDefaultTestIcd(data.FORMAT_CSV)
-        with closing(StringIO.StringIO()) as out:
+        with closing(io.StringIO()) as out:
             csvWriter = interface.Writer(icd, out)
-            self.assertRaises(fields.FieldValueError, csvWriter.writeRow, [u"38123", u"12345", u"John", u"Doe", u"some", u"08.03.1957"])
-            self.assertEqual(out.getvalue(), u"")
+            self.assertRaises(fields.FieldValueError, csvWriter.writeRow, ["38123", "12345", "John", "Doe", "some", "08.03.1957"])
+            self.assertEqual(out.getvalue(), "")
 
     def testFailsOnCheckAtEndError(self):
         icd = createDefaultTestIcd(data.FORMAT_CSV)
         try:
-            with closing(StringIO.StringIO()) as out:
+            with closing(io.StringIO()) as out:
                 with interface.Writer(icd, out) as csvWriter:
                     for branchId in _TooManyTestBranchIds:
-                        rowToWrite = [branchId, u"12345", u"John", u"Doe", u"male", u"08.03.1957"]
+                        rowToWrite = [branchId, "12345", "John", "Doe", "male", "08.03.1957"]
                         csvWriter.writeRow(rowToWrite)
             self.fail("check 'distinct branches must be within limit' must fail")
-        except checks.CheckError, error:
-            errorMessage = u"%s" % error
-            self.assertTrue("distinct count" in errorMessage, u"errorMessage=%r" % errorMessage)
+        except checks.CheckError as error:
+            errorMessage = "%s" % error
+            self.assertTrue("distinct count" in errorMessage, "errorMessage=%r" % errorMessage)
 
 
 if __name__ == '__main__':  # pragma: no cover

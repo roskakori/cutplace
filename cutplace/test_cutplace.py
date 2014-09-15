@@ -20,10 +20,10 @@ import optparse
 import os.path
 import unittest
 
-import dev_test
-import _cutplace
-import _parsers
-import _tools
+from . import dev_test
+from . import _cutplace
+from . import _parsers
+from . import _tools
 
 _log = logging.getLogger("cutplace")
 
@@ -85,7 +85,7 @@ class CutplaceTest(unittest.TestCase):
         try:
             self._testValidIcd("xls")
         except _parsers.CutplaceXlrdImportError:
-            _log.warning(u"skipped test due lack of xlrd module")
+            _log.warning("skipped test due lack of xlrd module")
 
     def testValidCsvs(self):
         VALID_PREFIX = "valid_"
@@ -103,7 +103,7 @@ class CutplaceTest(unittest.TestCase):
             if not os.path.exists(icdPath):
                 icdPath = dev_test.getTestIcdPath(icdBaseName + ".ods")
                 self.assertTrue(os.path.exists(icdPath),
-                        u"icd '%s' (or '*.csv') for data file '%s' must be created" % (icdPath, dataPath))
+                        "icd '%s' (or '*.csv') for data file '%s' must be created" % (icdPath, dataPath))
 
             # Now validate the data.
             exitCode = _cutplace.main(["test_cutplace.py", icdPath, dataPath])

@@ -35,6 +35,6 @@ class FullNameLengthIsInRangeCheck(checks.AbstractCheck):
         fullNameLength = len(fullName)
         try:
             self._fullNameRange.validate("full name", fullNameLength)
-        except ranges.RangeValueError, error:
+        except ranges.RangeValueError as error:
             raise CheckError("full name length is %d but must be in range %s: %r" \
                 % (fullNameLength, self._fullNameRange, fullName))

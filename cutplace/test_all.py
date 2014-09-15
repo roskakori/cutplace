@@ -21,30 +21,30 @@ import os.path
 import sys
 import unittest
 
-import checks
-import data
-import fields
-import interface
-import ranges
-import sniff
-import tools
-import version
-import test_checks
-import test_cutplace
-import test_data
-import test_interface
-import test_fields
-import test_ods
-import test_parsers
-import test_ranges
-import test_sniff
-import test_tools
-import test_web
-import _cutplace
-import _ods
-import _parsers
-import _tools
-import _web
+from . import checks
+from . import data
+from . import fields
+from . import interface
+from . import ranges
+from . import sniff
+from . import tools
+from . import version
+from . import test_checks
+from . import test_cutplace
+from . import test_data
+from . import test_interface
+from . import test_fields
+from . import test_ods
+from . import test_parsers
+from . import test_ranges
+from . import test_sniff
+from . import test_tools
+from . import test_web
+from . import _cutplace
+from . import _ods
+from . import _parsers
+from . import _tools
+from . import _web
 
 
 def createTestSuite():
@@ -107,7 +107,7 @@ def main(argv=None):
     testCount += testResults.testsRun
     failureCount += len(testResults.failures)
     errorCount += len(testResults.errors)
-    print "test_all: ran %d tests with %d failures and %d errors" % (testCount, failureCount, errorCount)
+    print("test_all: ran %d tests with %d failures and %d errors" % (testCount, failureCount, errorCount))
     if (errorCount + failureCount) == 0:
         result = 0
     return result

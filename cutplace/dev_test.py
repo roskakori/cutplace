@@ -24,7 +24,7 @@ import sys
 from datetime import timedelta, datetime
 from random import randrange
 
-import _ods
+from . import _ods
 
 _log = logging.getLogger("cutplace.dev_test")
 
@@ -96,7 +96,7 @@ def getTestFolder(folder):
             testFolder = os.path.join(basePath, "tests")
             testFolderfound = os.path.exists(testFolder)
     if not os.path.exists(testFolder):
-        raise IOError(u"cannot find test folder: test must run from project folder or project folder must be passed as command line option; currently attempting to find test folder in: %r" % testFolder)
+        raise IOError("cannot find test folder: test must run from project folder or project folder must be passed as command line option; currently attempting to find test folder in: %r" % testFolder)
     result = os.path.join(testFolder, folder)
     return result
 
@@ -178,7 +178,7 @@ def createLotsOfCustomersCsv(targetCsvPath, customerCount=1000):
     assert targetCsvPath is not None
 
     targetCsvFile = open(targetCsvPath, "w")
-    _log.info(u"write lots of customers to \"%s\"", targetCsvPath)
+    _log.info("write lots of customers to \"%s\"", targetCsvPath)
     try:
         csvWriter = csv.writer(targetCsvFile)
         for customerId in range(customerCount):

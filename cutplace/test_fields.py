@@ -20,8 +20,8 @@ import decimal
 import logging
 import unittest
 
-import data
-import fields
+from . import data
+from . import fields
 
 _anyFormat = data.createDataFormat(data.FORMAT_CSV)
 _fixedFormat = data.createDataFormat(data.FORMAT_FIXED)
@@ -189,7 +189,7 @@ class RegExFieldFormatTest(unittest.TestCase):
     def testBrokenRegEx(self):
         try:
             fields.RegExFieldFormat("x", False, None, "*", _anyFormat)
-            self.fail(u"broken pattern must raise error")
+            self.fail("broken pattern must raise error")
         except:
             # Ignore error caused by broken pattern. It would be better to use assertFails but
             # the interface to re.compile doesn't document a specific exception to be raised in
@@ -221,9 +221,9 @@ class ChoiceFieldFormatTest(unittest.TestCase):
         self.assertEquals(fieldFormat.validated("red"), "red")
 
     def testMatchWithUmlaut(self):
-        fieldFormat = fields.ChoiceFieldFormat("geschlecht", False, None, u"\"männlich\", \"weiblich\"", _anyFormat)
-        self.assertEquals(fieldFormat.validated(u"männlich"), u"männlich")
-        self.assertRaises(fields.FieldValueError, fieldFormat.validated, u"unbekannt")
+        fieldFormat = fields.ChoiceFieldFormat("geschlecht", False, None, "\"männlich\", \"weiblich\"", _anyFormat)
+        self.assertEquals(fieldFormat.validated("männlich"), "männlich")
+        self.assertRaises(fields.FieldValueError, fieldFormat.validated, "unbekannt")
 
     def testPossiblyEmptyFieldWithLength(self):
         fieldFormat = fields.ChoiceFieldFormat("optional_color", True, ":5", "red, green, blue", _anyFormat)

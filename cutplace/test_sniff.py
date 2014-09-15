@@ -15,18 +15,18 @@ Test for `sniff` module.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import with_statement
+
 
 import unittest
-import StringIO
+import io
 
-import data
-import fields
-import interface
-import sniff
+from . import data
+from . import fields
+from . import interface
+from . import sniff
 
-import dev_test
-import _cutsniff
+from . import dev_test
+from . import _cutsniff
 
 
 class SniffTest(unittest.TestCase):
@@ -36,7 +36,7 @@ class SniffTest(unittest.TestCase):
             "valid_customers.ods": data.FORMAT_ODS,
             "valid_customers.xls": data.FORMAT_EXCEL,
         }
-        for testFileName, exptectedDataFormatName in fileNameToExpectedFormatMap.items():
+        for testFileName, exptectedDataFormatName in list(fileNameToExpectedFormatMap.items()):
             testFilePath = dev_test.getTestInputPath(testFileName)
             testFile = open(testFilePath, "rb")
             try:
@@ -56,7 +56,7 @@ class SniffTest(unittest.TestCase):
                 sniff._QUOTE_CHARACTER: "\""
             },
         }
-        for testFileName, exptectedDelimitedOptions in fileNameToExpectedOptionsMap.items():
+        for testFileName, exptectedDelimitedOptions in list(fileNameToExpectedOptionsMap.items()):
             testFilePath = dev_test.getTestInputPath(testFileName)
             testFile = open(testFilePath, "rb")
             try:
@@ -93,7 +93,7 @@ class SniffTest(unittest.TestCase):
                 testFile.close()
 
     def testCanCreateSniffedReaderForEmptyData(self):
-        emptyReadable = StringIO.StringIO("")
+        emptyReadable = io.StringIO("")
 
         self.assertTrue(sniff.delimitedOptions(emptyReadable))
 
@@ -109,7 +109,7 @@ class SniffTest(unittest.TestCase):
         self.assertEqual(rowCount, 0)
 
     def testFailsToCreateEmptyInterfaceControlDocument(self):
-        emptyReadable = StringIO.StringIO("")
+        emptyReadable = io.StringIO("")
         self.assertRaises(sniff.CutplaceSniffError, sniff.createCidRows, emptyReadable)
 
     def testCanCreateInterfaceControlDocument(self):
@@ -118,7 +118,7 @@ class SniffTest(unittest.TestCase):
             rowToExamineIndex = 0
             while (rowToExamineIndex < len(cidRows)) and (fieldRowIndex is None):
                 cidRowToExamine = cidRows[rowToExamineIndex]
-                if (len(cidRowToExamine) >= 6) and (cidRowToExamine[0] == u"f") and (cidRowToExamine[1] == fieldName):
+                if (len(cidRowToExamine) >= 6) and (cidRowToExamine[0] == "f") and (cidRowToExamine[1] == fieldName):
                     fieldRowIndex = rowToExamineIndex
                 else:
                     rowToExamineIndex += 1
@@ -136,9 +136,9 @@ class SniffTest(unittest.TestCase):
             testFile = open(testFilePath, "rb")
             try:
                 cidRows = sniff.createCidRows(testFile)
-                assertFieldTypeEquals(cidRows, u"column_a", u"Integer")  # branch
-                assertFieldTypeEquals(cidRows, u"column_c", u"Text")  # first name
-                assertFieldTypeEquals(cidRows, u"column_f", u"Text")  # date of birth
+                assertFieldTypeEquals(cidRows, "column_a", "Integer")  # branch
+                assertFieldTypeEquals(cidRows, "column_c", "Text")  # first name
+                assertFieldTypeEquals(cidRows, "column_f", "Text")  # date of birth
             finally:
                 testFile.close()
 
@@ -164,7 +164,7 @@ class SniffTest(unittest.TestCase):
         testFilePath = dev_test.getTestInputPath("valid_alltypes.csv")
         with open(testFilePath, "rb") as testFile:
             cid = sniff.createCid(testFile, header=1)
-            self.assertEqual(cid.fieldNames, [u'customer_id', u'short_name', u'gender', u'date_of_birth', u'balance'])
+            self.assertEqual(cid.fieldNames, ['customer_id', 'short_name', 'gender', 'date_of_birth', 'balance'])
             self.assertEqual(cid.fieldFormatFor('customer_id').__class__, fields.IntegerFieldFormat)
             self.assertEqual(cid.fieldFormatFor('short_name').__class__, fields.TextFieldFormat)
             self.assertEqual(cid.fieldFormatFor('gender').__class__, fields.TextFieldFormat)

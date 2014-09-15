@@ -18,10 +18,10 @@ Heuristic data analysis to figure out file types and field formats.
 import logging
 import string
 
-import data
-import fields
-import tools
-import _tools
+from . import data
+from . import fields
+from . import tools
+from . import _tools
 
 _log = logging.getLogger("cutplace")
 
@@ -86,14 +86,14 @@ def createDataFormat(readable, **keywords):
     assert encoding is not None
 
     icdHeader = readable.read(4)
-    _log.debug(u"header=%r", icdHeader)
+    _log.debug("header=%r", icdHeader)
     if _tools.isEqualBytes(icdHeader, _ODS_HEADER):
         # Consider ICD to be ODS.
         dataFormatName = data.FORMAT_ODS
     else:
         icdHeader += readable.read(4)
-        assert isinstance(icdHeader, str), u"icdHeader=%r but must be a string; use open(..., 'rb') instead of codecs.open()" % icdHeader
-        assert isinstance(_EXCEL_HEADER, str), u"_EXCEL_HEADER=%r" % _EXCEL_HEADER
+        assert isinstance(icdHeader, str), "icdHeader=%r but must be a string; use open(..., 'rb') instead of codecs.open()" % icdHeader
+        assert isinstance(_EXCEL_HEADER, str), "_EXCEL_HEADER=%r" % _EXCEL_HEADER
         if _tools.isEqualBytes(icdHeader, _EXCEL_HEADER):
             # Consider ICD to be Excel.
             dataFormatName = data.FORMAT_EXCEL
@@ -104,7 +104,7 @@ def createDataFormat(readable, **keywords):
     if result.name == data.FORMAT_DELIMITED:
         readable.seek(0)
         options = delimitedOptions(readable, **keywords)
-        for key, value in options.items():
+        for key, value in list(options.items()):
             propertyName = _tools.decamelized(key)
             if key == _LINE_DELIMITER:
                 value = _LINE_DELIMITER_TO_NAME_MAP[value]
@@ -120,7 +120,7 @@ def createReader(readable, **keywords):
     it returns a Python array for each row of data.
     """
     # TODO: Get rid of circular import.
-    import _parsers
+    from . import _parsers
 
     assert readable is not None
     encoding = keywords.get("encoding", DEFAULT_ENCODING)
@@ -128,7 +128,7 @@ def createReader(readable, **keywords):
 
     result = None
     icdHeader = readable.read(4)
-    _log.debug(u"header=%r", icdHeader)
+    _log.debug("header=%r", icdHeader)
     if icdHeader == _ODS_HEADER:
         # Consider ICD to be ODS.
         readable.seek(0)
@@ -199,7 +199,7 @@ def delimitedOptions(readable, **keywords):
                 actualLineDelimiter = CRLF
             else:
                 actualLineDelimiter = LF
-        _log.debug(u"  detected line delimiter: %r", actualLineDelimiter)
+        _log.debug("  detected line delimiter: %r", actualLineDelimiter)
     else:
         actualLineDelimiter = lineDelimiter
     if itemDelimiter == data.ANY:
@@ -216,7 +216,7 @@ def delimitedOptions(readable, **keywords):
             if itemDelimiterToCountMap[possibleItemDelimiter] > delimiterCount:
                 delimiterCount = itemDelimiterToCountMap[possibleItemDelimiter]
                 actualItemDelimiter = possibleItemDelimiter
-            _log.debug(u"  detected item delimiter: %r", actualItemDelimiter)
+            _log.debug("  detected item delimiter: %r", actualItemDelimiter)
     else:
         actualItemDelimiter = itemDelimiter
 
@@ -291,25 +291,25 @@ class _ColumnSniffInfo(object):
                 self._isAlwaysNumber[_tools.NUMBER_DECIMAL_POINT] = False
                 self._isAlwaysNumber[_tools.NUMBER_INTEGER] = False
                 if usesThousandsSeparator and not self.usesThousandsSeparator:
-                    _log.debug(u"field '%s' uses thousands separator because of value %r", self.name, value)
+                    _log.debug("field '%s' uses thousands separator because of value %r", self.name, value)
                     self._usesThousandsSeparator = usesThousandsSeparator
-                _log.debug(u"field '%s' cannot be long or decimal point number: %r", self.name, value)
+                _log.debug("field '%s' cannot be long or decimal point number: %r", self.name, value)
             elif numberTypeOfValue == _tools.NUMBER_DECIMAL_POINT:
                 self._isAlwaysNumber[_tools.NUMBER_DECIMAL_COMMA] = False
                 self._isAlwaysNumber[_tools.NUMBER_INTEGER] = False
                 if usesThousandsSeparator and not self.usesThousandsSeparator:
-                    _log.debug(u"field '%s' uses thousands separator because of value %r", self.name, value)
+                    _log.debug("field '%s' uses thousands separator because of value %r", self.name, value)
                     self._usesThousandsSeparator = usesThousandsSeparator
-                _log.debug(u"field '%s' cannot be long or decimal comma number: %r", self.name, value)
+                _log.debug("field '%s' cannot be long or decimal comma number: %r", self.name, value)
             elif numberTypeOfValue is None:
                 self._isAlwaysNumber[_tools.NUMBER_DECIMAL_COMMA] = False
                 self._isAlwaysNumber[_tools.NUMBER_DECIMAL_POINT] = False
                 self._isAlwaysNumber[_tools.NUMBER_INTEGER] = False
-                _log.debug(u"field '%s' cannot be long number (and neither decimal): %r", self.name, value)
+                _log.debug("field '%s' cannot be long number (and neither decimal): %r", self.name, value)
             else:
                 assert numberTypeOfValue == _tools.NUMBER_INTEGER
             if not self.isNumber:
-                _log.debug(u"field '%s' cannot be any number: %r", self.name, value)
+                _log.debug("field '%s' cannot be any number: %r", self.name, value)
 
     def changeToTextField(self):
         self._isAlwaysNumber[_tools.NUMBER_DECIMAL_COMMA] = False
@@ -338,20 +338,20 @@ class _ColumnSniffInfo(object):
         isAllowedToBeEmpty = (self.emptyCount > 0)
         lengthText = ""
         if self.minLength == self.maxLength:
-            lengthText = unicode(self.minLength)
+            lengthText = str(self.minLength)
         else:
             if self.minLength:
-                lengthText += unicode(self.minLength)
+                lengthText += str(self.minLength)
             lengthText += ":%d" % self.maxLength
 
         # TODO: Detect date format.
         # TODO: Collect range for Integer and Decimal fields.
         if self._isAlwaysNumber[_tools.NUMBER_INTEGER]:
-            result = fields.IntegerFieldFormat(self.name, isAllowedToBeEmpty, u"", u"", self.dataFormat)
+            result = fields.IntegerFieldFormat(self.name, isAllowedToBeEmpty, "", "", self.dataFormat)
         elif self._isAlwaysNumber[_tools.NUMBER_DECIMAL_COMMA] or self._isAlwaysNumber[_tools.NUMBER_DECIMAL_POINT]:
-            result = fields.DecimalFieldFormat(self.name, isAllowedToBeEmpty, u"", u"", self.dataFormat)
+            result = fields.DecimalFieldFormat(self.name, isAllowedToBeEmpty, "", "", self.dataFormat)
         else:
-            result = fields.TextFieldFormat(self.name, isAllowedToBeEmpty, lengthText, u"", self.dataFormat)
+            result = fields.TextFieldFormat(self.name, isAllowedToBeEmpty, lengthText, "", self.dataFormat)
         result.example = self.example
         return result
 
@@ -386,10 +386,10 @@ def createCidRows(readable, **keywords):
     headerRowsToSkip = keywords.get("header", 0)
     assert headerRowsToSkip >= 0
     fieldNames = keywords.get("fieldNames")
-    if isinstance(fieldNames, basestring):
+    if isinstance(fieldNames, str):
         fieldNames = [name.strip() for name in fieldNames.split(",")]
     elif fieldNames is not None:
-        assert isinstance(fieldNames, list), u"field names must be a list or string but is: %s" % type(fieldNames)
+        assert isinstance(fieldNames, list), "field names must be a list or string but is: %s" % type(fieldNames)
 
     def decimalRows(hasDecimals, usesThousandsSeparator, decimalSeparator, thousandsSeparator):
         result = []
@@ -401,7 +401,7 @@ def createCidRows(readable, **keywords):
 
     NO_COUNT = -1
 
-    _log.debug(u"find longest segment of rows with same column count")
+    _log.debug("find longest segment of rows with same column count")
     currentSegmentColumnCount = None
     longestSegmentColumnCount = NO_COUNT
     longestSegmentRowCount = NO_COUNT
@@ -424,7 +424,7 @@ def createCidRows(readable, **keywords):
         if isReadFieldNamesFromHeader and (rowIndex == headerRowsToSkip - 1):
             fieldNames = rowToAnalyze
         if (rowIndex >= headerRowsToSkip) and (columnCount != currentSegmentColumnCount):
-            _log.debug(u"  segment starts in row %d after %d rows", rowIndex, currentSegmentRowCount)
+            _log.debug("  segment starts in row %d after %d rows", rowIndex, currentSegmentRowCount)
             if currentSegmentRowCount > longestSegmentRowCount:
                 rowIndexWhereLongestSegmentStarts = rowIndexWhereCurrentSegmentStarted
                 longestSegmentRowCount = currentSegmentRowCount
@@ -444,7 +444,7 @@ def createCidRows(readable, **keywords):
         else:
             location = None
         if not fieldNames:
-            raise data.DataFormatSyntaxError(u"the field names specified must contain at least 1 name", location)
+            raise data.DataFormatSyntaxError("the field names specified must contain at least 1 name", location)
         uniquefieldNames = set()
         for nameIndex in range(len(fieldNames)):
             fieldNameToCheck = fieldNames[nameIndex]
@@ -452,36 +452,36 @@ def createCidRows(readable, **keywords):
                 fieldNameToCheck = _tools.namified(fieldNameToCheck)
             fieldNameToCheck = fields.validatedFieldName(fieldNameToCheck, location)
             if fieldNameToCheck in uniquefieldNames:
-                raise fields.FieldSyntaxError(u"field name must be unique: %s" % fieldNameToCheck, location)
+                raise fields.FieldSyntaxError("field name must be unique: %s" % fieldNameToCheck, location)
             fieldNames[nameIndex] = fieldNameToCheck
             uniquefieldNames.add(fieldNameToCheck)
             if location:
                 location.advanceCell()
 
     # Handle the case that the whole file can be one large segment.
-    _log.debug(u"last segment started in row %d and lasted for %d rows", rowIndexWhereCurrentSegmentStarted, currentSegmentRowCount)
+    _log.debug("last segment started in row %d and lasted for %d rows", rowIndexWhereCurrentSegmentStarted, currentSegmentRowCount)
     if currentSegmentRowCount > longestSegmentRowCount:
         rowIndexWhereLongestSegmentStarts = rowIndexWhereCurrentSegmentStarted
         longestSegmentRowCount = currentSegmentRowCount
         longestSegmentColumnCount = currentSegmentColumnCount
 
     if longestSegmentRowCount < 1:
-        raise CutplaceSniffError(u"content must contain data for format to be sniffed")
-    _log.debug(u"found longest segment starting in row %d lasting for %d rows having %d columns",
+        raise CutplaceSniffError("content must contain data for format to be sniffed")
+    _log.debug("found longest segment starting in row %d lasting for %d rows having %d columns",
         rowIndexWhereLongestSegmentStarts, longestSegmentRowCount, longestSegmentColumnCount)
 
     assert rowIndexWhereLongestSegmentStarts is not None
-    _log.debug(u"skip %d rows until longest segment starts", rowIndexWhereLongestSegmentStarts)
+    _log.debug("skip %d rows until longest segment starts", rowIndexWhereLongestSegmentStarts)
     readable.seek(0)
     reader = createReader(readable, **keywords)
     rowIndex = 0
     location = tools.InputLocation(readable)
     while rowIndex < rowIndexWhereLongestSegmentStarts:
-        reader.next()
+        next(reader)
         location.advanceLine()
         rowIndex += 1
 
-    _log.debug(u"analyze longest segment of rows with same column count")
+    _log.debug("analyze longest segment of rows with same column count")
     columnInfos = []
     for columnIndex in range(longestSegmentColumnCount):
         columnInfoToAppend = _ColumnSniffInfo(columnIndex, dataFormat)
@@ -490,11 +490,11 @@ def createCidRows(readable, **keywords):
         columnInfos.append(columnInfoToAppend)
     rowIndex = 0
     while rowIndex < longestSegmentRowCount:
-        rowToAnalyze = reader.next()
+        rowToAnalyze = next(reader)
         if rowIndex >= headerRowsToSkip:
             columnCountOfRowToAnalyze = len(rowToAnalyze)
             if columnCountOfRowToAnalyze != longestSegmentColumnCount:
-                raise CutplaceSniffError(u"data must not change between sniffer passes, but row %d now has %d columns instead of %d" \
+                raise CutplaceSniffError("data must not change between sniffer passes, but row %d now has %d columns instead of %d" \
                     % (rowIndex + 1, columnCountOfRowToAnalyze, longestSegmentColumnCount), location)
             for itemIndex in range(longestSegmentColumnCount):
                 value = rowToAnalyze[itemIndex]
@@ -509,20 +509,20 @@ def createCidRows(readable, **keywords):
     for columnInfo in columnInfos:
         if columnInfo.isNumber and not columnInfo.isInteger:
             if columnInfo.isDecimalComma:
-                _log.debug(u"field is decimal with comma as separator: %s", columnInfo.name)
+                _log.debug("field is decimal with comma as separator: %s", columnInfo.name)
                 decimalCommaColumnCount += 1
                 if columnInfo.usesThousandsSeparator:
-                    _log.debug(u"  decimal field uses point as thousands separator: %s", columnInfo.name)
+                    _log.debug("  decimal field uses point as thousands separator: %s", columnInfo.name)
                     usesThousandSeparator = True
             elif columnInfo.isDecimalPoint:
-                _log.debug(u"field is decimal with point as separator: %s", columnInfo.name)
+                _log.debug("field is decimal with point as separator: %s", columnInfo.name)
                 decimalPointColumnCount += 1
                 if columnInfo.usesThousandsSeparator:
-                    _log.debug(u"  decimal field uses comma as thousands separator: %s", columnInfo.name)
+                    _log.debug("  decimal field uses comma as thousands separator: %s", columnInfo.name)
                     usesThousandSeparator = True
 
     if (decimalCommaColumnCount > 0) and (decimalPointColumnCount > 0):
-        _log.warning(u"columns use different decimal separators: %d use comma, %d use point",
+        _log.warning("columns use different decimal separators: %d use comma, %d use point",
             decimalCommaColumnCount, decimalPointColumnCount)
         hasToChangeDecimalComma = (decimalCommaColumnCount < decimalPointColumnCount)
         if hasToChangeDecimalComma:
@@ -531,12 +531,12 @@ def createCidRows(readable, **keywords):
             decimalPointColumnCount = 0
         for columnInfo in columnInfos:
             if (columnInfo.isDecimalComma and hasToChangeDecimalComma) or columnInfo.isDecimalPoint and not hasToChangeDecimalComma:
-                _log.warn(u"  change '%s' to text field", columnInfo.name)
+                _log.warn("  change '%s' to text field", columnInfo.name)
                 columnInfo.changeToTextField()
     assert (decimalCommaColumnCount == 0) or (decimalPointColumnCount == 0)
 
     for columnIndex in range(longestSegmentColumnCount):
-        _log.debug(u"  %s" % columnInfos[columnIndex].asFieldFormat())
+        _log.debug("  %s" % columnInfos[columnIndex].asFieldFormat())
 
     # Build rows for CID: data data format.
     icdRows = []
@@ -546,7 +546,7 @@ def createCidRows(readable, **keywords):
         dataFormatCsvRow = ['d']
         dataFormatCsvRow.extend(dataFormatRow)
         icdRows.append(dataFormatCsvRow)
-    _log.info(u"number of decimal fields: %d with comma, %d with point", decimalCommaColumnCount, decimalPointColumnCount)
+    _log.info("number of decimal fields: %d with comma, %d with point", decimalCommaColumnCount, decimalPointColumnCount)
     icdRows.extend(decimalRows(decimalCommaColumnCount > 0, usesThousandSeparator, ",", "."))
     icdRows.extend(decimalRows(decimalPointColumnCount > 0, usesThousandSeparator, ".", ","))
     icdRows.append([])
@@ -558,13 +558,13 @@ def createCidRows(readable, **keywords):
         fieldRow = ["f"]
         fieldRow.extend(fieldFormat.asIcdRow())
         icdRows.append(fieldRow)
-        _log.debug(u"  %s", fieldRow)
+        _log.debug("  %s", fieldRow)
 
     return icdRows
 
 
 def createCid(readable, **keywords):
-    import interface
+    from . import interface
     result = interface.InterfaceControlDocument()
     icdRows = createCidRows(readable, **keywords)
     result.readFromRows(icdRows)

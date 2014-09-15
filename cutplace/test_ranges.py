@@ -17,7 +17,7 @@ Tests for ranges.
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
 
-import ranges
+from . import ranges
 
 
 class RangeTest(unittest.TestCase):
@@ -90,12 +90,12 @@ class RangeTest(unittest.TestCase):
         try:
             ranges.Range("?")
             self.fail("test must fail with RangeSyntaxError")
-        except ranges.RangeSyntaxError, error:
+        except ranges.RangeSyntaxError as error:
             self.assertEqual(str(error), "range must be specified using integer numbers, text, symbols and colon (:) but found: '?' [token type: 52]")
         try:
             ranges.Range("1.23")
             self.fail("test must fail with RangeSyntaxError")
-        except ranges.RangeSyntaxError, error:
+        except ranges.RangeSyntaxError as error:
             self.assertEqual(str(error), "number must be an integer but is: '1.23'")
 
     def testBrokenSymbolicNames(self):

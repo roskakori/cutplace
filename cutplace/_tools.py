@@ -28,7 +28,7 @@ import optparse
 import os
 import platform
 import re
-import StringIO
+import io
 import token
 import tokenize
 import threading
@@ -60,12 +60,12 @@ class UTF8Recoder:
     def __iter__(self):
         return self
 
-    def next(self):  # @ReservedAssignment
+    def __next__(self):  # @ReservedAssignment
         try:
             result = self.reader.next().encode("utf-8")
-        except UnicodeError, error:
-            from tools import CutplaceUnicodeError
-            raise CutplaceUnicodeError(u"cannot decode input: %s" % error, cause=error)
+        except UnicodeError as error:
+            from .tools import CutplaceUnicodeError
+            raise CutplaceUnicodeError("cannot decode input: %s" % error, cause=error)
         return result
 
 
@@ -79,9 +79,9 @@ class UnicodeCsvReader:
         f = UTF8Recoder(f, encoding)
         self.reader = csv.reader(f, dialect=dialect, **kwds)
 
-    def next(self):  # @ReservedAssignment
-        row = self.reader.next()
-        return [unicode(s, "utf-8") for s in row]
+    def __next__(self):  # @ReservedAssignment
+        row = next(self.reader)
+        return [str(s, "utf-8") for s in row]
 
     def __iter__(self):
         return self
@@ -95,7 +95,7 @@ class UnicodeCsvWriter:
 
     def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
         # Redirect output to a queue
-        self.queue = StringIO.StringIO()
+        self.queue = io.StringIO()
         self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
         self.stream = f
         self.encoder = codecs.getincrementalencoder(encoding)()
@@ -155,13 +155,13 @@ class FinishableThread(threading.Thread):
         Stop the thread and wait for it to finish.
         """
         if self.isAlive():
-            self.log.info(u"finished")
+            self.log.info("finished")
             # Set event to signal thread to terminate.
             self._stopEvent.set()
             # Block calling thread until thread really has terminated.
             self.join()
         else:
-            self.log.warning(u"ignored attempt to finish finished thread")
+            self.log.warning("ignored attempt to finish finished thread")
 
     @property
     def log(self):
@@ -201,7 +201,7 @@ def mkdirs(folder):
 
     try:
         os.makedirs(folder)
-    except OSError, error:
+    except OSError as error:
         if error.errno != errno.EEXIST:
             raise
 
@@ -214,7 +214,7 @@ def attemptToRemove(filePath):
 
     try:
         os.remove(filePath)
-    except OSError, error:
+    except OSError as error:
         if error.errno != errno.EEXIST:
             raise
 
@@ -228,20 +228,20 @@ def validatedPythonName(name, value):
     assert name
     assert value is not None
 
-    readable = StringIO.StringIO(value.strip())
+    readable = io.StringIO(value.strip())
     toky = tokenize.generate_tokens(readable.readline)
-    nextToken = toky.next()
+    nextToken = next(toky)
     nextType = nextToken[0]
     result = nextToken[1]
     if tokenize.ISEOF(nextType):
-        raise NameError(u"%s must not be empty but was: %r" % (name, value))
+        raise NameError("%s must not be empty but was: %r" % (name, value))
     if nextType != token.NAME:
-        raise NameError(u"%s must contain only ASCII letters, digits and underscore (_) but is: %r"
+        raise NameError("%s must contain only ASCII letters, digits and underscore (_) but is: %r"
                          % (name, value))
-    secondToken = toky.next()
+    secondToken = next(toky)
     secondTokenType = secondToken[0]
     if not tokenize.ISEOF(secondTokenType):
-        raise NameError(u"%s must be a single word, but after %r there also is %r" % (name, result, secondToken[1]))
+        raise NameError("%s must be a single word, but after %r there also is %r" % (name, result, secondToken[1]))
     return result
 
 
@@ -250,7 +250,7 @@ def camelized(key, firstIsLower=False):
     Camelized name of possibly multiple words separated by blanks that can be used for variables.
     """
     assert key is not None
-    assert key == key.strip(), u"key must be trimmed"
+    assert key == key.strip(), "key must be trimmed"
     result = ""
     for part in key.split():
         result += part[0].upper() + part[1:].lower()
@@ -275,7 +275,7 @@ def decamelized(name):
     ''
     """
     assert name is not None
-    assert name == name.strip(), u"name must be trimmed"
+    assert name == name.strip(), "name must be trimmed"
     if name:
         result = name[0]
         for c in name[1:]:
@@ -344,7 +344,7 @@ def tokenizeWithoutSpace(text):
     ``text`` split into token with any white space tokens removed.
     """
     assert text is not None
-    for toky in tokenize.generate_tokens(StringIO.StringIO(text).readline):
+    for toky in tokenize.generate_tokens(io.StringIO(text).readline):
         tokyType = toky[0]
         tokyText = toky[1]
         if ((tokyType != token.INDENT) and tokyText.strip()) or (tokyType == token.ENDMARKER):
@@ -432,13 +432,13 @@ def asciified(text):
     equivalent.
     """
     assert text is not None
-    if not isinstance(text, unicode):
-        raise ValueError(u"text must be unicode instead of %s" % type(text))
-    result = u""
+    if not isinstance(text, str):
+        raise ValueError("text must be unicode instead of %s" % type(text))
+    result = ""
     for ch in text:
         decomp = unicodedata.decomposition(ch)
         if decomp:
-            result += unichr(int(decomp.split()[0], 16))
+            result += chr(int(decomp.split()[0], 16))
         else:
             result += ch
     return result
@@ -484,10 +484,10 @@ def numbered(value, decimalSeparator=".", thousandsSeparator=","):
     lastThousandsSeparatorIndex = None
     hasBrokenThousandsSeparator = False
     try:
-        resultValue = long(value)
+        resultValue = int(value)
         resultType = NUMBER_INTEGER
     except ValueError:
-        decimalText = u""
+        decimalText = ""
         decimalDelimiterCount = 0
         charIndex = 0
         charCount = len(value)
@@ -505,7 +505,7 @@ def numbered(value, decimalSeparator=".", thousandsSeparator=","):
                 lastThousandsSeparatorIndex = charIndex
             else:
                 if charToExamine == decimalSeparator:
-                    charToExamine = u"."
+                    charToExamine = "."
                     decimalDelimiterCount += 1
                 decimalText += charToExamine
             charIndex += 1

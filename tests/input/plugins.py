@@ -16,5 +16,5 @@ class CapitalizedTextFieldFormat(fields.AbstractFieldFormat):
         if value:
             firstChar = value[0]
             if not firstChar.isupper():
-                raise fields.FieldValueError(u"first character %r must be changed to upper case: %r" % (firstChar, value))
+                raise fields.FieldValueError("first character %r must be changed to upper case: %r" % (firstChar, value))
         return value

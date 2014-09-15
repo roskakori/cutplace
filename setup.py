@@ -60,7 +60,7 @@ def _copyFilesToFolder(sourceFolder, targetFolder, pattern=".*"):
             if fileNameToCopyRegEx.match(fileName) and not ".svn" in baseFolder:
                 sourceFilePath = os.path.join(baseFolder, fileName)
                 targetFilePath = os.path.join(targetFolder, fileName)
-                print "copying %r to %r" % (sourceFilePath, targetFilePath)
+                print(("copying %r to %r" % (sourceFilePath, targetFilePath)))
                 shutil.copy(sourceFilePath, targetFilePath)
 
 class _DocsCommand(Command):
@@ -81,7 +81,7 @@ class _DocsCommand(Command):
         assert odsSourcePath is not None
         csvTargetPath = _tools.withSuffix(odsSourcePath, ".csv")
         rstTargetPath = _tools.withSuffix(odsSourcePath, ".rst")
-        print "generating %r and %r" % (csvTargetPath, rstTargetPath)
+        print(("generating %r and %r" % (csvTargetPath, rstTargetPath)))
         _ods.toCsv(odsSourcePath, csvTargetPath)
         _ods.toRst(odsSourcePath, rstTargetPath, firstRowIsHeading=False)
 
@@ -94,7 +94,7 @@ class _DocsCommand(Command):
     def run(self):
         self._convertAllOdsToCsvAndRst("examples")
         sphinxCall = ["sphinx-build", "-b", "html", "-N", "-q", docsFolder, buildSiteFolder]
-        print " ".join(sphinxCall)
+        print((" ".join(sphinxCall)))
         subprocess.check_call(sphinxCall)
 
 setup(
