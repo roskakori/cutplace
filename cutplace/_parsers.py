@@ -19,14 +19,14 @@ containing the columns.
 import csv
 import datetime
 import logging
-import Queue
+import queue
 import threading
 
-import data
-import sniff
-import tools
-import _ods
-import _tools
+from . import data
+from . import sniff
+from . import tools
+from . import _ods
+from . import _tools
 
 AUTO = data.ANY
 CR = "\r"
@@ -46,7 +46,7 @@ def _createRowQueue():
     A queue to be used for consumer/producer readers, ensuring that memory usage is kept at bay even when
     reading is much faster than validating.
     """
-    return Queue.Queue(3)
+    return queue.Queue(3)
 
 
 class _AbstractRowProducerThread(threading.Thread):
@@ -69,13 +69,13 @@ class _AbstractRowProducerThread(threading.Thread):
         """
         Reader to yield ``readable`` row by row.
         """
-        raise NotImplementedError(u'reader() must be implemented')
+        raise NotImplementedError('reader() must be implemented')
 
     def run(self):
         try:
             for row in self.reader():
                 self._targetQueue.put(row)
-        except Exception, error:
+        except Exception as error:
             # Remember error information to raise it later during `join()`.
             self._error = error
         finally:
@@ -109,21 +109,21 @@ def _excelCellValue(cell, datemode):
 
     if cell.ctype == xlrd.XL_CELL_DATE:
         cellTuple = xlrd.xldate_as_tuple(cell.value, datemode)
-        assert len(cellTuple) == 6, u"cellTuple=%r" % cellTuple
+        assert len(cellTuple) == 6, "cellTuple=%r" % cellTuple
         if cellTuple[:3] == (0, 0, 0):
             timeTuple = cellTuple[3:]
-            result = unicode(datetime.time(*timeTuple))
+            result = str(datetime.time(*timeTuple))
         else:
-            result = unicode(datetime.datetime(*cellTuple))
+            result = str(datetime.datetime(*cellTuple))
     elif cell.ctype == xlrd.XL_CELL_ERROR:
         defaultErrorText = xlrd.error_text_from_code[0x2a]  # same as "#N/A!"
         errorCode = cell.value
-        result = unicode(xlrd.error_text_from_code.get(errorCode, defaultErrorText), "ascii")
-    elif isinstance(cell.value, unicode):
+        result = str(xlrd.error_text_from_code.get(errorCode, defaultErrorText), "ascii")
+    elif isinstance(cell.value, str):
         result = cell.value
     else:
-        result = unicode(cell.value)
-        if (cell.ctype == xlrd.XL_CELL_NUMBER) and (result.endswith(u".0")):
+        result = str(cell.value)
+        if (cell.ctype == xlrd.XL_CELL_NUMBER) and (result.endswith(".0")):
             result = result[:-2]
 
     return result
@@ -140,7 +140,7 @@ class _ExcelRowProducerThread(_AbstractRowProducerThread):
         try:
             import xlrd
         except ImportError:
-            raise CutplaceXlrdImportError(u"to read Excel data the xlrd package must be installed, see <http://pypi.python.org/pypi/xlrd> for more information")
+            raise CutplaceXlrdImportError("to read Excel data the xlrd package must be installed, see <http://pypi.python.org/pypi/xlrd> for more information")
 
         contents = self.readable.read()
         workbook = xlrd.open_workbook(file_contents=contents)
@@ -277,16 +277,16 @@ class ParserSyntaxError(tools.CutplaceError):
         self.columnNumberInLine = columnNumberInLine
 
     def __unicode__(self):
-        result = u"(" + _tools.valueOr(u"%d" % (self.lineNumber + 1), u"?")
+        result = "(" + _tools.valueOr("%d" % (self.lineNumber + 1), "?")
         if self.columnNumberInLine is not None:
-            result += u";%d" % self.columnNumberInLine
+            result += ";%d" % self.columnNumberInLine
         if self.itemNumberInLine is not None:
-            result += u"@%d" % (self.itemNumberInLine + 1)
-        result += u"): %s" % self.message
+            result += "@%d" % (self.itemNumberInLine + 1)
+        result += "): %s" % self.message
         return result
 
     def __str__(self):
-        unicode(self).encode('utf-8')
+        str(self).encode('utf-8')
 
     def __repr__(self):
         return "ParserSyntaxError(%s)" % self.__str__()
@@ -370,8 +370,8 @@ class _FixedParser(object):
             self.itemNumberInRow += 1
         expectedLength = self.fieldLengths[self.itemNumberInRow]
         self.item = self.readable.read(expectedLength)
-        if not isinstance(self.item, unicode):
-            raise UnicodeEncodeError(u"filelike object for fixed data set must be opened using codecs.open() instead of open()")
+        if not isinstance(self.item, str):
+            raise UnicodeEncodeError("filelike object for fixed data set must be opened using codecs.open() instead of open()")
         if (self.item == "") and (self.itemNumberInRow == 0):
             self.item = None
             self.atEndOfLine = True
@@ -380,7 +380,7 @@ class _FixedParser(object):
             actualLength = len(self.item)
             if actualLength != expectedLength:
                 self._raiseSyntaxError(
-                    u"item must have %d characters but data already end after %d yielding: %r"
+                    "item must have %d characters but data already end after %d yielding: %r"
                     % (expectedLength, actualLength, self.item)
                 )
             self.columnNumberInRow += actualLength

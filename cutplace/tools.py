@@ -72,7 +72,7 @@ class InputLocation(object):
         <io> (1;1)
         """
         assert filePath
-        if isinstance(filePath, types.StringTypes):
+        if isinstance(filePath, str):
             self.filePath = filePath
         elif isinstance(filePath, types.FileType):
             self.filePath = filePath.name
@@ -154,20 +154,20 @@ class InputLocation(object):
         """
         Human readable representation of the input location; see `__init__()` for some examples.
         """
-        result = u"" + os.path.basename(self.filePath) + u" ("
+        result = "" + os.path.basename(self.filePath) + " ("
         if self._hasCell:
             if self._hasSheet:
-                result += u"Sheet%d!" % (self.sheet + 1)
-            result += u"R%dC%d" % (self.line + 1, self.cell + 1)
+                result += "Sheet%d!" % (self.sheet + 1)
+            result += "R%dC%d" % (self.line + 1, self.cell + 1)
         else:
-            result += u"%d" % (self.line + 1)
+            result += "%d" % (self.line + 1)
         if self._hasColumn:
-            result += u";%d" % (self.column + 1)
-        result += u")"
+            result += ";%d" % (self.column + 1)
+        result += ")"
         return result
 
     def __str__(self):
-        return unicode(self).encode('utf-8')
+        return str(self).encode('utf-8')
 
     def __repr__(self):
         return self.__str__()
@@ -269,19 +269,19 @@ class _BaseCutplaceError(Exception):
         return self._cause
 
     def __str__(self):
-        return unicode(self).encode('utf-8')
+        return str(self).encode('utf-8')
 
     def __unicode__(self):
-        result = u""
+        result = ""
         if self._location:
-            result += unicode(self.location) + u": "
+            result += str(self.location) + ": "
         # Note: We cannot use `super` because `Exception` is an old style class.
         result += Exception.__str__(self)
         if self.seeAlsoMessage:
-            result += u" (see also: "
+            result += " (see also: "
             if self.seeAlsoLocation:
-                result += unicode(self.seeAlsoLocation) + u": "
-            result += self.seeAlsoMessage + u")"
+                result += str(self.seeAlsoLocation) + ": "
+            result += self.seeAlsoMessage + ")"
         return result
 
 
@@ -318,10 +318,10 @@ class ErrorInfo(object):
         self.errorTrace = excInfo[2]
 
     def reraise(self):
-        raise self.errorType, self.error, self.errorTrace
+        raise self.errorType(self.error).with_traceback(self.errorTrace)
 
     def __unicode__(self):
-        return unicode(self.error)
+        return str(self.error)
 
     def __str__(self):
-        return unicode(self).encode('utf-8')
+        return str(self).encode('utf-8')

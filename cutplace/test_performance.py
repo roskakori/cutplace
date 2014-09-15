@@ -19,8 +19,8 @@ import logging
 import os.path
 import unittest
 
-import dev_test
-import _cutplace
+from . import dev_test
+from . import _cutplace
 
 _log = logging.getLogger("cutplace.dev_reports")
 _hasProfiler = False
@@ -29,8 +29,8 @@ try:
     import cProfile
     import pstats
     _hasProfiler = True
-except ImportError, error:
-    _log.warning(u"cannot test performance: %s", error)
+except ImportError as error:
+    _log.warning("cannot test performance: %s", error)
 
 
 def _buildAndValidateManyCustomers():
@@ -39,7 +39,7 @@ def _buildAndValidateManyCustomers():
     dev_test.createLotsOfCustomersCsv(locCsvPath, customerCount=20000)
     exitCode = _cutplace.main(["test_performance.py", icdOdsPath, locCsvPath])
     if exitCode != 0:
-        raise ValueError(u"exit code of performance test must be 0 but is %d" % exitCode)
+        raise ValueError("exit code of performance test must be 0 but is %d" % exitCode)
 
 
 class PerformanceTest(unittest.TestCase):

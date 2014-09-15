@@ -17,12 +17,12 @@ Tests for `_parsers`.
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import logging
-import StringIO
+import io
 import types
 import unittest
 
-import dev_test
-import _parsers
+from . import dev_test
+from . import _parsers
 
 _log = logging.getLogger("cutplace.test_parsers")
 
@@ -32,8 +32,8 @@ class AbstractParserTest(unittest.TestCase):
     Abstract TestCase acting as base for the other test cases in this module.
     """
     def possiblyStringIoedReadable(self, readable):
-        if isinstance(readable, types.StringTypes):
-            result = StringIO.StringIO(readable)
+        if isinstance(readable, str):
+            result = io.StringIO(readable)
         else:
             result = readable
         return result
@@ -92,13 +92,13 @@ class FixedParserTest(AbstractParserTest):
         self.readAndAssertEquals(expectedRows, reader)
 
     def testEmpty(self):
-        self._testParse([], u"")
+        self._testParse([], "")
 
     def testValid(self):
-        self._testParse([[u"38000", u" 123", u"Doe       "]], u"38000 123Doe       ")
+        self._testParse([["38000", " 123", "Doe       "]], "38000 123Doe       ")
 
     def testBrokenEndingTooSoon(self):
-        self.assertRaises(_parsers.ParserSyntaxError, self._testParse, [], u"38000 123Doe  ")
+        self.assertRaises(_parsers.ParserSyntaxError, self._testParse, [], "38000 123Doe  ")
 
 
 class DelimitedParserTest(AbstractParserTest):
@@ -215,7 +215,7 @@ class DelimitedParserTest(AbstractParserTest):
 
     def testReader(self):
         dialect = self._createDefaultDialect()
-        dataStream = StringIO.StringIO("hugo,was" + _parsers.LF + "here,again")
+        dataStream = io.StringIO("hugo,was" + _parsers.LF + "here,again")
         csvReader = _parsers.delimitedReader(dataStream, dialect)
         rowCount = 0
         for row in csvReader:
@@ -226,7 +226,7 @@ class DelimitedParserTest(AbstractParserTest):
     def testAutoItemDelimiter(self):
         dialect = self._createDefaultDialect()
         dialect.itemDelimiter = _parsers.AUTO
-        dataStream = StringIO.StringIO("some;items;using;a;semicolon;as;separator")
+        dataStream = io.StringIO("some;items;using;a;semicolon;as;separator")
         csvReader = _parsers.delimitedReader(dataStream, dialect)
         rowCount = 0
         for row in csvReader:

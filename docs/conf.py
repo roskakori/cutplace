@@ -37,8 +37,8 @@ source_suffix = '.rst'
 master_doc = 'contents'
 
 # General information about the project.
-project = u'cutplace'
-copyright = u'2009-2011, Thomas Aglassinger'
+project = 'cutplace'
+copyright = '2009-2011, Thomas Aglassinger'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -175,8 +175,8 @@ htmlhelp_basename = 'cutplacedoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('contents', 'cutplace.tex', u'cutplace Documentation',
-   u'Thomas Aglassinger', 'manual'),
+  ('contents', 'cutplace.tex', 'cutplace Documentation',
+   'Thomas Aglassinger', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

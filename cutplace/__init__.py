@@ -21,7 +21,7 @@ For more information about cutplace, visit https://github.com/roskakori/cutplace
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import version
+from . import version
 
 __version_info__ = (version.VERSION, version.RELEASE, version.REVISION)
 __version__ = version.VERSION_NUMBER

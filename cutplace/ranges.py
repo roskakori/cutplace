@@ -17,12 +17,12 @@ format.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import StringIO
+import io
 import token
 import tokenize
 
-import tools
-import _tools
+from . import tools
+from . import _tools
 
 
 class RangeSyntaxError(tools.CutplaceError):
@@ -52,7 +52,7 @@ class Range(object):
 
         ``default`` is an alternative text to use in case ``text`` is ``None`` or empty.
         """
-        assert default is None or default.strip(), u"default=%r" % default
+        assert default is None or default.strip(), "default=%r" % default
 
         # Find out if a `text` has been specified and if not, use optional `default` instead.
         hasText = (text is not None) and text.strip()
@@ -68,14 +68,14 @@ class Range(object):
             self._description = text
             self._items = []
             # TODO: Consolidate code with `DelimitedDataFormat._validatedCharacter()`.
-            tokens = tokenize.generate_tokens(StringIO.StringIO(text).readline)
+            tokens = tokenize.generate_tokens(io.StringIO(text).readline)
             endReached = False
             while not endReached:
                 lower = None
                 upper = None
                 colonFound = False
                 afterHyphen = False
-                nextToken = tokens.next()
+                nextToken = next(tokens)
                 while not _tools.isEofToken(nextToken) and not _tools.isCommaToken(nextToken):
                     nextType = nextToken[0]
                     nextValue = nextToken[1]
@@ -87,9 +87,9 @@ class Range(object):
                                     base = 16
                                 else:
                                     base = 10
-                                longValue = long(nextValue, base)
+                                longValue = int(nextValue, base)
                             except ValueError:
-                                raise RangeSyntaxError(u"number must be an integer but is: %r" % nextValue)
+                                raise RangeSyntaxError("number must be an integer but is: %r" % nextValue)
                             if afterHyphen:
                                 longValue = - 1 * longValue
                                 afterHyphen = False
@@ -98,14 +98,14 @@ class Range(object):
                                 longValue = tools.SYMBOLIC_NAMES_MAP[nextValue.lower()]
                             except KeyError:
                                 validSymbols = _tools.humanReadableList(sorted(tools.SYMBOLIC_NAMES_MAP.keys()))
-                                raise RangeSyntaxError(u"symbolic name %r must be one of: %s" % (nextValue, validSymbols))
+                                raise RangeSyntaxError("symbolic name %r must be one of: %s" % (nextValue, validSymbols))
                         elif nextType == token.STRING:
                             if len(nextValue) != 3:
-                                raise RangeSyntaxError(u"text for range must contain a single character but is: %r" % nextValue)
+                                raise RangeSyntaxError("text for range must contain a single character but is: %r" % nextValue)
                             leftQuote = nextValue[0]
                             rightQuote = nextValue[2]
-                            assert leftQuote in "\"\'", u"leftQuote=%r" % leftQuote
-                            assert rightQuote in "\"\'", u"rightQuote=%r" % rightQuote
+                            assert leftQuote in "\"\'", "leftQuote=%r" % leftQuote
+                            assert rightQuote in "\"\'", "rightQuote=%r" % rightQuote
                             longValue = ord(nextValue[1])
                         if colonFound:
                             if upper is None:
@@ -115,21 +115,21 @@ class Range(object):
                         elif lower is None:
                             lower = longValue
                         else:
-                            raise RangeSyntaxError(u"number must be followed by colon (:) but found: %r" % nextValue)
+                            raise RangeSyntaxError("number must be followed by colon (:) but found: %r" % nextValue)
                     elif afterHyphen:
-                        raise RangeSyntaxError(u"hyphen (-) must be followed by number but found: %r" % nextValue)
+                        raise RangeSyntaxError("hyphen (-) must be followed by number but found: %r" % nextValue)
                     elif (nextType == token.OP) and (nextValue == "-"):
                         afterHyphen = True
                     elif (nextType == token.OP) and (nextValue == ":"):
                         if colonFound:
-                            raise RangeSyntaxError(u"range item must contain at most one colon (:)")
+                            raise RangeSyntaxError("range item must contain at most one colon (:)")
                         colonFound = True
                     else:
-                        message = u"range must be specified using integer numbers, text, symbols and colon (:) but found: %r [token type: %r]" % (nextValue, nextType)
+                        message = "range must be specified using integer numbers, text, symbols and colon (:) but found: %r [token type: %r]" % (nextValue, nextType)
                         raise RangeSyntaxError(message)
-                    nextToken = tokens.next()
+                    nextToken = next(tokens)
                 if afterHyphen:
-                    raise RangeSyntaxError(u"hyphen (-) at end must be followed by number")
+                    raise RangeSyntaxError("hyphen (-) at end must be followed by number")
 
                 # Decide upon the result.
                 if (lower is None):
@@ -137,7 +137,7 @@ class Range(object):
                         if colonFound:
                             # Handle ":".
                             # TODO: Handle ":" same as ""?
-                            raise RangeSyntaxError(u"colon (:) must be preceded and/or succeeded by number")
+                            raise RangeSyntaxError("colon (:) must be preceded and/or succeeded by number")
                         else:
                             # Handle "".
                             result = None
@@ -148,7 +148,7 @@ class Range(object):
                 elif colonFound:
                     # Handle "x:" and "x:y".
                     if (upper is not None) and (lower > upper):
-                        raise RangeSyntaxError(u"lower range %d must be greater or equal to upper range %d" % (lower, upper))
+                        raise RangeSyntaxError("lower range %d must be greater or equal to upper range %d" % (lower, upper))
                     result = (lower, upper)
                 else:
                     # Handle "x".
@@ -157,7 +157,7 @@ class Range(object):
                     for item in self._items:
                         if self._itemsOverlap(item, result):
                             # TODO: use _repr_item() or something to display item in error message.
-                            raise RangeSyntaxError(u"range items must not overlap: %r and %r"
+                            raise RangeSyntaxError("range items must not overlap: %r and %r"
                                                    % (self._repr_item(item), self._repr_item(result)))
                     self._items.append(result)
                 if _tools.isEofToken(nextToken):
@@ -279,4 +279,4 @@ class Range(object):
                     isValid = True
                 itemIndex += 1
             if not isValid:
-                raise RangeValueError(u"%s is %r but must be within range: %r" % (name, value, self))
+                raise RangeValueError("%s is %r but must be within range: %r" % (name, value, self))

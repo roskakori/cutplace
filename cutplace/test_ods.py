@@ -16,11 +16,11 @@ Tests for `_ods`.
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import logging
-import Queue
+import queue
 import unittest
 
-import dev_test
-import _ods
+from . import dev_test
+from . import _ods
 
 
 class OdsTest(unittest.TestCase):
@@ -58,7 +58,7 @@ class OdsTest(unittest.TestCase):
     def testConsumerProducer(self):
         testInPath = dev_test.getTestInputPath("valid_customers.ods")
         contentXmlReadable = _ods.odsContent(testInPath)
-        rowQueue = Queue.Queue()
+        rowQueue = queue.Queue()
         producer = _ods.ProducerThread(contentXmlReadable, rowQueue)
         producer.start()
         hasRow = True

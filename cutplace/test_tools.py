@@ -17,12 +17,12 @@ Test for `tools` module.
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import decimal
 import os.path
-import StringIO
+import io
 import unittest
 
-import dev_test
-import tools
-import _tools
+from . import dev_test
+from . import tools
+from . import _tools
 
 
 class ToolsTest(unittest.TestCase):
@@ -107,47 +107,47 @@ class ToolsTest(unittest.TestCase):
         self.assertEqual(str(location), "eggs.ods (Sheet2!R2C18)")
 
         # Test StringIO input.
-        inputStream = StringIO.StringIO("hugo was here")
+        inputStream = io.StringIO("hugo was here")
         location = tools.InputLocation(inputStream)
         self.assertEqual(str(location), "<io> (1)")
 
     def testCanAsciifyText(self):
-        self.assertEqual(_tools.asciified(u"hello"), u"hello")
-        self.assertEqual(_tools.asciified(u"h\xe4ll\xf6"), u"hallo")
-        self.assertEqual(_tools.asciified(u"hello.world!"), u"hello.world!")
+        self.assertEqual(_tools.asciified("hello"), "hello")
+        self.assertEqual(_tools.asciified("h\xe4ll\xf6"), "hallo")
+        self.assertEqual(_tools.asciified("hello.world!"), "hello.world!")
 
     def testFailAsciifyOnNonUnicode(self):
         self.assertRaises(ValueError, _tools.asciified, "hello")
         self.assertRaises(ValueError, _tools.asciified, 17)
 
     def testCanNamifyText(self):
-        self.assertEqual(_tools.namified(u"hello"), "hello")
-        self.assertEqual(_tools.namified(u"hElLo"), "hElLo")
-        self.assertEqual(_tools.namified(u"h3LL0"), "h3LL0")
-        self.assertEqual(_tools.namified(u"Date of birth"), "Date_of_birth")
-        self.assertEqual(_tools.namified(u"a    b"), "a_b")
+        self.assertEqual(_tools.namified("hello"), "hello")
+        self.assertEqual(_tools.namified("hElLo"), "hElLo")
+        self.assertEqual(_tools.namified("h3LL0"), "h3LL0")
+        self.assertEqual(_tools.namified("Date of birth"), "Date_of_birth")
+        self.assertEqual(_tools.namified("a    b"), "a_b")
 
     def testCanNamifyNumber(self):
-        self.assertEqual(_tools.namified(u"1a"), "x1a")
-        self.assertEqual(_tools.namified(u"3.1415"), "x3_1415")
+        self.assertEqual(_tools.namified("1a"), "x1a")
+        self.assertEqual(_tools.namified("3.1415"), "x3_1415")
 
     def testCanNamifyKeyword(self):
-        self.assertEqual(_tools.namified(u"if"), "if_")
+        self.assertEqual(_tools.namified("if"), "if_")
 
     def testCanNamifyEmptyText(self):
-        self.assertEqual(_tools.namified(u""), "x")
-        self.assertEqual(_tools.namified(u" "), "x")
-        self.assertEqual(_tools.namified(u"\t"), "x")
+        self.assertEqual(_tools.namified(""), "x")
+        self.assertEqual(_tools.namified(" "), "x")
+        self.assertEqual(_tools.namified("\t"), "x")
 
     def testCanNamifyControlCharacters(self):
-        self.assertEqual(_tools.namified(u"\r"), "x")
-        self.assertEqual(_tools.namified(u"a\rb"), "a_b")
+        self.assertEqual(_tools.namified("\r"), "x")
+        self.assertEqual(_tools.namified("a\rb"), "a_b")
 
 
 class NumberedTest(unittest.TestCase):
     def testCanDetectNoneNumber(self):
-        self.assertEqual(_tools.numbered(u"123abc"), (None, False, u"123abc"))
-        self.assertEqual(_tools.numbered(u"01.02.2014"), (None, False, u"01.02.2014"))
+        self.assertEqual(_tools.numbered("123abc"), (None, False, "123abc"))
+        self.assertEqual(_tools.numbered("01.02.2014"), (None, False, "01.02.2014"))
 
     def testCanDetectInteger(self):
         self.assertEqual(_tools.numbered("123"), (_tools.NUMBER_INTEGER, False, 123))

@@ -17,7 +17,7 @@ derived from sample data.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import with_statement
+
 
 import logging
 import optparse
@@ -25,11 +25,11 @@ import os.path
 import sys
 import xlrd
 
-import data
-import sniff
-import tools
-import version
-import _tools
+from . import data
+from . import sniff
+from . import tools
+from . import version
+from . import _tools
 
 _log = logging.getLogger("cutplace.cutsniff")
 
@@ -44,10 +44,10 @@ def main(argv=None):
         argv = sys.argv
     assert argv
     programName = os.path.basename(argv[0])
-    usage = u"""usage: %s [options] ICDFILE DATAFILE
+    usage = """usage: %s [options] ICDFILE DATAFILE
   Write interface control document to ICDFILE describing the data found in
   DATAFILE. The resulting ICD is stored in CSV format.""" % programName
-    epilog = u"""
+    epilog = """
 Example:
   %s --data-format=delimited --data-encoding iso-8859-15 icd_customers.csv some_customers.csv
     Analyze data file some_customers.csv assuming ISO-8859-15 as character
@@ -69,7 +69,7 @@ Example:
     parser.add_option("-n", "--names", metavar="FIELDNAMES", dest="fieldNameList",
         help="comma separated list of field names (default: use row specified by --head or generate names)")
     parser.add_option("--log", default=logging.getLevelName(logging.INFO).lower(), metavar="LEVEL", type="choice",
-        choices=_tools.LogLevelNameToLevelMap.keys(), dest="logLevel",
+        choices=list(_tools.LogLevelNameToLevelMap.keys()), dest="logLevel",
         help="set log level to LEVEL (default: %default)")
 
     (options, others) = parser.parse_args(argv[1:])
@@ -77,11 +77,11 @@ Example:
     logging.getLogger("cutplace").setLevel(_tools.LogLevelNameToLevelMap[options.logLevel])
     othersCount = len(others)
     if othersCount == 0:
-        parser.error(u"ICDFILE and DATAFILE must be specified")
+        parser.error("ICDFILE and DATAFILE must be specified")
     elif othersCount == 1:
-        parser.error(u"DATAFILE must be specified")
+        parser.error("DATAFILE must be specified")
     elif othersCount > 2:
-        parser.error(u"only ICDFILE and DATAFILE must be specified but also found: %s" % others[2:])
+        parser.error("only ICDFILE and DATAFILE must be specified but also found: %s" % others[2:])
 
     if options.fieldNameList:
         fieldNames = [fieldName.strip() for fieldName in options.fieldNameList.split(",")]
@@ -100,21 +100,21 @@ Example:
                 for icdRowToWrite in sniff.createCidRows(dataFile, dataFormat=options.dataFormat, encoding=options.dataEncoding, header=options.head, fieldNames=fieldNames, stopAfter=options.stopAfter):
                     icdCsvWriter.writerow(icdRowToWrite)
         exitCode = 0
-    except EnvironmentError, error:
+    except EnvironmentError as error:
         exitCode = 3
-        _log.error(u"%s", error)
-    except tools.CutplaceUnicodeError, error:
-        _log.error(u"%s", error)
-    except tools.CutplaceError, error:
-        _log.error(u"%s", error)
-    except xlrd.XLRDError, error:
-        _log.error(u"cannot process Excel format: %s", error)
-    except optparse.OptionError, error:
+        _log.error("%s", error)
+    except tools.CutplaceUnicodeError as error:
+        _log.error("%s", error)
+    except tools.CutplaceError as error:
+        _log.error("%s", error)
+    except xlrd.XLRDError as error:
+        _log.error("cannot process Excel format: %s", error)
+    except optparse.OptionError as error:
         exitCode = 2
-        _log.error(u"cannot process command line options: %s", error)
-    except Exception, error:
+        _log.error("cannot process command line options: %s", error)
+    except Exception as error:
         exitCode = 4
-        _log.exception(u"cannot handle unexpected error: %s", error)
+        _log.exception("cannot handle unexpected error: %s", error)
     return exitCode
 
 

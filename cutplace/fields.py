@@ -23,10 +23,10 @@ import sys
 import time
 import token
 
-import data
-import ranges
-import tools
-import _tools
+from . import data
+from . import ranges
+from . import tools
+from . import _tools
 
 # Expected suffix for classes that describe filed formats.
 _FieldFormatClassSuffix = "FieldFormat"
@@ -60,9 +60,9 @@ class AbstractFieldFormat(object):
     """
     def __init__(self, fieldName, isAllowedToBeEmpty, lengthText, rule, dataFormat, emptyValue=None):
         assert fieldName is not None
-        assert fieldName, u"fieldName must not be empty"
+        assert fieldName, "fieldName must not be empty"
         assert isAllowedToBeEmpty is not None
-        assert rule is not None, u"to specify \"no rule\" use \"\" instead of None"
+        assert rule is not None, "to specify \"no rule\" use \"\" instead of None"
         assert dataFormat is not None
 
         self._fieldName = fieldName
@@ -131,22 +131,22 @@ class AbstractFieldFormat(object):
             for character in value:
                 try:
                     validCharacterRange.validate("character", ord(character))
-                except ranges.RangeValueError, error:
-                    raise FieldValueError(u"value for fields %r must contain only valid characters: %s"
+                except ranges.RangeValueError as error:
+                    raise FieldValueError("value for fields %r must contain only valid characters: %s"
                                                  % (self.fieldName, error))
 
     def validateEmpty(self, value):
         if not self.isAllowedToBeEmpty:
             if not value:
-                raise FieldValueError(u"value must not be empty")
+                raise FieldValueError("value must not be empty")
 
     def validateLength(self, value):
         # Do we have some data at all?
         if self.length is not None and not (self.isAllowedToBeEmpty and value == ""):
             try:
                 self.length.validate("length of '%s' with value %r" % (self.fieldName, value), len(value))
-            except ranges.RangeValueError, error:
-                raise FieldValueError(unicode(error))
+            except ranges.RangeValueError as error:
+                raise FieldValueError(str(error))
 
     def validatedValue(self, value):
         """
@@ -193,7 +193,7 @@ class AbstractFieldFormat(object):
         if self.example is not None:
             exampleText = self.example
         else:
-            exampleText = u""
+            exampleText = ""
         if self.isAllowedToBeEmpty:
             isAllowedToBeEmptyMark = "X"
         else:
@@ -203,7 +203,7 @@ class AbstractFieldFormat(object):
         else:
             lengthText = ""
         fieldTypeName = self.__class__.__name__
-        assert fieldTypeName.endswith(_FieldFormatClassSuffix), u"fieldTypeName=%r" % fieldTypeName
+        assert fieldTypeName.endswith(_FieldFormatClassSuffix), "fieldTypeName=%r" % fieldTypeName
         fieldTypeName = fieldTypeName[:len(fieldTypeName) - len(_FieldFormatClassSuffix)]
         result = [
             self._fieldName,
@@ -232,7 +232,7 @@ class ChoiceFieldFormat(AbstractFieldFormat):
 
         # Extract choices from rule tokens.
         previousToky = None
-        toky = tokens.next()
+        toky = next(tokens)
         while not _tools.isEofToken(toky):
             if _tools.isCommaToken(toky):
                 # Handle comma after comma without choice.
@@ -240,27 +240,27 @@ class ChoiceFieldFormat(AbstractFieldFormat):
                     previousTokyText = previousToky[1]
                 else:
                     previousTokyText = None
-                raise FieldSyntaxError(u"choice value must precede a comma (,) but found: %r" % previousTokyText)
+                raise FieldSyntaxError("choice value must precede a comma (,) but found: %r" % previousTokyText)
             choice = _tools.tokenText(toky)
             if not choice:
-                raise FieldSyntaxError(u"choice field must be allowed to be empty instead of containing an empty choice")
+                raise FieldSyntaxError("choice field must be allowed to be empty instead of containing an empty choice")
             self.choices.append(choice)
-            toky = tokens.next()
+            toky = next(tokens)
             if not _tools.isEofToken(toky):
                 if not _tools.isCommaToken(toky):
-                    raise FieldSyntaxError(u"comma (,) must follow choice value %r but found: %r" % (choice, toky[1]))
+                    raise FieldSyntaxError("comma (,) must follow choice value %r but found: %r" % (choice, toky[1]))
                 # Process next choice after comma.
-                toky = tokens.next()
+                toky = next(tokens)
                 if _tools.isEofToken(toky):
-                    raise FieldSyntaxError(u"trailing comma (,) must be removed")
+                    raise FieldSyntaxError("trailing comma (,) must be removed")
         if not self.isAllowedToBeEmpty and not self.choices:
-            raise FieldSyntaxError(u"choice field without any choices must be allowed to be empty")
+            raise FieldSyntaxError("choice field without any choices must be allowed to be empty")
 
     def validatedValue(self, value):
         assert value
 
         if value not in self.choices:
-            raise FieldValueError(u"value is %r but must be one of: %s"
+            raise FieldValueError("value is %r but must be one of: %s"
                                    % (value, _tools.humanReadableList(self.choices)))
         return value
 
@@ -273,7 +273,7 @@ class DecimalFieldFormat(AbstractFieldFormat):
     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue=None):
         super(DecimalFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue)
         if rule.strip():
-            raise FieldSyntaxError(u"decimal rule must be empty")
+            raise FieldSyntaxError("decimal rule must be empty")
         self.decimalSeparator = dataFormat.get(data.KEY_DECIMAL_SEPARATOR)
         self.thousandsSeparator = dataFormat.get(data.KEY_THOUSANDS_SEPARATOR)
 
@@ -289,19 +289,19 @@ class DecimalFieldFormat(AbstractFieldFormat):
             characterToProcess = value[valueIndex]
             if characterToProcess == self.decimalSeparator:
                 if foundDecimalSeparator:
-                    raise FieldValueError(u"decimal field must contain only one decimal separator (%r): %r" % (self.decimalSeparator, value))
+                    raise FieldValueError("decimal field must contain only one decimal separator (%r): %r" % (self.decimalSeparator, value))
                 translatedValue += "."
                 foundDecimalSeparator = True
             elif self.thousandsSeparator and (characterToProcess == self.thousandsSeparator):
                 if foundDecimalSeparator:
-                    raise FieldValueError(u"decimal field must contain thousands separator (%r) only before decimal separator (%r): %r (position %d)"
+                    raise FieldValueError("decimal field must contain thousands separator (%r) only before decimal separator (%r): %r (position %d)"
                         % (self.thousandsSeparator, self.decimalSeparator, value, valueIndex + 1))
             else:
                 translatedValue += characterToProcess
         try:
             result = decimal.Decimal(translatedValue)
-        except Exception, error:
-            message = u"value is %r but must be a decimal number: %s" % (value, error)
+        except Exception as error:
+            message = "value is %r but must be a decimal number: %s" % (value, error)
             raise FieldValueError(message)
 
         return result
@@ -324,13 +324,13 @@ class IntegerFieldFormat(AbstractFieldFormat):
         assert value
 
         try:
-            longValue = long(value)
+            longValue = int(value)
         except ValueError:
-            raise FieldValueError(u"value must be an integer number: %r" % value)
+            raise FieldValueError("value must be an integer number: %r" % value)
         try:
             self.rangeRule.validate("value", longValue)
-        except ranges.RangeValueError, error:
-            raise FieldValueError(unicode(error))
+        except ranges.RangeValueError as error:
+            raise FieldValueError(str(error))
         return longValue
 
 
@@ -359,7 +359,7 @@ class DateTimeFieldFormat(AbstractFieldFormat):
         try:
             result = time.strptime(value, self.strptimeFormat)
         except ValueError:
-            raise FieldValueError(u"date must match format %s (%s) but is: %r (%s)" % (self.humanReadableFormat, self.strptimeFormat, value, sys.exc_info()[1]))
+            raise FieldValueError("date must match format %s (%s) but is: %r (%s)" % (self.humanReadableFormat, self.strptimeFormat, value, sys.exc_info()[1]))
         return result
 
 
@@ -375,7 +375,7 @@ class RegExFieldFormat(AbstractFieldFormat):
         assert value
 
         if not self.regex.match(value):
-            raise FieldValueError(u"value %r must match regular expression: %r" % (value, self.rule))
+            raise FieldValueError("value %r must match regular expression: %r" % (value, self.rule))
         return value
 
 
@@ -392,7 +392,7 @@ class PatternFieldFormat(AbstractFieldFormat):
         assert value
 
         if not self.regex.match(value):
-            raise FieldValueError(u"value %r must match pattern: %r (regex %r)" % (value, self.rule, self.pattern))
+            raise FieldValueError("value %r must match pattern: %r (regex %r)" % (value, self.rule, self.pattern))
         return value
 
 
@@ -423,7 +423,7 @@ def getFieldNameIndex(supposedFieldName, availableFieldNames):
     try:
         fieldIndex = availableFieldNames.index(fieldName)
     except ValueError:
-        raise FieldLookupError(u"unknown field name %r must be replaced by one of: %s"
+        raise FieldLookupError("unknown field name %r must be replaced by one of: %s"
                                       % (fieldName, _tools.humanReadableList(availableFieldNames)))
     return fieldIndex
 
@@ -434,13 +434,13 @@ def validatedFieldName(supposedFieldName, location=None):
     describes a valid field name. Otherwise, raise a `FieldSyntaxError` pointing to ``location``.
     """
     tokens = _tools.tokenizeWithoutSpace(supposedFieldName)
-    tokenType, result, _, _, _ = tokens.next()
+    tokenType, result, _, _, _ = next(tokens)
     if tokenType != token.NAME:
-        message = u"field name must be a valid Python name consisting of ASCII letters, underscore (%r) and digits but is: %r" % ("_", result)
+        message = "field name must be a valid Python name consisting of ASCII letters, underscore (%r) and digits but is: %r" % ("_", result)
         raise FieldSyntaxError(message, location)
     if keyword.iskeyword(result):
-        raise FieldSyntaxError(u"field name must not be a Python keyword but is: %r" % result, location)
-    toky = tokens.next()
+        raise FieldSyntaxError("field name must not be a Python keyword but is: %r" % result, location)
+    toky = next(tokens)
     if not _tools.isEofToken(toky):
-        raise FieldSyntaxError(u"field name must be a single word but is: %r" % supposedFieldName, location)
+        raise FieldSyntaxError("field name must be a single word but is: %r" % supposedFieldName, location)
     return result

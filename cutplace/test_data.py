@@ -18,7 +18,7 @@ Tests for data formats.
 import logging
 import unittest
 
-import data
+from . import data
 
 
 class DataFormatTest(unittest.TestCase):

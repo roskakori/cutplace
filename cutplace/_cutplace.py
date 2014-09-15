@@ -25,11 +25,11 @@ import os
 import sys
 import xlrd
 
-import interface
-import tools
-import version
-import _tools
-import _web
+from . import interface
+from . import tools
+from . import version
+from . import _tools
+from . import _web
 
 DEFAULT_ICD_ENCODING = "ascii"
 
@@ -63,7 +63,7 @@ class _NoExitOptionParser(optparse.OptionParser):
         # No super() due to old style class.
         optparse.OptionParser.print_version(self, targetFile)
         if self.version:
-            print >> targetFile, "Python %s, %s" % (_tools.pythonVersion(), _tools.platformVersion())
+            print("Python %s, %s" % (_tools.pythonVersion(), _tools.platformVersion()), file=targetFile)
 
 
 class CutplaceValidationListener(interface.BaseValidationListener):
@@ -82,7 +82,7 @@ class CutplaceValidationListener(interface.BaseValidationListener):
     def acceptedRow(self, row, location):
         self.acceptedRowCount += 1
         if self.acceptedFile is None:
-            self.log.info(u"accepted: %r", row)
+            self.log.info("accepted: %r", row)
         else:
             # Write to a csv.writer.
             self.acceptedFile.writerow(row)
@@ -92,8 +92,8 @@ class CutplaceValidationListener(interface.BaseValidationListener):
         rowText = "items: %r" % row
         errorText = "field error: %s" % error
         if self.rejectedFile is None:
-            self.log.error(u"%s", rowText)
-            self.log.error(u"%s", errorText)
+            self.log.error("%s", rowText)
+            self.log.error("%s", errorText)
         else:
             # Write to a text file.
             self.rejectedFile.write("%s%s" % (rowText, os.linesep))
@@ -103,7 +103,7 @@ class CutplaceValidationListener(interface.BaseValidationListener):
         errorText = "check at end failed: %s" % error
         self.checksAtEndFailedCount += 1
         if self.rejectedFile is None:
-            self.log.error(u"%s", errorText)
+            self.log.error("%s", errorText)
         else:
             # Write to a text file.
             self.rejectedFile.write("%s%s" % (errorText, os.linesep))
@@ -127,7 +127,7 @@ class CutPlace(object):
         """Reset options and set them again from argument list such as sys.argv[1:]."""
         assert argv is not None
 
-        usage = u"""
+        usage = """
   cutplace [options] ICD-FILE
     validate interface control document in ICD-FILE
   cutplace [options] ICD-FILE DATA-FILE(S)
@@ -153,7 +153,7 @@ class CutPlace(object):
         webGroup.add_option("-b", "--browse", action="store_true", dest="isOpenBrowser", help="open validation page in browser")
         parser.add_option_group(webGroup)
         loggingGroup = optparse.OptionGroup(parser, "Logging options", "Modify the logging output")
-        loggingGroup.add_option("--log", metavar="LEVEL", type="choice", choices=_tools.LogLevelNameToLevelMap.keys(), dest="logLevel", help="set log level to LEVEL (default: %default)")
+        loggingGroup.add_option("--log", metavar="LEVEL", type="choice", choices=list(_tools.LogLevelNameToLevelMap.keys()), dest="logLevel", help="set log level to LEVEL (default: %default)")
         loggingGroup.add_option("-t", "--trace", action="store_true", dest="isLogTrace", help="include Python stack in error messages related to data")
         parser.add_option_group(loggingGroup)
 
@@ -176,16 +176,16 @@ class CutPlace(object):
                 icdPath = others[0]
                 try:
                     self.setIcdFromFile(icdPath)
-                except EnvironmentError, error:
-                    raise IOError(u"cannot read ICD file %r: %s" % (icdPath, error))
+                except EnvironmentError as error:
+                    raise IOError("cannot read ICD file %r: %s" % (icdPath, error))
                 if len(others) >= 2:
                     self.dataToValidatePaths = others[1:]
             else:
-                parser.error(u"file containing ICD must be specified")
+                parser.error("file containing ICD must be specified")
 
-        self._log.debug(u"cutplace %s", version.VERSION_NUMBER)
-        self._log.debug(u"options=%s", self.options)
-        self._log.debug(u"others=%s", others)
+        self._log.debug("cutplace %s", version.VERSION_NUMBER)
+        self._log.debug("options=%s", self.options)
+        self._log.debug("others=%s", others)
 
     def validate(self, dataFilePath):
         """
@@ -221,10 +221,10 @@ class CutPlace(object):
                 totalRowCount = acceptedRowCount + rejectedRowCount
                 if rejectedRowCount + checksAtEndFailedCount == 0:
                     self.lastValidationWasOk = True
-                    print "%s: accepted %d rows" % (shortDataFilePath, acceptedRowCount)
+                    print("%s: accepted %d rows" % (shortDataFilePath, acceptedRowCount))
                 else:
-                    print "%s: rejected %d of %d rows. %d final checks failed." \
-                         % (shortDataFilePath, rejectedRowCount, totalRowCount, checksAtEndFailedCount)
+                    print("%s: rejected %d of %d rows. %d final checks failed." \
+                         % (shortDataFilePath, rejectedRowCount, totalRowCount, checksAtEndFailedCount))
             finally:
                 if isWriteSplit:
                     rejectedTextFile.close()
@@ -244,7 +244,7 @@ class CutPlace(object):
     def _printAvailableEncodings(self):
         for encoding in self._encodingsFromModuleNames():
             if encoding != "__init__":
-                print encoding
+                print(encoding)
 
     def _encodingsFromModuleNames(self):
         # Based on sample code by Peter Otten.
@@ -284,7 +284,7 @@ def process(argv=None):
                     cutPlace.validate(path)
                     if not cutPlace.lastValidationWasOk:
                         allValidationsOk = False
-                except EnvironmentError, error:
+                except EnvironmentError as error:
                     raise EnvironmentError("cannot read data file %r: %s" % (path, error))
             if not allValidationsOk:
                 result = 1
@@ -305,24 +305,24 @@ def main(argv=None):
     result = 1
     try:
         result = process(argv)
-    except EnvironmentError, error:
+    except EnvironmentError as error:
         result = 3
-        _log.error(u"%s", error)
-    except tools.CutplaceUnicodeError, error:
-        _log.error(u"%s", error)
-    except tools.CutplaceError, error:
-        _log.error(u"%s", error)
-    except xlrd.XLRDError, error:
-        _log.error(u"cannot process Excel format: %s", error)
+        _log.error("%s", error)
+    except tools.CutplaceUnicodeError as error:
+        _log.error("%s", error)
+    except tools.CutplaceError as error:
+        _log.error("%s", error)
+    except xlrd.XLRDError as error:
+        _log.error("cannot process Excel format: %s", error)
     except _ExitQuietlyOptionError:
         # Raised by '--help', '--version', etc., so simply do nothing.
         pass
-    except optparse.OptionError, error:
+    except optparse.OptionError as error:
         result = 2
-        _log.error(u"cannot process command line options: %s", error)
-    except Exception, error:
+        _log.error("cannot process command line options: %s", error)
+    except Exception as error:
         result = 4
-        _log.exception(u"cannot handle unexpected error: %s", error)
+        _log.exception("cannot handle unexpected error: %s", error)
     return result
 
 

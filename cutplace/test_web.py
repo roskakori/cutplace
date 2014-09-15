@@ -21,10 +21,10 @@ import mimetools
 import mimetypes
 import os.path
 import unittest
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
-import dev_test
-import _web
+from . import dev_test
+from . import _web
 
 # Port to use for test web server.
 _PORT = 8642
@@ -101,8 +101,8 @@ class WebTest(unittest.TestCase):
     """TestCase for web module."""
     def _createOpener(self):
         # Disable proxies.
-        proxy_support = urllib2.ProxyHandler({})
-        result = urllib2.build_opener(proxy_support)
+        proxy_support = urllib.request.ProxyHandler({})
+        result = urllib.request.build_opener(proxy_support)
         return result
 
     def _get(self, url):
@@ -117,22 +117,22 @@ class WebTest(unittest.TestCase):
         form.add_file("icd", os.path.split(icdPath)[1], open(icdPath, "rb"))
 
         # Build the request
-        request = urllib2.Request("http://localhost:%d/cutplace" % (_PORT))
+        request = urllib.request.Request("http://localhost:%d/cutplace" % (_PORT))
         request.add_header("User-agent", "test_web.py")
         body = str(form)
         request.add_header("Content-type", form.get_content_type())
         request.add_header("Content-length", len(body))
         request.add_data(body)
 
-        print
-        print "OUTGOING DATA:"
-        print request.get_data()
+        print()
+        print("OUTGOING DATA:")
+        print(request.get_data())
 
-        print
-        print "SERVER RESPONSE:"
+        print()
+        print("SERVER RESPONSE:")
         opener = self._createOpener()
         result = opener.open(request)
-        print result.read()
+        print(result.read())
         return result
 
     def _getHtmlText(self, relativeUrl=""):

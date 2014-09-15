@@ -16,15 +16,15 @@ Web server to provide a simple GUI for cutplace.
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import cgi
-import BaseHTTPServer
+import http.server
 import logging
-import StringIO
+import io
 import sys
 import tempfile
 
-import interface
-import version
-import _tools
+from . import interface
+from . import version
+from . import _tools
 
 """
 Default port the web server will use unless specified otherwise.
@@ -33,7 +33,7 @@ this number is unassigned.
 """
 DEFAULT_PORT = 8778
 
-_SERVER_VERSION = u"cutplace/%s" % version.VERSION_NUMBER
+_SERVER_VERSION = "cutplace/%s" % version.VERSION_NUMBER
 
 # Sleep time for server related polling.
 _TICK_IN_SECONDS = 0.1
@@ -46,7 +46,7 @@ class _HtmlWritingValidationListener(interface.BaseValidationListener):
     def __init__(self, htmlTargetFile, itemCount):
         assert htmlTargetFile is not None
         assert itemCount is not None
-        assert itemCount > 0, u"itemCount=%r" % itemCount
+        assert itemCount > 0, "itemCount=%r" % itemCount
         self._htmlTargetFile = htmlTargetFile
         self._itemCount = itemCount
         self.acceptedCount = 0
@@ -55,16 +55,16 @@ class _HtmlWritingValidationListener(interface.BaseValidationListener):
 
     def _writeRow(self, row, cssClass):
         assert cssClass is not None
-        self._htmlTargetFile.write(u"<tr>\n")
+        self._htmlTargetFile.write("<tr>\n")
         for item in row:
-            self._htmlTargetFile.write(u"<td class=\"%s\">%s</td>\n" % (cssClass, cgi.escape(item)))
-        self._htmlTargetFile.write(u"</tr>\n")
+            self._htmlTargetFile.write("<td class=\"%s\">%s</td>\n" % (cssClass, cgi.escape(item)))
+        self._htmlTargetFile.write("</tr>\n")
 
     def _writeTextRow(self, text):
         assert text is not None
-        self._htmlTargetFile.write(u"<tr>\n")
-        self._htmlTargetFile.write(u"<td colspan=\"%d\">%s</td>\n" % (self._itemCount, cgi.escape(text)))
-        self._htmlTargetFile.write(u"</tr>\n")
+        self._htmlTargetFile.write("<tr>\n")
+        self._htmlTargetFile.write("<td colspan=\"%d\">%s</td>\n" % (self._itemCount, cgi.escape(text)))
+        self._htmlTargetFile.write("</tr>\n")
 
     def acceptedRow(self, row, location):
         assert row is not None
@@ -76,18 +76,18 @@ class _HtmlWritingValidationListener(interface.BaseValidationListener):
         assert error is not None
         self.rejectedCount += 1
         self._writeRow(row, "error")
-        self._writeTextRow(u"%s" % error)
+        self._writeTextRow("%s" % error)
 
     def checkAtEndFailed(self, error):
         assert error is not None
         self.checkAtEndFailedCount += 1
-        self._writeTextRow(u"check at end failed: %s" % error)
+        self._writeTextRow("check at end failed: %s" % error)
 
 
-class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
+class Handler(http.server.BaseHTTPRequestHandler):
     server_version = _SERVER_VERSION
     _IO_BUFFER_SIZE = 8192
-    _STYLE = u"""
+    _STYLE = """
     body {
       background-color: #ffffff;
       color: #000000;
@@ -114,9 +114,9 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
       background-color: #ffdddd;
     }
 """
-    _FOOTER = u"<hr><a href=\"http://roskakori.github.com/cutplace/\">cutplace</a> %s" % version.VERSION_NUMBER
+    _FOOTER = "<hr><a href=\"http://roskakori.github.com/cutplace/\">cutplace</a> %s" % version.VERSION_NUMBER
 
-    _FORM = u"""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+    _FORM = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <html>
 <head>
   <title>Cutplace</title>
@@ -144,7 +144,7 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
 </body></html>
 """ % (_STYLE, _FOOTER)
 
-    _ABOUT = u"""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+    _ABOUT = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <html>
 <head>
   <title>About cutplace</title>
@@ -159,7 +159,7 @@ Platform: %s</p>
 </body></html>
 """ % (_STYLE, version.VERSION_NUMBER, cgi.escape(_tools.pythonVersion()), cgi.escape(_tools.platformVersion()), _FOOTER)
 
-    _SHUTDOWN = u"""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+    _SHUTDOWN = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <html>
 <head>
   <title>Cutplace</title>
@@ -175,7 +175,7 @@ Platform: %s</p>
     def do_GET(self):
 
         log = logging.getLogger("cutplace.web")
-        log.info(u"%s %r", self.command, self.path)
+        log.info("%s %r", self.command, self.path)
 
         if (self.path == "/"):
             self.send_response(200)
@@ -218,24 +218,24 @@ Platform: %s</p>
 
         if icdContent:
             try:
-                icdData = StringIO.StringIO(icdContent)
+                icdData = io.StringIO(icdContent)
                 icd = interface.InterfaceControlDocument()
                 icd.read(icdData)
                 if dataContent:
                     validationHtmlFile = tempfile.TemporaryFile(suffix=".html", prefix="cutplace-web-")
                     try:
-                        log.debug(u"writing html to temporary file: %r", validationHtmlFile.name)
-                        validationHtmlFile.write(u"<table><tr>")
+                        log.debug("writing html to temporary file: %r", validationHtmlFile.name)
+                        validationHtmlFile.write("<table><tr>")
                         # Write table headings.
                         for title in icd.fieldNames:
-                            validationHtmlFile.write(u"<th>%s</th>" % cgi.escape(title))
-                        validationHtmlFile.write(u"</tr>")
+                            validationHtmlFile.write("<th>%s</th>" % cgi.escape(title))
+                        validationHtmlFile.write("</tr>")
 
                         # Start listening to validation events.
                         htmlListener = _HtmlWritingValidationListener(validationHtmlFile, len(icd.fieldNames))
                         icd.addValidationListener(htmlListener)
                         try:
-                            dataReadable = StringIO.StringIO(dataContent)
+                            dataReadable = io.StringIO(dataContent)
                             icd.validate(dataReadable)
                             icd.removeValidationListener(htmlListener)
                             validationHtmlFile.write("</table>")
@@ -245,7 +245,7 @@ Platform: %s</p>
                             self.end_headers()
 
                             # Write the contents of the temporary HTML file to the web page.
-                            self.wfile.write(u"""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+                            self.wfile.write("""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <html>
 <head>
   <title>Validation results</title>
@@ -254,7 +254,7 @@ Platform: %s</p>
 </head><body>
 <h1>Validation results</h1>
 """ % (Handler._STYLE))
-                            self.wfile.write(u"""<table>
+                            self.wfile.write("""<table>
   <tr><td>Rows accepted:</td><td>%d</td></tr>
   <tr><td>Rows rejected:</td><td>%d</td></tr>
   <tr><td>Checks at end failed:</td><td>%d</td></tr>
@@ -267,7 +267,7 @@ Platform: %s</p>
                                 htmlFileBuffer = validationHtmlFile.read(Handler._IO_BUFFER_SIZE)
                             self.wfile.write(Handler._FOOTER)
                         except:
-                            self.send_error(400, u"cannot validate data: %s" % cgi.escape(str(sys.exc_info()[1])))
+                            self.send_error(400, "cannot validate data: %s" % cgi.escape(str(sys.exc_info()[1])))
                     finally:
                         validationHtmlFile.close()
                 else:
@@ -275,14 +275,14 @@ Platform: %s</p>
                     self.send_response(200)
                     self.send_header("Content-type", "text/html")
                     self.end_headers()
-                    self.wfile.write(u"ICD file is valid.")
+                    self.wfile.write("ICD file is valid.")
             except:
-                log.error(u"cannot parse ICD", exc_info=1)
-                self.send_error(400, u"cannot parse ICD: %s" % cgi.escape(str(sys.exc_info()[1])))
+                log.error("cannot parse ICD", exc_info=1)
+                self.send_error(400, "cannot parse ICD: %s" % cgi.escape(str(sys.exc_info()[1])))
         else:
             errorMessage = "ICD file must be specified"
             log.error(errorMessage)
-            self.send_error(400, u"%s." % cgi.escape(errorMessage))
+            self.send_error(400, "%s." % cgi.escape(errorMessage))
 
 
 class WebServer(_tools.FinishableThread):
@@ -293,13 +293,13 @@ class WebServer(_tools.FinishableThread):
     def __init__(self, port=DEFAULT_PORT):
         super(WebServer, self).__init__("cutplace.web.server")
         self.site = "http://localhost:%d/" % port
-        self._httpd = BaseHTTPServer.HTTPServer(("", port), Handler)
+        self._httpd = http.server.HTTPServer(("", port), Handler)
         self._httpd.timeout = _TICK_IN_SECONDS
 
     def run(self):
-        self.log.info(u"%s", _SERVER_VERSION)
-        self.log.info(u"Visit <%s> to connect", self.site)
-        self.log.info(u"Press Control-C to shut down")
+        self.log.info("%s", _SERVER_VERSION)
+        self.log.info("Visit <%s> to connect", self.site)
+        self.log.info("Press Control-C to shut down")
         while not self.finished:
             self._httpd.handle_request()
         self.log.info("shut down finished")

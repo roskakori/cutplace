@@ -15,12 +15,12 @@ Tests for `checks` module.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import checks
-import fields
+from . import checks
+from . import fields
 import logging
 import unittest
 
-import tools
+from . import tools
 
 
 def _createFieldMap(fieldNames, fieldValues):
@@ -75,7 +75,7 @@ class IsUniqueCheckTest(_AbstractCheckTest):
         try:
             check.checkRow(_createFieldMap(fieldNames, [38000, 59, "Jane", "Miller", "female", "04.10.1946"]), location)
             self.fail("duplicate row must cause CheckError")
-        except checks.CheckError, error:
+        except checks.CheckError as error:
             self.assertTrue(error.seeAlsoLocation)
             self.assertNotEqual(location, error.seeAlsoLocation)
             self.assertEqual(error.location.cell, 0)
