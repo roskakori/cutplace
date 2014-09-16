@@ -100,11 +100,11 @@ class _DocsCommand(Command):
 setup(
       name="cutplace",
       version=version.VERSION_NUMBER,
-      description="validate data stored in CSV, PRN, ODS or Excel files",
+      description="read, write and validate data stored in CSV and PRN files",
       author="Thomas Aglassinger",
       author_email="roskakori@users.sourceforge.net",
       url="https://github.com/roskakori/cutplace",
-      install_requires=["coverage", "proconex>=0.4", "xlrd"],
+      install_requires=["coverage>=3.7.1", "nose>=1.3.1", "xlrd>=0.9.3"],
       packages=["cutplace"],
       data_files=[
           ("", ["setup.py"]),
@@ -134,19 +134,17 @@ like Calc or Excel. Unlike a lot of documentation these days, this description d
 thinking. It acts as "executable specification" which cutplace can use to validate that data actually conform to it.""",
       keywords="validate check csv ods excel prn fixed format",
       classifiers=[
-          "Development Status :: 4 - Beta",
+          "Development Status :: 2 - Pre-Alpha",
           "Environment :: Console",
-          "Environment :: Web Environment",
           "Intended Audience :: Developers",
           "Intended Audience :: Financial and Insurance Industry",
           "Intended Audience :: Information Technology",
           "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",
           "Natural Language :: English",
           "Operating System :: OS Independent",
-          # TODO: Test with Python 2.4. Who knows, it might actually work.
-          "Programming Language :: Python :: 2.5",
-          "Programming Language :: Python :: 2.6",
-          "Programming Language :: Python :: 2.7",
+          # TODO: Add support for Python 2.6+.
+          "Programming Language :: Python :: 3",
+          "Programming Language :: Python :: 3.4",
           "Topic :: Documentation",
           "Topic :: Software Development :: Quality Assurance",
           "Topic :: Software Development :: Testing"
