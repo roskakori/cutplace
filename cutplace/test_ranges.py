@@ -16,7 +16,6 @@ Tests for ranges.
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
-
 from . import ranges
 
 
@@ -28,7 +27,7 @@ class RangeTest(unittest.TestCase):
         self.assertEquals(ranges.Range("1").items, [(1, 1)])
         self.assertEquals(ranges.Range("1:").items, [(1, None)])
         self.assertEquals(ranges.Range(":1").items, [(None, 1)])
-        self.assertEquals(ranges.Range("1:2").items, [(1, 2)])
+        self.assertEquals(ranges.Range("1...2").items, [(1, 2)])
         self.assertEquals(ranges.Range("-1:2").items, [(-1, 2)])
 
     def testEmptyRange(self):
