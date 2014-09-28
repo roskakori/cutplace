@@ -21,8 +21,8 @@ import io
 import token
 import tokenize
 
-from . import tools
-from . import _tools
+from cutplace import tools
+from cutplace import _tools
 
 
 class RangeSyntaxError(tools.CutplaceError):
@@ -54,6 +54,8 @@ class Range(object):
         """
         assert default is None or default.strip(), "default=%r" % default
 
+        text = text.replace(".", "+")
+
         # Find out if a `text` has been specified and if not, use optional `default` instead.
         hasText = (text is not None) and text.strip()
         if not hasText and default is not None:
@@ -67,6 +69,8 @@ class Range(object):
         else:
             self._description = text
             self._items = []
+
+            colons = 0
             # TODO: Consolidate code with `DelimitedDataFormat._validatedCharacter()`.
             tokens = tokenize.generate_tokens(io.StringIO(text).readline)
             endReached = False
@@ -87,6 +91,7 @@ class Range(object):
                                     base = 16
                                 else:
                                     base = 10
+
                                 longValue = int(nextValue, base)
                             except ValueError:
                                 raise RangeSyntaxError("number must be an integer but is: %r" % nextValue)
@@ -120,14 +125,18 @@ class Range(object):
                         raise RangeSyntaxError("hyphen (-) must be followed by number but found: %r" % nextValue)
                     elif (nextType == token.OP) and (nextValue == "-"):
                         afterHyphen = True
-                    elif (nextType == token.OP) and (nextValue == ":"):
-                        if colonFound:
-                            raise RangeSyntaxError("range item must contain at most one colon (:)")
-                        colonFound = True
+                    elif (nextType == token.OP) and (nextValue == "+"):
+                        colons = colons+1
+                        if colons > 3:
+                            raise RangeSyntaxError("range item must contain 3 colons (+++)")
+                        if colons == 3:
+                            colonFound = True
+                            colons = 0
                     else:
                         message = "range must be specified using integer numbers, text, symbols and colon (:) but found: %r [token type: %r]" % (nextValue, nextType)
                         raise RangeSyntaxError(message)
                     nextToken = next(tokens)
+
                 if afterHyphen:
                     raise RangeSyntaxError("hyphen (-) at end must be followed by number")
 
