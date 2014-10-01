@@ -48,7 +48,7 @@ class Range(object):
         Setup a range as specified by ``text``.
 
         ``text`` must be of the form "lower:upper" or "limit". In case ``text`` is empty (""), any
-        value will be accepted by `validate()`. For example, "1:40" accepts values between 1
+        value will be accepted by `validate()`. For example, "1...40" accepts values between 1
         and 40.
 
         ``default`` is an alternative text to use in case ``text`` is ``None`` or empty.
@@ -124,7 +124,7 @@ class Range(object):
                         elif lower is None:
                             lower = longValue
                         else:
-                            raise RangeSyntaxError("number must be followed by colon (:) but found: %r" % nextValue)
+                            raise RangeSyntaxError("number must be followed by colon (...) but found: %r" % nextValue)
                     elif afterHyphen:
                         raise RangeSyntaxError("hyphen (-) must be followed by number but found: %r" % nextValue)
                     elif (nextType == token.OP) and (nextValue == "-"):
@@ -132,12 +132,12 @@ class Range(object):
                     elif (nextValue == ELLIPSIS_PART):
                         colon_count = colon_count+1
                         if colon_count > 3:
-                            raise RangeSyntaxError("range item must contain 3 colons (+++)")
+                            raise RangeSyntaxError("range item must contain three colons (...)")
                         if colon_count == 3:
                             colonFound = True
                             colon_count = 0
                     else:
-                        message = "range must be specified using integer numbers, text, symbols and colon (:) but found: %r [token type: %r]" % (nextValue, nextType)
+                        message = "range must be specified using integer numbers, text, symbols and colon (...) but found: %r [token type: %r]" % (nextValue, nextType)
                         raise RangeSyntaxError(message)
                     nextToken = next(tokens)
 
@@ -148,18 +148,18 @@ class Range(object):
                 if (lower is None):
                     if (upper is None):
                         if colonFound:
-                            # Handle ":".
-                            # TODO: Handle ":" same as ""?
-                            raise RangeSyntaxError("colon (:) must be preceded and/or succeeded by number")
+                            # Handle "...".
+                            # TODO: Handle "..." same as ""?
+                            raise RangeSyntaxError("colon (...) must be preceded and/or succeeded by number")
                         else:
                             # Handle "".
                             result = None
                     else:
                         assert colonFound
-                        # Handle ":y".
+                        # Handle "...y".
                         result = (None, upper)
                 elif colonFound:
-                    # Handle "x:" and "x:y".
+                    # Handle "x..." and "x...y".
                     if (upper is not None) and (lower > upper):
                         raise RangeSyntaxError("lower range %d must be greater or equal to upper range %d" % (lower, upper))
                     result = (lower, upper)
@@ -188,7 +188,7 @@ class Range(object):
         """
         A list compiled from `description` for fast processing. Each item is represented by a
         tuple ``(lower, upper)`` where either ``lower``or ``upper`` can be ``None``. For example,
-        "2:20" turns ``(2, 20)``, ":20" turns to ``(None, 20)`` and "2:" becomes ``(2, None)``.
+        "2...20" turns ``(2, 20)``, "...20" turns to ``(None, 20)`` and "2..." becomes ``(2, None)``.
         """
         return self._items
 
@@ -258,13 +258,13 @@ class Range(object):
                     # Handle ""
                     result = True
                 else:
-                    # Handle ":y"
+                    # Handle "...y"
                     result = (value <= upper)
             elif upper is None:
-                # Handle "x:"
+                # Handle "x..."
                 result = (value >= lower)
             else:
-                # Handle "x:y"
+                # Handle "x...y"
                 result = (value >= lower) and (value <= upper)
         return result
 
