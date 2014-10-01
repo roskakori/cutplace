@@ -24,6 +24,7 @@ import tokenize
 from cutplace import tools
 from cutplace import _tools
 
+ELLIPSIS_PART = '\u2063'
 
 class RangeSyntaxError(tools.CutplaceError):
     """
@@ -54,8 +55,11 @@ class Range(object):
         """
         assert default is None or default.strip(), "default=%r" % default
 
-        text = text.replace(".", "+")
+        # TODO: Clean up ellipsis hack. Currently we replace an ellipsis composed of 3 dots by 3 invisible delimiters so the parser can easily distinguish it from a decimal separator.
 
+        if text is not None:
+            text = text.replace('...', 3 * ELLIPSIS_PART)
+            text = text.replace('\u2026', 3 * ELLIPSIS_PART)
         # Find out if a `text` has been specified and if not, use optional `default` instead.
         hasText = (text is not None) and text.strip()
         if not hasText and default is not None:
@@ -70,7 +74,7 @@ class Range(object):
             self._description = text
             self._items = []
 
-            colons = 0
+            colon_count = 0
             # TODO: Consolidate code with `DelimitedDataFormat._validatedCharacter()`.
             tokens = tokenize.generate_tokens(io.StringIO(text).readline)
             endReached = False
@@ -125,13 +129,13 @@ class Range(object):
                         raise RangeSyntaxError("hyphen (-) must be followed by number but found: %r" % nextValue)
                     elif (nextType == token.OP) and (nextValue == "-"):
                         afterHyphen = True
-                    elif (nextType == token.OP) and (nextValue == "+"):
-                        colons = colons+1
-                        if colons > 3:
+                    elif (nextValue == ELLIPSIS_PART):
+                        colon_count = colon_count+1
+                        if colon_count > 3:
                             raise RangeSyntaxError("range item must contain 3 colons (+++)")
-                        if colons == 3:
+                        if colon_count == 3:
                             colonFound = True
-                            colons = 0
+                            colon_count = 0
                     else:
                         message = "range must be specified using integer numbers, text, symbols and colon (:) but found: %r [token type: %r]" % (nextValue, nextType)
                         raise RangeSyntaxError(message)
