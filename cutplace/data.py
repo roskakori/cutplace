@@ -207,7 +207,7 @@ class Dataformat():
                     self.allowed_characters = value
                 else:
                     raise ValueError("Allowed characters are already set!")
-            if self.format == FORMAT_EXCEL:
+            elif self.format == FORMAT_EXCEL:
                 if name == KEY_SHEET:
                     if self.sheet is None:
                         self.sheet = value
