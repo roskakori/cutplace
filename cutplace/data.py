@@ -21,9 +21,9 @@ import io
 import token
 import tokenize
 
-from . import ranges
-from . import tools
-from . import _tools
+from cutplace import ranges
+from cutplace import tools
+from cutplace import _tools
 
 
 ANY = "any"
@@ -83,48 +83,84 @@ class Dataformat():
 
     @property
     def format(self):
-        return self.__dict__[KEY_FORMAT]
+        return self.__dict__.get(KEY_FORMAT,None)
 
+
+    @format.setter
+    def format(self, value):
+        self.__dict__[KEY_FORMAT] = value;
 
     @property
     def encoding(self):
-        return self.__dict__[KEY_ENCODING]
+        return self.__dict__.get(KEY_ENCODING,None);
 
+    @encoding.setter
+    def encoding(self,value):
+        self.__dict__[KEY_ENCODING] = value;
 
     @property
     def allowed_characters(self):
-        return self.__dict__[KEY_ALLOWED_CHARACTERS]
+        return self.__dict__.get(KEY_ALLOWED_CHARACTERS,None);
 
+    @allowed_characters.setter
+    def allowed_characters(self,value):
+        self.__dict__[KEY_ALLOWED_CHARACTERS] = value;
 
     @property
     def escape_character(self):
-        return self.__dict__[KEY_ESCAPE_CHARACTER]
+        return self.__dict__.get(KEY_ESCAPE_CHARACTER,None);
 
+    @escape_character.setter
+    def escape_character(self,value):
+        self.__dict__[KEY_ESCAPE_CHARACTER] = value;
 
     @property
     def header(self):
-        return self.__dict__[KEY_HEADER]
+        return self.__dict__.get(KEY_HEADER,None);
 
+    @header.setter
+    def header(self,value):
+        self.__dict__[KEY_HEADER] = value;
 
     @property
     def item_delimiter(self):
-        return self.__dict__[KEY_ITEM_DELIMITER]
+        return self.__dict__.get(KEY_ITEM_DELIMITER,None);
 
+    @item_delimiter.setter
+    def item_delimiter(self,value):
+        self.__dict__[KEY_ITEM_DELIMITER] = value;
 
     @property
     def line_delimiter(self):
-        return self.__dict__[KEY_LINE_DELIMITER]
+        return self.__dict__.get(KEY_LINE_DELIMITER,None);
 
+    @line_delimiter.setter
+    def line_delimiter(self,value):
+        self.__dict__[KEY_LINE_DELIMITER] = value;
 
     @property
     def quote_character(self):
-        return self.__dict__[KEY_QUOTE_CHARACTER]
+        return self.__dict__.get(KEY_QUOTE_CHARACTER,None);
 
+    @quote_character.setter
+    def quote_character(self,value):
+        self.__dict__[KEY_QUOTE_CHARACTER] = value;
 
     @property
     def sheet(self):
-        return self.__dict__[KEY_SHEET]
+        return self.__dict__.get(KEY_SHEET,None);
 
+    @sheet.setter
+    def sheet(self,value):
+        self.__dict__[KEY_SHEET] = value;
+
+    @property
+    def blanks_around_delimiter(self):
+        return self.__dict__.get(KEY_SPACE_AROUND_DELIMITER,None);
+
+    @blanks_around_delimiter.setter
+    def blanks_around_delimiter(self,value):
+        self.__dict__[KEY_SPACE_AROUND_DELIMITER] = value;
 
     @property
     def blanks_around_delimiter(self):
@@ -132,12 +168,19 @@ class Dataformat():
 
     @property
     def decimal_separator(self):
-        return self.__dict__[KEY_DECIMAL_SEPARATOR]
+        return self.__dict__.get(KEY_DECIMAL_SEPARATOR,None);
 
+    @decimal_separator.setter
+    def decimal_separator(self,value):
+        self.__dict__[KEY_DECIMAL_SEPARATOR] = value;
 
     @property
     def thousands_separator(self):
-        return self.__dict__[KEY_THOUSANDS_SEPARATOR]
+        return self.__dict__.get(KEY_THOUSANDS_SEPARATOR,None);
+
+    @thousands_separator.setter
+    def thousands_separator(self,value):
+        self.__dict__[KEY_THOUSANDS_SEPARATOR] = value;
 
     def set_property(self, name, value):
         """
@@ -167,20 +210,20 @@ class Dataformat():
             if self.format == FORMAT_EXCEL:
                 if name == KEY_SHEET:
                     if self.sheet is None:
-                        self.sheet == value
+                        self.sheet = value
                     else:
                         raise ValueError("Sheet is already set!")
                 else:
                     raise ValueError("Property %s is not valid for excel format"%name)
             elif self.format == FORMAT_FIXED:
                 if name != KEY_SHEET:
-                    if self.__dict__[name] is None:
+                    if self.__dict__.get(name,None) is None:
                         self.__dict__[name] = value
                     else:
                         raise ValueError("Property %s is already set!"%name)
                 else:
                     raise ValueError("Property sheet is not valid for fixed format!")
-            else:  # TODO: support ODS-format
+            elif self.format == FORMAT_ODS:  # TODO: support ODS-format
                 raise ValueError("ODS is not supported yet!")
 
 
