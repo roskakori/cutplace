@@ -34,6 +34,44 @@ class DataFormatTest(unittest.TestCase):
             self.assertTrue(dataFormat.__str__())
         #self.assertRaises(data.DataFormatSyntaxError, data.createDataFormat, "no-such-data-format")
 
+    def test_can_set_delimited_properties(self):
+        delimited_format = data.Dataformat(data.FORMAT_DELIMITED)
+        #TODO: implement set delimited properties
+
+    def test_can_set_fixed_properties(self):
+        fixed_format = data.Dataformat(data.FORMAT_FIXED)
+        #TODO: implement set fixed properties
+        self.assertRaises(ValueError,fixed_format.set_property(data.KEY_SHEET,'1'))
+
+    def test_can_set_excel_properties(self):
+        excel_format = data.Dataformat(data.FORMAT_EXCEL)
+        #TODO: implement set excel properties
+
+    def test_can_set_ods_properties(self):
+        ods_format = data.Dataformat(data.FORMAT_ODS)
+        #TODO: implement set ods properties
+
+    def test_fails_on_nonnumeric_header(self):
+        fixed_format = data.Dataformat(data.FORMAT_FIXED)
+        self.assertRaises(ValueError, fixed_format.set_property(data.KEY_HEADER, "xxx"))
+
+    def test_fails_on_unsupported_delimited_property(self):
+        delimited_format = data.Dataformat(data.FORMAT_DELIMITED)
+        self.assertRaises(ValueError, delimited_format.set_property(data.KEY_SHEET, '2'))
+
+
+    def test_can_set_header(self):
+        delimited_format = data.Dataformat(data.FORMAT_DELIMITED)
+        delimited_format.set_property(data.KEY_HEADER, '1')
+        self.assertEqual(delimited_format.header, 1)
+
+    def test_can_set_line_delimiter(self):
+        delimited_format = data.Dataformat(data.FORMAT_DELIMITED)
+        delimited_format.set_property(data.KEY_LINE_DELIMITER, 'cr')
+
+    def test_fails_on_same_decimal_and_thousands_separator(self):
+        delimited_format = data.Dataformat(data.FORMAT_DELIMITED)
+
     """
     def testCsvDataFormat(self):
         dataFormat = data.CsvDataFormat()
