@@ -26,11 +26,11 @@ import unittest
 
 class Cidtest(unittest.TestCase):
     """
-    Tests for data formats.
+    Tests for cid module
     """
     _TEST_ENCODING = "iso-8859-1"
 
-    def test_can_read_excel(self):
+    def test_can_read_excel_and_create_dataformat(self):
         cidreader = cid.Cid()
         cidreader.read("c://icd_customers.xls")
 
