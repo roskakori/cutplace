@@ -70,7 +70,7 @@ KEY_ITEM_DELIMITER = "item_delimiter"
 KEY_LINE_DELIMITER = "line_delimiter"
 KEY_QUOTE_CHARACTER = "quote_character"
 KEY_SHEET = "sheet"
-KEY_SPACE_AROUND_DELIMITER = "blanks_around_delimiter"
+KEY_SPACE_AROUND_DELIMITER = "space_around_delimiter"
 KEY_DECIMAL_SEPARATOR = "decimal_separator"
 KEY_THOUSANDS_SEPARATOR = "thousands_separator"
 
@@ -86,18 +86,18 @@ class Dataformat():
             self._format = format_name
             self._header = 0
             self._allowed_characters = None
-            self._encoding = None
-            self._thousands_separator = ""
-            if self.format == 'delimited':
+            self._encoding = 'cp1252'
+            self._thousands_separator = ''
+            if self.format == FORMAT_DELIMITED:
                 self._item_delimiter = ','
                 self._space_around_delimiter = False
 
-            if self.format in ('delimited', 'fixed'):
+            if self.format in (FORMAT_DELIMITED, FORMAT_FIXED):
                 self._decimal_separator = ','
                 self._escape_character = '"'
                 self._line_delimiter = None
                 self._quote_character = '"'
-            elif self.format in ('excel', 'ods'):
+            elif self.format in (FORMAT_EXCEL, FORMAT_ODS):
                 self._sheet = 1
 
     @property
@@ -148,10 +148,6 @@ class Dataformat():
     def thousands_separator(self):
         return self._thousands_separator
 
-    def _validate_has_not_been_set(self, name, value):
-        if self.__dict__.get(name,None) != None:
-            raise ValueError("cannot set property %s to %s because it has already been set to %s" % (name, value, self.__dict__[name]))
-
     def set_property(self, name, value):
         """
         Setting the value auf a property, used by a dataformat
@@ -159,33 +155,49 @@ class Dataformat():
         varname = '_' + name
         if varname not in self.__dict__:
             raise ValueError('format %s does not support property %s' % (self.format, name))
-        else:
-            if name == KEY_ENCODING:
-                self._encoding = value
-            elif name == KEY_HEADER:
-                try:
-                    self._header = int(value)
-                except ValueError:
-                    raise ValueError("header %s must be a number" % (value))
-            elif name == KEY_ALLOWED_CHARACTERS:
-                self._allowed_characters = value
-            elif name == KEY_LINE_DELIMITER:
-                try:
-                    self._line_delimiter = _TEXT_TO_LINE_DELIMITER_MAP[value]
-                except KeyError:
-                    raise ValueError("line delimiter %s must be changed to one of: %s" % (value, _VALID_LINE_DELIMITER_TEXTS))
-            elif self.format == FORMAT_EXCEL:
-                if name == KEY_SHEET:
-                    self._sheet = value
-                else:
-                    raise ValueError("Property %s is not valid for excel format"%name)
-            elif self.format == FORMAT_FIXED:
-                self.__dict__[varname] = value
-            elif self.format == FORMAT_ODS:  # TODO: support ODS-format
-                raise ValueError("ODS is not supported yet!")
-            elif self.format == FORMAT_DELIMITED:#TODO: support delimited
-                raise ValueError("Delimited is not supported yet!")
 
+        if name == KEY_ENCODING:
+            try:
+                codecs.lookup(value)
+            except:
+                #raise DataFormatValueError("value for data format property %r is %r but must be a valid encoding" % (key, value))
+                raise ValueError("value for data format property %r is %r but must be a valid encoding" % (KEY_ENCODING, self.encoding))
+            self._encoding = value
+        elif name == KEY_HEADER:
+            try:
+                self._header = int(value)
+            except ValueError:
+                raise ValueError("header %s must be a number" % (value))
+        elif name == KEY_ALLOWED_CHARACTERS:
+            try:
+                ranges.Range(value)
+            except ranges.RangeSyntaxError as error:
+                raise ValueError("value for property %r must be a valid range: %s" % (KEY_ALLOWED_CHARACTERS, error))
+            self._allowed_characters = value
+        elif name == KEY_LINE_DELIMITER:
+            try:
+                self._line_delimiter = _TEXT_TO_LINE_DELIMITER_MAP[value]
+            except KeyError:
+                raise ValueError("line delimiter %s must be changed to one of: %s"
+                                 % (value, _VALID_LINE_DELIMITER_TEXTS))
+        elif self.format in (FORMAT_EXCEL, FORMAT_ODS):
+            if name == KEY_SHEET:
+                try:
+                    self._sheet = int(value)
+                except ValueError:
+                    raise ValueError("sheet %s must be a number" % (value))
+            else:
+                raise ValueError("Property %s is not valid for excel format"%name)
+        elif self.format == FORMAT_FIXED:
+            self.__dict__[varname] = value
+        elif self.format == FORMAT_DELIMITED:
+            if name == KEY_SPACE_AROUND_DELIMITER:
+                if value in ("True", "true"):
+                    self._space_around_delimiter = True
+                else:
+                    self._space_around_delimiter = False
+            else:
+                self.__dict__[varname] = value
 
     def _validatedChoice(self, key, value, choices):
         """
@@ -330,14 +342,8 @@ class Dataformat():
 
     def validate(self):
         """
-        Validate all properties and set the default value if the value of the property is None.
+        Validate all properties.
         """
-        if self.format is None:
-            raise ValueError("format must be specified")
-
-        if self.encoding is None:
-            self.set_property(KEY_ENCODING, 'cp1252')
-
         try:
             codecs.lookup(self.encoding)
         except:
@@ -349,54 +355,44 @@ class Dataformat():
         except ranges.RangeSyntaxError as error:
             raise ValueError("value for property %r must be a valid range: %s" % (KEY_ALLOWED_CHARACTERS, error))
 
-        if self.header is None:
-            self.set_property(KEY_HEADER,0)
-
         self._validatedLong(KEY_HEADER, self.header, 0)
 
-        if self.format == FORMAT_EXCEL:
-            if self.sheet is None:
-                self.set_property(KEY_SHEET,1)
-
+        if self.format in (FORMAT_EXCEL, FORMAT_ODS):
             self._validatedLong(KEY_SHEET, self.sheet, 1)
-        elif self.format != FORMAT_FIXED:
-            if self.decimal_separator is None:
-                self.set_property(KEY_DECIMAL_SEPARATOR,'.')
 
+        if self.format == FORMAT_DELIMITED:
+            self._validatedCharacter(KEY_ITEM_DELIMITER, self.item_delimiter)
+
+            if self.space_around_delimiter in ("True", "true"):
+                self._space_around_delimiter = True
+            else:
+                self._space_around_delimiter = False
+
+        if self.format in (FORMAT_DELIMITED, FORMAT_FIXED):
             self._validatedChoice(KEY_DECIMAL_SEPARATOR, self.decimal_separator, _VALID_DECIMAL_SEPARATORS)
-
-            if self.thousands_separator is None:
-                self.set_property(KEY_THOUSANDS_SEPARATOR,'')
 
             self._validatedChoice(KEY_THOUSANDS_SEPARATOR, self.thousands_separator, _VALID_THOUSANDS_SEPARATORS)
 
-            lower_value = self.line_delimiter.lower()
-            self._validatedChoice(KEY_LINE_DELIMITER, lower_value, _VALID_LINE_DELIMITER_TEXTS)
-            self.set_property(KEY_LINE_DELIMITER, _TEXT_TO_LINE_DELIMITER_MAP[lower_value])
-
             self._validatedChoice(KEY_ESCAPE_CHARACTER, self.escape_character, _VALID_ESCAPE_CHARACTERS)
 
-            self._validatedCharacter(KEY_ITEM_DELIMITER, self.item_delimiter)
-
             self._validatedChoice(KEY_QUOTE_CHARACTER, self.quote_character, _VALID_QUOTE_CHARACTERS)
+
+            if(self._line_delimiter != None and self._line_delimiter not in _LINE_DELIMITER_TO_TEXT_MAP):
+                try:
+                    self._line_delimiter = _TEXT_TO_LINE_DELIMITER_MAP[self.line_delimiter]
+                except KeyError:
+                    raise ValueError("line delimiter %s must be changed to one of: %s"
+                        % (self.line_delimiter, _VALID_LINE_DELIMITER_TEXTS))
 
             if self.decimal_separator == self.thousands_separator:
                 raise ValueError("decimal separator can not equals thousands separator")
             if self.quote_character == self.thousands_separator:
                 raise ValueError("quote character can not equals thousands separator")
-            if self.quote_character == self.decimal_separator:
-                raise ValueError("quote character can not equals decimal separator")
             if self.thousands_separator == self.item_delimiter:
                 raise ValueError("thousands separator can not equals item delimiter")
-            if self.decimal_separator == self.item_delimiter:
-                raise ValueError("decimal separator can not equals item delimiter")
-            if self.blanks_around_delimiter == self.item_delimiter:
-                raise ValueError("blanks around delimiter can not equals item delimiter")
             if self.quote_character == self.item_delimiter:
                 raise ValueError("quote character can not equals item delimiter")
             if self.line_delimiter == self.item_delimiter:
                 raise ValueError("line delimiter can not equals item delimiter")
             if self.escape_character == self.item_delimiter:
                 raise ValueError("escape character can not equals item delimiter")
-            if self.allowed_characters in self.item_delimiter:
-                raise ValueError("allowed characters can not equal item delimiter")
