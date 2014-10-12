@@ -26,16 +26,7 @@ from cutplace import _tools
 
 ELLIPSIS_PART = '\u2063'
 
-class RangeSyntaxError(tools.CutplaceError):
-    """
-    Error in Range declaration.
-    """
-
-
-class RangeValueError(tools.CutplaceError):
-    """
-    Error raised when ranges.validate() detects that a value is outside the expected ranges.
-    """
+from . import errors
 
 
 class Range(object):
@@ -98,7 +89,7 @@ class Range(object):
 
                                 longValue = int(nextValue, base)
                             except ValueError:
-                                raise RangeSyntaxError("number must be an integer but is: %r" % nextValue)
+                                raise errors.RangeSyntaxError("number must be an integer but is: %r" % nextValue)
                             if afterHyphen:
                                 longValue = - 1 * longValue
                                 afterHyphen = False
@@ -107,10 +98,10 @@ class Range(object):
                                 longValue = tools.SYMBOLIC_NAMES_MAP[nextValue.lower()]
                             except KeyError:
                                 validSymbols = _tools.humanReadableList(sorted(tools.SYMBOLIC_NAMES_MAP.keys()))
-                                raise RangeSyntaxError("symbolic name %r must be one of: %s" % (nextValue, validSymbols))
+                                raise errors.RangeSyntaxError("symbolic name %r must be one of: %s" % (nextValue, validSymbols))
                         elif nextType == token.STRING:
                             if len(nextValue) != 3:
-                                raise RangeSyntaxError("text for range must contain a single character but is: %r" % nextValue)
+                                raise errors.RangeSyntaxError("text for range must contain a single character but is: %r" % nextValue)
                             leftQuote = nextValue[0]
                             rightQuote = nextValue[2]
                             assert leftQuote in "\"\'", "leftQuote=%r" % leftQuote
@@ -120,29 +111,29 @@ class Range(object):
                             if upper is None:
                                 upper = longValue
                             else:
-                                raise RangeSyntaxError("range must have at most lower and upper limit but found another number: %r" % nextValue)
+                                raise errors.RangeSyntaxError("range must have at most lower and upper limit but found another number: %r" % nextValue)
                         elif lower is None:
                             lower = longValue
                         else:
-                            raise RangeSyntaxError("number must be followed by colon (...) but found: %r" % nextValue)
+                            raise errors.RangeSyntaxError("number must be followed by colon (...) but found: %r" % nextValue)
                     elif afterHyphen:
-                        raise RangeSyntaxError("hyphen (-) must be followed by number but found: %r" % nextValue)
+                        raise errors.RangeSyntaxError("hyphen (-) must be followed by number but found: %r" % nextValue)
                     elif (nextType == token.OP) and (nextValue == "-"):
                         afterHyphen = True
                     elif (nextValue == ELLIPSIS_PART):
                         colon_count = colon_count+1
                         if colon_count > 3:
-                            raise RangeSyntaxError("range item must contain three colons (...)")
+                            raise errors.RangeSyntaxError("range item must contain three colons (...)")
                         if colon_count == 3:
                             colonFound = True
                             colon_count = 0
                     else:
                         message = "range must be specified using integer numbers, text, symbols and colon (...) but found: %r [token type: %r]" % (nextValue, nextType)
-                        raise RangeSyntaxError(message)
+                        raise errors.RangeSyntaxError(message)
                     nextToken = next(tokens)
 
                 if afterHyphen:
-                    raise RangeSyntaxError("hyphen (-) at end must be followed by number")
+                    raise errors.RangeSyntaxError("hyphen (-) at end must be followed by number")
 
                 # Decide upon the result.
                 if (lower is None):
@@ -150,7 +141,7 @@ class Range(object):
                         if colonFound:
                             # Handle "...".
                             # TODO: Handle "..." same as ""?
-                            raise RangeSyntaxError("colon (...) must be preceded and/or succeeded by number")
+                            raise errors.RangeSyntaxError("colon (...) must be preceded and/or succeeded by number")
                         else:
                             # Handle "".
                             result = None
@@ -161,7 +152,7 @@ class Range(object):
                 elif colonFound:
                     # Handle "x..." and "x...y".
                     if (upper is not None) and (lower > upper):
-                        raise RangeSyntaxError("lower range %d must be greater or equal to upper range %d" % (lower, upper))
+                        raise errors.RangeSyntaxError("lower range %d must be greater or equal to upper range %d" % (lower, upper))
                     result = (lower, upper)
                 else:
                     # Handle "x".
@@ -170,7 +161,7 @@ class Range(object):
                     for item in self._items:
                         if self._itemsOverlap(item, result):
                             # TODO: use _repr_item() or something to display item in error message.
-                            raise RangeSyntaxError("range items must not overlap: %r and %r"
+                            raise errors.RangeSyntaxError("range items must not overlap: %r and %r"
                                                    % (self._repr_item(item), self._repr_item(result)))
                     self._items.append(result)
                 if _tools.isEofToken(nextToken):
@@ -292,4 +283,4 @@ class Range(object):
                     isValid = True
                 itemIndex += 1
             if not isValid:
-                raise RangeValueError("%s is %r but must be within range: %r" % (name, value, self))
+                raise errors.RangeValueError("%s is %r but must be within range: %r" % (name, value, self))
