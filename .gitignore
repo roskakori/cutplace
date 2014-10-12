@@ -3,6 +3,7 @@
 *.pyc
 *.pyo
 /.coverage
+/.idea/workspace.xml
 /build
 /coverage.xml
 /cutplace.egg-info
