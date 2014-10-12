@@ -310,3 +310,14 @@ class RangeValueError(CutplaceError):
     """
     Error raised when ranges.validate() detects that a value is outside the expected ranges.
     """
+
+class DataFormatValueError(CutplaceError):
+    """
+    Error in data caused by violating the data format.
+    """
+
+
+class DataFormatSyntaxError(CutplaceError):
+    """
+    Error in data format declaration.
+    """
