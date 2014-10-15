@@ -21,6 +21,7 @@ import io
 import token
 import tokenize
 
+from cutplace import errors
 from cutplace import ranges
 from cutplace import tools
 from cutplace import _tools
@@ -79,10 +80,11 @@ class Dataformat():
     Stores the data used by a dataformat.
     """
 
-    def __init__(self, format_name):
+    def __init__(self, format_name, location):
         if format_name not in _VALID_FORMATS:
             raise ValueError('format is %s but must be on of: %s' % (format_name, _VALID_FORMATS))
         else:
+            self._location = location
             self._format = format_name
             self._header = 0
             self._allowed_characters = None

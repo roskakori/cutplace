@@ -17,21 +17,24 @@ Reading ICD-Files
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from cutplace import data
+from cutplace import errors
 from xlrd import *
 
 
 class Cid():
     def __init__(self):
         self._data_format = None
+        self._location = None
 
     def read(self, source_path):
         # TODO: Detect format and use proper reader.
+        self._location = errors.InputLocation(source_path, hasCell=True)
         empty_allowed = True
         for row in excel_rows(self, source_path):
             if row != [] and row[0].lower() == 'd':
                 _, name, value = row[:3]
                 if self._data_format is None:
-                    self._data_format = data.Dataformat(value.lower())
+                    self._data_format = data.Dataformat(value.lower(), self._location)
                 else:
                     self._data_format.set_property(name.lower(), value)
             elif row != [] and row[0].lower() == 'f':
@@ -43,6 +46,8 @@ class Cid():
             elif row[0] != '':
                 # raise error when value is not supported
                 raise ValueError("Cell with the value %s is nor supported!" % row[0])
+            self._location.advanceLine(1)
+
 
 
 def excel_rows(self, source_path):
