@@ -19,6 +19,7 @@ Tests for `cid` module
 #
 
 from cutplace import cid
+from cutplace import dev_test
 
 import logging
 import unittest
@@ -28,14 +29,14 @@ class Cidtest(unittest.TestCase):
     """
     Tests for cid module
     """
-    _TEST_ENCODING = "iso-8859-1"
+    _TEST_ENCODING = "cp1252"
 
     def test_can_read_excel_and_create_dataformat(self):
-        cidreader = cid.Cid()
-        cidreader.read("c://icd_customers.xls")
+        cid_reader = cid.Cid()
+        cid_reader.read(dev_test.getTestIcdPath("icd_customers.xls"))
 
-        self.assertEqual(cidreader._data_format.format, "delimited")
-        self.assertEqual(cidreader._data_format.header, 1)
+        self.assertEqual(cid_reader._data_format.format, "delimited")
+        self.assertEqual(cid_reader._data_format.header, 1)
 
 
 

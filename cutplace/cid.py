@@ -29,14 +29,17 @@ class Cid():
         empty_allowed = True
         for row in excel_rows(self, source_path):
             if row != [] and row[0].lower() == 'd':
-                empty_allowed = False
                 _, name, value = row[:3]
                 if self._data_format is None:
                     self._data_format = data.Dataformat(value.lower())
                 else:
                     self._data_format.set_property(name.lower(), value)
-            elif not empty_allowed:  # exits loop after data_format
-                break
+            elif row != [] and row[0].lower() == 'f':
+                #TODO: implement support for fieldformat
+                pass
+            elif row != [] and row[0].lower() == 'c':
+                #TODO: implement support for checks
+                pass
             elif row[0] != '':
                 # raise error when value is not supported
                 raise ValueError("Cell with the value %s is nor supported!" % row[0])
