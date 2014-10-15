@@ -26,7 +26,7 @@ class DataFormatTest(unittest.TestCase):
     """
     Tests for data formats.
     """
-    _TEST_ENCODING = "iso-8859-1"
+    _TEST_ENCODING = "cp1252"
 
     def test_create_dataformat(self):
         for formatName in [data.FORMAT_DELIMITED, data.FORMAT_FIXED, data.FORMAT_EXCEL]:

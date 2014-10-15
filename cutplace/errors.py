@@ -67,7 +67,7 @@ class InputLocation(object):
         data.ods (Sheet1!R1C1)
         >>> InputLocation("data.ods", hasColumn=True, hasCell=True, hasSheet=True) # for very detailed parsers
         data.ods (Sheet1!R1C1;1)
-        >>> from StringIO import StringIO
+        >>> from io import StringIO
         >>> InputLocation(StringIO("some text"), hasColumn=True)
         <io> (1;1)
         """
@@ -150,7 +150,7 @@ class InputLocation(object):
 
     sheet = property(_getSheet, _setSheet, doc="The current sheet in the input.")
 
-    def __unicode__(self):
+    def __str__(self):
         """
         Human readable representation of the input location; see `__init__()` for some examples.
         """
@@ -165,9 +165,6 @@ class InputLocation(object):
             result += ";%d" % (self.column + 1)
         result += ")"
         return result
-
-    def __str__(self):
-        return str(self).encode('utf-8')
 
     def __repr__(self):
         return self.__str__()
