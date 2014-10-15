@@ -23,10 +23,10 @@ import sys
 import time
 import token
 
-from . import data
-from . import ranges
-from . import tools
-from . import _tools
+from cutplace import data
+from cutplace import ranges
+from cutplace import tools
+from cutplace import _tools
 
 # Expected suffix for classes that describe filed formats.
 _FieldFormatClassSuffix = "FieldFormat"
