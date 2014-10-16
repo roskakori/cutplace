@@ -71,7 +71,7 @@ KEY_ITEM_DELIMITER = "item_delimiter"
 KEY_LINE_DELIMITER = "line_delimiter"
 KEY_QUOTE_CHARACTER = "quote_character"
 KEY_SHEET = "sheet"
-KEY_SPACE_AROUND_DELIMITER = "space_around_delimiter"
+KEY_SKIP_INITIAL_SPACE = "skip_initial_space"
 KEY_DECIMAL_SEPARATOR = "decimal_separator"
 KEY_THOUSANDS_SEPARATOR = "thousands_separator"
 
@@ -80,9 +80,10 @@ class Dataformat():
     Stores the data used by a dataformat.
     """
 
-    def __init__(self, format_name, location):
+    def __init__(self, format_name, location=None):
         if format_name not in _VALID_FORMATS:
-            raise ValueError('format is %s but must be on of: %s' % (format_name, _VALID_FORMATS))
+            raise errors.DataFormatSyntaxError('format is %s but must be on of: %s'
+                                               % (format_name, _VALID_FORMATS), location)
         else:
             self._location = location
             self._format = format_name
@@ -92,7 +93,7 @@ class Dataformat():
             self._thousands_separator = ''
             if self.format == FORMAT_DELIMITED:
                 self._item_delimiter = ','
-                self._space_around_delimiter = False
+                self._skip_initial_space = False
 
             if self.format in (FORMAT_DELIMITED, FORMAT_FIXED):
                 self._decimal_separator = ','
@@ -139,8 +140,8 @@ class Dataformat():
         return self._sheet
 
     @property
-    def space_around_delimiter(self):
-        return self._space_around_delimiter
+    def skip_initial_space(self):
+        return self._skip_initial_space
 
     @property
     def decimal_separator(self):
@@ -156,48 +157,53 @@ class Dataformat():
         """
         varname = '_' + name
         if varname not in self.__dict__:
-            raise ValueError('format %s does not support property %s' % (self.format, name))
+            raise errors.DataFormatSyntaxError('format %s does not support property %s'
+                                               % (self.format, name), self._location)
 
         if name == KEY_ENCODING:
             try:
                 codecs.lookup(value)
             except:
-                #raise DataFormatValueError("value for data format property %r is %r but must be a valid encoding" % (key, value))
-                raise ValueError("value for data format property %r is %r but must be a valid encoding" % (KEY_ENCODING, self.encoding))
+                raise errors.DataFormatValueError('value for data format property %r is %r but must be a valid encoding'
+                                                  % (KEY_ENCODING, self.encoding), self._location)
             self._encoding = value
         elif name == KEY_HEADER:
             try:
                 self._header = int(value)
             except ValueError:
-                raise ValueError("header %s must be a number" % (value))
+                raise errors.DataFormatSyntaxError('header %s must be a number' % value, self._location)
         elif name == KEY_ALLOWED_CHARACTERS:
             try:
                 ranges.Range(value)
             except ranges.RangeSyntaxError as error:
-                raise ValueError("value for property %r must be a valid range: %s" % (KEY_ALLOWED_CHARACTERS, error))
+                raise errors.DataFormatSyntaxError('value for property %r must be a valid range: %s'
+                                                   % (KEY_ALLOWED_CHARACTERS, error), self._location)
             self._allowed_characters = value
         elif name == KEY_LINE_DELIMITER:
             try:
                 self._line_delimiter = _TEXT_TO_LINE_DELIMITER_MAP[value]
             except KeyError:
-                raise ValueError("line delimiter %s must be changed to one of: %s"
-                                 % (value, _VALID_LINE_DELIMITER_TEXTS))
+                raise errors.DataFormatValueError('line delimiter %s must be changed to one of: %s'
+                                                  % (value, _VALID_LINE_DELIMITER_TEXTS), self._location)
         elif self.format in (FORMAT_EXCEL, FORMAT_ODS):
             if name == KEY_SHEET:
                 try:
                     self._sheet = int(value)
                 except ValueError:
-                    raise ValueError("sheet %s must be a number" % (value))
+                    raise errors.DataFormatSyntaxError('sheet %s must be a number' % value, self._location)
             else:
-                raise ValueError("Property %s is not valid for excel format"%name)
+                raise errors.DataFormatSyntaxError('Property %s is not valid for excel format' % name, self._location)
         elif self.format == FORMAT_FIXED:
             self.__dict__[varname] = value
         elif self.format == FORMAT_DELIMITED:
-            if name == KEY_SPACE_AROUND_DELIMITER:
-                if value in ("True", "true"):
-                    self._space_around_delimiter = True
+            if name == KEY_SKIP_INITIAL_SPACE:
+                if value in ('True', 'true'):
+                    self._skip_initial_space = True
+                elif value in ('False', 'false'):
+                    self._skip_initial_space = False
                 else:
-                    self._space_around_delimiter = False
+                    raise errors.DataFormatSyntaxError('skip initial space %s must be changed to one of: True, False'
+                                                       % value, self._location)
             else:
                 self.__dict__[varname] = value
 
@@ -209,13 +215,12 @@ class Dataformat():
         assert key
         assert choices
         if value not in choices:
-            #raise DataFormatValueError("value for data format property %r is %r but must be one of: %s"
-            raise ValueError("value for data format property %r is %r but must be one of: %s" \
-                  % (key, value, _tools.humanReadableList(choices)))
+            raise errors.DataFormatValueError('value for data format property %r is %r but must be one of: %s'
+                                              % (key, value, _tools.humanReadableList(choices)))
         return value
 
 
-    def _validatedLong(self, key, value, lowerLimit=None):
+    def _validatedInt(self, key, value, lowerLimit=None):
         """
         Validate that ``value`` is a long number with a value of at least ``lowerLimit`` (if
         specified) and raise `DataFormatSyntaxError` if not.
@@ -225,14 +230,12 @@ class Dataformat():
         try:
             result = int(value)
         except ValueError:
-            raise ValueError("value for data format property $r must be an integer number but is: $r" \
-                  %(key, value))
-            #raise DataFormatValueError("value for data format property %r must be an integer number but is: %r" % (key, value))
+            raise errors.DataFormatValueError('value for data format property %r must be an integer number but is: %r'
+                                              % (key, value))
         if lowerLimit is not None:
             if result < lowerLimit:
-                raise ValueError("value for data format property %r is %d but must be at least %d" \
-                      %(key, result, lowerLimit))
-                #raise DataFormatValueError("value for data format property %r is %d but must be at least %d" % (key, result, lowerLimit))
+                raise errors.DataFormatValueError('value for data format property %r is %d but must be at least %d'
+                                                  % (key, result, lowerLimit))
         return result
 
 
@@ -309,32 +312,32 @@ class Dataformat():
                         base = 10
                     longValue = int(nextValue, base)
                 except ValueError:
-                    raise ValueError("numeric value for data format property %r must be an integer but is: %r" %(key, value))
-                    #raise DataFormatSyntaxError("numeric value for data format property %r must be an integer but is: %r" % (key, value))
+                    raise errors.DataFormatSyntaxError('numeric value for data format property %r must be an integer but is: %r'
+                                                       % (key, value))
             elif nextType == token.NAME:
                 try:
-                    longValue = tools.SYMBOLIC_NAMES_MAP[nextValue.lower()]
+                    longValue = errors.SYMBOLIC_NAMES_MAP[nextValue.lower()]
                 except KeyError:
                     validSymbols = _tools.humanReadableList(sorted(tools.SYMBOLIC_NAMES_MAP.keys()))
-                    #raise DataFormatSyntaxError("symbolic name %r for data format property %r must be one of: %s" % (value, key, validSymbols))
-                    raise ValueError("symbolic name %r for data format property %r must be one of: %s" % (value, key, validSymbols))
+                    raise errors.DataFormatSyntaxError('symbolic name %r for data format property %r must be one of: %s'
+                                                       % (value, key, validSymbols))
             elif nextType == token.STRING:
                 if len(nextValue) != 3:
-                    #raise DataFormatSyntaxError("text for data format property %r must be a single character but is: %r" % (key, value))
-                    raise ValueError("text for data format property %r must be a single character but is: %r" %(key, value))
+                    raise errors.DataFormatSyntaxError('text for data format property %r must be a single character but is: %r'
+                                                       % (key, value))
                 leftQuote = nextValue[0]
                 rightQuote = nextValue[2]
                 assert leftQuote in "\"\'", "leftQuote=%r" % leftQuote
                 assert rightQuote in "\"\'", "rightQuote=%r" % rightQuote
                 longValue = ord(nextValue[1])
             else:
-                #raise DataFormatSyntaxError("value for data format property %r must a number, a single character or a symbolic name but is: %r" % (key, value))
-                raise ValueError("value for data format property %r must a number, a single character or a symbolic name but is: %r" %(key, value))
+                raise errors.DataFormatSyntaxError('value for data format property %r must a number, a single character or a symbolic name but is: %r'
+                                                   % (key, value))
             # Ensure there are no further tokens.
             nextToken = next(tokens)
             if not _tools.isEofToken(nextToken):
-                #raise DataFormatSyntaxError("value for data format property %r must describe a single character but is: %r" % (key, value))
-                raise ValueError("value for data format property %r must describe a single character but is: %r" %(key, value))
+                raise errors.DataFormatSyntaxError('value for data format property %r must describe a single character but is: %r'
+                                                   % (key, value))
             assert longValue is not None
             assert longValue >= 0
             result = chr(longValue)
@@ -349,26 +352,31 @@ class Dataformat():
         try:
             codecs.lookup(self.encoding)
         except:
-            #raise DataFormatValueError("value for data format property %r is %r but must be a valid encoding" % (key, value))
-            raise ValueError("value for data format property %r is %r but must be a valid encoding" % (KEY_ENCODING, self.encoding))
+            raise errors.DataFormatValueError('value for data format property %r is %r but must be a valid encoding'
+                                              % (KEY_ENCODING, self.encoding))
 
         try:
             ranges.Range(self.allowed_characters)
         except ranges.RangeSyntaxError as error:
-            raise ValueError("value for property %r must be a valid range: %s" % (KEY_ALLOWED_CHARACTERS, error))
+            raise errors.DataFormatSyntaxError('value for property %r must be a valid range: %s'
+                                               % (KEY_ALLOWED_CHARACTERS, error))
 
-        self._validatedLong(KEY_HEADER, self.header, 0)
+        self._validatedInt(KEY_HEADER, self.header, 0)
 
         if self.format in (FORMAT_EXCEL, FORMAT_ODS):
-            self._validatedLong(KEY_SHEET, self.sheet, 1)
+            self._validatedInt(KEY_SHEET, self.sheet, 1)
 
         if self.format == FORMAT_DELIMITED:
             self._validatedCharacter(KEY_ITEM_DELIMITER, self.item_delimiter)
 
-            if self.space_around_delimiter in ("True", "true"):
-                self._space_around_delimiter = True
-            else:
-                self._space_around_delimiter = False
+            if type(self._skip_initial_space) != bool:
+                if self._skip_initial_space in ('True', 'true'):
+                    self._skip_initial_space = True
+                elif self._skip_initial_space in ('False', 'false'):
+                    self._skip_initial_space = False
+                else:
+                    raise errors.DataFormatSyntaxError('skip initial space %s must be changed to one of: True, False'
+                                                       % self._skip_initial_space)
 
         if self.format in (FORMAT_DELIMITED, FORMAT_FIXED):
             self._validatedChoice(KEY_DECIMAL_SEPARATOR, self.decimal_separator, _VALID_DECIMAL_SEPARATORS)
@@ -379,22 +387,22 @@ class Dataformat():
 
             self._validatedChoice(KEY_QUOTE_CHARACTER, self.quote_character, _VALID_QUOTE_CHARACTERS)
 
-            if(self._line_delimiter != None and self._line_delimiter not in _LINE_DELIMITER_TO_TEXT_MAP):
+            if self._line_delimiter is not None and self._line_delimiter not in _LINE_DELIMITER_TO_TEXT_MAP:
                 try:
                     self._line_delimiter = _TEXT_TO_LINE_DELIMITER_MAP[self.line_delimiter]
                 except KeyError:
-                    raise ValueError("line delimiter %s must be changed to one of: %s"
-                        % (self.line_delimiter, _VALID_LINE_DELIMITER_TEXTS))
+                    raise errors.DataFormatValueError('line delimiter %s must be changed to one of: %s'
+                                                      % (self.line_delimiter, _VALID_LINE_DELIMITER_TEXTS))
 
             if self.decimal_separator == self.thousands_separator:
-                raise ValueError("decimal separator can not equals thousands separator")
+                raise errors.DataFormatSyntaxError('decimal separator can not equals thousands separator')
             if self.quote_character == self.thousands_separator:
-                raise ValueError("quote character can not equals thousands separator")
+                raise errors.DataFormatSyntaxError('quote character can not equals thousands separator')
             if self.thousands_separator == self.item_delimiter:
-                raise ValueError("thousands separator can not equals item delimiter")
+                raise errors.DataFormatSyntaxError('thousands separator can not equals item delimiter')
             if self.quote_character == self.item_delimiter:
-                raise ValueError("quote character can not equals item delimiter")
+                raise errors.DataFormatSyntaxError('quote character can not equals item delimiter')
             if self.line_delimiter == self.item_delimiter:
-                raise ValueError("line delimiter can not equals item delimiter")
+                raise errors.DataFormatSyntaxError('line delimiter can not equals item delimiter')
             if self.escape_character == self.item_delimiter:
-                raise ValueError("escape character can not equals item delimiter")
+                raise errors.DataFormatSyntaxError('escape character can not equals item delimiter')
