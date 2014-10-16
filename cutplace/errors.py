@@ -176,17 +176,24 @@ class InputLocation(object):
             if self.line == other.line:
                 if self.column == other.column:
                     if self.cell == other.cell:
-                        result = cmp(self.sheet, other.sheet)
+                        result = self.cmp(self.sheet, other.sheet)
                     else:
-                        result = cmp(self.cell, other.cell)
+                        result = self.cmp(self.cell, other.cell)
                 else:
-                    result = cmp(self.column, other.column)
+                    result = self.cmp(self.column, other.column)
             else:
-                result = cmp(self.line, other.line)
+                result = self.cmp(self.line, other.line)
         else:
-            result = cmp(self.filePath, other.filePath)
+            result = self.cmp(self.filePath, other.filePath)
         return result
 
+    def cmp(self,a,b):
+        if (a.__lt__(b)):
+            return -1
+        elif (a.__eq__(b)):
+            return 0
+        else:
+            return 1
     # Note: There is no ``InputLocation.__hash__()`` because it is a mutable class that cannot be
     # used as dictionary key.
 
