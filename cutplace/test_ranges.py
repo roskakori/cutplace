@@ -16,6 +16,7 @@ Tests for ranges.
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
+from cutplace import errors
 from cutplace import ranges
 
 
@@ -65,45 +66,45 @@ class RangeTest(unittest.TestCase):
         #self.assertEquals(ranges.Range("", "2...3").items, [(2, 3)])
 
     def testBrokenOverlappingMultiRange(self):
-        self.assertRaises(ranges.RangeSyntaxError, ranges.Range, "1...5, 2...3")
-        self.assertRaises(ranges.RangeSyntaxError, ranges.Range, "1..., 2...3")
-        self.assertRaises(ranges.RangeSyntaxError, ranges.Range, "...5, 2...3")
-        self.assertRaises(ranges.RangeSyntaxError, ranges.Range, "...5, ...3")
-        self.assertRaises(ranges.RangeSyntaxError, ranges.Range, "...5, 1...")
-        self.assertRaises(ranges.RangeSyntaxError, ranges.Range, "...5, 2")
+        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "1...5, 2...3")
+        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "1..., 2...3")
+        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "...5, 2...3")
+        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "...5, ...3")
+        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "...5, 1...")
+        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "...5, 2")
 
     def testBrokenRanges(self):
-        self.assertRaises(ranges.RangeSyntaxError, ranges.Range, "x")
-        self.assertRaises(ranges.RangeSyntaxError, ranges.Range, "...")
-        self.assertRaises(ranges.RangeSyntaxError, ranges.Range, "-")
-        self.assertRaises(ranges.RangeSyntaxError, ranges.Range, "-...")
-        self.assertRaises(ranges.RangeSyntaxError, ranges.Range, "1 x")
-        self.assertRaises(ranges.RangeSyntaxError, ranges.Range, "-x")
-        self.assertRaises(ranges.RangeSyntaxError, ranges.Range, "1 2")
-        self.assertRaises(ranges.RangeSyntaxError, ranges.Range, "1...2 3")
-        self.assertRaises(ranges.RangeSyntaxError, ranges.Range, "1...2-3")
-        self.assertRaises(ranges.RangeSyntaxError, ranges.Range, "1...2...3")
-        self.assertRaises(ranges.RangeSyntaxError, ranges.Range, "2...1")
-        self.assertRaises(ranges.RangeSyntaxError, ranges.Range, "2...-3")
-        self.assertRaises(ranges.RangeSyntaxError, ranges.Range, "-1...-3")
+        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "x")
+        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "...")
+        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "-")
+        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "-...")
+        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "1 x")
+        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "-x")
+        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "1 2")
+        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "1...2 3")
+        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "1...2-3")
+        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "1...2...3")
+        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "2...1")
+        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "2...-3")
+        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "-1...-3")
         try:
             ranges.Range("?")
             self.fail("test must fail with RangeSyntaxError")
-        except ranges.RangeSyntaxError as error:
+        except errors.RangeSyntaxError as error:
             self.assertEqual(str(error), "range must be specified using integer numbers, text, symbols and colon (...) but found: '?' [token type: 52]")
         try:
             ranges.Range("1.23")
             self.fail("test must fail with RangeSyntaxError")
-        except ranges.RangeSyntaxError as error:
+        except errors.RangeSyntaxError as error:
             self.assertEqual(str(error), "number must be an integer but is: '1.23'")
 
     def testBrokenSymbolicNames(self):
-        self.assertRaises(ranges.RangeSyntaxError, ranges.Range, "spam")
-        self.assertRaises(ranges.RangeSyntaxError, ranges.Range, "Esc...Tab")
+        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "spam")
+        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "Esc...Tab")
 
     def testBrokenTextRange(self):
-        self.assertRaises(ranges.RangeSyntaxError, ranges.Range, "\"ab\"")
-        self.assertRaises(ranges.RangeSyntaxError, ranges.Range, "\"\"")
+        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "\"ab\"")
+        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "\"\"")
 
     def _testNoRange(self, text):
         noRange = ranges.Range(text)
@@ -122,31 +123,31 @@ class RangeTest(unittest.TestCase):
         lowerAndUpperRange.validate("x", - 1)
         lowerAndUpperRange.validate("x", 0)
         lowerAndUpperRange.validate("x", 1)
-        self.assertRaises(ranges.RangeValueError, lowerAndUpperRange.validate, "x", - 2)
-        self.assertRaises(ranges.RangeValueError, lowerAndUpperRange.validate, "x", 2)
+        self.assertRaises(errors.RangeValueError, lowerAndUpperRange.validate, "x", - 2)
+        self.assertRaises(errors.RangeValueError, lowerAndUpperRange.validate, "x", 2)
 
         lowerRange = ranges.Range("1...")
         lowerRange.validate("x", 1)
         lowerRange.validate("x", 2)
         lowerRange.validate("x", 2 ** 32)
-        self.assertRaises(ranges.RangeValueError, lowerRange.validate, "x", 0)
+        self.assertRaises(errors.RangeValueError, lowerRange.validate, "x", 0)
 
         upperRange = ranges.Range("...1")
         upperRange.validate("x", 1)
         upperRange.validate("x", - 2)
         upperRange.validate("x", - (2 ** 32) - 1)
-        self.assertRaises(ranges.RangeValueError, upperRange.validate, "x", 2)
+        self.assertRaises(errors.RangeValueError, upperRange.validate, "x", 2)
 
         multiRange = ranges.Range("1...4, 7...9")
         multiRange.validate("x", 1)
         multiRange.validate("x", 7)
         multiRange.validate("x", 9)
-        self.assertRaises(ranges.RangeValueError, multiRange.validate, "x", - 3)
-        self.assertRaises(ranges.RangeValueError, multiRange.validate, "x", 0)
-        self.assertRaises(ranges.RangeValueError, multiRange.validate, "x", 5)
-        self.assertRaises(ranges.RangeValueError, multiRange.validate, "x", 6)
-        self.assertRaises(ranges.RangeValueError, multiRange.validate, "x", 10)
-        self.assertRaises(ranges.RangeValueError, multiRange.validate, "x", 723)
+        self.assertRaises(errors.RangeValueError, multiRange.validate, "x", - 3)
+        self.assertRaises(errors.RangeValueError, multiRange.validate, "x", 0)
+        self.assertRaises(errors.RangeValueError, multiRange.validate, "x", 5)
+        self.assertRaises(errors.RangeValueError, multiRange.validate, "x", 6)
+        self.assertRaises(errors.RangeValueError, multiRange.validate, "x", 10)
+        self.assertRaises(errors.RangeValueError, multiRange.validate, "x", 723)
 
 
 if __name__ == "__main__":  # pragma: no cover
