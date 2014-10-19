@@ -154,7 +154,7 @@ class InputLocation(object):
         """
         Human readable representation of the input location; see `__init__()` for some examples.
         """
-        result = "" + os.path.basename(self.filePath) + " ("
+        result = os.path.basename(self.filePath) + " ("
         if self._hasCell:
             if self._hasSheet:
                 result += "Sheet%d!" % (self.sheet + 1)
@@ -243,12 +243,14 @@ class _BaseCutplaceError(Exception):
         """
         assert message
         assert (seeAlsoLocation and seeAlsoMessage) or not seeAlsoLocation
-        # Note: We cannot use `super` because `Exception` is an old style class.
-        Exception.__init__(self, message)
+        # TODO: Python 2: Use Exception.__init(self, message) because Exception is an old style class.
+        super().__init__(self, message)
         self._location = copy.copy(location)
         self._seeAlsoMessage = seeAlsoMessage
         self._seeAlsoLocation = copy.copy(seeAlsoLocation)
         self._cause = cause
+        # TODO: Replace self._message by calls to something like str(super()).
+        self._message = message
 
     @property
     def location(self):
@@ -274,19 +276,15 @@ class _BaseCutplaceError(Exception):
         return self._cause
 
     def __str__(self):
-        return str(self).encode('utf-8')
-
-    def __unicode__(self):
-        result = ""
+        result = ''
         if self._location:
-            result += str(self.location) + ": "
-        # Note: We cannot use `super` because `Exception` is an old style class.
-        result += Exception.__str__(self)
-        if self.seeAlsoMessage:
-            result += " (see also: "
+            result += str(self.location) + ': '
+        result += self._message
+        if self.seeAlsoMessage is not None:
+            result += ' (see also: '
             if self.seeAlsoLocation:
-                result += str(self.seeAlsoLocation) + ": "
-            result += self.seeAlsoMessage + ")"
+                result += str(self.seeAlsoLocation) + ': '
+            result += self.seeAlsoMessage + ')'
         return result
 
 
