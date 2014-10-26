@@ -99,6 +99,7 @@
             <arg value="cutplace.test_cid" />
             <arg value="cutplace.test_data" />
             <arg value="cutplace.test_errors" />
+            <arg value="cutplace.test_fields" />
             <arg value="cutplace.test_ranges" />
         </exec>
         <exec executable="python" failonerror="true">
