@@ -89,15 +89,16 @@
         </exec>
     </target>
 
-    <target name="test" depends="testdata" description="run test suite">
+    <target name="test" description="run test suite">
         <exec executable="nosetests" failonerror="false">
             <arg value="--with-coverage" />
             <arg value="--with-doctest" />
             <arg value="--with-xunit" />
             <arg value="--cover-erase" />
-            <arg value="--exclude" />
-            <!-- TODO: Implement automatic test cases for web interface. -->
-            <arg value="(.*setup.*)|(.*test_performance.*)" />
+            <arg value="cutplace.test_cid" />
+            <arg value="cutplace.test_data" />
+            <arg value="cutplace.test_errors" />
+            <arg value="cutplace.test_ranges" />
         </exec>
         <exec executable="python" failonerror="true">
             <arg value="-m" />
