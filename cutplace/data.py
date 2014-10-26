@@ -403,3 +403,4 @@ class Dataformat():
                 raise errors.DataFormatValueError('line delimiter and item delimiter must be different')
             if self.escape_character == self.item_delimiter:
                 raise errors.DataFormatValueError('escape character and item delimiter must be different')
+        self._location = None

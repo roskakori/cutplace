@@ -28,7 +28,7 @@ import logging
 import unittest
 
 
-class Cidtest(unittest.TestCase):
+class CidTest(unittest.TestCase):
     """
     Tests for cid module
     """
@@ -72,6 +72,6 @@ class Cidtest(unittest.TestCase):
         cid_reader = cid.Cid()
         cid_reader.read('inline',[
             [],
+            [''],
             ['d','format','delimited']])
         self.assertEqual(cid_reader._data_format.format, "delimited")
-

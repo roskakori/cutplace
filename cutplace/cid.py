@@ -34,10 +34,10 @@ class Cid():
                 row_data = (row[1:] + [''] * 7)[:7]
                 if row_type == 'd':
                     name, value = row_data[:2]
+                    self._location.advanceColumn()
                     if name == '':
-                        raise errors.DataFormatSyntaxError("Propertyname must not be empty!", self._location)
-                    if value == '':
-                        raise errors.DataFormatSyntaxError("Propertyvalue must not be empty!", self._location)
+                        raise errors.DataFormatSyntaxError('name of data format property must be specified', self._location)
+                    self._location.advanceColumn()
                     if self._data_format is None:
                         self._data_format = data.Dataformat(value.lower(), self._location)
                     else:
@@ -49,6 +49,7 @@ class Cid():
                     #TODO: implement support for checks
                     pass
                 elif row_type != '':
-                    # raise error when value is not supported
-                    raise errors.DataFormatSyntaxError("Cell with the value %s is not supported!"%row[0],self._location)
-            self._location.advanceLine(1)
+                    # Raise error when value is not supported.
+                    raise errors.DataFormatSyntaxError('CID row type is "%s" but must be empty or one of: C, D, or F' \
+                        % row_type, self._location)
+            self._location.advanceLine()
