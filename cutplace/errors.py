@@ -169,31 +169,19 @@ class InputLocation(object):
     def __repr__(self):
         return self.__str__()
 
-    def __cmp__(self, other):
-        # FIXME: Implement Python 3 compatible comparison.
-        assert other is not None
-        if self.filePath == other.filePath:
-            if self.line == other.line:
-                if self.column == other.column:
-                    if self.cell == other.cell:
-                        result = self.cmp(self.sheet, other.sheet)
-                    else:
-                        result = self.cmp(self.cell, other.cell)
-                else:
-                    result = self.cmp(self.column, other.column)
-            else:
-                result = self.cmp(self.line, other.line)
-        else:
-            result = self.cmp(self.filePath, other.filePath)
-        return result
+    def __lt__(self, other):
+        return (self.filePath < other.filePath) \
+            and (self.line < other.line) \
+            and (not self._hasColumn or (self.column < other.column)) \
+            and (not self._hasCell or (self.cell < other.cell)) \
+            and (not self._hasSheet or (self.sheet < other.sheet))
 
-    def cmp(self,a,b):
-        if (a.__lt__(b)):
-            return -1
-        elif (a.__eq__(b)):
-            return 0
-        else:
-            return 1
+    def __eq__(self, other):
+        return (self.filePath == other.filePath) \
+            and (self.line == other.line) \
+            and (not self._hasColumn or (self.column == other.column)) \
+            and (not self._hasCell or (self.cell == other.cell)) \
+            and (not self._hasSheet or (self.sheet == other.sheet))
     # Note: There is no ``InputLocation.__hash__()`` because it is a mutable class that cannot be
     # used as dictionary key.
 
