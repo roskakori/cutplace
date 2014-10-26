@@ -95,6 +95,7 @@
             <arg value="--with-doctest" />
             <arg value="--with-xunit" />
             <arg value="--cover-erase" />
+            <arg value="--cover-package=cutplace" />
             <arg value="cutplace.test_cid" />
             <arg value="cutplace.test_data" />
             <arg value="cutplace.test_errors" />
