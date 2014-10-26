@@ -20,17 +20,17 @@ import io
 import tokenize
 
 from . import fields
-from . import tools
+from . import errors
 from . import _tools
 
 
-class CheckError(tools.CutplaceError):
+class CheckError(errors.CutplaceError):
     """
     Error to be raised when a check fails.
     """
 
 
-class CheckSyntaxError(tools.CutplaceError):
+class CheckSyntaxError(errors.CutplaceError):
     """
     Error to be raised when the specification of check in the ICD is broken.
     """
@@ -59,7 +59,7 @@ class AbstractCheck(object):
         self._rule = rule
         self._fieldNames = availableFieldNames
         if locationOfDefinition is None:
-            self._location = tools.createCallerInputLocation(["checks"])
+            self._location = errors.createCallerInputLocation(["checks"])
         else:
             self._location = locationOfDefinition
 

@@ -21,12 +21,10 @@ import io
 import token
 import tokenize
 
-from cutplace import tools
+from cutplace import errors
 from cutplace import _tools
 
 ELLIPSIS_PART = '\u2063'
-
-from . import errors
 
 
 class Range(object):
@@ -95,9 +93,9 @@ class Range(object):
                                 afterHyphen = False
                         elif nextType == token.NAME:
                             try:
-                                longValue = tools.SYMBOLIC_NAMES_MAP[nextValue.lower()]
+                                longValue = errors.SYMBOLIC_NAMES_MAP[nextValue.lower()]
                             except KeyError:
-                                validSymbols = _tools.humanReadableList(sorted(tools.SYMBOLIC_NAMES_MAP.keys()))
+                                validSymbols = _tools.humanReadableList(sorted(errors.SYMBOLIC_NAMES_MAP.keys()))
                                 raise errors.RangeSyntaxError("symbolic name %r must be one of: %s" % (nextValue, validSymbols))
                         elif nextType == token.STRING:
                             if len(nextValue) != 3:

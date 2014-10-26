@@ -24,7 +24,7 @@ import types
 """
 Symbolic names that can be used to improve the legibility of the ICD.
 """
-SYMBOLIC_NAMES_MAP = {
+NAME_TO_ASCII_CODE_MAP = {
     "cr": 13,
     "ff": 12,
     "lf": 10,
