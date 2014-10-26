@@ -18,7 +18,6 @@ Reading ICD-Files
 
 from cutplace import data
 from cutplace import errors
-from xlrd import *
 
 
 class Cid():
@@ -26,32 +25,30 @@ class Cid():
         self._data_format = None
         self._location = None
 
-    def read(self, source_path):
+    def read(self, source_path, rows):
         # TODO: Detect format and use proper reader.
         self._location = errors.InputLocation(source_path, hasCell=True)
-        empty_allowed = True
-        for row in excel_rows(self, source_path):
-            if row != [] and row[0].lower() == 'd':
-                _, name, value = row[:3]
-                if self._data_format is None:
-                    self._data_format = data.Dataformat(value.lower(), self._location)
-                else:
-                    self._data_format.set_property(name.lower(), value)
-            elif row != [] and row[0].lower() == 'f':
-                #TODO: implement support for fieldformat
-                pass
-            elif row != [] and row[0].lower() == 'c':
-                #TODO: implement support for checks
-                pass
-            elif row[0] != '':
-                # raise error when value is not supported
-                raise ValueError("Cell with the value %s is nor supported!" % row[0])
+        for row in rows:
+            if row:
+                row_type = row[0].lower()
+                row_data = (row[1:] + [''] * 7)[:7]
+                if row_type == 'd':
+                    name, value = row_data[:2]
+                    if name == '':
+                        raise errors.DataFormatSyntaxError("Propertyname must not be empty!", self._location)
+                    if value == '':
+                        raise errors.DataFormatSyntaxError("Propertyvalue must not be empty!", self._location)
+                    if self._data_format is None:
+                        self._data_format = data.Dataformat(value.lower(), self._location)
+                    else:
+                        self._data_format.set_property(name.lower(), value.lower())
+                elif row_type == 'f':
+                    #TODO: implement support for fieldformat
+                    pass
+                elif row_type == 'c':
+                    #TODO: implement support for checks
+                    pass
+                elif row_type != '':
+                    # raise error when value is not supported
+                    raise errors.DataFormatSyntaxError("Cell with the value %s is not supported!"%row[0],self._location)
             self._location.advanceLine(1)
-
-
-
-def excel_rows(self, source_path):
-    book = open_workbook(source_path)
-    sheet = book.sheet_by_index(0)
-    for row_number in range(sheet.nrows):
-        yield sheet.row_values(row_number)

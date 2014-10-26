@@ -33,6 +33,7 @@ import token
 import tokenize
 import threading
 import unicodedata
+import xlrd
 
 
 # Mapping for value of --log to logging level.
@@ -520,3 +521,10 @@ def numbered(value, decimalSeparator=".", thousandsSeparator=","):
                 # Keep default result.
                 pass
     return resultType, resultUsesThousandsSeparator, resultValue
+
+
+def excel_rows(source_path):
+    book = xlrd.open_workbook(source_path)
+    sheet = book.sheet_by_index(0)
+    for row_number in range(sheet.nrows):
+        yield sheet.row_values(row_number)
