@@ -20,9 +20,8 @@ import os.path
 import io
 import unittest
 
-from . import dev_test
-from . import tools
-from . import _tools
+from cutplace import dev_test
+from cutplace import _tools
 
 
 class ToolsTest(unittest.TestCase):
@@ -74,42 +73,6 @@ class ToolsTest(unittest.TestCase):
         self._testWithSuffix("hugo.", "hugo.txt", ".")
         self._testWithSuffix("hugo.txt", "hugo", ".txt")
         self._testWithSuffix(os.path.join("eggs", "hugo.pas"), os.path.join("eggs", "hugo.txt"), ".pas")
-
-    def testCanWorkWithInputLocation(self):
-        location = tools.InputLocation("eggs.txt", hasColumn=True)
-        self.assertEqual(location.line, 0)
-        self.assertEqual(location.column, 0)
-        self.assertEqual(str(location), "eggs.txt (1;1)")
-        location.advanceColumn(3)
-        self.assertEqual(location.column, 3)
-        location.advanceColumn()
-        self.assertEqual(location.column, 4)
-        location.advanceLine()
-        self.assertEqual(location.line, 1)
-        self.assertEqual(location.column, 0)
-        self.assertEqual(str(location), "eggs.txt (2;1)")
-
-        # Test input with cells.
-        location = tools.InputLocation("eggs.csv", hasCell=True)
-        self.assertEqual(location.line, 0)
-        self.assertEqual(location.cell, 0)
-        self.assertEqual(str(location), "eggs.csv (R1C1)")
-        location.advanceLine()
-        location.advanceCell(17)
-        self.assertEqual(str(location), "eggs.csv (R2C18)")
-
-        # Test input with sheet.
-        location = tools.InputLocation("eggs.ods", hasCell=True, hasSheet=True)
-        self.assertEqual(str(location), "eggs.ods (Sheet1!R1C1)")
-        location.advanceSheet()
-        location.advanceLine()
-        location.advanceCell(17)
-        self.assertEqual(str(location), "eggs.ods (Sheet2!R2C18)")
-
-        # Test StringIO input.
-        inputStream = io.StringIO("hugo was here")
-        location = tools.InputLocation(inputStream)
-        self.assertEqual(str(location), "<io> (1)")
 
     def testCanAsciifyText(self):
         self.assertEqual(_tools.asciified("hello"), "hello")

@@ -26,7 +26,7 @@ import sys
 import xlrd
 
 from . import interface
-from . import tools
+from . import errors
 from . import version
 from . import _tools
 from . import _web
@@ -308,9 +308,9 @@ def main(argv=None):
     except EnvironmentError as error:
         result = 3
         _log.error("%s", error)
-    except tools.CutplaceUnicodeError as error:
+    except errors.CutplaceUnicodeError as error:
         _log.error("%s", error)
-    except tools.CutplaceError as error:
+    except errors.CutplaceError as error:
         _log.error("%s", error)
     except xlrd.XLRDError as error:
         _log.error("cannot process Excel format: %s", error)

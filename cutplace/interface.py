@@ -29,7 +29,7 @@ from . import checks
 from . import data
 from . import fields
 from . import sniff
-from . import tools
+from . import errors
 from . import _parsers
 from . import _tools
 
@@ -85,7 +85,7 @@ class BaseValidationListener(object):
     # TODO: Ponder: Would there be any point in `dataFormatFailed(self, error)`?
 
 
-class IcdSyntaxError(tools.CutplaceError):
+class IcdSyntaxError(errors.CutplaceError):
     """
     General syntax error in the specification of the ICD.
     """
@@ -158,7 +158,7 @@ class InterfaceControlDocument(object):
                     # has been called more than once.
                     classToProcess = None
                 else:
-                    raise tools.CutplaceError("clashing plugin class names must be resolved: %s and %s" % (clashingClassInfo, classToProcessInfo))
+                    raise errors.CutplaceError("clashing plugin class names must be resolved: %s and %s" % (clashingClassInfo, classToProcessInfo))
             if classToProcess is not None:
                 result[plainClassName] = classToProcess
         return result
@@ -419,13 +419,13 @@ class InterfaceControlDocument(object):
             icdFile = open(icdFilePath, "rb")
         else:
             icdFile = icdFilePath
-        self._location = tools.InputLocation(icdFilePath, hasCell=True)
+        self._location = errors.InputLocation(icdFilePath, hasCell=True)
         try:
             reader = sniff.createReader(icdFile, encoding=encoding)
             for icdRowToProcess in reader:
                 self._processIcdRow(icdRowToProcess)
-        except tools.CutplaceUnicodeError as error:
-            raise tools.CutplaceUnicodeError("ICD must conform to encoding %r: %s" % (encoding, error))
+        except errors.CutplaceUnicodeError as error:
+            raise errors.CutplaceUnicodeError("ICD must conform to encoding %r: %s" % (encoding, error))
         finally:
             if needsOpen:
                 icdFile.close()
@@ -433,7 +433,7 @@ class InterfaceControlDocument(object):
 
     def readFromRows(self, rows):
         assert rows is not None
-        self._location = tools.InputLocation(":memory:", hasCell=True)
+        self._location = errors.InputLocation(":memory:", hasCell=True)
         for icdRowToProcess in rows:
             self._processIcdRow(icdRowToProcess)
         self._checkAfterRead()
@@ -444,7 +444,7 @@ class InterfaceControlDocument(object):
         This is necessary if you create the ICD manually calling `addDataFormat`, `addFieldFormat`
         etc. instead of using a file.
         """
-        self._location = tools.createCallerInputLocation(hasCell=True)
+        self._location = errors.createCallerInputLocation(hasCell=True)
 
     @property
     def sheet(self):
@@ -474,14 +474,14 @@ class InterfaceControlDocument(object):
         if self._dataFormat.name in (data.FORMAT_CSV, data.FORMAT_CSV, data.FORMAT_DELIMITED, data.FORMAT_EXCEL, data.FORMAT_ODS):
             needsOpen = isinstance(dataFileToValidatePath, str)
             hasSheet = (self._dataFormat.name not in (data.FORMAT_CSV, data.FORMAT_DELIMITED))
-            location = tools.InputLocation(dataFileToValidatePath, hasCell=True, hasSheet=hasSheet)
+            location = errors.InputLocation(dataFileToValidatePath, hasCell=True, hasSheet=hasSheet)
             if needsOpen:
                 dataFile = open(dataFileToValidatePath, "rb")
             else:
                 dataFile = dataFileToValidatePath
         elif self._dataFormat.name == data.FORMAT_FIXED:
             needsOpen = isinstance(dataFileToValidatePath, str)
-            location = tools.InputLocation(dataFileToValidatePath, hasColumn=True, hasCell=True)
+            location = errors.InputLocation(dataFileToValidatePath, hasColumn=True, hasCell=True)
             if needsOpen:
                 dataFile = codecs.open(dataFileToValidatePath, "rb", self._dataFormat.encoding)
             else:
@@ -498,14 +498,14 @@ class InterfaceControlDocument(object):
         isExceptionReason = isinstance(reason, Exception)
         isStringReason = isinstance(reason, str)
         assert isExceptionReason or isStringReason, "reason=%s:%r" % (type(reason), reason)
-        assert isinstance(location, tools.InputLocation)
+        assert isinstance(location, errors.InputLocation)
         _log.debug("rejected: %s", row)
         _log.debug("%s", reason, exc_info=self.logTrace)
         self.rejectedCount += 1
         if isExceptionReason:
             error = reason
         else:
-            error = tools.CutplaceError(reason, location)
+            error = errors.CutplaceError(reason, location)
         for listener in self._validationListeners:
             listener.rejectedRow(row, error)
 
@@ -579,8 +579,8 @@ class InterfaceControlDocument(object):
                         if location.line >= firstRowToValidateFieldsIn:
                             yield rowOrError, copy.copy(location)
                         location.advanceLine()
-                except tools.CutplaceUnicodeError as error:
-                    errorInfo = tools.ErrorInfo(data.DataFormatValueError("cannot read row %d: %s" % (location.line + 1, error)))
+                except errors.CutplaceUnicodeError as error:
+                    errorInfo = errors.ErrorInfo(data.DataFormatValueError("cannot read row %d: %s" % (location.line + 1, error)))
                     errorInfo.reraise()
 
         class ValidatingConsumer(proconex.ConvertingConsumer):
@@ -624,13 +624,13 @@ class InterfaceControlDocument(object):
                     self.addItem(rowOrError)
                 except data.DataFormatValueError as error:
                     raise data.DataFormatValueError("cannot process data format", location, cause=error)
-                except tools.CutplaceError as error:
+                except errors.CutplaceError as error:
                     isFieldValueError = isinstance(error, fields.FieldValueError)
                     if isFieldValueError:
                         fieldName = self._icd._fieldNames[location.cell]
                         reason = "field %r must match format: %s" % (fieldName, error)
                         error = fields.FieldValueError(reason, location)
-                    self.addItem(tools.ErrorInfo(error))
+                    self.addItem(errors.ErrorInfo(error))
 
         self._resetCounts()
         for checkName in self.checkNames:
@@ -644,7 +644,7 @@ class InterfaceControlDocument(object):
             consumer = ValidatingConsumer(self)
             with proconex.Converter(producer, consumer) as converter:
                 for rowOrError in list(converter.items()):
-                    if isinstance(rowOrError, tools.ErrorInfo):
+                    if isinstance(rowOrError, errors.ErrorInfo):
                         _log.debug("rejected: %s", rowOrError)
                         if errors == "strict":
                             rowOrError.reraise()
@@ -672,7 +672,7 @@ class InterfaceControlDocument(object):
                 reason = "check at end of data failed: %r: %s" % (check.description, error)
                 _log.error("%s", reason)
                 self.failedChecksAtEndCount += 1
-                errorInfo = tools.ErrorInfo(error)
+                errorInfo = errors.ErrorInfo(error)
                 if errors == "strict":
                     errorInfo.reraise()
                 elif errors == "yield":
@@ -742,7 +742,7 @@ class InterfaceControlDocument(object):
                                 listener.acceptedRow(row, location)
                         except data.DataFormatValueError as error:
                             raise data.DataFormatValueError("cannot process data format", location, cause=error)
-                        except tools.CutplaceError as error:
+                        except errors.CutplaceError as error:
                             isFieldValueError = isinstance(error, fields.FieldValueError)
                             if isFieldValueError:
                                 fieldName = self._fieldNames[location.cell]
@@ -750,7 +750,7 @@ class InterfaceControlDocument(object):
                                 error = fields.FieldValueError(reason, location)
                             self._rejectRow(row, error, location)
                     location.advanceLine()
-            except tools.CutplaceUnicodeError as error:
+            except errors.CutplaceUnicodeError as error:
                 self._rejectRow([], error, location)
                 # raise data.DataFormatValueError(u"cannot read row %d: %s" % (rowNumber + 2, error))
         finally:
@@ -795,7 +795,7 @@ class InterfaceControlDocument(object):
         actualRowCount = len(row)
         expectedRowCount = len(self.fieldNames)
         if actualRowCount != expectedRowCount:
-            location = tools.createCallerInputLocation()
+            location = errors.createCallerInputLocation()
             raise data.DataFormatValueError("row must have %d items but has %d: %s" % (expectedRowCount, actualRowCount, row), location)
 
         fieldIndex = self.getFieldNameIndex(fieldName)
@@ -941,7 +941,7 @@ class Validator(object):
         if isExceptionReason:
             result = reason
         else:
-            result = tools.CutplaceError(reason, self.location)
+            result = errors.CutplaceError(reason, self.location)
         assert isinstance(result, Exception)
         return result
 
@@ -984,7 +984,7 @@ class Validator(object):
             result = row
         except data.DataFormatValueError as error:
             raise data.DataFormatValueError("cannot process data format", self.location, cause=error)
-        except tools.CutplaceError as error:
+        except errors.CutplaceError as error:
             isFieldValueError = isinstance(error, fields.FieldValueError)
             if isFieldValueError:
                 fieldName = self.icd.fieldNames[self.location.cell]
@@ -1039,7 +1039,7 @@ class Writer(object):
         self._out = out
         self._opened = True
         locationHasSheet = (icd.sheet is not None)
-        location = tools.InputLocation(out, hasCell=True, hasSheet=locationHasSheet)
+        location = errors.InputLocation(out, hasCell=True, hasSheet=locationHasSheet)
         if icd.sheet is not None:
             location.sheet = icd.sheet
         self._validator = Validator(icd)

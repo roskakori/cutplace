@@ -23,9 +23,7 @@ import tokenize
 
 from cutplace import errors
 from cutplace import ranges
-from cutplace import tools
 from cutplace import _tools
-
 
 ANY = "any"
 CR = "cr"
@@ -315,9 +313,9 @@ class Dataformat():
                                                        % (key, value))
             elif nextType == token.NAME:
                 try:
-                    longValue = errors.SYMBOLIC_NAMES_MAP[nextValue.lower()]
+                    longValue = errors.NAME_TO_ASCII_CODE_MAP[nextValue.lower()]
                 except KeyError:
-                    validSymbols = _tools.humanReadableList(sorted(tools.SYMBOLIC_NAMES_MAP.keys()))
+                    validSymbols = _tools.humanReadableList(sorted(errors.NAME_TO_ASCII_CODE_MAP.keys()))
                     raise errors.DataFormatSyntaxError('symbolic name %r for data format property %r must be one of: %s'
                                                        % (value, key, validSymbols))
             elif nextType == token.STRING:
@@ -358,7 +356,7 @@ class Dataformat():
             ranges.Range(self.allowed_characters)
         except ranges.RangeSyntaxError as error:
             raise errors.DataFormatValueError('value for property %r must be a valid range: %s'
-                                               % (KEY_ALLOWED_CHARACTERS, error))
+                                              % (KEY_ALLOWED_CHARACTERS, error))
 
         self._validatedInt(KEY_HEADER, self.header, 0)
 
