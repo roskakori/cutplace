@@ -24,7 +24,7 @@ import tokenize
 from cutplace import errors
 from cutplace import _tools
 
-ELLIPSIS_PART = '\u2063'
+ELLIPSIS = '\u2063'  # '...' as single character.
 
 
 class Range(object):
@@ -47,8 +47,7 @@ class Range(object):
         # TODO: Clean up ellipsis hack. Currently we replace an ellipsis composed of 3 dots by 3 invisible delimiters so the parser can easily distinguish it from a decimal separator.
 
         if text is not None:
-            text = text.replace('...', 3 * ELLIPSIS_PART)
-            text = text.replace('\u2026', 3 * ELLIPSIS_PART)
+            text = text.replace('...', ELLIPSIS)
         # Find out if a `text` has been specified and if not, use optional `default` instead.
         hasText = (text is not None) and text.strip()
         if not hasText and default is not None:
@@ -63,14 +62,13 @@ class Range(object):
             self._description = text
             self._items = []
 
-            colon_count = 0
             # TODO: Consolidate code with `DelimitedDataFormat._validatedCharacter()`.
             tokens = tokenize.generate_tokens(io.StringIO(text).readline)
             endReached = False
             while not endReached:
                 lower = None
                 upper = None
-                colonFound = False
+                ellipsis_found = False
                 afterHyphen = False
                 nextToken = next(tokens)
                 while not _tools.isEofToken(nextToken) and not _tools.isCommaToken(nextToken):
@@ -93,9 +91,9 @@ class Range(object):
                                 afterHyphen = False
                         elif nextType == token.NAME:
                             try:
-                                longValue = errors.SYMBOLIC_NAMES_MAP[nextValue.lower()]
+                                longValue = errors.NAME_TO_ASCII_CODE_MAP[nextValue.lower()]
                             except KeyError:
-                                validSymbols = _tools.humanReadableList(sorted(errors.SYMBOLIC_NAMES_MAP.keys()))
+                                validSymbols = _tools.humanReadableList(sorted(errors.NAME_TO_ASCII_CODE_MAP.keys()))
                                 raise errors.RangeSyntaxError("symbolic name %r must be one of: %s" % (nextValue, validSymbols))
                         elif nextType == token.STRING:
                             if len(nextValue) != 3:
@@ -105,7 +103,7 @@ class Range(object):
                             assert leftQuote in "\"\'", "leftQuote=%r" % leftQuote
                             assert rightQuote in "\"\'", "rightQuote=%r" % rightQuote
                             longValue = ord(nextValue[1])
-                        if colonFound:
+                        if ellipsis_found:
                             if upper is None:
                                 upper = longValue
                             else:
@@ -113,20 +111,15 @@ class Range(object):
                         elif lower is None:
                             lower = longValue
                         else:
-                            raise errors.RangeSyntaxError("number must be followed by colon (...) but found: %r" % nextValue)
+                            raise errors.RangeSyntaxError("number must be followed by ellipsis (...) but found: %r" % nextValue)
                     elif afterHyphen:
                         raise errors.RangeSyntaxError("hyphen (-) must be followed by number but found: %r" % nextValue)
                     elif (nextType == token.OP) and (nextValue == "-"):
                         afterHyphen = True
-                    elif (nextValue == ELLIPSIS_PART):
-                        colon_count = colon_count+1
-                        if colon_count > 3:
-                            raise errors.RangeSyntaxError("range item must contain three colons (...)")
-                        if colon_count == 3:
-                            colonFound = True
-                            colon_count = 0
+                    elif nextValue in (ELLIPSIS, ':'):
+                        ellipsis_found = True
                     else:
-                        message = "range must be specified using integer numbers, text, symbols and colon (...) but found: %r [token type: %r]" % (nextValue, nextType)
+                        message = "range must be specified using integer numbers, text, symbols and ellipsis (...) but found: %r [token type: %r]" % (nextValue, nextType)
                         raise errors.RangeSyntaxError(message)
                     nextToken = next(tokens)
 
@@ -136,18 +129,18 @@ class Range(object):
                 # Decide upon the result.
                 if (lower is None):
                     if (upper is None):
-                        if colonFound:
+                        if ellipsis_found:
                             # Handle "...".
                             # TODO: Handle "..." same as ""?
-                            raise errors.RangeSyntaxError("colon (...) must be preceded and/or succeeded by number")
+                            raise errors.RangeSyntaxError("ellipsis (...) must be preceded and/or succeeded by number")
                         else:
                             # Handle "".
                             result = None
                     else:
-                        assert colonFound
+                        assert ellipsis_found
                         # Handle "...y".
                         result = (None, upper)
-                elif colonFound:
+                elif ellipsis_found:
                     # Handle "x..." and "x...y".
                     if (upper is not None) and (lower > upper):
                         raise errors.RangeSyntaxError("lower range %d must be greater or equal to upper range %d" % (lower, upper))
