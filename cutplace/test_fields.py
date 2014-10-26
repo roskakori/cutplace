@@ -23,14 +23,14 @@ import unittest
 from . import data
 from . import fields
 
-_anyFormat = data.createDataFormat(data.FORMAT_CSV)
-_fixedFormat = data.createDataFormat(data.FORMAT_FIXED)
+_anyFormat = data.Dataformat(data.FORMAT_DELIMITED)
+_fixedFormat = data.Dataformat(data.FORMAT_FIXED)
 
 
 def _createGermanDecimalFormat():
-    germanFormat = data.createDataFormat(data.FORMAT_CSV)
-    germanFormat.set(data.KEY_DECIMAL_SEPARATOR, ",")
-    germanFormat.set(data.KEY_THOUSANDS_SEPARATOR, ".")
+    germanFormat = data.Dataformat(data.FORMAT_DELIMITED)
+    germanFormat.set_property(data.KEY_DECIMAL_SEPARATOR, ",")
+    germanFormat.set_property(data.KEY_THOUSANDS_SEPARATOR, ".")
     result = fields.DecimalFieldFormat("x", False, None, "", germanFormat)
     return result
 
@@ -107,9 +107,9 @@ class DecimalFieldFormatTest(unittest.TestCase):
         self.assertEqual(decimal.Decimal("17.123456789"), fieldFormat.validated("17.123456789"))
 
     def testValidGermanDecimals(self):
-        germanDataFormat = data.createDataFormat(data.FORMAT_CSV)
-        germanDataFormat.set(data.KEY_DECIMAL_SEPARATOR, ",")
-        germanDataFormat.set(data.KEY_THOUSANDS_SEPARATOR, ".")
+        germanDataFormat = data.Dataformat(data.FORMAT_DELIMITED)
+        germanDataFormat.set_property(data.KEY_DECIMAL_SEPARATOR, ",")
+        germanDataFormat.set_property(data.KEY_THOUSANDS_SEPARATOR, ".")
         germanDecimalFieldformat = _createGermanDecimalFormat()
         self.assertEqual(decimal.Decimal("17.23"), germanDecimalFieldformat.validated("17,23"))
         self.assertEqual(decimal.Decimal("12345678"), germanDecimalFieldformat.validated("12.345.678"))

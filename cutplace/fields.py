@@ -126,12 +126,12 @@ class AbstractFieldFormat(object):
     example = property(_example, _setExample, doc="Example value or ``None`` if no example is provided.")
 
     def validateCharacters(self, value):
-        validCharacterRange = self.dataFormat.get(data.KEY_ALLOWED_CHARACTERS)
+        validCharacterRange = self.dataFormat.allowed_characters
         if validCharacterRange is not None:
             for character in value:
                 try:
                     validCharacterRange.validate("character", ord(character))
-                except ranges.RangeValueError as error:
+                except errors.RangeValueError as error:
                     raise FieldValueError("value for fields %r must contain only valid characters: %s"
                                                  % (self.fieldName, error))
 
@@ -145,7 +145,7 @@ class AbstractFieldFormat(object):
         if self.length is not None and not (self.isAllowedToBeEmpty and value == ""):
             try:
                 self.length.validate("length of '%s' with value %r" % (self.fieldName, value), len(value))
-            except ranges.RangeValueError as error:
+            except errors.RangeValueError as error:
                 raise FieldValueError(str(error))
 
     def validatedValue(self, value):
@@ -171,7 +171,7 @@ class AbstractFieldFormat(object):
         type. If not, raise FieldValueError.
         """
         self.validateCharacters(value)
-        if self.dataFormat.name == data.FORMAT_FIXED:
+        if self.dataFormat.format == data.FORMAT_FIXED:
             result = self.dataFormat.strippedOfBlanks(value)
             self.validateEmpty(result)
             # Note: No need to validate the length with fixed length items.
@@ -274,10 +274,10 @@ class DecimalFieldFormat(AbstractFieldFormat):
         super(DecimalFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue)
         if rule.strip():
             raise FieldSyntaxError("decimal rule must be empty")
-        self.decimalSeparator = dataFormat.get(data.KEY_DECIMAL_SEPARATOR)
-        self.thousandsSeparator = dataFormat.get(data.KEY_THOUSANDS_SEPARATOR)
+        self.decimalSeparator = dataFormat.decimal_separator
+        self.thousandsSeparator = dataFormat.thousands_separator
 
-        # TODO: In module data, check for same decimal/thousandsSeparator.
+        # This error must have been detected already by DataFormat.validate().
         assert self.decimalSeparator != self.thousandsSeparator
 
     def validatedValue(self, value):
@@ -329,7 +329,7 @@ class IntegerFieldFormat(AbstractFieldFormat):
             raise FieldValueError("value must be an integer number: %r" % value)
         try:
             self.rangeRule.validate("value", longValue)
-        except ranges.RangeValueError as error:
+        except errors.RangeValueError as error:
             raise FieldValueError(str(error))
         return longValue
 
