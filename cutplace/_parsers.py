@@ -24,7 +24,7 @@ import threading
 
 from . import data
 from . import sniff
-from . import tools
+from . import errors
 from . import _ods
 from . import _tools
 
@@ -35,7 +35,7 @@ CRLF = CR + LF
 _VALID_LINE_DELIMITERS = [AUTO, CR, CRLF, LF]
 
 
-class CutplaceXlrdImportError(tools.CutplaceError):
+class CutplaceXlrdImportError(errors.CutplaceError):
     """
     Error raised if ``xlrd`` package to read Excel needs to be installed.
     """
@@ -258,7 +258,7 @@ class DelimitedDialect(object):
         return result
 
 
-class ParserSyntaxError(tools.CutplaceError):
+class ParserSyntaxError(errors.CutplaceError):
     """
     Syntax error detected while parsing the data.
     """

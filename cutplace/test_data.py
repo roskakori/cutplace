@@ -208,31 +208,31 @@ class DataFormatTest(unittest.TestCase):
         delimited_format = data.Dataformat(data.FORMAT_DELIMITED)
         delimited_format.set_property(data.KEY_DECIMAL_SEPARATOR, '.')
         delimited_format.set_property(data.KEY_THOUSANDS_SEPARATOR, '.')
-        self.assertRaises(errors.DataFormatSyntaxError, delimited_format.validate)
+        self.assertRaises(errors.DataFormatValueError, delimited_format.validate)
 
     def test_fails_on_same_item_delimiter_and_thousands_separator(self):
         delimited_format = data.Dataformat(data.FORMAT_DELIMITED)
         delimited_format.set_property(data.KEY_ITEM_DELIMITER, '.')
         delimited_format.set_property(data.KEY_THOUSANDS_SEPARATOR, '.')
-        self.assertRaises(errors.DataFormatSyntaxError, delimited_format.validate)
+        self.assertRaises(errors.DataFormatValueError, delimited_format.validate)
 
     def test_fails_on_same_quote_character_and_item_delimiter(self):
         delimited_format = data.Dataformat(data.FORMAT_DELIMITED)
         delimited_format.set_property(data.KEY_QUOTE_CHARACTER, '"')
         delimited_format.set_property(data.KEY_ITEM_DELIMITER, '"')
-        self.assertRaises(errors.DataFormatSyntaxError, delimited_format.validate)
+        self.assertRaises(errors.DataFormatValueError, delimited_format.validate)
 
     def test_fails_on_same_line_and_item_delimiter(self):
         delimited_format = data.Dataformat(data.FORMAT_DELIMITED)
         delimited_format.set_property(data.KEY_LINE_DELIMITER, data.LF)
         delimited_format.set_property(data.KEY_ITEM_DELIMITER, '\n')
-        self.assertRaises(errors.DataFormatSyntaxError, delimited_format.validate)
+        self.assertRaises(errors.DataFormatValueError, delimited_format.validate)
 
     def test_fails_on_same_escape_and_item_delimiter(self):
         delimited_format = data.Dataformat(data.FORMAT_DELIMITED)
         delimited_format.set_property(data.KEY_ESCAPE_CHARACTER, '\\')
         delimited_format.set_property(data.KEY_ITEM_DELIMITER, '\\')
-        self.assertRaises(errors.DataFormatSyntaxError, delimited_format.validate)
+        self.assertRaises(errors.DataFormatValueError, delimited_format.validate)
 
 if __name__ == '__main__':
     logging.basicConfig()

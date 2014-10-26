@@ -65,7 +65,7 @@ class UTF8Recoder:
         try:
             result = self.reader.next().encode("utf-8")
         except UnicodeError as error:
-            from .tools import CutplaceUnicodeError
+            from . errors import CutplaceUnicodeError
             raise CutplaceUnicodeError("cannot decode input: %s" % error, cause=error)
         return result
 

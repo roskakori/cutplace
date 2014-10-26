@@ -25,26 +25,26 @@ import token
 
 from cutplace import data
 from cutplace import ranges
-from cutplace import tools
+from cutplace import errors
 from cutplace import _tools
 
 # Expected suffix for classes that describe filed formats.
 _FieldFormatClassSuffix = "FieldFormat"
 
 
-class FieldValueError(tools.CutplaceError):
+class FieldValueError(errors.CutplaceError):
     """
     Error raised when `AbstractFieldFormat.validated` detects an error.
     """
 
 
-class FieldLookupError(tools.CutplaceError):
+class FieldLookupError(errors.CutplaceError):
     """
     Error raised when a field cannot be found.
     """
 
 
-class FieldSyntaxError(tools.CutplaceError):
+class FieldSyntaxError(errors.CutplaceError):
     """
     Error raised when a field definition in the ICD is broken.
     """
