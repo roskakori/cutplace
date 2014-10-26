@@ -20,7 +20,7 @@ from . import fields
 import logging
 import unittest
 
-from . import tools
+from . import errors
 
 
 def _createFieldMap(fieldNames, fieldValues):
@@ -59,7 +59,7 @@ class _AbstractCheckTest(unittest.TestCase):
         # on methods that consist of nothing but a single "pass".
         fieldNames = _getTestFieldNames()
         check = checks.AbstractCheck("test check", "", fieldNames)
-        location = tools.InputLocation(self.testCheckRow, hasCell=True)
+        location = errors.InputLocation(self.testCheckRow, hasCell=True)
         check.checkRow([], location)
 
 
@@ -67,7 +67,7 @@ class IsUniqueCheckTest(_AbstractCheckTest):
     def testIsUniqueCheck(self):
         fieldNames = _getTestFieldNames()
         check = checks.IsUniqueCheck("test check", "branch_id, customer_id", fieldNames)
-        location = tools.InputLocation(self.testIsUniqueCheck, hasCell=True)
+        location = errors.InputLocation(self.testIsUniqueCheck, hasCell=True)
         check.checkRow(_createFieldMap(fieldNames, [38000, 23, "John", "Doe", "male", "08.03.1957"]), location)
         location.advanceLine()
         check.checkRow(_createFieldMap(fieldNames, [38000, 59, "Jane", "Miller", "female", "04.10.1946"]), location)
@@ -118,7 +118,7 @@ class DistinctCountCheckTest(unittest.TestCase):
         fieldNames = _getTestFieldNames()
         checks.DistinctCountCheck("test check", "branch_id<3", fieldNames)
         check = checks.DistinctCountCheck("test check", "branch_id < 3", fieldNames)
-        location = tools.InputLocation(self.testDistinctCountCheck, hasCell=True)
+        location = errors.InputLocation(self.testDistinctCountCheck, hasCell=True)
         check.checkRow(_createFieldMap(fieldNames, [38000, 23, "John", "Doe", "male", "08.03.1957"]), location)
         location.advanceLine()
         check.checkRow(_createFieldMap(fieldNames, [38001, 59, "Jane", "Miller", "female", "04.10.1946"]), location)

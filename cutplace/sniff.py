@@ -20,7 +20,7 @@ import string
 
 from . import data
 from . import fields
-from . import tools
+from . import errors
 from . import _tools
 
 _log = logging.getLogger("cutplace")
@@ -66,7 +66,7 @@ _ODS_HEADER = "PK\x03\x04"
 _EXCEL_HEADER = "\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"
 
 
-class CutplaceSniffError(tools.CutplaceError):
+class CutplaceSniffError(errors.CutplaceError):
     """
     Error to indicate that the format of some content could not be sniffed.
     """
@@ -439,7 +439,7 @@ def createCidRows(readable, **keywords):
     # Validate field names.
     if fieldNames is not None:
         if isReadFieldNamesFromHeader:
-            location = tools.InputLocation(readable, hasCell=True)
+            location = errors.InputLocation(readable, hasCell=True)
             location.advanceLine(headerRowsToSkip)
         else:
             location = None
@@ -475,7 +475,7 @@ def createCidRows(readable, **keywords):
     readable.seek(0)
     reader = createReader(readable, **keywords)
     rowIndex = 0
-    location = tools.InputLocation(readable)
+    location = errors.InputLocation(readable)
     while rowIndex < rowIndexWhereLongestSegmentStarts:
         next(reader)
         location.advanceLine()

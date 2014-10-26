@@ -23,9 +23,7 @@ import tokenize
 
 from cutplace import errors
 from cutplace import ranges
-from cutplace import tools
 from cutplace import _tools
-
 
 ANY = "any"
 CR = "cr"
@@ -176,8 +174,8 @@ class Dataformat():
             try:
                 ranges.Range(value)
             except ranges.RangeSyntaxError as error:
-                raise errors.DataFormatSyntaxError('value for property %r must be a valid range: %s'
-                                                   % (KEY_ALLOWED_CHARACTERS, error), self._location)
+                raise errors.DataFormatValueError('value for property %r must be a valid range: %s'
+                                                  % (KEY_ALLOWED_CHARACTERS, error), self._location)
             self._allowed_characters = value
         elif name == KEY_LINE_DELIMITER:
             try:
@@ -192,7 +190,7 @@ class Dataformat():
                 except ValueError:
                     raise errors.DataFormatSyntaxError('sheet %s must be a number' % value, self._location)
             else:
-                raise errors.DataFormatSyntaxError('Property %s is not valid for excel format' % name, self._location)
+                raise errors.DataFormatSyntaxError('property %s is not valid for excel format' % name, self._location)
         elif self.format == FORMAT_FIXED:
             self.__dict__[varname] = value
         elif self.format == FORMAT_DELIMITED:
@@ -299,8 +297,7 @@ class Dataformat():
             tokens = tokenize.generate_tokens(io.StringIO(value).readline)
             nextToken = next(tokens)
             if _tools.isEofToken(nextToken):
-                #raise DataFormatSyntaxError("value for data format property %r must be specified" % key)
-                raise "value for data format property %r must be specified" %key
+                raise errors.DataFormatSyntaxError("value for data format property %r must be specified" % key)
             nextType = nextToken[0]
             nextValue = nextToken[1]
             if nextType == token.NUMBER:
@@ -316,9 +313,9 @@ class Dataformat():
                                                        % (key, value))
             elif nextType == token.NAME:
                 try:
-                    longValue = errors.SYMBOLIC_NAMES_MAP[nextValue.lower()]
+                    longValue = errors.NAME_TO_ASCII_CODE_MAP[nextValue.lower()]
                 except KeyError:
-                    validSymbols = _tools.humanReadableList(sorted(tools.SYMBOLIC_NAMES_MAP.keys()))
+                    validSymbols = _tools.humanReadableList(sorted(errors.NAME_TO_ASCII_CODE_MAP.keys()))
                     raise errors.DataFormatSyntaxError('symbolic name %r for data format property %r must be one of: %s'
                                                        % (value, key, validSymbols))
             elif nextType == token.STRING:
@@ -358,8 +355,8 @@ class Dataformat():
         try:
             ranges.Range(self.allowed_characters)
         except ranges.RangeSyntaxError as error:
-            raise errors.DataFormatSyntaxError('value for property %r must be a valid range: %s'
-                                               % (KEY_ALLOWED_CHARACTERS, error))
+            raise errors.DataFormatValueError('value for property %r must be a valid range: %s'
+                                              % (KEY_ALLOWED_CHARACTERS, error))
 
         self._validatedInt(KEY_HEADER, self.header, 0)
 
@@ -395,14 +392,14 @@ class Dataformat():
                                                       % (self.line_delimiter, _VALID_LINE_DELIMITER_TEXTS))
 
             if self.decimal_separator == self.thousands_separator:
-                raise errors.DataFormatSyntaxError('decimal separator can not equals thousands separator')
+                raise errors.DataFormatValueError('decimal separator and thousands separator must be different')
             if self.quote_character == self.thousands_separator:
-                raise errors.DataFormatSyntaxError('quote character can not equals thousands separator')
+                raise errors.DataFormatValueError('quote character and thousands separator must be different')
             if self.thousands_separator == self.item_delimiter:
-                raise errors.DataFormatSyntaxError('thousands separator can not equals item delimiter')
+                raise errors.DataFormatValueError('thousands separator and item delimiter must be different')
             if self.quote_character == self.item_delimiter:
-                raise errors.DataFormatSyntaxError('quote character can not equals item delimiter')
+                raise errors.DataFormatValueError('quote character and item delimiter must be different')
             if self.line_delimiter == self.item_delimiter:
-                raise errors.DataFormatSyntaxError('line delimiter can not equals item delimiter')
+                raise errors.DataFormatValueError('line delimiter and item delimiter must be different')
             if self.escape_character == self.item_delimiter:
-                raise errors.DataFormatSyntaxError('escape character can not equals item delimiter')
+                raise errors.DataFormatValueError('escape character and item delimiter must be different')

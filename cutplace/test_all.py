@@ -27,7 +27,7 @@ from . import fields
 from . import interface
 from . import ranges
 from . import sniff
-from . import tools
+from . import errors
 from . import version
 from . import test_checks
 from . import test_cutplace
@@ -55,7 +55,7 @@ def createTestSuite():
     loader = unittest.TestLoader()
 
     # TODO: Automatically discover doctest cases.
-    for module in checks, data, fields, interface, ranges, sniff, tools, version, _cutplace, _ods, _parsers, _tools, _web:
+    for module in checks, data, fields, interface, ranges, sniff, errors, version, _cutplace, _ods, _parsers, _tools, _web:
         result.addTest(doctest.DocTestSuite(module))
     result.addTest(doctest.DocFileSuite(os.path.join("docs", "api.rst"), module_relative=False))
 

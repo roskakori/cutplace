@@ -27,7 +27,7 @@ from . import data
 from . import dev_test
 from . import fields
 from . import interface
-from . import tools
+from . import errors
 from . import _parsers
 
 _log = logging.getLogger("cutplace.test_interface")
@@ -153,7 +153,7 @@ class ValidatedRowsTest(unittest.TestCase):
             for _ in self._icd.validatedRows(self._brokenCostumersCsvPath):
                 pass
             self.fail("CutplaceError expected")
-        except tools.CutplaceError:
+        except errors.CutplaceError:
             # Ignore expected error.
             pass
 
@@ -169,7 +169,7 @@ class ValidatedRowsTest(unittest.TestCase):
         errorCount = 0
         rowCount = 0
         for rowOrError in self._icd.validatedRows(self._brokenCostumersCsvPath, errors="yield"):
-            if isinstance(rowOrError, tools.ErrorInfo):
+            if isinstance(rowOrError, errors.ErrorInfo):
                 errorCount += 1
             else:
                 rowCount += 1
@@ -360,7 +360,7 @@ F,first_name,John,X,15,Text
         spec = ",Broken ASCII interface with with non ASCII character\n,\u00fd"
         icd = interface.InterfaceControlDocument()
         readable = io.StringIO(spec)
-        self.assertRaises(tools.CutplaceUnicodeError, icd.read, readable)
+        self.assertRaises(errors.CutplaceUnicodeError, icd.read, readable)
 
         # FIXME: When called from eclipse, this just works, but when called from console it failes with:
         # ERROR:tools:'ascii' codec can't encode character u'\xfd' in position 55: ordinal not in range(128)
@@ -995,7 +995,7 @@ class ValidatorTest(unittest.TestCase):
     def testFailsOnFieldValueError(self):
         icd = createDefaultTestIcd(data.FORMAT_CSV)
         with interface.Validator(icd) as validator:
-            location = tools.createCallerInputLocation(hasCell=True)
+            location = errors.createCallerInputLocation(hasCell=True)
             validator.open(location)
             TestRow = ["38123", "12345", "John", "Doe", "some", "08.03.1957"]
             self.assertRaises(fields.FieldValueError, validator.validatedRow, TestRow)
@@ -1006,7 +1006,7 @@ class ValidatorTest(unittest.TestCase):
     def testFailsOnRowCheckError(self):
         icd = createDefaultTestIcd(data.FORMAT_CSV)
         with interface.Validator(icd) as validator:
-            location = tools.createCallerInputLocation(hasCell=True)
+            location = errors.createCallerInputLocation(hasCell=True)
             validator.open(location)
             TestRow = ["38123", "12345", "John", "Doe", "male", "08.03.1957"]
             _ = validator.validatedRow(TestRow)
@@ -1020,7 +1020,7 @@ class ValidatorTest(unittest.TestCase):
         icd = createDefaultTestIcd(data.FORMAT_CSV)
         try:
             with interface.Validator(icd) as validator:
-                location = tools.createCallerInputLocation(hasCell=True)
+                location = errors.createCallerInputLocation(hasCell=True)
                 validator.open(location)
                 for branchId in _TooManyTestBranchIds:
                     rowToValidate = [branchId, "12345", "John", "Doe", "male", "08.03.1957"]
