@@ -73,7 +73,8 @@ KEY_SKIP_INITIAL_SPACE = "skip_initial_space"
 KEY_DECIMAL_SEPARATOR = "decimal_separator"
 KEY_THOUSANDS_SEPARATOR = "thousands_separator"
 
-class Dataformat():
+
+class DataFormat():
     """
     Stores the data used by a dataformat.
     """
@@ -214,7 +215,7 @@ class Dataformat():
         assert choices
         if value not in choices:
             raise errors.DataFormatValueError('value for data format property %r is %r but must be one of: %s'
-                                              % (key, value, _tools.humanReadableList(choices)))
+                                              % (key, value, _tools.humanReadableList(choices)), self._location)
         return value
 
 
@@ -229,11 +230,11 @@ class Dataformat():
             result = int(value)
         except ValueError:
             raise errors.DataFormatValueError('value for data format property %r must be an integer number but is: %r'
-                                              % (key, value))
+                                              % (key, value), self._location)
         if lowerLimit is not None:
             if result < lowerLimit:
                 raise errors.DataFormatValueError('value for data format property %r is %d but must be at least %d'
-                                                  % (key, result, lowerLimit))
+                                                  % (key, result, lowerLimit), self._location)
         return result
 
 
@@ -297,7 +298,8 @@ class Dataformat():
             tokens = tokenize.generate_tokens(io.StringIO(value).readline)
             nextToken = next(tokens)
             if _tools.isEofToken(nextToken):
-                raise errors.DataFormatSyntaxError("value for data format property %r must be specified" % key)
+                raise errors.DataFormatSyntaxError("value for data format property %r must be specified" % key,
+                                                   self._location)
             nextType = nextToken[0]
             nextValue = nextToken[1]
             if nextType == token.NUMBER:
@@ -310,18 +312,18 @@ class Dataformat():
                     longValue = int(nextValue, base)
                 except ValueError:
                     raise errors.DataFormatSyntaxError('numeric value for data format property %r must be an integer but is: %r'
-                                                       % (key, value))
+                                                       % (key, value), self._location)
             elif nextType == token.NAME:
                 try:
                     longValue = errors.NAME_TO_ASCII_CODE_MAP[nextValue.lower()]
                 except KeyError:
                     validSymbols = _tools.humanReadableList(sorted(errors.NAME_TO_ASCII_CODE_MAP.keys()))
                     raise errors.DataFormatSyntaxError('symbolic name %r for data format property %r must be one of: %s'
-                                                       % (value, key, validSymbols))
+                                                       % (value, key, validSymbols), self._location)
             elif nextType == token.STRING:
                 if len(nextValue) != 3:
                     raise errors.DataFormatSyntaxError('text for data format property %r must be a single character but is: %r'
-                                                       % (key, value))
+                                                       % (key, value), self._location)
                 leftQuote = nextValue[0]
                 rightQuote = nextValue[2]
                 assert leftQuote in "\"\'", "leftQuote=%r" % leftQuote
@@ -329,12 +331,12 @@ class Dataformat():
                 longValue = ord(nextValue[1])
             else:
                 raise errors.DataFormatSyntaxError('value for data format property %r must a number, a single character or a symbolic name but is: %r'
-                                                   % (key, value))
+                                                   % (key, value), self._location)
             # Ensure there are no further tokens.
             nextToken = next(tokens)
             if not _tools.isEofToken(nextToken):
                 raise errors.DataFormatSyntaxError('value for data format property %r must describe a single character but is: %r'
-                                                   % (key, value))
+                                                   % (key, value), self._location)
             assert longValue is not None
             assert longValue >= 0
             result = chr(longValue)
@@ -350,13 +352,13 @@ class Dataformat():
             codecs.lookup(self.encoding)
         except:
             raise errors.DataFormatValueError('value for data format property %r is %r but must be a valid encoding'
-                                              % (KEY_ENCODING, self.encoding))
+                                              % (KEY_ENCODING, self.encoding), self._location)
 
         try:
             ranges.Range(self.allowed_characters)
         except ranges.RangeSyntaxError as error:
             raise errors.DataFormatValueError('value for property %r must be a valid range: %s'
-                                              % (KEY_ALLOWED_CHARACTERS, error))
+                                              % (KEY_ALLOWED_CHARACTERS, error), self._location)
 
         self._validatedInt(KEY_HEADER, self.header, 0)
 
@@ -373,7 +375,7 @@ class Dataformat():
                     self._skip_initial_space = False
                 else:
                     raise errors.DataFormatSyntaxError('skip initial space %s must be changed to one of: True, False'
-                                                       % self._skip_initial_space)
+                                                       % self._skip_initial_space, self._location)
 
         if self.format in (FORMAT_DELIMITED, FORMAT_FIXED):
             self._validatedChoice(KEY_DECIMAL_SEPARATOR, self.decimal_separator, _VALID_DECIMAL_SEPARATORS)
@@ -389,18 +391,19 @@ class Dataformat():
                     self._line_delimiter = _TEXT_TO_LINE_DELIMITER_MAP[self.line_delimiter]
                 except KeyError:
                     raise errors.DataFormatValueError('line delimiter %s must be changed to one of: %s'
-                                                      % (self.line_delimiter, _VALID_LINE_DELIMITER_TEXTS))
+                                                      % (self.line_delimiter, _VALID_LINE_DELIMITER_TEXTS),
+                                                      self._location)
 
             if self.decimal_separator == self.thousands_separator:
-                raise errors.DataFormatValueError('decimal separator and thousands separator must be different')
+                raise errors.DataFormatValueError('decimal separator and thousands separator must be different', self._location)
             if self.quote_character == self.thousands_separator:
-                raise errors.DataFormatValueError('quote character and thousands separator must be different')
+                raise errors.DataFormatValueError('quote character and thousands separator must be different', self._location)
             if self.thousands_separator == self.item_delimiter:
-                raise errors.DataFormatValueError('thousands separator and item delimiter must be different')
+                raise errors.DataFormatValueError('thousands separator and item delimiter must be different', self._location)
             if self.quote_character == self.item_delimiter:
-                raise errors.DataFormatValueError('quote character and item delimiter must be different')
+                raise errors.DataFormatValueError('quote character and item delimiter must be different', self._location)
             if self.line_delimiter == self.item_delimiter:
-                raise errors.DataFormatValueError('line delimiter and item delimiter must be different')
+                raise errors.DataFormatValueError('line delimiter and item delimiter must be different', self._location)
             if self.escape_character == self.item_delimiter:
-                raise errors.DataFormatValueError('escape character and item delimiter must be different')
+                raise errors.DataFormatValueError('escape character and item delimiter must be different', self._location)
         self._location = None
