@@ -291,6 +291,7 @@ class CutplaceUnicodeError(_BaseCutplaceError):
     any meaningful way and simply results in the the termination of the validation.
     """
 
+
 class RangeSyntaxError(CutplaceError):
     """
     Error in Range declaration.
@@ -302,6 +303,7 @@ class RangeValueError(CutplaceError):
     Error raised when ranges.validate() detects that a value is outside the expected ranges.
     """
 
+
 class DataFormatValueError(CutplaceError):
     """
     Error in data caused by violating the data format.
@@ -311,4 +313,21 @@ class DataFormatValueError(CutplaceError):
 class DataFormatSyntaxError(CutplaceError):
     """
     Error in data format declaration.
+    """
+
+class FieldValueError(CutplaceError):
+    """
+    Error raised when `AbstractFieldFormat.validated` detects an error.
+    """
+
+
+class FieldLookupError(CutplaceError):
+    """
+    Error raised when a field cannot be found.
+    """
+
+
+class FieldSyntaxError(CutplaceError):
+    """
+    Error raised when a field definition in the ICD is broken.
     """
