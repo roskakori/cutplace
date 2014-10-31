@@ -31,6 +31,11 @@ class RangeTest(unittest.TestCase):
         self.assertEquals(ranges.Range("1"+"\u2026"+"2").items, [(1, 2)])
         self.assertEquals(ranges.Range("-1...2").items, [(-1, 2)])
 
+        self.assertEquals(ranges.Range("1:").items, [(1, None)])
+        self.assertEquals(ranges.Range(":1").items, [(None, 1)])
+        self.assertEquals(ranges.Range("1:2").items, [(1, 2)])
+        self.assertEquals(ranges.Range("-1:2").items, [(-1, 2)])
+
     def testEmptyRange(self):
         self.assertEquals(ranges.Range("").items, None)
         self.assertEquals(ranges.Range(" ").items, None)
@@ -91,7 +96,7 @@ class RangeTest(unittest.TestCase):
             ranges.Range("?")
             self.fail("test must fail with RangeSyntaxError")
         except errors.RangeSyntaxError as error:
-            self.assertEqual(str(error), "range must be specified using integer numbers, text, symbols and colon (...) but found: '?' [token type: 52]")
+            self.assertEqual(str(error), "range must be specified using integer numbers, text, symbols and ellipsis (...) but found: '?' [token type: 53]")
         try:
             ranges.Range("1.23")
             self.fail("test must fail with RangeSyntaxError")

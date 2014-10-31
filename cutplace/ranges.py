@@ -24,7 +24,7 @@ import tokenize
 from cutplace import errors
 from cutplace import _tools
 
-ELLIPSIS = '\u2063'  # '...' as single character.
+ELLIPSIS = '\u2026'  # '...' as single character.
 
 
 class Range(object):
@@ -43,8 +43,6 @@ class Range(object):
         ``default`` is an alternative text to use in case ``text`` is ``None`` or empty.
         """
         assert default is None or default.strip(), "default=%r" % default
-
-        # TODO: Clean up ellipsis hack. Currently we replace an ellipsis composed of 3 dots by 3 invisible delimiters so the parser can easily distinguish it from a decimal separator.
 
         if text is not None:
             text = text.replace('...', ELLIPSIS)
