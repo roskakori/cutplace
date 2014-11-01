@@ -85,12 +85,6 @@ class BaseValidationListener(object):
     # TODO: Ponder: Would there be any point in `dataFormatFailed(self, error)`?
 
 
-class IcdSyntaxError(errors.CutplaceError):
-    """
-    General syntax error in the specification of the ICD.
-    """
-
-
 class InterfaceControlDocument(object):
     """
     Model of the data driven parts of an Interface Control Document (ICD).
@@ -224,7 +218,7 @@ class InterfaceControlDocument(object):
         assert self._location is not None
 
         if self._dataFormat is None:
-            raise IcdSyntaxError("data format must be specified before first field", self._location)
+            raise errors.CidSyntaxError("data format must be specified before first field", self._location)
 
         # Assert that the various lists and maps related to fields are in a consistent state.
         # Ideally this would be a class invariant, but this is Python, not Eiffel.
@@ -307,7 +301,7 @@ class InterfaceControlDocument(object):
                     fieldFormat.example = fieldExample
                 except fields.FieldValueError as error:
                     self._location.setCell(2)
-                    raise IcdSyntaxError("cannot validate example for field %r: %s" % (fieldName, error), self._location)
+                    raise errors.CidSyntaxError("cannot validate example for field %r: %s" % (fieldName, error), self._location)
 
             # Validate field length for fixed format.
             if isinstance(self._dataFormat, data.FixedDataFormat):
@@ -388,7 +382,7 @@ class InterfaceControlDocument(object):
                 # FIXME: Validate data format (required properties, contradictions)
                 self.addFieldFormat(icdRowToProcess[1:])
             elif rowId.strip():
-                raise IcdSyntaxError("first item in row is %r but must be empty or one of: %s"
+                raise errors.CidSyntaxError("first item in row is %r but must be empty or one of: %s"
                                      % (icdRowToProcess[0], _tools.humanReadableList(InterfaceControlDocument._VALID_IDS)),
                                      self._location)
         self._location.advanceLine()
@@ -396,10 +390,10 @@ class InterfaceControlDocument(object):
     def _checkAfterRead(self):
         assert self._location
         if self._dataFormat is None:
-            raise IcdSyntaxError("ICD must contain a section describing the data format (rows starting with %r)"
+            raise errors.CidSyntaxError("ICD must contain a section describing the data format (rows starting with %r)"
                                  % InterfaceControlDocument._ID_DATA_FORMAT)
         if not self._fieldFormats:
-            raise IcdSyntaxError("ICD must contain a section describing at least one field format (rows starting with %r)"
+            raise errors.CidSyntaxError("ICD must contain a section describing at least one field format (rows starting with %r)"
                                  % InterfaceControlDocument._ID_FIELD_RULE)
         # FIXME: In the end of read(), the following needs to be set: self._location = None
 

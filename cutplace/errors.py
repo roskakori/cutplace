@@ -315,6 +315,7 @@ class DataFormatSyntaxError(CutplaceError):
     Error in data format declaration.
     """
 
+
 class FieldValueError(CutplaceError):
     """
     Error raised when `AbstractFieldFormat.validated` detects an error.
@@ -331,3 +332,10 @@ class FieldSyntaxError(CutplaceError):
     """
     Error raised when a field definition in the ICD is broken.
     """
+
+
+class CidSyntaxError(CutplaceError):
+    """
+    General syntax error in the specification of the CID.
+    """
+
