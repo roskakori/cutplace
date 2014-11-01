@@ -41,8 +41,8 @@ _LINE_DELIMITER_TO_TEXT_MAP = {
 
 # Build reverse mapping for `_LINE_DELIMITER_TO_TEXT_MAP`.
 _TEXT_TO_LINE_DELIMITER_MAP = {}
-for lineDelimiter, lineDelimiterText in list(_LINE_DELIMITER_TO_TEXT_MAP.items()):
-    _TEXT_TO_LINE_DELIMITER_MAP[lineDelimiterText] = lineDelimiter
+for line_delimiter, line_delimiter_text in list(_LINE_DELIMITER_TO_TEXT_MAP.items()):
+    _TEXT_TO_LINE_DELIMITER_MAP[line_delimiter_text] = line_delimiter
 
 
 _VALID_LINE_DELIMITER_TEXTS = sorted(_LINE_DELIMITER_TO_TEXT_MAP.values())
@@ -75,6 +75,7 @@ KEY_THOUSANDS_SEPARATOR = "thousands_separator"
 
 
 class DataFormat():
+
     """
     Stores the data used by a dataformat.
     """
@@ -206,7 +207,7 @@ class DataFormat():
             else:
                 self.__dict__[varname] = value
 
-    def _validatedChoice(self, key, value, choices):
+    def _validated_choice(self, key, value, choices):
         """
         Validate that `value` is one of the available `choices` and otherwise raise `DataFormatValueError`.
         Always returns `value`. To be called from `validated()`.
@@ -218,8 +219,7 @@ class DataFormat():
                                               % (key, value, _tools.humanReadableList(choices)), self._location)
         return value
 
-
-    def _validatedInt(self, key, value, lowerLimit=None):
+    def _validated_int(self, key, value, lower_limit=None):
         """
         Validate that ``value`` is a long number with a value of at least ``lowerLimit`` (if
         specified) and raise `DataFormatSyntaxError` if not.
@@ -231,14 +231,13 @@ class DataFormat():
         except ValueError:
             raise errors.DataFormatValueError('value for data format property %r must be an integer number but is: %r'
                                               % (key, value), self._location)
-        if lowerLimit is not None:
-            if result < lowerLimit:
+        if lower_limit is not None:
+            if result < lower_limit:
                 raise errors.DataFormatValueError('value for data format property %r is %d but must be at least %d'
-                                                  % (key, result, lowerLimit), self._location)
+                                                  % (key, result, lower_limit), self._location)
         return result
 
-
-    def _validatedCharacter(self, key, value):
+    def _validated_character(self, key, value):
         r"""
         A single character intended as value for data format property ``key``
         derived from ``value``, which can be:
@@ -249,41 +248,44 @@ class DataFormat():
 
         Anything else yields a `DataFormatSyntaxError`.
         >>> format = DelimitedDataFormat()
-        >>> format._validatedCharacter("x", "34")
+        >>> format._validated_character("x", "34")
         '"'
-        >>> format._validatedCharacter("x", "9")
+        >>> format._validated_character("x", "9")
         '\t'
-        >>> format._validatedCharacter("x", "0x9")
+        >>> format._validated_character("x", "0x9")
         '\t'
-        >>> format._validatedCharacter("x", "Tab")
+        >>> format._validated_character("x", "Tab")
         '\t'
-        >>> format._validatedCharacter("x", "\t")
+        >>> format._validated_character("x", "\t")
         '\t'
-        >>> format._validatedCharacter("x", "")
+        >>> format._validated_character("x", "")
         Traceback (most recent call last):
             ...
         DataFormatSyntaxError: value for data format property 'x' must be specified
-        >>> format._validatedCharacter("x", "Tab Tab")
+        >>> format._validated_character("x", "Tab Tab")
         Traceback (most recent call last):
             ...
         DataFormatSyntaxError: value for data format property 'x' must describe a single character but is: 'Tab Tab'
-        >>> format._validatedCharacter("x", "17.23")
+        >>> format._validated_character("x", "17.23")
         Traceback (most recent call last):
             ...
         DataFormatSyntaxError: numeric value for data format property 'x' must be an integer but is: '17.23'
-        >>> format._validatedCharacter("x", "Hugo")
+        >>> format._validated_character("x", "Hugo")
         Traceback (most recent call last):
             ...
-        DataFormatSyntaxError: symbolic name 'Hugo' for data format property 'x' must be one of: 'cr', 'ff', 'lf', 'tab' or 'vt'
-        >>> format._validatedCharacter("x", "( ")
+        DataFormatSyntaxError: symbolic name 'Hugo' for data format property 'x' must be one of:
+        'cr', 'ff', 'lf', 'tab' or 'vt'
+        >>> format._validated_character("x", "( ")
         Traceback (most recent call last):
             ...
-        DataFormatSyntaxError: value for data format property 'x' must a number, a single character or a symbolic name but is: '( '
-        >>> format._validatedCharacter("x", "\"\\")
+        DataFormatSyntaxError: value for data format property 'x' must a number, a single character or
+        a symbolic name but is: '( '
+        >>> format._validated_character("x", "\"\\")
         Traceback (most recent call last):
             ...
-        DataFormatSyntaxError: value for data format property 'x' must a number, a single character or a symbolic name but is: '"\\'
-        >>> format._validatedCharacter("x", "\"abc\"")
+        DataFormatSyntaxError: value for data format property 'x' must a number, a single character or
+        a symbolic name but is: '"\\'
+        >>> format._validated_character("x", "\"abc\"")
         Traceback (most recent call last):
             ...
         DataFormatSyntaxError: text for data format property 'x' must be a single character but is: '"abc"'
@@ -296,53 +298,54 @@ class DataFormat():
         else:
             result = None
             tokens = tokenize.generate_tokens(io.StringIO(value).readline)
-            nextToken = next(tokens)
-            if _tools.isEofToken(nextToken):
+            next_token = next(tokens)
+            if _tools.isEofToken(next_token):
                 raise errors.DataFormatSyntaxError("value for data format property %r must be specified" % key,
                                                    self._location)
-            nextType = nextToken[0]
-            nextValue = nextToken[1]
-            if nextType == token.NUMBER:
+            next_type = next_token[0]
+            next_value = next_token[1]
+            if next_type == token.NUMBER:
                 try:
-                    if nextValue[:2].lower() == "0x":
-                        nextValue = nextValue[2:]
+                    if next_value[:2].lower() == "0x":
+                        next_value = next_value[2:]
                         base = 16
                     else:
                         base = 10
-                    longValue = int(nextValue, base)
+                    long_value = int(next_value, base)
                 except ValueError:
                     raise errors.DataFormatSyntaxError('numeric value for data format property %r must be an integer but is: %r'
                                                        % (key, value), self._location)
-            elif nextType == token.NAME:
+            elif next_type == token.NAME:
                 try:
-                    longValue = errors.NAME_TO_ASCII_CODE_MAP[nextValue.lower()]
+                    long_value = errors.NAME_TO_ASCII_CODE_MAP[next_value.lower()]
                 except KeyError:
-                    validSymbols = _tools.humanReadableList(sorted(errors.NAME_TO_ASCII_CODE_MAP.keys()))
+                    valid_symbols = _tools.humanReadableList(sorted(errors.NAME_TO_ASCII_CODE_MAP.keys()))
                     raise errors.DataFormatSyntaxError('symbolic name %r for data format property %r must be one of: %s'
-                                                       % (value, key, validSymbols), self._location)
-            elif nextType == token.STRING:
-                if len(nextValue) != 3:
+                                                       % (value, key, valid_symbols), self._location)
+            elif next_type == token.STRING:
+                if len(next_value) != 3:
                     raise errors.DataFormatSyntaxError('text for data format property %r must be a single character but is: %r'
                                                        % (key, value), self._location)
-                leftQuote = nextValue[0]
-                rightQuote = nextValue[2]
-                assert leftQuote in "\"\'", "leftQuote=%r" % leftQuote
-                assert rightQuote in "\"\'", "rightQuote=%r" % rightQuote
-                longValue = ord(nextValue[1])
+                left_quote = next_value[0]
+                right_quote = next_value[2]
+                assert left_quote in "\"\'", "leftQuote=%r" % left_quote
+                assert right_quote in "\"\'", "rightQuote=%r" % right_quote
+                long_value = ord(next_value[1])
             else:
-                raise errors.DataFormatSyntaxError('value for data format property %r must a number, a single character or a symbolic name but is: %r'
+                raise errors.DataFormatSyntaxError('value for data format property %r must a number, '
+                                                   'a single character or a symbolic name but is: %r'
                                                    % (key, value), self._location)
             # Ensure there are no further tokens.
-            nextToken = next(tokens)
-            if not _tools.isEofToken(nextToken):
-                raise errors.DataFormatSyntaxError('value for data format property %r must describe a single character but is: %r'
+            next_token = next(tokens)
+            if not _tools.isEofToken(next_token):
+                raise errors.DataFormatSyntaxError('value for data format property %r must describe '
+                                                   'a single character but is: %r'
                                                    % (key, value), self._location)
-            assert longValue is not None
-            assert longValue >= 0
-            result = chr(longValue)
+            assert long_value is not None
+            assert long_value >= 0
+            result = chr(long_value)
         assert result is not None
         return result
-
 
     def validate(self):
         """
@@ -360,13 +363,13 @@ class DataFormat():
             raise errors.DataFormatValueError('value for property %r must be a valid range: %s'
                                               % (KEY_ALLOWED_CHARACTERS, error), self._location)
 
-        self._validatedInt(KEY_HEADER, self.header, 0)
+        self._validated_int(KEY_HEADER, self.header, 0)
 
         if self.format in (FORMAT_EXCEL, FORMAT_ODS):
-            self._validatedInt(KEY_SHEET, self.sheet, 1)
+            self._validated_int(KEY_SHEET, self.sheet, 1)
 
         if self.format == FORMAT_DELIMITED:
-            self._validatedCharacter(KEY_ITEM_DELIMITER, self.item_delimiter)
+            self._validated_character(KEY_ITEM_DELIMITER, self.item_delimiter)
 
             if type(self._skip_initial_space) != bool:
                 if self._skip_initial_space in ('True', 'true'):
@@ -378,13 +381,13 @@ class DataFormat():
                                                        % self._skip_initial_space, self._location)
 
         if self.format in (FORMAT_DELIMITED, FORMAT_FIXED):
-            self._validatedChoice(KEY_DECIMAL_SEPARATOR, self.decimal_separator, _VALID_DECIMAL_SEPARATORS)
+            self._validated_choice(KEY_DECIMAL_SEPARATOR, self.decimal_separator, _VALID_DECIMAL_SEPARATORS)
 
-            self._validatedChoice(KEY_THOUSANDS_SEPARATOR, self.thousands_separator, _VALID_THOUSANDS_SEPARATORS)
+            self._validated_choice(KEY_THOUSANDS_SEPARATOR, self.thousands_separator, _VALID_THOUSANDS_SEPARATORS)
 
-            self._validatedChoice(KEY_ESCAPE_CHARACTER, self.escape_character, _VALID_ESCAPE_CHARACTERS)
+            self._validated_choice(KEY_ESCAPE_CHARACTER, self.escape_character, _VALID_ESCAPE_CHARACTERS)
 
-            self._validatedChoice(KEY_QUOTE_CHARACTER, self.quote_character, _VALID_QUOTE_CHARACTERS)
+            self._validated_choice(KEY_QUOTE_CHARACTER, self.quote_character, _VALID_QUOTE_CHARACTERS)
 
             if self._line_delimiter is not None and self._line_delimiter not in _LINE_DELIMITER_TO_TEXT_MAP:
                 try:
