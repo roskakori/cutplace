@@ -92,7 +92,8 @@ class Range(object):
                                 long_value = errors.NAME_TO_ASCII_CODE_MAP[next_value.lower()]
                             except KeyError:
                                 valid_symbols = _tools.humanReadableList(sorted(errors.NAME_TO_ASCII_CODE_MAP.keys()))
-                                raise errors.RangeSyntaxError("symbolic name %r must be one of: %s" % (next_value, valid_symbols))
+                                raise errors.RangeSyntaxError("symbolic name %r must be one of: %s"
+                                                              % (next_value, valid_symbols))
                         elif next_type == token.STRING:
                             if len(next_value) != 3:
                                 raise errors.RangeSyntaxError("text for range must contain a single character "
