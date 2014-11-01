@@ -47,12 +47,12 @@ class Range(object):
         if text is not None:
             text = text.replace('...', ELLIPSIS)
         # Find out if a `text` has been specified and if not, use optional `default` instead.
-        hasText = (text is not None) and text.strip()
-        if not hasText and default is not None:
+        has_text = (text is not None) and text.strip()
+        if not has_text and default is not None:
             text = default
-            hasText = True
+            has_text = True
 
-        if not hasText:
+        if not has_text:
             # Use empty ranges.
             self._description = None
             self._items = None
@@ -62,66 +62,69 @@ class Range(object):
 
             # TODO: Consolidate code with `DelimitedDataFormat._validatedCharacter()`.
             tokens = tokenize.generate_tokens(io.StringIO(text).readline)
-            endReached = False
-            while not endReached:
+            end_reached = False
+            while not end_reached:
                 lower = None
                 upper = None
                 ellipsis_found = False
-                afterHyphen = False
-                nextToken = next(tokens)
-                while not _tools.isEofToken(nextToken) and not _tools.isCommaToken(nextToken):
-                    nextType = nextToken[0]
-                    nextValue = nextToken[1]
-                    if nextType in (token.NAME, token.NUMBER, token.STRING):
-                        if nextType == token.NUMBER:
+                after_hyphen = False
+                next_token = next(tokens)
+                while not _tools.isEofToken(next_token) and not _tools.isCommaToken(next_token):
+                    next_type = next_token[0]
+                    next_value = next_token[1]
+                    if next_type in (token.NAME, token.NUMBER, token.STRING):
+                        if next_type == token.NUMBER:
                             try:
-                                if nextValue[:2].lower() == "0x":
-                                    nextValue = nextValue[2:]
+                                if next_value[:2].lower() == "0x":
+                                    next_value = next_value[2:]
                                     base = 16
                                 else:
                                     base = 10
 
-                                longValue = int(nextValue, base)
+                                long_value = int(next_value, base)
                             except ValueError:
-                                raise errors.RangeSyntaxError("number must be an integer but is: %r" % nextValue)
-                            if afterHyphen:
-                                longValue = - 1 * longValue
-                                afterHyphen = False
-                        elif nextType == token.NAME:
+                                raise errors.RangeSyntaxError("number must be an integer but is: %r" % next_value)
+                            if after_hyphen:
+                                long_value = - 1 * long_value
+                                after_hyphen = False
+                        elif next_type == token.NAME:
                             try:
-                                longValue = errors.NAME_TO_ASCII_CODE_MAP[nextValue.lower()]
+                                long_value = errors.NAME_TO_ASCII_CODE_MAP[next_value.lower()]
                             except KeyError:
-                                validSymbols = _tools.humanReadableList(sorted(errors.NAME_TO_ASCII_CODE_MAP.keys()))
-                                raise errors.RangeSyntaxError("symbolic name %r must be one of: %s" % (nextValue, validSymbols))
-                        elif nextType == token.STRING:
-                            if len(nextValue) != 3:
-                                raise errors.RangeSyntaxError("text for range must contain a single character but is: %r" % nextValue)
-                            leftQuote = nextValue[0]
-                            rightQuote = nextValue[2]
-                            assert leftQuote in "\"\'", "leftQuote=%r" % leftQuote
-                            assert rightQuote in "\"\'", "rightQuote=%r" % rightQuote
-                            longValue = ord(nextValue[1])
+                                valid_symbols = _tools.humanReadableList(sorted(errors.NAME_TO_ASCII_CODE_MAP.keys()))
+                                raise errors.RangeSyntaxError("symbolic name %r must be one of: %s" % (next_value, valid_symbols))
+                        elif next_type == token.STRING:
+                            if len(next_value) != 3:
+                                raise errors.RangeSyntaxError("text for range must contain a single character "
+                                                              "but is: %r" % next_value)
+                            left_quote = next_value[0]
+                            right_quote = next_value[2]
+                            assert left_quote in "\"\'", "leftQuote=%r" % left_quote
+                            assert right_quote in "\"\'", "rightQuote=%r" % right_quote
+                            long_value = ord(next_value[1])
                         if ellipsis_found:
                             if upper is None:
-                                upper = longValue
+                                upper = long_value
                             else:
-                                raise errors.RangeSyntaxError("range must have at most lower and upper limit but found another number: %r" % nextValue)
+                                raise errors.RangeSyntaxError("range must have at most lower and upper limit "
+                                                              "but found another number: %r" % next_value)
                         elif lower is None:
-                            lower = longValue
+                            lower = long_value
                         else:
-                            raise errors.RangeSyntaxError("number must be followed by ellipsis (...) but found: %r" % nextValue)
-                    elif afterHyphen:
-                        raise errors.RangeSyntaxError("hyphen (-) must be followed by number but found: %r" % nextValue)
-                    elif (nextType == token.OP) and (nextValue == "-"):
-                        afterHyphen = True
-                    elif nextValue in (ELLIPSIS, ':'):
+                            raise errors.RangeSyntaxError("number must be followed by ellipsis (...) but found: %r" % next_value)
+                    elif after_hyphen:
+                        raise errors.RangeSyntaxError("hyphen (-) must be followed by number but found: %r" % next_value)
+                    elif (next_type == token.OP) and (next_value == "-"):
+                        after_hyphen = True
+                    elif next_value in (ELLIPSIS, ':'):
                         ellipsis_found = True
                     else:
-                        message = "range must be specified using integer numbers, text, symbols and ellipsis (...) but found: %r [token type: %r]" % (nextValue, nextType)
+                        message = "range must be specified using integer numbers, text, " \
+                                  "symbols and ellipsis (...) but found: %r [token type: %r]" % (next_value, next_type)
                         raise errors.RangeSyntaxError(message)
-                    nextToken = next(tokens)
+                    next_token = next(tokens)
 
-                if afterHyphen:
+                if after_hyphen:
                     raise errors.RangeSyntaxError("hyphen (-) at end must be followed by number")
 
                 # Decide upon the result.
@@ -141,20 +144,21 @@ class Range(object):
                 elif ellipsis_found:
                     # Handle "x..." and "x...y".
                     if (upper is not None) and (lower > upper):
-                        raise errors.RangeSyntaxError("lower range %d must be greater or equal to upper range %d" % (lower, upper))
+                        raise errors.RangeSyntaxError("lower range %d must be greater or equal "
+                                                      "to upper range %d" % (lower, upper))
                     result = (lower, upper)
                 else:
                     # Handle "x".
                     result = (lower, lower)
                 if result is not None:
                     for item in self._items:
-                        if self._itemsOverlap(item, result):
+                        if self._items_overlap(item, result):
                             # TODO: use _repr_item() or something to display item in error message.
                             raise errors.RangeSyntaxError("range items must not overlap: %r and %r"
                                                    % (self._repr_item(item), self._repr_item(result)))
                     self._items.append(result)
-                if _tools.isEofToken(nextToken):
-                    endReached = True
+                if _tools.isEofToken(next_token):
+                    end_reached = True
 
     @property
     def description(self):
@@ -208,10 +212,10 @@ class Range(object):
         """
         if self.items:
             result = ""
-            isFirst = True
+            is_first = True
             for item in self._items:
-                if isFirst:
-                    isFirst = False
+                if is_first:
+                    is_first = False
                 else:
                     result += ", "
                 result += self._repr_item(item)
@@ -219,15 +223,15 @@ class Range(object):
             result = str(None)
         return result
 
-    def _itemsOverlap(self, some, other):
+    def _items_overlap(self, some, other):
         assert some is not None
         assert other is not None
         lower = other[0]
         upper = other[1]
-        result = self._itemContains(some, lower) or self._itemContains(some, upper)
+        result = self._item_contains(some, lower) or self._item_contains(some, upper)
         return result
 
-    def _itemContains(self, item, value):
+    def _item_contains(self, item, value):
         assert item is not None
         result = False
         if value is not None:
@@ -257,19 +261,19 @@ class Range(object):
         assert value is not None
 
         if self._items is not None:
-            isValid = False
-            itemIndex = 0
-            while not isValid and itemIndex < len(self._items):
-                lower, upper = self._items[itemIndex]
+            is_valid = False
+            item_index = 0
+            while not is_valid and item_index < len(self._items):
+                lower, upper = self._items[item_index]
                 if lower is None:
                     assert upper is not None
                     if value <= upper:
-                        isValid = True
+                        is_valid = True
                 elif upper is None:
                     if value >= lower:
-                        isValid = True
+                        is_valid = True
                 elif (value >= lower) and (value <= upper):
-                    isValid = True
-                itemIndex += 1
-            if not isValid:
+                    is_valid = True
+                item_index += 1
+            if not is_valid:
                 raise errors.RangeValueError("%s is %r but must be within range: %r" % (name, value, self))
