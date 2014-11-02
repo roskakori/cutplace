@@ -17,12 +17,13 @@ Reading ICD-Files
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from cutplace import data
-#from cutplace import interface
+# from cutplace import interface
 from cutplace import fields
 from cutplace import errors
 
 
 class Cid():
+
     def __init__(self):
         self._data_format = None
         self._location = None
@@ -30,18 +31,18 @@ class Cid():
 
     def read(self, source_path, rows):
         # TODO: Detect format and use proper reader.
-        self._location = errors.InputLocation(source_path, hasCell=True)
-        #local_interface = interface.InterfaceControlDocument()
+        self._location = errors.InputLocation(source_path, has_cell=True)
+        # local_interface = interface.InterfaceControlDocument()
         for row in rows:
             if row:
                 row_type = row[0].lower()
                 row_data = (row[1:] + [''] * 6)[:6]
                 if row_type == 'd':
                     name, value = row_data[:2]
-                    self._location.advanceCell()
+                    self._location.advance_cell()
                     if name == '':
                         raise errors.DataFormatSyntaxError('name of data format property must be specified', self._location)
-                    self._location.advanceCell()
+                    self._location.advance_cell()
                     if self._data_format is None:
                         self._data_format = data.DataFormat(value.lower(), self._location)
                     else:
@@ -60,10 +61,10 @@ class Cid():
                         self._fields.append(fields.TextFieldFormat(name, is_allowed_to_be_empty,
                                                                    length, rule, field_type))
                 elif row_type == 'c':
-                    #TODO: implement support for checks
+                    # TODO: implement support for checks
                     pass
                 elif row_type != '':
                     # Raise error when value is not supported.
                     raise errors.DataFormatSyntaxError('CID row type is "%s" but must be empty or one of: C, D, or F'
                         % row_type, self._location)
-            self._location.advanceLine()
+            self._location.advance_line()
