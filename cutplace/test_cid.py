@@ -24,17 +24,17 @@ from cutplace import _tools
 from cutplace import errors
 from cutplace import ranges
 
-import logging
 import unittest
 
 
 class CidTest(unittest.TestCase):
+
     """
     Tests for cid module
     """
     _TEST_ENCODING = "cp1252"
 
-    def test_can_read_excel_and_create_dataformat_delimited(self):
+    def test_can_read_excel_and_create_data_format_delimited(self):
         cid_reader = cid.Cid()
         source_path = dev_test.getTestIcdPath("icd_customers.xls")
         print(source_path)
@@ -52,14 +52,14 @@ class CidTest(unittest.TestCase):
 
     def test_fails_on_missing_data_format_value_name(self):
         cid_reader = cid.Cid()
-        self.assertRaises(errors.DataFormatSyntaxError, cid_reader.read,'inline', [
+        self.assertRaises(errors.DataFormatSyntaxError, cid_reader.read, 'inline', [
             ['d', 'format', 'delimited'],
             ['d', 'header'],
         ])
 
     def test_fails_on_missing_data_format_property_name(self):
         cid_reader = cid.Cid()
-        self.assertRaises(errors.DataFormatSyntaxError, cid_reader.read,'inline', [
+        self.assertRaises(errors.DataFormatSyntaxError, cid_reader.read, 'inline', [
             ['d', 'format', 'delimited'],
             ['d'],
         ])
@@ -70,7 +70,7 @@ class CidTest(unittest.TestCase):
 
     def test_can_skip_empty_rows(self):
         cid_reader = cid.Cid()
-        cid_reader.read('inline',[
+        cid_reader.read('inline', [
             [],
             [''],
             ['d', 'format', 'delimited']])
@@ -78,7 +78,7 @@ class CidTest(unittest.TestCase):
 
     def test_can_read_field_type_text_field(self):
         cid_reader = cid.Cid()
-        cid_reader.read('inline',[
+        cid_reader.read('inline', [
             ['d', 'format', 'delimited'],
             ['f', 'branch_id', '38000', '', '5']])
         self.assertEqual(cid_reader._fields[0].fieldName, 'branch_id')
@@ -89,21 +89,24 @@ class CidTest(unittest.TestCase):
         source_path = dev_test.getTestIcdPath("icd_customers.xls")
         cid_reader.read(source_path, _tools.excel_rows(source_path))
         self.assertEqual(cid_reader._fields[0].fieldName, 'branch_id')
-        self.assertEqual(cid_reader._fields[0].length.description, ranges.Range('5').description)
+        self.assertEqual(cid_reader._fields[0].length.items, ranges.Range('5').items)
         self.assertEqual(cid_reader._fields[1].fieldName, 'customer_id')
-        self.assertEqual(cid_reader._fields[1].length.description, ranges.Range('2:').description)
+        self.assertEqual(cid_reader._fields[1].length.items, ranges.Range('2...').items)
         self.assertEqual(cid_reader._fields[2].fieldName, 'first_name')
-        self.assertEqual(cid_reader._fields[2].length.description, ranges.Range(':60').description)
+        self.assertEqual(cid_reader._fields[2].length.items, ranges.Range('...60').items)
         self.assertEqual(cid_reader._fields[3].fieldName, 'surname')
-        self.assertEqual(cid_reader._fields[3].length.description, ranges.Range(':60').description)
+        self.assertEqual(cid_reader._fields[3].length.items, ranges.Range('...60').items)
         self.assertEqual(cid_reader._fields[4].fieldName, 'gender')
-        self.assertEqual(cid_reader._fields[4].length.description, ranges.Range('2:6').description)
+        self.assertEqual(cid_reader._fields[4].length.items, ranges.Range('2...6').items)
         self.assertEqual(cid_reader._fields[5].fieldName, 'date_of_birth')
         self.assertTrue(cid_reader._fields[5].isAllowedToBeEmpty)
-        self.assertEqual(cid_reader._fields[5].length.description, ranges.Range('10').description)
+        self.assertEqual(cid_reader._fields[5].length.items, ranges.Range('10').items)
 
     def test_fails_on_empty_field_name(self):
         cid_reader = cid.Cid()
-        self.assertRaises(errors.FieldSyntaxError,cid_reader.read,'inline',[
-            ['d','format','delimited'],
-            ['f','','38000','','5']])
+        self.assertRaises(errors.FieldSyntaxError, cid_reader.read, 'inline', [
+            ['d', 'format', 'delimited'],
+            ['f', '', '38000', '', '5']])
+
+if __name__ == '__main__':
+    unittest.main()
