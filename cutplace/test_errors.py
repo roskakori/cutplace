@@ -22,36 +22,38 @@ from cutplace import errors
 
 
 class ErrorsTest(unittest.TestCase):
+
     """TestCase for errors module."""
+
     def test_can_work_with_input_location(self):
-        location = errors.InputLocation("eggs.txt", hasColumn=True)
+        location = errors.InputLocation("eggs.txt", has_column=True)
         self.assertEqual(location.line, 0)
         self.assertEqual(location.column, 0)
         self.assertEqual(str(location), "eggs.txt (1;1)")
-        location.advanceColumn(3)
+        location.advance_column(3)
         self.assertEqual(location.column, 3)
-        location.advanceColumn()
+        location.advance_column()
         self.assertEqual(location.column, 4)
-        location.advanceLine()
+        location.advance_line()
         self.assertEqual(location.line, 1)
         self.assertEqual(location.column, 0)
         self.assertEqual(str(location), "eggs.txt (2;1)")
 
         # Test input with cells.
-        location = errors.InputLocation("eggs.csv", hasCell=True)
+        location = errors.InputLocation("eggs.csv", has_cell=True)
         self.assertEqual(location.line, 0)
         self.assertEqual(location.cell, 0)
         self.assertEqual(str(location), "eggs.csv (R1C1)")
-        location.advanceLine()
-        location.advanceCell(17)
+        location.advance_line()
+        location.advance_cell(17)
         self.assertEqual(str(location), "eggs.csv (R2C18)")
 
         # Test input with sheet.
-        location = errors.InputLocation("eggs.ods", hasCell=True, hasSheet=True)
+        location = errors.InputLocation("eggs.ods", has_cell=True, has_sheet=True)
         self.assertEqual(str(location), "eggs.ods (Sheet1!R1C1)")
-        location.advanceSheet()
-        location.advanceLine()
-        location.advanceCell(17)
+        location.advance_sheet()
+        location.advance_line()
+        location.advance_cell(17)
         self.assertEqual(str(location), "eggs.ods (Sheet2!R2C18)")
 
         # Test StringIO input.
