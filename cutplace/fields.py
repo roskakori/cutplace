@@ -19,6 +19,7 @@ import decimal
 import fnmatch
 import keyword
 import re
+import string
 import sys
 import time
 import token
@@ -31,6 +32,8 @@ from cutplace import _tools
 # Expected suffix for classes that describe filed formats.
 _FieldFormatClassSuffix = "FieldFormat"
 
+_ASCII_LETTERS = set(string.ascii_letters)
+_ASCII_LETTERS_DIGITS_AND_UNDERSCORE = set(string.ascii_letters + string.digits + '_')
 
 class AbstractFieldFormat(object):
     """
@@ -415,23 +418,15 @@ def validated_field_name(supposed_field_name, location=None):
     describes a valid field name. Otherwise, raise a `FieldSyntaxError` pointing to ``location``.
     """
     field_name = supposed_field_name.strip()
-
     if keyword.iskeyword(field_name):
         raise errors.FieldSyntaxError("field name must not be a Python keyword but is: %r" % field_name, location)
-
-    first = True
-
+    is_first_character = True
     for character in field_name:
-        if first:
-            if 97 <= ord(character) <= 122:
-                pass
-                first = False
-            else:
+        if is_first_character:
+            if character not in _ASCII_LETTERS:
                 raise errors.FieldSyntaxError("field name must begin with a lower-case letter but is: %r" % (field_name), location)
+            is_first_character = False
         else:
-            if (65 <= ord(character) <= 90) or (97 <= ord(character) <= 122) or (48 <= ord(character) <= 57) or (ord(character) == 95):
-                pass
-            else:
+            if character not in _ASCII_LETTERS_DIGITS_AND_UNDERSCORE:
                 raise errors.FieldSyntaxError("field name must be a valid Python name consisting of ASCII letters, underscore (%r) and digits but is: %r" % ("_", field_name), location)
-
     return field_name
