@@ -409,20 +409,29 @@ def getFieldNameIndex(supposedFieldName, availableFieldNames):
                                       % (fieldName, _tools.humanReadableList(availableFieldNames)))
     return fieldIndex
 
-
-def validatedFieldName(supposedFieldName, location=None):
+def validated_field_name(supposed_field_name, location=None):
     """
     Same as ``supposedFieldName`` except with surrounding white space removed, provided that it
     describes a valid field name. Otherwise, raise a `FieldSyntaxError` pointing to ``location``.
     """
-    tokens = _tools.tokenizeWithoutSpace(supposedFieldName)
-    tokenType, result, _, _, _ = next(tokens)
-    if tokenType != token.NAME:
-        message = "field name must be a valid Python name consisting of ASCII letters, underscore (%r) and digits but is: %r" % ("_", result)
-        raise errors.FieldSyntaxError(message, location)
-    if keyword.iskeyword(result):
-        raise errors.FieldSyntaxError("field name must not be a Python keyword but is: %r" % result, location)
-    toky = next(tokens)
-    if not _tools.isEofToken(toky):
-        raise errors.FieldSyntaxError("field name must be a single word but is: %r" % supposedFieldName, location)
-    return result
+    field_name = supposed_field_name.strip()
+
+    if keyword.iskeyword(field_name):
+        raise errors.FieldSyntaxError("field name must not be a Python keyword but is: %r" % field_name, location)
+
+    first = True
+
+    for character in field_name:
+        if first:
+            if 97 <= ord(character) <= 122:
+                pass
+                first = False
+            else:
+                raise errors.FieldSyntaxError("field name must begin with a lower-case letter but is: %r" % (field_name), location)
+        else:
+            if (65 <= ord(character) <= 90) or (97 <= ord(character) <= 122) or (48 <= ord(character) <= 57) or (ord(character) == 95):
+                pass
+            else:
+                raise errors.FieldSyntaxError("field name must be a valid Python name consisting of ASCII letters, underscore (%r) and digits but is: %r" % ("_", field_name), location)
+
+    return field_name
