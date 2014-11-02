@@ -995,7 +995,7 @@ class ValidatorTest(unittest.TestCase):
     def testFailsOnFieldValueError(self):
         icd = createDefaultTestIcd(data.FORMAT_CSV)
         with interface.Validator(icd) as validator:
-            location = errors.createCallerInputLocation(hasCell=True)
+            location = errors.create_caller_input_location(hasCell=True)
             validator.open(location)
             TestRow = ["38123", "12345", "John", "Doe", "some", "08.03.1957"]
             self.assertRaises(fields.FieldValueError, validator.validatedRow, TestRow)
@@ -1006,7 +1006,7 @@ class ValidatorTest(unittest.TestCase):
     def testFailsOnRowCheckError(self):
         icd = createDefaultTestIcd(data.FORMAT_CSV)
         with interface.Validator(icd) as validator:
-            location = errors.createCallerInputLocation(hasCell=True)
+            location = errors.create_caller_input_location(hasCell=True)
             validator.open(location)
             TestRow = ["38123", "12345", "John", "Doe", "male", "08.03.1957"]
             _ = validator.validatedRow(TestRow)
@@ -1020,7 +1020,7 @@ class ValidatorTest(unittest.TestCase):
         icd = createDefaultTestIcd(data.FORMAT_CSV)
         try:
             with interface.Validator(icd) as validator:
-                location = errors.createCallerInputLocation(hasCell=True)
+                location = errors.create_caller_input_location(hasCell=True)
                 validator.open(location)
                 for branchId in _TooManyTestBranchIds:
                     rowToValidate = [branchId, "12345", "John", "Doe", "male", "08.03.1957"]

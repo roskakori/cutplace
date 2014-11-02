@@ -413,7 +413,7 @@ class InterfaceControlDocument(object):
             icdFile = open(icdFilePath, "rb")
         else:
             icdFile = icdFilePath
-        self._location = errors.InputLocation(icdFilePath, hasCell=True)
+        self._location = errors.InputLocation(icdFilePath, has_cell=True)
         try:
             reader = sniff.createReader(icdFile, encoding=encoding)
             for icdRowToProcess in reader:
@@ -427,7 +427,7 @@ class InterfaceControlDocument(object):
 
     def readFromRows(self, rows):
         assert rows is not None
-        self._location = errors.InputLocation(":memory:", hasCell=True)
+        self._location = errors.InputLocation(":memory:", has_cell=True)
         for icdRowToProcess in rows:
             self._processIcdRow(icdRowToProcess)
         self._checkAfterRead()
@@ -438,7 +438,7 @@ class InterfaceControlDocument(object):
         This is necessary if you create the ICD manually calling `addDataFormat`, `addFieldFormat`
         etc. instead of using a file.
         """
-        self._location = errors.createCallerInputLocation(hasCell=True)
+        self._location = errors.create_caller_input_location(has_cell=True)
 
     @property
     def sheet(self):
@@ -468,14 +468,14 @@ class InterfaceControlDocument(object):
         if self._dataFormat.name in (data.FORMAT_CSV, data.FORMAT_CSV, data.FORMAT_DELIMITED, data.FORMAT_EXCEL, data.FORMAT_ODS):
             needsOpen = isinstance(dataFileToValidatePath, str)
             hasSheet = (self._dataFormat.name not in (data.FORMAT_CSV, data.FORMAT_DELIMITED))
-            location = errors.InputLocation(dataFileToValidatePath, hasCell=True, hasSheet=hasSheet)
+            location = errors.InputLocation(dataFileToValidatePath, has_cell=True, has_sheet=hasSheet)
             if needsOpen:
                 dataFile = open(dataFileToValidatePath, "rb")
             else:
                 dataFile = dataFileToValidatePath
         elif self._dataFormat.name == data.FORMAT_FIXED:
             needsOpen = isinstance(dataFileToValidatePath, str)
-            location = errors.InputLocation(dataFileToValidatePath, hasColumn=True, hasCell=True)
+            location = errors.InputLocation(dataFileToValidatePath, has_column=True, has_cell=True)
             if needsOpen:
                 dataFile = codecs.open(dataFileToValidatePath, "rb", self._dataFormat.encoding)
             else:
@@ -789,7 +789,7 @@ class InterfaceControlDocument(object):
         actualRowCount = len(row)
         expectedRowCount = len(self.fieldNames)
         if actualRowCount != expectedRowCount:
-            location = errors.createCallerInputLocation()
+            location = errors.create_caller_input_location()
             raise data.DataFormatValueError("row must have %d items but has %d: %s" % (expectedRowCount, actualRowCount, row), location)
 
         fieldIndex = self.getFieldNameIndex(fieldName)
@@ -1033,7 +1033,7 @@ class Writer(object):
         self._out = out
         self._opened = True
         locationHasSheet = (icd.sheet is not None)
-        location = errors.InputLocation(out, hasCell=True, hasSheet=locationHasSheet)
+        location = errors.InputLocation(out, has_cell=True, has_sheet=locationHasSheet)
         if icd.sheet is not None:
             location.sheet = icd.sheet
         self._validator = Validator(icd)

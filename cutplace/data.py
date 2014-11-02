@@ -175,7 +175,7 @@ class DataFormat():
         elif name == KEY_ALLOWED_CHARACTERS:
             try:
                 ranges.Range(value)
-            except ranges.RangeSyntaxError as error:
+            except errors.RangeSyntaxError as error:
                 raise errors.DataFormatValueError('value for property %r must be a valid range: %s'
                                                   % (KEY_ALLOWED_CHARACTERS, error), self._location)
             self._allowed_characters = value
