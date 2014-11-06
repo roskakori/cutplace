@@ -18,6 +18,7 @@ from the Python documentation.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from cgi import escape
 import codecs
 import csv
 import decimal
@@ -528,3 +529,14 @@ def excel_rows(source_path):
     sheet = book.sheet_by_index(0)
     for row_number in range(sheet.nrows):
         yield sheet.row_values(row_number)
+
+
+def delimited_rows(source_path, data_format):
+    csv_file = open(source_path, encoding=data_format.encoding)
+
+    csv_reader = csv.reader(csv_file, delimiter=data_format.item_delimiter, quotechar=data_format.quote_character,
+                            skipinitialspace=data_format.skip_initial_space, lineterminator=data_format.line_delimiter,
+                            escapechar=data_format.escape_character)
+
+    for row in csv_reader:
+        yield row
