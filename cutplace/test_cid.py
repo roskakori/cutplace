@@ -23,6 +23,7 @@ from cutplace import dev_test
 from cutplace import _tools
 from cutplace import errors
 from cutplace import ranges
+from cutplace import data
 
 import unittest
 
@@ -107,6 +108,25 @@ class CidTest(unittest.TestCase):
         self.assertRaises(errors.FieldSyntaxError, cid_reader.read, 'inline', [
             ['d', 'format', 'delimited'],
             ['f', '', '38000', '', '5']])
+
+    def test_can_read_delimited_rows(self):
+        cid_reader = cid.Cid()
+        source_path = dev_test.getTestIcdPath("icd_customers.xls")
+
+        cid_reader.read(source_path, _tools.excel_rows(source_path))
+
+        data_format = cid_reader._data_format
+        data_format.set_property(data.KEY_LINE_DELIMITER, data.CRLF)
+        data_format.set_property(data.KEY_ESCAPE_CHARACTER, "\\")
+
+        delimited_rows = _tools.delimited_rows(dev_test.getTestInputPath("valid_customers.csv"), cid_reader._data_format)
+
+        for row in delimited_rows:
+            delimited_row = row
+            break
+
+        self.assertEqual(delimited_row, ['38000', '23', 'John', 'Doe', 'male', '08.03.1957'])
+
 
 if __name__ == '__main__':
     unittest.main()
