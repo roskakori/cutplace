@@ -569,8 +569,6 @@ def _excelCellValue(cell, datemode):
 def excel_rows(source_path):
     book = xlrd.open_workbook(source_path)
     sheet = book.sheet_by_index(0)
-#    for row_number in range(sheet.nrows):
-#        yield sheet.row_values(row_number)
     datemode = book.datemode
     for y in range(sheet.nrows):
         row = []
@@ -588,9 +586,9 @@ def delimited_rows(source_path, data_format):
         doublequote = True
         escapechar = data_format.escape_character
 
-    # HACK: Ignore DataFormat.line_delimiter because at least until Pythonb 3.4 csv.reader ignores it anyway.
+    # HACK: Ignore DataFormat.line_delimiter because at least until Python 3.4 csv.reader ignores it anyway.
     csv_reader = csv.reader(csv_file, delimiter=data_format.item_delimiter, doublequote=doublequote,
-        escapechar = escapechar, quotechar=data_format.quote_character,
+        escapechar=escapechar, quotechar=data_format.quote_character,
         skipinitialspace=data_format.skip_initial_space, strict=True)
 
     for row in csv_reader:
