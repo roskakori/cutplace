@@ -23,6 +23,7 @@ from cutplace import dev_test
 from cutplace import _tools
 from cutplace import errors
 from cutplace import ranges
+from cutplace import fields
 
 import unittest
 
@@ -81,26 +82,58 @@ class CidTest(unittest.TestCase):
         cid_reader.read('inline', [
             ['d', 'format', 'delimited'],
             ['f', 'branch_id', '38000', '', '5']])
-        self.assertEqual(cid_reader._fields[0].fieldName, 'branch_id')
-        self.assertEqual(cid_reader._fields[0].length.description, ranges.Range('5').description)
+        self.assertEqual(cid_reader.field_names[0], 'branch_id')
+        self.assertEqual(cid_reader.field_format_at(0).length.description, ranges.Range('5').description)
 
     def test_can_read_fields_from_excel(self):
         cid_reader = cid.Cid()
         source_path = dev_test.getTestIcdPath("icd_customers.xls")
         cid_reader.read(source_path, _tools.excel_rows(source_path))
-        self.assertEqual(cid_reader._fields[0].fieldName, 'branch_id')
-        self.assertEqual(cid_reader._fields[0].length.items, ranges.Range('5').items)
-        self.assertEqual(cid_reader._fields[1].fieldName, 'customer_id')
-        self.assertEqual(cid_reader._fields[1].length.items, ranges.Range('2...').items)
-        self.assertEqual(cid_reader._fields[2].fieldName, 'first_name')
-        self.assertEqual(cid_reader._fields[2].length.items, ranges.Range('...60').items)
-        self.assertEqual(cid_reader._fields[3].fieldName, 'surname')
-        self.assertEqual(cid_reader._fields[3].length.items, ranges.Range('...60').items)
-        self.assertEqual(cid_reader._fields[4].fieldName, 'gender')
-        self.assertEqual(cid_reader._fields[4].length.items, ranges.Range('2...6').items)
-        self.assertEqual(cid_reader._fields[5].fieldName, 'date_of_birth')
-        self.assertTrue(cid_reader._fields[5].isAllowedToBeEmpty)
-        self.assertEqual(cid_reader._fields[5].length.items, ranges.Range('10').items)
+        self.assertEqual(cid_reader.field_names[0], 'branch_id')
+        self.assertEqual(cid_reader.field_format_at(0).length.items, ranges.Range('5').items)
+        self.assertTrue(isinstance(cid_reader.field_format_at(0), fields.TextFieldFormat))
+        self.assertEqual(cid_reader.field_names[1], 'customer_id')
+        self.assertTrue(isinstance(cid_reader.field_format_at(1), fields.IntegerFieldFormat ))
+        self.assertEqual(cid_reader.field_format_at(1).length.items, ranges.Range('2...').items)
+        self.assertEqual(cid_reader.field_names[2], 'first_name')
+        self.assertTrue(isinstance(cid_reader.field_format_at(2), fields.TextFieldFormat ))
+        self.assertEqual(cid_reader.field_format_at(2).length.items, ranges.Range('...60').items)
+        self.assertEqual(cid_reader.field_names[3], 'surname')
+        self.assertTrue(isinstance(cid_reader.field_format_at(3), fields.TextFieldFormat ))
+        self.assertEqual(cid_reader.field_format_at(3).length.items, ranges.Range('...60').items)
+        self.assertEqual(cid_reader.field_names[4], 'gender')
+        self.assertTrue(isinstance(cid_reader.field_format_at(4), fields.ChoiceFieldFormat ))
+        self.assertEqual(cid_reader.field_format_at(4).length.items, ranges.Range('2...6').items)
+        self.assertEqual(cid_reader.field_names[5], 'date_of_birth')
+        self.assertTrue(isinstance(cid_reader.field_format_at(5), fields.DateTimeFieldFormat ))
+        self.assertTrue(cid_reader.field_format_at(5).isAllowedToBeEmpty)
+        self.assertEqual(cid_reader.field_format_at(5).length.items, ranges.Range('10').items)
+
+    def test_can_handle_all_field_formats_from_array(self):
+        cid_reader = cid.Cid()
+        cid_reader.read('inline', [
+            ['d', 'format', 'delimited'],
+            ['f', 'int', '', '', '', 'Integer'],
+            ['f', 'choice', '', '', '', 'Choice', 'x,y'],
+            ['f', 'date', '', '', '', 'DateTime'],
+            ['f', 'dec', '', '', '', 'Decimal', ''],
+            ['f', 'text']
+        ])
+        self.assertTrue(isinstance(cid_reader.field_format_at(0), fields.IntegerFieldFormat))
+        self.assertTrue(isinstance(cid_reader.field_format_at(1), fields.ChoiceFieldFormat))
+        self.assertTrue(isinstance(cid_reader.field_format_at(2), fields.DateTimeFieldFormat))
+        self.assertTrue(isinstance(cid_reader.field_format_at(3), fields.DecimalFieldFormat))
+        self.assertTrue(isinstance(cid_reader.field_format_at(4), fields.TextFieldFormat))
+
+    def test_can_handle_all_field_formats_from_excel(self):
+        cid_reader = cid.Cid()
+        source_path = dev_test.getTestIcdPath("alltypes.xls")
+        cid_reader.read(source_path, _tools.excel_rows(source_path))
+        self.assertTrue(isinstance(cid_reader.field_format_at(0), fields.IntegerFieldFormat))
+        self.assertTrue(isinstance(cid_reader.field_format_at(1), fields.TextFieldFormat))
+        self.assertTrue(isinstance(cid_reader.field_format_at(2), fields.ChoiceFieldFormat))
+        self.assertTrue(isinstance(cid_reader.field_format_at(3), fields.DateTimeFieldFormat))
+        self.assertTrue(isinstance(cid_reader.field_format_at(4), fields.DecimalFieldFormat))
 
     def test_fails_on_empty_field_name(self):
         cid_reader = cid.Cid()
