@@ -155,6 +155,7 @@ class DataFormat():
         """
         Setting the value auf a property, used by a dataformat
         """
+        name = name.replace(' ', '_')
         varname = '_' + name
         if varname not in self.__dict__:
             raise errors.DataFormatSyntaxError('format %s does not support property %s'
