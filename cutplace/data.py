@@ -175,11 +175,10 @@ class DataFormat():
                 raise errors.DataFormatSyntaxError('header %s must be a number' % value, self._location)
         elif name == KEY_ALLOWED_CHARACTERS:
             try:
-                ranges.Range(value)
+                self._allowed_characters = ranges.Range(value)
             except errors.RangeSyntaxError as error:
                 raise errors.DataFormatValueError('value for property %r must be a valid range: %s'
                                                   % (KEY_ALLOWED_CHARACTERS, error), self._location)
-            self._allowed_characters = value
         elif name == KEY_LINE_DELIMITER:
             try:
                 self._line_delimiter = _TEXT_TO_LINE_DELIMITER_MAP[value]
@@ -357,12 +356,6 @@ class DataFormat():
         except:
             raise errors.DataFormatValueError('value for data format property %r is %r but must be a valid encoding'
                                               % (KEY_ENCODING, self.encoding), self._location)
-
-        try:
-            ranges.Range(self.allowed_characters)
-        except ranges.RangeSyntaxError as error:
-            raise errors.DataFormatValueError('value for property %r must be a valid range: %s'
-                                              % (KEY_ALLOWED_CHARACTERS, error), self._location)
 
         self._validated_int(KEY_HEADER, self.header, 0)
 
