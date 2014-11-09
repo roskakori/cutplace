@@ -21,6 +21,7 @@ from the Python documentation.
 from cgi import escape
 import codecs
 import csv
+import datetime
 import decimal
 import errno
 import keyword
@@ -524,11 +525,58 @@ def numbered(value, decimalSeparator=".", thousandsSeparator=","):
     return resultType, resultUsesThousandsSeparator, resultValue
 
 
+def _excelCellValue(cell, datemode):
+    """
+    The value of ``cell`` as text taking into account the way excel encodes dates and times.
+
+    Numeric Excel types (Currency,  Fractional, Number, Percent, Scientific) simply yield the decimal number
+    without any special formatting.
+
+    Dates result in a text using the format "YYYY-MM-DD", times in a text using the format "hh:mm:ss".
+
+    Boolean yields "0" or "1".
+
+    Formulas are evaluated and yield the respective result.
+    """
+    assert cell is not None
+
+    # Just import without sanitizing the error message. If we got that far, the import should have worked
+    # already.
+    import xlrd
+
+    if cell.ctype == xlrd.XL_CELL_DATE:
+        cellTuple = xlrd.xldate_as_tuple(cell.value, datemode)
+        assert len(cellTuple) == 6, "cellTuple=%r" % cellTuple
+        if cellTuple[:3] == (0, 0, 0):
+            timeTuple = cellTuple[3:]
+            result = str(datetime.time(*timeTuple))
+        else:
+            result = str(datetime.datetime(*cellTuple))
+    elif cell.ctype == xlrd.XL_CELL_ERROR:
+        defaultErrorText = xlrd.error_text_from_code[0x2a]  # same as "#N/A!"
+        errorCode = cell.value
+        result = str(xlrd.error_text_from_code.get(errorCode, defaultErrorText), "ascii")
+    elif isinstance(cell.value, str):
+        result = cell.value
+    else:
+        result = str(cell.value)
+        if (cell.ctype == xlrd.XL_CELL_NUMBER) and (result.endswith(".0")):
+            result = result[:-2]
+
+    return result
+
+
 def excel_rows(source_path):
     book = xlrd.open_workbook(source_path)
     sheet = book.sheet_by_index(0)
-    for row_number in range(sheet.nrows):
-        yield sheet.row_values(row_number)
+#    for row_number in range(sheet.nrows):
+#        yield sheet.row_values(row_number)
+    datemode = book.datemode
+    for y in range(sheet.nrows):
+        row = []
+        for x in range(sheet.ncols):
+            row.append(_excelCellValue(sheet.cell(y, x), datemode))
+        yield row
 
 
 def delimited_rows(source_path, data_format):
