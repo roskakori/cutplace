@@ -578,18 +578,18 @@ def excel_rows(source_path):
 
 
 def delimited_rows(source_path, data_format):
-    csv_file = open(source_path, encoding=data_format.encoding)
-    if data_format.escape_character == data_format.quote_character:
-        doublequote = False
-        escapechar = None
-    else:
-        doublequote = True
-        escapechar = data_format.escape_character
+    with open(source_path, encoding=data_format.encoding) as csv_file:
+        if data_format.escape_character == data_format.quote_character:
+            doublequote = False
+            escapechar = None
+        else:
+            doublequote = True
+            escapechar = data_format.escape_character
 
-    # HACK: Ignore DataFormat.line_delimiter because at least until Python 3.4 csv.reader ignores it anyway.
-    csv_reader = csv.reader(csv_file, delimiter=data_format.item_delimiter, doublequote=doublequote,
-        escapechar=escapechar, quotechar=data_format.quote_character,
-        skipinitialspace=data_format.skip_initial_space, strict=True)
+        # HACK: Ignore DataFormat.line_delimiter because at least until Python 3.4 csv.reader ignores it anyway.
+        csv_reader = csv.reader(csv_file, delimiter=data_format.item_delimiter, doublequote=doublequote,
+            escapechar=escapechar, quotechar=data_format.quote_character,
+            skipinitialspace=data_format.skip_initial_space, strict=True)
 
-    for row in csv_reader:
-        yield row
+        for row in csv_reader:
+            yield row
