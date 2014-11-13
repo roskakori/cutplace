@@ -412,12 +412,16 @@ def getFieldNameIndex(supposedFieldName, availableFieldNames):
                                       % (fieldName, _tools.humanReadableList(availableFieldNames)))
     return fieldIndex
 
+
 def validated_field_name(supposed_field_name, location=None):
     """
     Same as ``supposedFieldName`` except with surrounding white space removed, provided that it
     describes a valid field name. Otherwise, raise a `FieldSyntaxError` pointing to ``location``.
     """
     field_name = supposed_field_name.strip()
+    if field_name == '':
+        raise errors.FieldSyntaxError("field name must be a valid Python name consisting of ASCII letters, "
+                                      "underscore (_) and digits but is empty", location)
     if keyword.iskeyword(field_name):
         raise errors.FieldSyntaxError("field name must not be a Python keyword but is: %r" % field_name, location)
     is_first_character = True
@@ -428,5 +432,6 @@ def validated_field_name(supposed_field_name, location=None):
             is_first_character = False
         else:
             if character not in _ASCII_LETTERS_DIGITS_AND_UNDERSCORE:
-                raise errors.FieldSyntaxError("field name must be a valid Python name consisting of ASCII letters, underscore (%r) and digits but is: %r" % ("_", field_name), location)
+                raise errors.FieldSyntaxError("field name must be a valid Python name consisting of ASCII letters, "
+                                              "underscore (%r) and digits but is: %r" % ("_", field_name), location)
     return field_name
