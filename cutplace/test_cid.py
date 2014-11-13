@@ -148,10 +148,6 @@ class CidTest(unittest.TestCase):
 
         cid_reader.read(source_path, _tools.excel_rows(source_path))
 
-        data_format = cid_reader._data_format
-        data_format.set_property(data.KEY_LINE_DELIMITER, data.CRLF)
-        data_format.set_property(data.KEY_ESCAPE_CHARACTER, "\\")
-
         delimited_rows = _tools.delimited_rows(dev_test.getTestInputPath("valid_customers.csv"), cid_reader._data_format)
 
         for row in delimited_rows:
