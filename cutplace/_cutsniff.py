@@ -97,7 +97,7 @@ Example:
                 icdFile, delimiter=options.icdDelimiter, encoding="utf-8"
             )
             with open(dataPath, "rb") as dataFile:
-                for icdRowToWrite in sniff.createCidRows(dataFile, dataFormat=options.dataFormat, encoding=options.dataEncoding, header=options.head, fieldNames=fieldNames, stopAfter=options.stopAfter):
+                for icdRowToWrite in sniff.createCidRows(dataFile, dataFormat=options.data_format, encoding=options.dataEncoding, header=options.head, fieldNames=fieldNames, stopAfter=options.stopAfter):
                     icdCsvWriter.writerow(icdRowToWrite)
         exitCode = 0
     except EnvironmentError as error:

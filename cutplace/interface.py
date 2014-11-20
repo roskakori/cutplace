@@ -598,7 +598,7 @@ class InterfaceControlDocument(object):
                         fieldFormat = fieldFormats[location.cell]
                         if __debug__:
                             _log.debug("validate item %d/%d: %r with %s <- %r", location.cell + 1, fieldFormatCount, item, fieldFormat, rowOrError)
-                        rowMap[fieldFormat.fieldName] = fieldFormat.validated(item)
+                        rowMap[fieldFormat.field_name] = fieldFormat.validated(item)
                         location.advanceCell()
                     if location.cell != len(rowOrError):
                         raise checks.CheckError("unexpected data must be removed after item %d" % (location.cell), location)
@@ -712,7 +712,7 @@ class InterfaceControlDocument(object):
                                 fieldFormat = self._fieldFormats[location.cell]
                                 if __debug__:
                                     _log.debug("validate item %d/%d: %r with %s <- %r", location.cell + 1, len(self._fieldFormats), item, fieldFormat, row)
-                                rowMap[fieldFormat.fieldName] = fieldFormat.validated(item)
+                                rowMap[fieldFormat.field_name] = fieldFormat.validated(item)
                                 location.advanceCell()
                             if location.cell != len(row):
                                 raise checks.CheckError("unexpected data must be removed after item %d" % (location.cell), location)
@@ -953,7 +953,7 @@ class Validator(object):
                 fieldFormat = self.icd.fieldFormatAt(self.location.cell)
                 if __debug__:
                     _log.debug("validate item %d/%d: %r with %s <- %r", self.location.cell + 1, fieldCount, item, fieldFormat, row)
-                rowMap[fieldFormat.fieldName] = fieldFormat.validated(item)
+                rowMap[fieldFormat.field_name] = fieldFormat.validated(item)
                 self.location.advanceCell()
 
             # Validate number of rows.
@@ -1028,7 +1028,7 @@ class Writer(object):
         assert icd is not None
         assert out is not None
 
-        dataFormatName = icd.dataFormat.name
+        dataFormatName = icd.data_format.name
         self._icd = icd
         self._out = out
         self._opened = True
@@ -1046,7 +1046,7 @@ class Writer(object):
         assert self._writer is not None
 
         # Write header.
-        headerRowIndex = self._icd.dataFormat.get(data.KEY_HEADER)
+        headerRowIndex = self._icd.data_format.get(data.KEY_HEADER)
         assert headerRowIndex is not None
         assert headerRowIndex >= 0
         if headerRowIndex > 0:
@@ -1149,11 +1149,11 @@ def  validatedRows(icd, dataFileToValidatePath, errors="strict"):
 
 def _createDelimitedDialect(icd):
     assert icd is not None
-    assert icd.dataFormat.name in (data.FORMAT_CSV, data.FORMAT_DELIMITED), "icd.dataFormat=%r" % icd.dataFormat.name
+    assert icd.data_format.name in (data.FORMAT_CSV, data.FORMAT_DELIMITED), "icd.dataFormat=%r" % icd.data_format.name
     result = _parsers.DelimitedDialect()
-    result.lineDelimiter = icd.dataFormat.get(data.KEY_LINE_DELIMITER)
-    result.itemDelimiter = icd.dataFormat.get(data.KEY_ITEM_DELIMITER)
-    result.quoteChar = icd.dataFormat.get(data.KEY_QUOTE_CHARACTER)
+    result.lineDelimiter = icd.data_format.get(data.KEY_LINE_DELIMITER)
+    result.itemDelimiter = icd.data_format.get(data.KEY_ITEM_DELIMITER)
+    result.quoteChar = icd.data_format.get(data.KEY_QUOTE_CHARACTER)
     # FIXME: Set escape char according to ICD.
     return result
 

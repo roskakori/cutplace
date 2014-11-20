@@ -342,7 +342,7 @@ class Cid():
         self._check_name_to_check_map[check_description] = check
         self._check_names.append(check_description)
         assert len(self.check_names) == len(self._check_name_to_check_map)
-        
+
     def get_field_name_index(self, field_name):
         """
         The column index of  the field named ``fieldName`` starting with 0.
@@ -351,7 +351,7 @@ class Cid():
         try:
             result = self._field_name_to_index_map[field_name]
         except KeyError:
-            raise errors.FieldLookupError("unknown field name %r must be replaced by one of: %s" 
+            raise errors.FieldLookupError("unknown field name %r must be replaced by one of: %s"
                                           % (field_name, _tools.humanReadableList(sorted(self.field_names))))
         return result
 

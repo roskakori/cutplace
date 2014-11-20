@@ -145,7 +145,7 @@ class IsUniqueCheck(AbstractCheck):
                     raise errors.CheckSyntaxError("field name must contain only ASCII letters, numbers and underscores (_) "
                                                   + "but found: %r [token type=%r]" % (token_value, token_type))
                 try:
-                    fields.getFieldNameIndex(token_value, available_field_names)
+                    fields.get_field_name_index(token_value, available_field_names)
                     if token_value in unique_field_names:
                         raise errors.CheckSyntaxError("duplicate field name for unique check must be removed: %s" % token_value)
                     unique_field_names.add(token_value)
@@ -194,7 +194,7 @@ class DistinctCountCheck(AbstractCheck):
         if first_token[0] != tokenize.NAME:
             raise errors.CheckSyntaxError("rule must start with a field name but found: %r" % first_token[1])
         self.fieldNameToCount = first_token[1]
-        fields.getFieldNameIndex(self.fieldNameToCount, available_field_names)
+        fields.get_field_name_index(self.fieldNameToCount, available_field_names)
         line_where_field_name_ends, column_where_field_name_ends = first_token[3]
         assert column_where_field_name_ends > 0
         assert line_where_field_name_ends == 1

@@ -556,7 +556,7 @@ def createCidRows(readable, **keywords):
     for columnInfo in columnInfos:
         fieldFormat = columnInfo.asFieldFormat()
         fieldRow = ["f"]
-        fieldRow.extend(fieldFormat.asIcdRow())
+        fieldRow.extend(fieldFormat.as_icd_row())
         icdRows.append(fieldRow)
         _log.debug("  %s", fieldRow)
 
