@@ -127,7 +127,8 @@ class Cid():
         result = name_to_class_map.get(class_name)
         if result is None:
             raise error_to_raise_on_unknown_class("cannot find class for %s %s: related class is %s but must be one of: %s"
-                % (type_name, class_qualifier, class_name, _tools.humanReadableList(sorted(name_to_class_map.keys()))))
+                                                  % (type_name, class_qualifier, class_name,
+                                                     _tools.humanReadableList(sorted(name_to_class_map.keys()))))
         return result
 
     def _create_field_format_class(self, field_type):
@@ -137,7 +138,7 @@ class Cid():
 
     def _create_check_class(self, check_type):
         assert check_type
-        return self._create_class(self._check_name_to_class_map, check_type, "Check", "check", checks.CheckSyntaxError)
+        return self._create_class(self._check_name_to_class_map, check_type, "Check", "check", errors.CheckSyntaxError)
 
     def read(self, source_path, rows):
         # TODO: Detect format and use proper reader.
@@ -160,8 +161,7 @@ class Cid():
                 elif row_type == 'f':
                     self.add_field_format(row_data)
                 elif row_type == 'c':
-                    # TODO: implement support for checks
-                    pass
+                    self.add_check(row_data)
                 elif row_type != '':
                     # Raise error when value is not supported.
                     raise errors.DataFormatSyntaxError('CID row type is "%s" but must be empty or one of: C, D, or F'
@@ -281,12 +281,13 @@ class Cid():
                         (lower, upper) = field_format.length.items[0]
                         if lower == upper:
                             if lower < 1:
-                                raise errors.FieldSyntaxError("length of field %r for fixed data format must be at least 1 but is : %s"
-                                                              % (field_name, field_format.length), self._location)
+                                raise errors.FieldSyntaxError("length of field %r for fixed data format must be at least"
+                                                              " 1 but is : %s" % (field_name, field_format.length),
+                                                              self._location)
                             field_length_is_broken = False
                     if field_length_is_broken:
-                        raise errors.FieldSyntaxError("length of field %r for fixed data format must be a single value but is: %s"
-                             % (field_name, field_format.length), self._location)
+                        raise errors.FieldSyntaxError("length of field %r for fixed data format must be a single value"
+                                                      " but is: %s" % (field_name, field_format.length), self._location)
                 else:
                     raise errors.FieldSyntaxError("length of field %r must be specified with fixed data format" % field_name,
                                                   self._location)
@@ -310,12 +311,23 @@ class Cid():
         assert items is not None
         item_count = len(items)
         if item_count < 2:
-            raise checks.CheckSyntaxError("check row (marked with %r) must contain at least 2 columns" % self._ID_CHECK,
+            raise errors.CheckSyntaxError("check row (marked with %r) must contain at least 2 columns" % self._ID_CHECK,
                                           self._location)
         check_description = items[0]
-        check_type = items[1]
+
+        # HACK: skip blank cells between `description` and `type` when `description` has concatenated cells
+        check_type = None
+        rule_ind = 2
+        for i in range(1, len(items)):
+            varname = items[i] + "Check"
+            if varname in self._check_name_to_class_map.keys():
+                check_type = items[i]
+                rule_ind = i + 1
+        if not check_type:
+            raise errors.CheckSyntaxError("check type should be one of %s but is %s"
+                                          % (self._check_name_to_class_map.keys(), items[1:-2]), self._location)
         if item_count >= 3:
-            check_rule = items[2]
+            check_rule = items[rule_ind]  # default 2
         else:
             check_rule = ""
         _log.debug("create check: %s(%r, %r)", check_type, check_description, check_rule)
@@ -325,7 +337,7 @@ class Cid():
         self._location.set_cell(1)
         existing_check = self._check_name_to_check_map.get(check_description)
         if existing_check:
-            raise checks.CheckSyntaxError("check description must be used only once: %r" % check_description,
+            raise errors.CheckSyntaxError("check description must be used only once: %r" % check_description,
                                           self._location, "initial declaration", existing_check.location)
         self._check_name_to_check_map[check_description] = check
         self._check_names.append(check_description)
