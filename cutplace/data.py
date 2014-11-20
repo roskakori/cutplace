@@ -94,7 +94,6 @@ class DataFormat():
             if self.format == FORMAT_DELIMITED:
                 self._item_delimiter = ','
                 self._skip_initial_space = False
-
             if self.format in (FORMAT_DELIMITED, FORMAT_FIXED):
                 self._decimal_separator = ','
                 self._escape_character = '"'
@@ -185,6 +184,16 @@ class DataFormat():
             except KeyError:
                 raise errors.DataFormatValueError('line delimiter %s must be changed to one of: %s'
                                                   % (value, _VALID_LINE_DELIMITER_TEXTS), self._location)
+        elif name == KEY_ITEM_DELIMITER:
+            self._item_delimiter = self._validated_character(KEY_ITEM_DELIMITER, value)
+        elif name == KEY_DECIMAL_SEPARATOR:
+            self._decimal_separator = self._validated_choice(KEY_DECIMAL_SEPARATOR, value, _VALID_DECIMAL_SEPARATORS)
+        elif name == KEY_THOUSANDS_SEPARATOR:
+            self._thousands_separator = self._validated_choice(KEY_DECIMAL_SEPARATOR, value, _VALID_THOUSANDS_SEPARATORS)
+        elif name == KEY_ESCAPE_CHARACTER:
+            self._escape_character = self._validated_choice(KEY_ESCAPE_CHARACTER, value, _VALID_ESCAPE_CHARACTERS)
+        elif name == KEY_QUOTE_CHARACTER:
+            self._quote_character = self._validated_choice(KEY_QUOTE_CHARACTER, value, _VALID_QUOTE_CHARACTERS)
         elif self.format in (FORMAT_EXCEL, FORMAT_ODS):
             if name == KEY_SHEET:
                 try:
@@ -218,24 +227,6 @@ class DataFormat():
             raise errors.DataFormatValueError('value for data format property %r is %r but must be one of: %s'
                                               % (key, value, _tools.humanReadableList(choices)), self._location)
         return value
-
-    def _validated_int(self, key, value, lower_limit=None):
-        """
-        Validate that ``value`` is a long number with a value of at least ``lowerLimit`` (if
-        specified) and raise `DataFormatSyntaxError` if not.
-        """
-        assert key
-        assert value is not None
-        try:
-            result = int(value)
-        except ValueError:
-            raise errors.DataFormatValueError('value for data format property %r must be an integer number but is: %r'
-                                              % (key, value), self._location)
-        if lower_limit is not None:
-            if result < lower_limit:
-                raise errors.DataFormatValueError('value for data format property %r is %d but must be at least %d'
-                                                  % (key, result, lower_limit), self._location)
-        return result
 
     def _validated_character(self, key, value):
         r"""
@@ -349,58 +340,18 @@ class DataFormat():
 
     def validate(self):
         """
-        Validate all properties.
+        Validate necessary properties.
         """
-        try:
-            codecs.lookup(self.encoding)
-        except:
-            raise errors.DataFormatValueError('value for data format property %r is %r but must be a valid encoding'
-                                              % (KEY_ENCODING, self.encoding), self._location)
-
-        self._validated_int(KEY_HEADER, self.header, 0)
-
-        if self.format in (FORMAT_EXCEL, FORMAT_ODS):
-            self._validated_int(KEY_SHEET, self.sheet, 1)
-
-        if self.format == FORMAT_DELIMITED:
-            self._validated_character(KEY_ITEM_DELIMITER, self.item_delimiter)
-
-            if type(self._skip_initial_space) != bool:
-                if self._skip_initial_space in ('True', 'true'):
-                    self._skip_initial_space = True
-                elif self._skip_initial_space in ('False', 'false'):
-                    self._skip_initial_space = False
-                else:
-                    raise errors.DataFormatSyntaxError('skip initial space %s must be changed to one of: True, False'
-                                                       % self._skip_initial_space, self._location)
-
-        if self.format in (FORMAT_DELIMITED, FORMAT_FIXED):
-            self._validated_choice(KEY_DECIMAL_SEPARATOR, self.decimal_separator, _VALID_DECIMAL_SEPARATORS)
-
-            self._validated_choice(KEY_THOUSANDS_SEPARATOR, self.thousands_separator, _VALID_THOUSANDS_SEPARATORS)
-
-            self._validated_choice(KEY_ESCAPE_CHARACTER, self.escape_character, _VALID_ESCAPE_CHARACTERS)
-
-            self._validated_choice(KEY_QUOTE_CHARACTER, self.quote_character, _VALID_QUOTE_CHARACTERS)
-
-            if self._line_delimiter is not None and self._line_delimiter not in _LINE_DELIMITER_TO_TEXT_MAP:
-                try:
-                    self._line_delimiter = _TEXT_TO_LINE_DELIMITER_MAP[self.line_delimiter]
-                except KeyError:
-                    raise errors.DataFormatValueError('line delimiter %s must be changed to one of: %s'
-                                                      % (self.line_delimiter, _VALID_LINE_DELIMITER_TEXTS),
-                                                      self._location)
-
-            if self.decimal_separator == self.thousands_separator:
-                raise errors.DataFormatValueError('decimal separator and thousands separator must be different', self._location)
-            if self.quote_character == self.thousands_separator:
-                raise errors.DataFormatValueError('quote character and thousands separator must be different', self._location)
-            if self.thousands_separator == self.item_delimiter:
-                raise errors.DataFormatValueError('thousands separator and item delimiter must be different', self._location)
-            if self.quote_character == self.item_delimiter:
-                raise errors.DataFormatValueError('quote character and item delimiter must be different', self._location)
-            if self.line_delimiter == self.item_delimiter:
-                raise errors.DataFormatValueError('line delimiter and item delimiter must be different', self._location)
-            if self.escape_character == self.item_delimiter:
-                raise errors.DataFormatValueError('escape character and item delimiter must be different', self._location)
+        if self.decimal_separator == self.thousands_separator:
+            raise errors.DataFormatValueError('decimal separator and thousands separator must be different', self._location)
+        if self.quote_character == self.thousands_separator:
+            raise errors.DataFormatValueError('quote character and thousands separator must be different', self._location)
+        if self.thousands_separator == self.item_delimiter:
+            raise errors.DataFormatValueError('thousands separator and item delimiter must be different', self._location)
+        if self.quote_character == self.item_delimiter:
+            raise errors.DataFormatValueError('quote character and item delimiter must be different', self._location)
+        if self.line_delimiter == self.item_delimiter:
+            raise errors.DataFormatValueError('line delimiter and item delimiter must be different', self._location)
+        if self.escape_character == self.item_delimiter:
+            raise errors.DataFormatValueError('escape character and item delimiter must be different', self._location)
         self._location = None
