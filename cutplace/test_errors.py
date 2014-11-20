@@ -46,7 +46,7 @@ class ErrorsTest(unittest.TestCase):
         self.assertEqual(str(location), "eggs.csv (R1C1)")
         location.advance_line()
         location.advance_cell(17)
-        self.assertEqual(str(location), "eggs.csv (R2C18)")
+        self.assertEqual(location.__repr__(), "eggs.csv (R2C18)")
 
         # Test input with sheet.
         location = errors.InputLocation("eggs.ods", has_cell=True, has_sheet=True)
@@ -54,13 +54,28 @@ class ErrorsTest(unittest.TestCase):
         location.advance_sheet()
         location.advance_line()
         location.advance_cell(17)
-        self.assertEqual(str(location), "eggs.ods (Sheet2!R2C18)")
+        location._set_sheet(4)
+        self.assertEqual(str(location), "eggs.ods (Sheet5!R2C18)")
 
         # Test StringIO input.
         input_stream = io.StringIO("hugo was here")
         location = errors.InputLocation(input_stream)
         self.assertEqual(str(location), "<io> (1)")
 
+    def test_can_compare_two_input_locations(self):
+        location = errors.InputLocation("eggs.ods", has_cell=True, has_sheet=True)
+        location_other = errors.InputLocation("eggs.ods", has_cell=True, has_sheet=True)
+        self.assertEqual(location.__eq__(location_other), True)
+        self.assertEqual(location.__lt__(location_other), False)
+
+    def test_can_create_base_cutplace_error(self):
+        location = errors.InputLocation("eggs.ods", has_cell=True, has_sheet=True)
+        base_error = errors._BaseCutplaceError("It`s a test", location, "see also message", location, "cause")
+        self.assertEqual(base_error.location, location)
+        self.assertEqual(base_error.see_also_location, location)
+        self.assertEqual(base_error.cause, "cause")
+        self.assertEqual(base_error.__str__(), 'eggs.ods (Sheet1!R1C1): It`s a test (see also: eggs.ods (Sheet1!R1C1):'
+                                               ' see also message)')
 
 if __name__ == '__main__':
     unittest.main()
