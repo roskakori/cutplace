@@ -24,7 +24,7 @@ from cutplace import _tools
 from cutplace import errors
 from cutplace import ranges
 from cutplace import fields
-from cutplace import data
+from cutplace import checks
 
 import unittest
 
@@ -94,19 +94,19 @@ class CidTest(unittest.TestCase):
         self.assertEqual(cid_reader.field_format_at(0).length.items, ranges.Range('5').items)
         self.assertTrue(isinstance(cid_reader.field_format_at(0), fields.TextFieldFormat))
         self.assertEqual(cid_reader.field_names[1], 'customer_id')
-        self.assertTrue(isinstance(cid_reader.field_format_at(1), fields.IntegerFieldFormat ))
+        self.assertTrue(isinstance(cid_reader.field_format_at(1), fields.IntegerFieldFormat))
         self.assertEqual(cid_reader.field_format_at(1).length.items, ranges.Range('2...').items)
         self.assertEqual(cid_reader.field_names[2], 'first_name')
-        self.assertTrue(isinstance(cid_reader.field_format_at(2), fields.TextFieldFormat ))
+        self.assertTrue(isinstance(cid_reader.field_format_at(2), fields.TextFieldFormat))
         self.assertEqual(cid_reader.field_format_at(2).length.items, ranges.Range('...60').items)
         self.assertEqual(cid_reader.field_names[3], 'surname')
-        self.assertTrue(isinstance(cid_reader.field_format_at(3), fields.TextFieldFormat ))
+        self.assertTrue(isinstance(cid_reader.field_format_at(3), fields.TextFieldFormat))
         self.assertEqual(cid_reader.field_format_at(3).length.items, ranges.Range('...60').items)
         self.assertEqual(cid_reader.field_names[4], 'gender')
-        self.assertTrue(isinstance(cid_reader.field_format_at(4), fields.ChoiceFieldFormat ))
+        self.assertTrue(isinstance(cid_reader.field_format_at(4), fields.ChoiceFieldFormat))
         self.assertEqual(cid_reader.field_format_at(4).length.items, ranges.Range('2...6').items)
         self.assertEqual(cid_reader.field_names[5], 'date_of_birth')
-        self.assertTrue(isinstance(cid_reader.field_format_at(5), fields.DateTimeFieldFormat ))
+        self.assertTrue(isinstance(cid_reader.field_format_at(5), fields.DateTimeFieldFormat))
         self.assertTrue(cid_reader.field_format_at(5).isAllowedToBeEmpty)
         self.assertEqual(cid_reader.field_format_at(5).length.items, ranges.Range('10').items)
 
@@ -142,6 +142,15 @@ class CidTest(unittest.TestCase):
             ['d', 'format', 'delimited'],
             ['f', '', '38000', '', '5']])
 
+    def test_fails_on_invalid_field_name(self):
+        cid_reader = cid.Cid()
+        self.assertRaises(errors.FieldSyntaxError, cid_reader.read, 'inline', [
+            ['d', 'format', 'delimited'],
+            ['f', '3', '38000', '', '5']])
+        self.assertRaises(errors.FieldSyntaxError, cid_reader.read, 'inline', [
+            ['d', 'format', 'delimited'],
+            ['f', '%', '38000', '', '5']])
+
     def test_can_read_delimited_rows(self):
         cid_reader = cid.Cid()
         source_path = dev_test.getTestIcdPath("icd_customers.xls")
@@ -155,6 +164,14 @@ class CidTest(unittest.TestCase):
             break
 
         self.assertEqual(delimited_row, ['38000', '23', 'John', 'Doe', 'male', '08.03.1957'])
+
+    def test_can_handle_checks_from_excel(self):
+        cid_reader = cid.Cid()
+        source_path = dev_test.getTestIcdPath("customers.xls")
+        cid_reader.read(source_path, _tools.excel_rows(source_path))
+        self.assertTrue(isinstance(cid_reader.check_for(cid_reader.check_names[0]), checks.IsUniqueCheck))
+        self.assertTrue(isinstance(cid_reader.check_for(cid_reader.check_names[1]), checks.DistinctCountCheck))
+
 
 
 if __name__ == '__main__':

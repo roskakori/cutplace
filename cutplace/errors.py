@@ -352,3 +352,15 @@ class CidSyntaxError(CutplaceError):
     """
     General syntax error in the specification of the CID.
     """
+
+
+class CheckError(CutplaceError):
+    """
+    Error to be raised when a check fails.
+    """
+
+
+class CheckSyntaxError(CutplaceError):
+    """
+    Error to be raised when the specification of check in the ICD is broken.
+    """
