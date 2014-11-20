@@ -107,7 +107,7 @@ class CidTest(unittest.TestCase):
         self.assertEqual(cid_reader.field_format_at(4).length.items, ranges.Range('2...6').items)
         self.assertEqual(cid_reader.field_names[5], 'date_of_birth')
         self.assertTrue(isinstance(cid_reader.field_format_at(5), fields.DateTimeFieldFormat))
-        self.assertTrue(cid_reader.field_format_at(5).isAllowedToBeEmpty)
+        self.assertTrue(cid_reader.field_format_at(5).is_allowed_to_be_empty)
         self.assertEqual(cid_reader.field_format_at(5).length.items, ranges.Range('10').items)
 
     def test_can_handle_all_field_formats_from_array(self):
@@ -171,7 +171,6 @@ class CidTest(unittest.TestCase):
         cid_reader.read(source_path, _tools.excel_rows(source_path))
         self.assertTrue(isinstance(cid_reader.check_for(cid_reader.check_names[0]), checks.IsUniqueCheck))
         self.assertTrue(isinstance(cid_reader.check_for(cid_reader.check_names[1]), checks.DistinctCountCheck))
-
 
 
 if __name__ == '__main__':

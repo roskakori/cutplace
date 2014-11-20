@@ -35,6 +35,7 @@ _FieldFormatClassSuffix = "FieldFormat"
 _ASCII_LETTERS = set(string.ascii_letters)
 _ASCII_LETTERS_DIGITS_AND_UNDERSCORE = set(string.ascii_letters + string.digits + '_')
 
+
 class AbstractFieldFormat(object):
     """
     Abstract format description of a field in a data file to validate which acts as base for all
@@ -43,33 +44,33 @@ class AbstractFieldFormat(object):
       1. Overload `__init__()` but call ``super(..., self).__init__(...)`` from it.
       2. Implement `validatedValue()`.
     """
-    def __init__(self, fieldName, isAllowedToBeEmpty, lengthText, rule, dataFormat, emptyValue=None):
-        assert fieldName is not None
-        assert fieldName, "fieldName must not be empty"
-        assert isAllowedToBeEmpty is not None
+    def __init__(self, field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value=None):
+        assert field_name is not None
+        assert field_name, "fieldName must not be empty"
+        assert is_allowed_to_be_empty is not None
         assert rule is not None, "to specify \"no rule\" use \"\" instead of None"
-        assert dataFormat is not None
+        assert data_format is not None
 
-        self._fieldName = fieldName
-        self._isAllowedToBeEmpty = isAllowedToBeEmpty
-        self._length = ranges.Range(lengthText)
+        self._field_name = field_name
+        self._is_allowed_to_be_empty = is_allowed_to_be_empty
+        self._length = ranges.Range(length_text)
         self._rule = rule
-        self._dataFormat = dataFormat
-        self._emptyValue = emptyValue
+        self._data_format = data_format
+        self._empty_value = empty_value
         self._example = None
 
     @property
-    def fieldName(self):
+    def field_name(self):
         """The name of the field."""
-        return self._fieldName
+        return self._field_name
 
     @property
-    def isAllowedToBeEmpty(self):
+    def is_allowed_to_be_empty(self):
         """
         ``True`` if the field can be empty in the data set, resulting in `validated()` to return
         `emptyValue`.
         """
-        return self._isAllowedToBeEmpty
+        return self._is_allowed_to_be_empty
 
     @property
     def length(self):
@@ -86,54 +87,54 @@ class AbstractFieldFormat(object):
         return self._rule
 
     @property
-    def dataFormat(self):
+    def data_format(self):
         """
         The `data.AbstractDataFormat` the data set has in case the field needs any properties from
         it to validate its value, for instance `data.KEY_DECIMAL_SEPARATOR`.
         """
-        return self._dataFormat
+        return self._data_format
 
     @property
-    def emptyValue(self):
+    def empty_value(self):
         """
         The result of `validated(value)` in case ``value`` is an empty string.
         """
-        return self._emptyValue
+        return self._empty_value
 
     def _example(self):
         return self._example
 
-    def _setExample(self, newExample):
-        if newExample is not None:
-            self.validated(newExample)
-        self._example = newExample
+    def _set_example(self, new_example):
+        if new_example is not None:
+            self.validated(new_example)
+        self._example = new_example
 
-    example = property(_example, _setExample, doc="Example value or ``None`` if no example is provided.")
+    example = property(_example, _set_example, doc="Example value or ``None`` if no example is provided.")
 
-    def validateCharacters(self, value):
-        validCharacterRange = self.dataFormat.allowed_characters
-        if validCharacterRange is not None:
+    def validate_characters(self, value):
+        valid_character_range = self.data_format.allowed_characters
+        if valid_character_range is not None:
             for character in value:
                 try:
-                    validCharacterRange.validate("character", ord(character))
+                    valid_character_range.validate("character", ord(character))
                 except errors.RangeValueError as error:
                     raise errors.FieldValueError("value for fields %r must contain only valid characters: %s"
-                                                 % (self.fieldName, error))
+                                                 % (self.field_name, error))
 
-    def validateEmpty(self, value):
-        if not self.isAllowedToBeEmpty:
+    def validate_empty(self, value):
+        if not self.is_allowed_to_be_empty:
             if not value:
                 raise errors.FieldValueError("value must not be empty")
 
-    def validateLength(self, value):
+    def validate_length(self, value):
         # Do we have some data at all?
-        if self.length is not None and not (self.isAllowedToBeEmpty and value == ""):
+        if self.length is not None and not (self.is_allowed_to_be_empty and value == ""):
             try:
-                self.length.validate("length of '%s' with value %r" % (self.fieldName, value), len(value))
+                self.length.validate("length of '%s' with value %r" % (self.field_name, value), len(value))
             except errors.RangeValueError as error:
                 raise errors.FieldValueError(str(error))
 
-    def validatedValue(self, value):
+    def validated_value(self, value):
         """
         The `value` in its native type for this field.
 
@@ -155,61 +156,62 @@ class AbstractFieldFormat(object):
         Validate that value complies with field description and return the value in its "native"
         type. If not, raise FieldValueError.
         """
-        self.validateCharacters(value)
-        if self.dataFormat.format == data.FORMAT_FIXED:
-            result = self.dataFormat.strippedOfBlanks(value)
-            self.validateEmpty(result)
+        self.validate_characters(value)
+        if self.data_format.format == data.FORMAT_FIXED:
+            result = self.data_format.strippedOfBlanks(value)
+            self.validate_empty(result)
             # Note: No need to validate the length with fixed length items.
         else:
             result = value
-            self.validateEmpty(result)
-            self.validateLength(result)
+            self.validate_empty(result)
+            self.validate_length(result)
         if result:
-            result = self.validatedValue(result)
+            result = self.validated_value(result)
         else:
-            result = self.emptyValue
+            result = self.empty_value
         return result
 
-    def asIcdRow(self):
+    def as_icd_row(self):
         """
         The description of the field format as row that can be written to an ICD except for the
         leading row mark "f".
         """
         if self.example is not None:
-            exampleText = self.example
+            example_text = self.example
         else:
-            exampleText = ""
-        if self.isAllowedToBeEmpty:
-            isAllowedToBeEmptyMark = "X"
+            example_text = ""
+        if self.is_allowed_to_be_empty:
+            is_allowed_to_be_empty_mark = "X"
         else:
-            isAllowedToBeEmptyMark = ""
+            is_allowed_to_be_empty_mark = ""
         if self.length.items:
-            lengthText = str(self._length)
+            length_text = str(self._length)
         else:
-            lengthText = ""
-        fieldTypeName = self.__class__.__name__
-        assert fieldTypeName.endswith(_FieldFormatClassSuffix), "fieldTypeName=%r" % fieldTypeName
-        fieldTypeName = fieldTypeName[:len(fieldTypeName) - len(_FieldFormatClassSuffix)]
+            length_text = ""
+        field_type_name = self.__class__.__name__
+        assert field_type_name.endswith(_FieldFormatClassSuffix), "field_type_name=%r" % field_type_name
+        field_type_name = field_type_name[:len(field_type_name) - len(_FieldFormatClassSuffix)]
         result = [
-            self._fieldName,
-            exampleText,
-            isAllowedToBeEmptyMark,
-            lengthText,
-            fieldTypeName,
+            self._field_name,
+            example_text,
+            is_allowed_to_be_empty_mark,
+            length_text,
+            field_type_name,
             self._rule,
         ]
         return result
 
     def __str__(self):
-        return "%s(%r, %r, %r, %r)" % (self.__class__.__name__, self.fieldName, self.isAllowedToBeEmpty, self.length, self.rule)
+        return "%s(%r, %r, %r, %r)" % (self.__class__.__name__, self.field_name, self.is_allowed_to_be_empty,
+                                       self.length, self.rule)
 
 
 class ChoiceFieldFormat(AbstractFieldFormat):
     """
     Field format accepting only values from a pool of choices.
     """
-    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
-        super(ChoiceFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue="")
+    def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format):
+        super(ChoiceFieldFormat, self).__init__(field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value="")
         self.choices = []
 
         # Split rule into tokens, ignoring white space.
@@ -222,10 +224,10 @@ class ChoiceFieldFormat(AbstractFieldFormat):
             if _tools.isCommaToken(toky):
                 # Handle comma after comma without choice.
                 if previousToky:
-                    previousTokyText = previousToky[1]
+                    previous_toky_text = previousToky[1]
                 else:
-                    previousTokyText = None
-                raise errors.FieldSyntaxError("choice value must precede a comma (,) but found: %r" % previousTokyText)
+                    previous_toky_text = None
+                raise errors.FieldSyntaxError("choice value must precede a comma (,) but found: %r" % previous_toky_text)
             choice = _tools.tokenText(toky)
             if not choice:
                 raise errors.FieldSyntaxError("choice field must be allowed to be empty instead of containing an empty choice")
@@ -238,10 +240,10 @@ class ChoiceFieldFormat(AbstractFieldFormat):
                 toky = next(tokens)
                 if _tools.isEofToken(toky):
                     raise errors.FieldSyntaxError("trailing comma (,) must be removed")
-        if not self.isAllowedToBeEmpty and not self.choices:
+        if not self.is_allowed_to_be_empty and not self.choices:
             raise errors.FieldSyntaxError("choice field without any choices must be allowed to be empty")
 
-    def validatedValue(self, value):
+    def validated_value(self, value):
         assert value
 
         if value not in self.choices:
@@ -255,36 +257,39 @@ class DecimalFieldFormat(AbstractFieldFormat):
     Field format accepting decimal numeric values, taking the data format properties
     `data.KEY_DECIMAL_SEPARATOR` and `data.KEY_THOUSANDS_SEPARATOR` into account.
     """
-    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue=None):
-        super(DecimalFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue)
+    def __init__(self, field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value=None):
+        super(DecimalFieldFormat, self).__init__(field_name, is_allowed_to_be_empty, length_text, rule, data_format,
+                                                 empty_value)
         if rule.strip():
             raise errors.FieldSyntaxError("decimal rule must be empty")
-        self.decimalSeparator = dataFormat.decimal_separator
-        self.thousandsSeparator = dataFormat.thousands_separator
+        self.decimalSeparator = data_format.decimal_separator
+        self.thousandsSeparator = data_format.thousands_separator
 
         # This error must have been detected already by DataFormat.validate().
         assert self.decimalSeparator != self.thousandsSeparator
 
-    def validatedValue(self, value):
+    def validated_value(self, value):
         assert value
 
-        translatedValue = ""
-        foundDecimalSeparator = False
+        translated_value = ""
+        found_decimal_separator = False
         for valueIndex in range(len(value)):
-            characterToProcess = value[valueIndex]
-            if characterToProcess == self.decimalSeparator:
-                if foundDecimalSeparator:
-                    raise errors.FieldValueError("decimal field must contain only one decimal separator (%r): %r" % (self.decimalSeparator, value))
-                translatedValue += "."
-                foundDecimalSeparator = True
-            elif self.thousandsSeparator and (characterToProcess == self.thousandsSeparator):
-                if foundDecimalSeparator:
-                    raise errors.FieldValueError("decimal field must contain thousands separator (%r) only before decimal separator (%r): %r (position %d)"
-                        % (self.thousandsSeparator, self.decimalSeparator, value, valueIndex + 1))
+            character_to_process = value[valueIndex]
+            if character_to_process == self.decimalSeparator:
+                if found_decimal_separator:
+                    raise errors.FieldValueError("decimal field must contain only one decimal separator (%r): %r"
+                                                 % (self.decimalSeparator, value))
+                translated_value += "."
+                found_decimal_separator = True
+            elif self.thousandsSeparator and (character_to_process == self.thousandsSeparator):
+                if found_decimal_separator:
+                    raise errors.FieldValueError("decimal field must contain thousands separator (%r) only before "
+                                                 "decimal separator (%r): %r (position %d)"
+                                                 % (self.thousandsSeparator, self.decimalSeparator, value, valueIndex + 1))
             else:
-                translatedValue += characterToProcess
+                translated_value += character_to_process
         try:
-            result = decimal.Decimal(translatedValue)
+            result = decimal.Decimal(translated_value)
         except Exception as error:
             message = "value is %r but must be a decimal number: %s" % (value, error)
             raise errors.FieldValueError(message)
@@ -298,25 +303,26 @@ class IntegerFieldFormat(AbstractFieldFormat):
     """
     _DEFAULT_RANGE = "%d:%d" % (-2 ** 31, 2 ** 31 - 1)
 
-    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue=None):
-        super(IntegerFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue)
+    def __init__(self, field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value=None):
+        super(IntegerFieldFormat, self).__init__(field_name, is_allowed_to_be_empty, length_text, rule, data_format,
+                                                 empty_value)
         # The default range is 32 bit. If the user wants a bigger range, he has to specify it.
         # Python's long scales to any range as long there is enough memory available to represent
         # it.
         self.rangeRule = ranges.Range(rule, IntegerFieldFormat._DEFAULT_RANGE)
 
-    def validatedValue(self, value):
+    def validated_value(self, value):
         assert value
 
         try:
-            longValue = int(value)
+            long_value = int(value)
         except ValueError:
             raise errors.FieldValueError("value must be an integer number: %r" % value)
         try:
-            self.rangeRule.validate("value", longValue)
+            self.rangeRule.validate("value", long_value)
         except errors.RangeValueError as error:
             raise errors.FieldValueError(str(error))
-        return longValue
+        return long_value
 
 
 class DateTimeFieldFormat(AbstractFieldFormat):
@@ -325,26 +331,27 @@ class DateTimeFieldFormat(AbstractFieldFormat):
     """
     # We can't use a dictionary here because checks for patterns need to be in order. In
     # particular, "%" need to be checked first, and "YYYY" needs to be checked before "YY".
-    _humanReadableToStrptimeMap = ["%:%%", "DD:%d", "MM:%m", "YYYY:%Y", "YY:%y", "hh:%H", "mm:%M", "ss:%S"]
+    _human_readable_to_strptime_map = ["%:%%", "DD:%d", "MM:%m", "YYYY:%Y", "YY:%y", "hh:%H", "mm:%M", "ss:%S"]
 
-    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue=None):
-        super(DateTimeFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue)
-        self.humanReadableFormat = rule
+    def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value=None):
+        super(DateTimeFieldFormat, self).__init__(field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value)
+        self.human_readable_format = rule
         # Create an actual copy of the rule string so `replace()` will not modify the original..
-        strptimeFormat = "".join(rule)
+        strptime_format = "".join(rule)
 
-        for patternKeyValue in DateTimeFieldFormat._humanReadableToStrptimeMap:
+        for patternKeyValue in DateTimeFieldFormat._human_readable_to_strptime_map:
             (key, value) = patternKeyValue.split(":")
-            strptimeFormat = strptimeFormat.replace(key, value)
-        self.strptimeFormat = strptimeFormat
+            strptime_format = strptime_format.replace(key, value)
+        self.strptimeFormat = strptime_format
 
-    def validatedValue(self, value):
+    def validated_value(self, value):
         assert value
 
         try:
             result = time.strptime(value, self.strptimeFormat)
         except ValueError:
-            raise errors.FieldValueError("date must match format %s (%s) but is: %r (%s)" % (self.humanReadableFormat, self.strptimeFormat, value, sys.exc_info()[1]))
+            raise errors.FieldValueError("date must match format %s (%s) but is: %r (%s)"
+                                         % (self.human_readable_format, self.strptimeFormat, value, sys.exc_info()[1]))
         return result
 
 
@@ -352,11 +359,12 @@ class RegExFieldFormat(AbstractFieldFormat):
     """
     Field format accepting values that match a specified regular expression.
     """
-    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
-        super(RegExFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue="")
+    def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format):
+        super(RegExFieldFormat, self).__init__(field_name, is_allowed_to_be_empty, length, rule, data_format,
+                                               empty_value="")
         self.regex = re.compile(rule, re.IGNORECASE | re.MULTILINE)
 
-    def validatedValue(self, value):
+    def validated_value(self, value):
         assert value
 
         if not self.regex.match(value):
@@ -368,12 +376,12 @@ class PatternFieldFormat(AbstractFieldFormat):
     """
     Field format accepting values that match a pattern using "*" and "?" as place holders.
     """
-    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue=""):
-        super(PatternFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue)
+    def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value=""):
+        super(PatternFieldFormat, self).__init__(field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value)
         self.pattern = fnmatch.translate(rule)
         self.regex = re.compile(self.pattern, re.IGNORECASE | re.MULTILINE)
 
-    def validatedValue(self, value):
+    def validated_value(self, value):
         assert value
 
         if not self.regex.match(value):
@@ -385,32 +393,32 @@ class TextFieldFormat(AbstractFieldFormat):
     """
     Field format accepting any text.
     """
-    def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue=""):
-        super(TextFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue)
+    def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value=""):
+        super(TextFieldFormat, self).__init__(field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value)
 
-    def validatedValue(self, value):
+    def validated_value(self, value):
         assert value
         # TODO: Validate Text with rules like: 32..., a...z and so on.
         return value
 
 
-def getFieldNameIndex(supposedFieldName, availableFieldNames):
+def get_field_name_index(supposed_field_name, available_field_names):
     """
     The index of `supposedFieldName` in `availableFieldNames`.
 
     In case it is missing, raise a `FieldLookupError`.
     """
-    assert supposedFieldName is not None
-    assert supposedFieldName == supposedFieldName.strip()
-    assert availableFieldNames
+    assert supposed_field_name is not None
+    assert supposed_field_name == supposed_field_name.strip()
+    assert available_field_names
 
-    fieldName = supposedFieldName.strip()
+    field_name = supposed_field_name.strip()
     try:
-        fieldIndex = availableFieldNames.index(fieldName)
+        field_index = available_field_names.index(field_name)
     except ValueError:
         raise errors.FieldLookupError("unknown field name %r must be replaced by one of: %s"
-                                      % (fieldName, _tools.humanReadableList(availableFieldNames)))
-    return fieldIndex
+                                      % (field_name, _tools.humanReadableList(available_field_names)))
+    return field_index
 
 
 def validated_field_name(supposed_field_name, location=None):
@@ -428,7 +436,8 @@ def validated_field_name(supposed_field_name, location=None):
     for character in field_name:
         if is_first_character:
             if character not in _ASCII_LETTERS:
-                raise errors.FieldSyntaxError("field name must begin with a lower-case letter but is: %r" % (field_name), location)
+                raise errors.FieldSyntaxError("field name must begin with a lower-case letter but is: %r"
+                                              % field_name, location)
             is_first_character = False
         else:
             if character not in _ASCII_LETTERS_DIGITS_AND_UNDERSCORE:
