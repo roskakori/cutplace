@@ -43,7 +43,8 @@ class SniffTest(unittest.TestCase):
                 actualDataFormat = sniff.createDataFormat(testFile)
                 actualDataFormatName = actualDataFormat.name
                 self.assertEqual(actualDataFormatName, exptectedDataFormatName,
-                    "data format for file must be %r but is %r: %r" % (exptectedDataFormatName, actualDataFormatName, testFilePath))
+                    "data format for file must be %r but is %r: %r" % (exptectedDataFormatName, actualDataFormatName,
+                                                                       testFilePath))
             finally:
                 testFile.close()
 
@@ -69,8 +70,9 @@ class SniffTest(unittest.TestCase):
                 self.assertTrue(actualLineDelimiter)
                 exptectedDelimitedOptions["lineDelimiter"] = actualLineDelimiter
 
-                self.assertEqual(actualDelimitedOptions, exptectedDelimitedOptions, \
-                    "data format for file must be %r but is %r: %r" % (exptectedDelimitedOptions, actualDelimitedOptions, testFilePath))
+                self.assertEqual(actualDelimitedOptions, exptectedDelimitedOptions,
+                                 "data format for file must be %r but is %r: %r" % (exptectedDelimitedOptions,
+                                                                                    actualDelimitedOptions, testFilePath))
             finally:
                 testFile.close()
 
@@ -164,7 +166,7 @@ class SniffTest(unittest.TestCase):
         testFilePath = dev_test.getTestInputPath("valid_alltypes.csv")
         with open(testFilePath, "rb") as testFile:
             cid = sniff.createCid(testFile, header=1)
-            self.assertEqual(cid.fieldNames, ['customer_id', 'short_name', 'gender', 'date_of_birth', 'balance'])
+            self.assertEqual(cid.field_names, ['customer_id', 'short_name', 'gender', 'date_of_birth', 'balance'])
             self.assertEqual(cid.fieldFormatFor('customer_id').__class__, fields.IntegerFieldFormat)
             self.assertEqual(cid.fieldFormatFor('short_name').__class__, fields.TextFieldFormat)
             self.assertEqual(cid.fieldFormatFor('gender').__class__, fields.TextFieldFormat)
@@ -186,7 +188,8 @@ class SniffMainTest(unittest.TestCase):
     def testCanSniffAndValidateUsingMainWithFieldNames(self):
         testIcdPath = dev_test.getTestOutputPath("icd_sniffed_valid_customers.csv")
         testDataPath = dev_test.getTestInputPath("valid_customers.csv")
-        exitCode = _cutsniff.main(["test", "--names", " branchId,customerId, firstName,surName ,gender,dateOfBirth ", testIcdPath, testDataPath])
+        exitCode = _cutsniff.main(["test", "--names", " branchId,customerId, firstName,surName ,gender,dateOfBirth ",
+                                   testIcdPath, testDataPath])
         self.assertEqual(exitCode, 0)
         sniffedIcd = interface.InterfaceControlDocument()
         sniffedIcd.read(testIcdPath)
@@ -207,7 +210,8 @@ class SniffMainTest(unittest.TestCase):
     def testCanSniffAndValidateUsingMainWithHeaderAndSpecifiedFieldNames(self):
         testIcdPath = dev_test.getTestOutputPath("icd_sniffed_valid_customers_with_header_iso-8859-15.csv")
         testDataPath = dev_test.getTestInputPath("valid_customers_with_header_iso-8859-15.csv")
-        exitCode = _cutsniff.main(["test", "--data-encoding", "iso-8859-15", "--head", "1", "--names", " branchId,customerId, firstName,surName ,gender,dateOfBirth ", testIcdPath, testDataPath])
+        exitCode = _cutsniff.main(["test", "--data-encoding", "iso-8859-15", "--head", "1", "--names",
+                                   " branchId,customerId, firstName,surName ,gender,dateOfBirth ", testIcdPath, testDataPath])
         self.assertEqual(exitCode, 0)
         sniffedIcd = interface.InterfaceControlDocument()
         sniffedIcd.read(testIcdPath)
