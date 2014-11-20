@@ -612,7 +612,7 @@ class InterfaceControlDocument(object):
                         try:
                             if __debug__:
                                 _log.debug("check row: ", check)
-                            check.checkRow(rowMap, location)
+                            check.check_row(rowMap, location)
                         except checks.CheckError as error:
                             raise checks.CheckError("row check failed: %r: %s" % (check.description, error), location)
                     self.addItem(rowOrError)
@@ -660,7 +660,7 @@ class InterfaceControlDocument(object):
             check = self.getCheck(checkName)
             try:
                 _log.debug("checkAtEnd: %s", check)
-                check.checkAtEnd(location)
+                check.check_at_end(location)
                 self.passedChecksAtEndCount += 1
             except checks.CheckError as error:
                 reason = "check at end of data failed: %r: %s" % (check.description, error)
@@ -727,7 +727,7 @@ class InterfaceControlDocument(object):
                                 try:
                                     if __debug__:
                                         _log.debug("check row: ", check)
-                                    check.checkRow(rowMap, location)
+                                    check.check_row(rowMap, location)
                                 except checks.CheckError as error:
                                     raise checks.CheckError("row check failed: %r: %s" % (check.description, error), location)
                             _log.debug("accepted: %s", row)
@@ -757,7 +757,7 @@ class InterfaceControlDocument(object):
             check = self.getCheck(checkName)
             try:
                 _log.debug("checkAtEnd: %s", check)
-                check.checkAtEnd(location)
+                check.check_at_end(location)
                 self.passedChecksAtEndCount += 1
             except checks.CheckError as message:
                 reason = "check at end of data failed: %r: %s" % (check.description, message)
@@ -944,7 +944,7 @@ class Validator(object):
         assert row is not None
         try:
             # Validate all items of the current row and collect their values in `rowMap`.
-            fieldCount = len(self.icd.fieldNames)
+            fieldCount = len(self.icd.field_names)
             maxItemCount = min(len(row), fieldCount)
             rowMap = {}
             while self.location.cell < maxItemCount:
@@ -970,7 +970,7 @@ class Validator(object):
                 try:
                     if __debug__:
                         _log.debug("check row: ", check)
-                    check.checkRow(rowMap, self.location)
+                    check.check_row(rowMap, self.location)
                 except checks.CheckError as error:
                     raise checks.CheckError("row check failed: %r: %s" % (check.description, error), self.location)
             _log.debug("accepted: %s", row)
@@ -981,7 +981,7 @@ class Validator(object):
         except errors.CutplaceError as error:
             isFieldValueError = isinstance(error, fields.FieldValueError)
             if isFieldValueError:
-                fieldName = self.icd.fieldNames[self.location.cell]
+                fieldName = self.icd.field_names[self.location.cell]
                 reason = "field '%s' must match format: %s" % (fieldName, error)
                 error = fields.FieldValueError(reason, self.location)
             errorWithReason = self._errorForRejectedRow(row, error)
@@ -1005,7 +1005,7 @@ class Validator(object):
                 check = self.icd.getCheck(checkName)
                 try:
                     _log.debug("checkAtEnd: %s", check)
-                    check.checkAtEnd(self.location)
+                    check.check_at_end(self.location)
                     self.passedChecksAtEndCount += 1
                 except checks.CheckError as error:
                     if firstError is None:
@@ -1052,7 +1052,7 @@ class Writer(object):
         if headerRowIndex > 0:
             for _ in range(headerRowIndex):
                 self._writeRow([])
-            self._writeRow(self._icd.fieldNames)
+            self._writeRow(self._icd.field_names)
 
     def close(self):
         assert self._opened, "Writer.close() must be called only once"
