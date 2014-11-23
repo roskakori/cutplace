@@ -309,6 +309,10 @@ class Cid():
 
     def add_check(self, items):
         assert items is not None
+
+        def check_class_name_and_rule(items):
+            ...
+
         item_count = len(items)
         if item_count < 2:
             raise errors.CheckSyntaxError("check row (marked with %r) must contain at least 2 columns" % self._ID_CHECK,
@@ -317,17 +321,17 @@ class Cid():
 
         # HACK: skip blank cells between `description` and `type` when `description` has concatenated cells
         check_type = None
-        rule_ind = 2
+        rule_index = 2
         for i in range(1, len(items)):
-            varname = items[i] + "Check"
-            if varname in self._check_name_to_class_map.keys():
+            check_class_name = items[i] + "Check"
+            if check_class_name in self._check_name_to_class_map:
                 check_type = items[i]
-                rule_ind = i + 1
+                rule_index = i + 1
         if not check_type:
             raise errors.CheckSyntaxError("check type should be one of %s but is %s"
                                           % (self._check_name_to_class_map.keys(), items[1:-2]), self._location)
         if item_count >= 3:
-            check_rule = items[rule_ind]  # default 2
+            check_rule = items[rule_index]  # default 2
         else:
             check_rule = ""
         _log.debug("create check: %s(%r, %r)", check_type, check_description, check_rule)
@@ -336,7 +340,7 @@ class Cid():
         check.__init__(check_description, check_rule, self._field_names, self._location)
         self._location.set_cell(1)
         existing_check = self._check_name_to_check_map.get(check_description)
-        if existing_check:
+        if existing_check is not None:
             raise errors.CheckSyntaxError("check description must be used only once: %r" % check_description,
                                           self._location, "initial declaration", existing_check.location)
         self._check_name_to_check_map[check_description] = check
