@@ -50,18 +50,6 @@ class Cid():
         self._field_format_name_to_class_map = self._create_name_to_class_map(fields.AbstractFieldFormat)
 
     @property
-    def sheet(self):
-        """
-        The sheet on which the described data are located, or ``None`` if `dataFormat` does not support sheets.
-        """
-        has_sheet = (self._data_format.name != data.FORMAT_DELIMITED)
-        if has_sheet:
-            result = self._data_format.sheet
-        else:
-            result = None
-        return result
-
-    @property
     def data_format(self):
         """
         The data format used by the this ICD; refer to the `data` module for possible formats.
@@ -310,9 +298,6 @@ class Cid():
     def add_check(self, items):
         assert items is not None
 
-        def check_class_name_and_rule(items):
-            ...
-
         item_count = len(items)
         if item_count < 2:
             raise errors.CheckSyntaxError("check row (marked with %r) must contain at least 2 columns" % self._ID_CHECK,
@@ -347,9 +332,9 @@ class Cid():
         self._check_names.append(check_description)
         assert len(self.check_names) == len(self._check_name_to_check_map)
 
-    def get_field_name_index(self, field_name):
+    def field_index(self, field_name):
         """
-        The column index of  the field named ``fieldName`` starting with 0.
+        The column index of  the field named ``field_name`` starting with 0.
         """
         assert field_name is not None
         try:
@@ -359,10 +344,10 @@ class Cid():
                                           % (field_name, _tools.humanReadableList(sorted(self.field_names))))
         return result
 
-    def get_field_value_for(self, field_name, row):
+    def field_value_for(self, field_name, row):
         """
-        The value for field ``fieldName`` in ``row``. This looks up the column of the field named
-        ``fieldName`` and retrieves the data from the matching item in ``row``. If ``row`` does
+        The value for field ``field_name`` in ``row``. This looks up the column of the field named
+        ``field_name`` and retrieves the data from the matching item in ``row``. If ``row`` does
         not contain the expected amount of field value, raise a `errors.DataFormatValueError`.
         """
         assert field_name is not None
@@ -376,25 +361,16 @@ class Cid():
                                               % (expected_row_count, actual_row_count, row), self._location)
 
         field_index = self.get_field_name_index(field_name)
-        # The following condition must be ``true`` because any deviations should be been detected
-        #  already by comparing expected and actual row count.
+        # The following condition must be ``True`` because any deviations should be been detected
+        # already by comparing expected and actual row count.
         assert field_index < len(row)
 
         result = row[field_index]
         return result
 
-    def get_field_format(self, field_name):
-        """
-        The `fields.AbstractFieldFormat` for ``fieldName``. If no such field has been defined,
-        raise a ``KeyError`` .
-        """
-        # TODO: Replace all occurrences with `fieldFormatFor()`.
-        assert field_name is not None
-        return self._field_name_to_format_map[field_name]
-
     def field_format_for(self, field_name):
         """
-        The `fields.AbstractFieldFormat` for ``fieldName``. If no such field has been defined,
+        The `fields.AbstractFieldFormat` for ``field_name``. If no such field has been defined,
         raise a ``KeyError`` .
         """
         assert field_name is not None
@@ -402,24 +378,15 @@ class Cid():
 
     def field_format_at(self, field_index):
         """
-        The `fields.AbstractFieldFormat` at ``fieldIndex``. If no such field has been defined,
+        The `fields.AbstractFieldFormat` at ``field_index``. If no such field has been defined,
         raise an ``IndexError`` .
         """
         assert field_index is not None
         return self._field_formats[field_index]
 
-    def get_check(self, check_name):
-        """
-        The `checks.AbstractCheck` for ``checkName``. If no such check has been defined,
-        raise a ``KeyError`` .
-        """
-        # TODO: Replace all occurrences with `checkFor()`.
-        assert check_name is not None
-        return self._check_name_to_check_map[check_name]
-
     def check_for(self, check_name):
         """
-        The `checks.AbstractCheck` for ``checkName``. If no such check has been defined,
+        The `checks.AbstractCheck` for ``check_name``. If no such check has been defined,
         raise a ``KeyError`` .
         """
         assert check_name is not None
