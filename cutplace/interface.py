@@ -28,7 +28,6 @@ import types
 from . import checks
 from . import data
 from . import fields
-from . import sniff
 from . import errors
 from . import _parsers
 from . import _tools
@@ -415,7 +414,9 @@ class InterfaceControlDocument(object):
             icdFile = icdFilePath
         self._location = errors.InputLocation(icdFilePath, has_cell=True)
         try:
-            reader = sniff.createReader(icdFile, encoding=encoding)
+            # FIXME: Depending on the suffix, use a proper reader.
+            reader = None
+            raise NotImplementedError()
             for icdRowToProcess in reader:
                 self._processIcdRow(icdRowToProcess)
         except errors.CutplaceUnicodeError as error:
@@ -1104,26 +1105,6 @@ class Writer(object):
         assert rows is not None
         for row in rows:
             self.writeRow(row)
-
-
-def createSniffedInterfaceControlDocument(readable, **keywords):
-    """
-    `InterfaceControlDocument` created by examining the contents of ``readable``.
-
-    Optional keyword parameters are:
-
-      * ``encoding`` - the character encoding to be used in case ``readable``
-        contains delimited data.
-      * ``dataFormat`` - the data format to be assumed; default: `FORMAT_AUTO`.
-      * ``header`` - number of header rows to ignore for data analysis;
-        default: 0.
-      * ``stopAfter`` - number of data rows after which to stop analyzing;
-        0 means "analyze all data"; default: 0.
-    """
-    cidRows = sniff.createCidRows(readable, **keywords)
-    result = InterfaceControlDocument()
-    result.readFromRows(cidRows)
-    return result
 
 
 def  validatedRows(icd, dataFileToValidatePath, errors="strict"):

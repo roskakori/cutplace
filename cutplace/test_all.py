@@ -78,7 +78,6 @@ def createTestSuite():
             test_parsers.ExcelReaderTest,
             test_parsers.FixedParserTest,
             test_ranges.RangeTest,
-            test_sniff.SniffTest,
             test_tools.ToolsTest
             # FIXME: Stop server and add: test_web.WebTest
             ]
