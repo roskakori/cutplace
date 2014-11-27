@@ -23,7 +23,6 @@ import queue
 import threading
 
 from . import data
-from . import sniff
 from . import errors
 from . import _ods
 from . import _tools
@@ -290,52 +289,6 @@ class ParserSyntaxError(errors.CutplaceError):
 
     def __repr__(self):
         return "ParserSyntaxError(%s)" % self.__str__()
-
-
-class _DelimitedRowProducerThread(_AbstractRowProducerThread):
-    def __init__(self, readable, targetQueue, dialect, encoding="ascii"):
-        assert dialect is not None
-        assert dialect.lineDelimiter is not None
-        assert dialect.itemDelimiter is not None
-        assert encoding is not None
-        super(_DelimitedRowProducerThread, self).__init__(readable, targetQueue)
-
-        self._log = logging.getLogger("cutplace.parsers")
-
-        dialectKeyowrds = {
-            sniff._ENCODING: encoding,
-            sniff._ESCAPE_CHARACTER: dialect.escapeChar,
-            sniff._ITEM_DELIMITER: dialect.itemDelimiter,
-            sniff._LINE_DELIMITER: dialect.lineDelimiter,
-            sniff._QUOTE_CHARACTER: dialect.quoteChar
-        }
-        delimitedOptions = sniff.delimitedOptions(readable, **dialectKeyowrds)
-
-        self.readable = readable
-        self.encoding = encoding
-        self.lineDelimiter = delimitedOptions[sniff._LINE_DELIMITER]
-        self.itemDelimiter = delimitedOptions[sniff._ITEM_DELIMITER]
-        self.quoteChar = delimitedOptions[sniff._QUOTE_CHARACTER]
-        self.escapeChar = delimitedOptions[sniff._ESCAPE_CHARACTER]
-        self.blanksAroundItemDelimiter = dialect.blanksAroundItemDelimiter
-
-    def reader(self):
-        rowReader = _tools.UnicodeCsvReader(self.readable, delimiter=str(self.itemDelimiter),
-            lineterminator=str(self.lineDelimiter), quotechar=str(self.quoteChar),
-            doublequote=(self.quoteChar == self.escapeChar), encoding=self.encoding)
-        hasData = False
-        hasDelayedEmptyRow = False
-        for row in rowReader:
-            if not hasData and not hasDelayedEmptyRow and not row:
-                # if the first row is an empty row, suppress it unless further rows are coming. This ensures
-                # that an empty data set results in an empty list of rows.
-                hasDelayedEmptyRow = True
-            else:
-                if hasDelayedEmptyRow:
-                    hasDelayedEmptyRow = False
-                    hasData = True
-                    yield []
-                yield row
 
 
 class _FixedParser(object):
