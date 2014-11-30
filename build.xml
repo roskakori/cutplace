@@ -2,13 +2,13 @@
     <description>Buildfile for cutplace</description>
 
     <!-- Set global properties for this build. -->
-    <property name="source" location="source" />
-    <property name="tests.dir" location="tests" />
+    <property name="source" location="${basedir}/source" />
+    <property name="tests.dir" location="${basedir}/tests" />
     <property name="tests-input.dir" location="${tests.dir}/input" />
     <property name="tests-input-icds.dir" location="${tests-input.dir}/icds" />
     <property name="tests-output.dir" location="${tests.dir}/output" />
-    <property name="build" location="build" />
-    <property name="dist" location="dist" />
+    <property name="build" location="${basedir}/build" />
+    <property name="dist" location="${basedir}/dist" />
     <property name="site.dir" location="${build}/site" />
     <property name="reports.dir" location="${site.dir}/reports" />
     <property name="api.dir" location="${site.dir}/api" />
@@ -151,13 +151,13 @@
             <arg value="--details" />
             <arg value="--wide" />
             <arg value="--datadir" />
-            <arg file="${slocdata.dir}" />
-            <arg value="cutplace" />
+            <arg path="${slocdata.dir}" />
+            <arg path="${basedir}/cutplace" />
             <redirector logError="true" output="sloccount.sc">
                 <outputfilterchain>
-                    <linecontains negate="true">
-                        <contains value=".svn" />
-                    </linecontains>
+                    <linecontainsregexp>
+                        <regexp pattern="^[0-9]+\t.+" />
+                    </linecontainsregexp>
                 </outputfilterchain>
             </redirector>
         </exec>
