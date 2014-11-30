@@ -79,7 +79,7 @@ class ToolsTest(unittest.TestCase):
         self.assertEqual(_tools.asciified("hello.world!"), "hello.world!")
 
     def testFailAsciifyOnNonUnicode(self):
-        self.assertRaises(ValueError, _tools.asciified, "hello")
+        self.assertRaises(ValueError, _tools.asciified, b"hello")
         self.assertRaises(ValueError, _tools.asciified, 17)
 
     def testCanNamifyText(self):
