@@ -15,6 +15,7 @@ Test cutplace performance.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import io
 import logging
 import os.path
 import unittest
@@ -53,7 +54,7 @@ class PerformanceTest(unittest.TestCase):
             targetProfilePath = os.path.join(targetBasePath, itemName) + ".profile"
             targetReportPath = os.path.join(targetBasePath, itemName) + ".txt"
             cProfile.run("from cutplace import test_performance; test_performance._buildAndValidateManyCustomers()", targetProfilePath)
-            targetReportFile = open(targetReportPath, "w")
+            targetReportFile = io.open(targetReportPath, "w", encoding='utf-8')
             try:
                 stats = pstats.Stats(targetProfilePath, stream=targetReportFile)
                 stats.sort_stats("cumulative").print_stats("cutplace", 20)
