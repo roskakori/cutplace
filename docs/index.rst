@@ -28,3 +28,20 @@ concerning the whole set of data.
 
 To find out more, take a look at the :doc:`table of contents <contents>` or
 visit the `project site <https://github.com/roskakori/cutplace>`_.
+
+Contents
+========
+
+.. toctree::
+   :maxdepth: 2
+
+   License <license>
+   Module Reference <_rst/modules>
+
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`

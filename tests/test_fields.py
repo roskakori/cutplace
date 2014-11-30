@@ -21,8 +21,8 @@ import logging
 import unittest
 
 from cutplace import data
-from cutplace import fields
 from cutplace import errors
+from cutplace import fields
 
 _anyFormat = data.DataFormat(data.FORMAT_DELIMITED)
 _fixedFormat = data.DataFormat(data.FORMAT_FIXED)

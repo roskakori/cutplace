@@ -16,13 +16,12 @@ Tests for `_parsers`.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import logging
 import io
-import types
+import logging
 import unittest
 
-from . import dev_test
-from . import _parsers
+from cutplace import dev_test
+from cutplace import _parsers
 
 _log = logging.getLogger("cutplace.test_parsers")
 

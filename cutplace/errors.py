@@ -213,7 +213,7 @@ def create_caller_input_location(modules_to_ignore=None, has_column=False, has_c
             source_path = "<source>"
     result = InputLocation(source_path, has_column, has_cell, has_sheet)
     if source_line:
-        result.advanceLine(source_line)
+        result.advance_line(source_line)
     return result
 
 

@@ -17,7 +17,6 @@ Test for `tools` module.
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import decimal
 import os.path
-import io
 import unittest
 
 from cutplace import dev_test

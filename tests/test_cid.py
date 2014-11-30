@@ -18,13 +18,13 @@ Tests for `cid` module
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from cutplace import checks
 from cutplace import cid
 from cutplace import dev_test
-from cutplace import _tools
 from cutplace import errors
-from cutplace import ranges
 from cutplace import fields
-from cutplace import checks
+from cutplace import ranges
+from cutplace import _tools
 
 import unittest
 
