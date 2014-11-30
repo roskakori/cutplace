@@ -27,6 +27,7 @@ from cutplace import errors
 from cutplace import checks
 from cutplace import _tools
 
+
 def _create_field_map(field_names, field_values):
     assert field_names
     assert field_values
