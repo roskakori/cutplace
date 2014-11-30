@@ -21,7 +21,6 @@ from setuptools import setup
 __location__ = os.path.join(os.getcwd(), os.path.dirname(
     inspect.getfile(inspect.currentframe())))
 
-# Change these settings according to your needs
 MAIN_PACKAGE = "cutplace"
 DESCRIPTION = "validated reading and writing of tabular files (CVS, Excel, PRN)"
 LICENSE = "lgpl3"
@@ -33,13 +32,28 @@ COVERAGE_XML = True
 COVERAGE_HTML = False
 JUNIT_XML = True
 
-# Add here all kinds of additional classifiers as defined under
-# https://pypi.python.org/pypi?%3Aaction=list_classifiers
-CLASSIFIERS = ['Development Status :: 4 - Beta',
-               'Programming Language :: Python']
+CLASSIFIERS = [
+    'Development Status :: 4 - Beta',
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    'Programming Language :: Python',
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.4",
+    "Topic :: Documentation",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Testing"
+]
 
-# Add here console scripts like ['hello_world = cutplace.module:function']
-CONSOLE_SCRIPTS = []
+CONSOLE_SCRIPTS = [
+    'cutplace = cutplace._cutplace:mainForScript'
+]
 
 # Versioneer configuration
 versioneer.VCS = 'git'
@@ -190,6 +204,7 @@ def setup_package():
           version=version,
           url=URL,
           description=DESCRIPTION,
+          keywords="validate check csv ods excel prn fixed format",
           author=AUTHOR,
           author_email=EMAIL,
           license=LICENSE,
