@@ -85,12 +85,16 @@
 
     <target name="testdata" description="generate test data">
         <exec executable="python" failonerror="true">
-            <arg value="cutplace/dev_test.py" />
+            <arg path="cutplace/dev_test.py" />
+            <env key="PYTHONPATH" value="${basedir}" />
         </exec>
     </target>
 
     <target name="test" description="run test suite">
-        <pyst command="test" />
+        <exec executable="python" failonerror="false">
+            <arg path="setup.py" />
+            <arg value="test" />
+        </exec>
     </target>
 
     <target name="performance" description="run performance test" depends="sitebase">
@@ -98,7 +102,7 @@
             <arg value="--with-xunit" />
             <arg value="--xunit-file" />
             <arg file="nosetests_performance.xml" />
-            <arg file="cutplace/test_performance.py" />
+            <arg file="tests/test_performance.py" />
         </exec>
     </target>
 
@@ -135,12 +139,6 @@
 		</copy>
 	</target>
     <target description="build documentation" name="docs" depends="sitebase, testdata">
-        <exec executable="nosetests" failonerror="true">
-            <arg value="--with-doctest" />
-            <arg value="--doctest-extension=rst" />
-            <arg value="--where" />
-            <arg value="docs" />
-        </exec>
         <pyst command="docs" />
     </target>
 
