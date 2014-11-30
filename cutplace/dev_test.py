@@ -24,7 +24,7 @@ import sys
 from datetime import timedelta, datetime
 from random import randrange
 
-from . import _ods
+from cutplace import _ods
 
 _log = logging.getLogger("cutplace.dev_test")
 

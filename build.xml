@@ -90,23 +90,7 @@
     </target>
 
     <target name="test" description="run test suite">
-        <exec executable="nosetests" failonerror="false">
-            <arg value="--with-coverage" />
-            <arg value="--with-doctest" />
-            <arg value="--with-xunit" />
-            <arg value="--cover-erase" />
-            <arg value="--cover-package=cutplace" />
-            <arg value="cutplace.test_cid" />
-            <arg value="cutplace.test_data" />
-            <arg value="cutplace.test_errors" />
-            <arg value="cutplace.test_fields" />
-            <arg value="cutplace.test_ranges" />
-        </exec>
-        <exec executable="python" failonerror="true">
-            <arg value="-m" />
-            <arg value="coverage" />
-            <arg value="xml" />
-        </exec>
+        <pyst command="test" />
     </target>
 
     <target name="performance" description="run performance test" depends="sitebase">
