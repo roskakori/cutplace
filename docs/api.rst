@@ -616,8 +616,8 @@ a `CheckError <api/cutplace.checks.CheckError-class.html>`_:
 ...     fullNameLength = len(fullName)
 ...     try:
 ...         self._fullNameRange.validate("full name", fullNameLength)
-...     except ranges.RangeValueError, error:
-...         raise CheckError("full name length is %d but must be in range %s: %r" \
+...     except errors.RangeValueError as error:
+...         raise errors.CheckError("full name length is %d but must be in range %s: %r" \
 ...                 % (fullNameLength, self._fullNameRange, fullName))
 
 And finally, there is

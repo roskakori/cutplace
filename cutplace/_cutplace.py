@@ -16,29 +16,29 @@ Cutplace - Validate flat data according to an interface control document.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import argparse
 import codecs
 import encodings
 import glob
+import io
 import logging
-import optparse
 import os
 import sys
 import xlrd
 
-from . import interface
-from . import errors
-from . import version
-from . import _tools
-from . import _web
+from cutplace import errors
+from cutplace import version
+from cutplace import _tools
+from cutplace import _web
 
-DEFAULT_ICD_ENCODING = "ascii"
+DEFAULT_ICD_ENCODING = 'utf-8'
 
 _log = logging.getLogger("cutplace")
 
 
 def _openForWriteUsingUtf8(targetPath):
     assert targetPath is not None
-    return codecs.open(targetPath, encoding="utf-8", mode="w")
+    return io.open(targetPath, 'w', encoding="utf-8")
 
 
 class _ExitQuietlyOptionError(optparse.OptionError):
