@@ -62,9 +62,19 @@ class Cid():
         return self._field_names
 
     @property
+    def field_formats(self):
+        """List of field names defined in this ICD in the order they have been defined."""
+        return self._field_formats
+
+    @property
     def check_names(self):
         """List of check names in no particular order."""
         return self._check_names
+
+    @property
+    def check_map(self):
+        """List of check names in no particular order."""
+        return self._check_name_to_check_map
 
     def _reset_counts(self):
         self.accepted_count = 0

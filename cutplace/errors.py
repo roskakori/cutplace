@@ -364,3 +364,8 @@ class CheckSyntaxError(CutplaceError):
     """
     Error to be raised when the specification of check in the ICD is broken.
     """
+
+class ValidateLineError(CutplaceError):
+    """
+    Error to be raised when a line in an input file is invalid
+    """
