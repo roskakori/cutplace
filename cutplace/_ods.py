@@ -223,19 +223,15 @@ def _writeRstSeparatorLine(rstTargetFile, columnLengths, lineSeparator):
     rstTargetFile.write("+\n")
 
 
-def odsContent(odsSourceFilePath):
+def odsContent(source_ods_path):
     """
-    Readable for content.xml in `odsSourceFilePath`.
+    Readable for content.xml in `source_ods_path`.
     """
-    assert odsSourceFilePath is not None
+    assert source_ods_path is not None
 
-    zipArchive = zipfile.ZipFile(odsSourceFilePath, "r")
-    try:
-        # TODO: Consider switching to 2.6 and use ZipFile.open(). This would need less memory.
-        xmlData = zipArchive.read("content.xml")
-        result = io.StringIO(xmlData)
-    finally:
-        zipArchive.close()
+    with zipfile.ZipFile(source_ods_path, "r") as zip_archive:
+        xml_data = zip_archive.read("content.xml")
+        result = io.BytesIO(xml_data)
 
     return result
 
