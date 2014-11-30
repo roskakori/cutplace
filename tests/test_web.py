@@ -23,8 +23,8 @@ import os.path
 import unittest
 import urllib.request, urllib.error, urllib.parse
 
-from . import dev_test
-from . import _web
+from cutplace import dev_test
+from cutplace import _web
 
 # Port to use for test web server.
 _PORT = 8642

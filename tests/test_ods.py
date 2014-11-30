@@ -19,8 +19,8 @@ import logging
 import queue
 import unittest
 
-from . import dev_test
-from . import _ods
+from cutplace import dev_test
+from cutplace import _ods
 
 
 class OdsTest(unittest.TestCase):

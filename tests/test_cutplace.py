@@ -20,10 +20,10 @@ import optparse
 import os.path
 import unittest
 
-from . import dev_test
-from . import _cutplace
-from . import _parsers
-from . import _tools
+from cutplace import dev_test
+from cutplace import _cutplace
+from cutplace import _parsers
+from cutplace import _tools
 
 _log = logging.getLogger("cutplace")
 

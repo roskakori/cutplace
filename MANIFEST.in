@@ -1,6 +1,6 @@
-include *.py *.txt *.xml
-include MANIFEST.in
-recursive-include docs *
-recursive-include examples *.csv *.ods *.py
-recursive-include tests *
-global-exclude *pyc
+include versioneer.py
+include *.txt
+include *.rst
+include tox.ini
+recursive-include cutplace *.py *.c *.h *.pxd *.pyx
+recursive-include docs *.rst *.py

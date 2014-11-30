@@ -1,154 +1,208 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
-Cutplace setup for setuptools.
+    Setup file for cutplace.
+
+    This file was generated with PyScaffold 1.3.1, a tool that easily
+    puts up a scaffold for your new Python project. Learn more under:
+    http://pyscaffold.readthedocs.org/
 """
-# Copyright (C) 2009-2013 Thomas Aglassinger
-#
-# This program is free software: you can redistribute it and/or modify it
-# under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or (at your
-# option) any later version.
-#
-# This program is distributed in the hope that it will be useful, but WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License
-# for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Obtain setuptools if necessary.
-import ez_setup
-ez_setup.use_setuptools()
+import os
+import sys
+import inspect
+from distutils.cmd import Command
 
-from setuptools import setup, find_packages, Command
+import versioneer
+import setuptools
+from setuptools.command.test import test as TestCommand
+from setuptools import setup
 
-# Set up logging early on so import warnings can be logged.
-import logging
-logging.basicConfig()
+__location__ = os.path.join(os.getcwd(), os.path.dirname(
+    inspect.getfile(inspect.currentframe())))
 
-from cutplace import version
-from cutplace import _ods
-from cutplace import _tools
+# Change these settings according to your needs
+MAIN_PACKAGE = "cutplace"
+DESCRIPTION = "validated reading and writing of tabular files (CVS, Excel, PRN)"
+LICENSE = "lgpl3"
+URL = "https://pypi.python.org/pypi/cutplace"
+AUTHOR = "Thomas Aglassinger"
+EMAIL = "roskakori@users.sourceforge.net"
 
-import os.path
-import re
-import shutil
-import subprocess
-import glob
+COVERAGE_XML = True
+COVERAGE_HTML = False
+JUNIT_XML = True
 
-# Various properties that control the build process.
-buildFolder = "build"
-buildSiteFolder = os.path.join(buildFolder, "site")
-buildSiteReportsFolder = os.path.join(buildSiteFolder, "reports")
-docsFolder = "docs"
-examplesFolder = "examples"
-tutorialFolder = examplesFolder
+# Add here all kinds of additional classifiers as defined under
+# https://pypi.python.org/pypi?%3Aaction=list_classifiers
+CLASSIFIERS = ['Development Status :: 4 - Beta',
+               'Programming Language :: Python']
 
-def _copyFilesToFolder(sourceFolder, targetFolder, pattern=".*"):
-    """
-    Copy those files in `sourceFolder` to `targetFolder` whose name matches the regex `pattern`.
+# Add here console scripts like ['hello_world = cutplace.module:function']
+CONSOLE_SCRIPTS = []
 
-    If the target file already exists, overwrite it.
+# Versioneer configuration
+versioneer.VCS = 'git'
+versioneer.versionfile_source = os.path.join(MAIN_PACKAGE, '_version.py')
+versioneer.versionfile_build = os.path.join(MAIN_PACKAGE, '_version.py')
+versioneer.tag_prefix = 'v'  # tags are like v1.2.0
+versioneer.parentdir_prefix = MAIN_PACKAGE + '-'
 
-    If an error occurs, no cleanup is performed and a partially copied target file might remain.
-    """
-    # TODO: Support recursive copy, possibly using scunch's ``AntPattern``.
-    fileNameToCopyRegEx = re.compile(pattern)
-    for baseFolder, subFolders, fileNames in os.walk(sourceFolder):
-        for fileName in fileNames:
-            if fileNameToCopyRegEx.match(fileName) and not ".svn" in baseFolder:
-                sourceFilePath = os.path.join(baseFolder, fileName)
-                targetFilePath = os.path.join(targetFolder, fileName)
-                print(("copying %r to %r" % (sourceFilePath, targetFilePath)))
-                shutil.copy(sourceFilePath, targetFilePath)
 
-class _DocsCommand(Command):
-    """
-    Command for setuptools to build the documentation.
-    """
-    description = "build documentation"
-    user_options = []
-
-    def _convertAllOdsToCsvAndRst(self, folder):
-        assert folder is not None
-        for baseFolder, subFolders, fileNames in os.walk(folder):
-            for fileName in fileNames:
-                if os.path.splitext(fileName)[1].lower() == ".ods":
-                    self._convertOdsToCsvAndRst(os.path.join(baseFolder, fileName))
-
-    def _convertOdsToCsvAndRst(self, odsSourcePath):
-        assert odsSourcePath is not None
-        csvTargetPath = _tools.withSuffix(odsSourcePath, ".csv")
-        rstTargetPath = _tools.withSuffix(odsSourcePath, ".rst")
-        print(("generating %r and %r" % (csvTargetPath, rstTargetPath)))
-        _ods.toCsv(odsSourcePath, csvTargetPath)
-        _ods.toRst(odsSourcePath, rstTargetPath, firstRowIsHeading=False)
+class PyTest(TestCommand):
+    user_options = [("cov=", None, "Run coverage"),
+                    ("cov-xml=", None, "Generate junit xml report"),
+                    ("cov-html=", None, "Generate junit html report"),
+                    ("junitxml=", None, "Generate xml of test results")]
 
     def initialize_options(self):
-        pass
+        TestCommand.initialize_options(self)
+        self.cov = None
+        self.cov_xml = False
+        self.cov_html = False
+        self.junitxml = None
 
     def finalize_options(self):
-        pass
+        TestCommand.finalize_options(self)
+        if self.cov is not None:
+            self.cov = ["--cov", self.cov, "--cov-report", "term-missing"]
+            if self.cov_xml:
+                self.cov.extend(["--cov-report", "xml"])
+            if self.cov_html:
+                self.cov.extend(["--cov-report", "html"])
+        if self.junitxml is not None:
+            self.junitxml = ["--junitxml", self.junitxml]
 
-    def run(self):
-        self._convertAllOdsToCsvAndRst("examples")
-        sphinxCall = ["sphinx-build", "-b", "html", "-N", "-q", docsFolder, buildSiteFolder]
-        print((" ".join(sphinxCall)))
-        subprocess.check_call(sphinxCall)
+    def run_tests(self):
+        try:
+            import pytest
+        except:
+            raise RuntimeError("py.test is not installed, "
+                               "run: pip install pytest")
+        params = {"args": self.test_args}
+        if self.cov:
+            params["args"] += self.cov
+            params["plugins"] = ["cov"]
+        if self.junitxml:
+            params["args"] += self.junitxml
+        errno = pytest.main(**params)
+        sys.exit(errno)
 
-setup(
-      name="cutplace",
-      version=version.VERSION_NUMBER,
-      description="read, write and validate data stored in CSV and PRN files",
-      author="Thomas Aglassinger",
-      author_email="roskakori@users.sourceforge.net",
-      url="https://github.com/roskakori/cutplace",
-      install_requires=["coverage>=3.7.1", "nose>=1.3.1", "xlrd>=0.9.3"],
-      packages=["cutplace"],
-      data_files=[
-          ("", ["setup.py"]),
-          ("", ["license.txt", "README.txt"]),
-          ("docs", glob.glob(os.path.join("docs", "*.*"))),
-          ("docs/_static", glob.glob(os.path.join("docs", "_static", "*.*"))),
-          ("examples", glob.glob(os.path.join("examples", "*.csv")) + glob.glob(os.path.join("examples", "*.ods")))
-      ],
-      entry_points={
-        "console_scripts": [
-            "cutplace = cutplace._cutplace:mainForScript",
-        ]
-      },
-      license="GNU Lesser General Public License 3 or later",
-      test_suite="cutplace.test_all.createTestSuite",
-      long_description="""Cutplace is a tool and API to validate that data conform to an interface control document
-(ICD).
 
-Cutplace works with flat data formats using a separator (such as CSV) or fixed length fields. Such formats are commonly
-used to exchange data between different platforms or physically separated systems. Examples are exchanging data
-between different partner companies, providing data for data warehousing or other data processing involving
-architecturally very different systems like mainframes.
+def sphinx_builder():
+    try:
+        from sphinx.setup_command import BuildDoc
+    except ImportError:
+        class NoSphinx(Command):
+            user_options = []
 
-With cutplace you can describe these data in a simple and human readable spreadsheets using popular applications
-like Calc or Excel. Unlike a lot of documentation these days, this description does not only describe wishful
-thinking. It acts as "executable specification" which cutplace can use to validate that data actually conform to it.""",
-      keywords="validate check csv ods excel prn fixed format",
-      classifiers=[
-          "Development Status :: 2 - Pre-Alpha",
-          "Environment :: Console",
-          "Intended Audience :: Developers",
-          "Intended Audience :: Financial and Insurance Industry",
-          "Intended Audience :: Information Technology",
-          "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",
-          "Natural Language :: English",
-          "Operating System :: OS Independent",
-          # TODO: Add support for Python 2.6+.
-          "Programming Language :: Python :: 3",
-          "Programming Language :: Python :: 3.4",
-          "Topic :: Documentation",
-          "Topic :: Software Development :: Quality Assurance",
-          "Topic :: Software Development :: Testing"
-      ],
-      cmdclass={
-          "docs": _DocsCommand,
-      }
-)
+            def initialize_options(self):
+                raise RuntimeError("Sphinx documentation is not installed, "
+                                   "run: pip install sphinx")
+
+        return NoSphinx
+
+    class BuildSphinxDocs(BuildDoc):
+
+        def run(self):
+            if self.builder == "doctest":
+                import sphinx.ext.doctest as doctest
+                # Capture the DocTestBuilder class in order to return the total
+                # number of failures when exiting
+                ref = capture_objs(doctest.DocTestBuilder)
+                BuildDoc.run(self)
+                errno = ref[-1].total_failures
+                sys.exit(errno)
+            else:
+                BuildDoc.run(self)
+
+    return BuildSphinxDocs
+
+
+class ObjKeeper(type):
+    instances = {}
+
+    def __init__(cls, name, bases, dct):
+        cls.instances[cls] = []
+
+    def __call__(cls, *args, **kwargs):
+        cls.instances[cls].append(super(ObjKeeper, cls).__call__(*args,
+                                                                 **kwargs))
+        return cls.instances[cls][-1]
+
+
+def capture_objs(cls):
+    from six import add_metaclass
+    module = inspect.getmodule(cls)
+    name = cls.__name__
+    keeper_class = add_metaclass(ObjKeeper)(cls)
+    setattr(module, name, keeper_class)
+    cls = getattr(module, name)
+    return keeper_class.instances[cls]
+
+
+def get_install_requirements(path):
+    content = open(os.path.join(__location__, path)).read()
+    return [req for req in content.splitlines() if req != '']
+
+
+def read(fname):
+    return open(os.path.join(__location__, fname)).read()
+
+
+def setup_package():
+    # Assemble additional setup commands
+    cmdclass = versioneer.get_cmdclass()
+    cmdclass['docs'] = sphinx_builder()
+    cmdclass['doctest'] = sphinx_builder()
+    cmdclass['test'] = PyTest
+
+    # Some helper variables
+    version = versioneer.get_version()
+    docs_path = os.path.join(__location__, "docs")
+    docs_build_path = os.path.join(docs_path, "_build")
+    install_reqs = get_install_requirements("requirements.txt")
+
+    command_options = {
+        'docs': {'project': ('setup.py', MAIN_PACKAGE),
+                 'version': ('setup.py', version.split('-', 1)[0]),
+                 'release': ('setup.py', version),
+                 'build_dir': ('setup.py', docs_build_path),
+                 'config_dir': ('setup.py', docs_path),
+                 'source_dir': ('setup.py', docs_path)},
+        'doctest': {'project': ('setup.py', MAIN_PACKAGE),
+                    'version': ('setup.py', version.split('-', 1)[0]),
+                    'release': ('setup.py', version),
+                    'build_dir': ('setup.py', docs_build_path),
+                    'config_dir': ('setup.py', docs_path),
+                    'source_dir': ('setup.py', docs_path),
+                    'builder': ('setup.py', 'doctest')},
+        'test': {'test_suite': ('setup.py', 'tests'),
+                 'cov': ('setup.py', 'cutplace')}}
+    if JUNIT_XML:
+        command_options['test']['junitxml'] = ('setup.py', 'junit.xml')
+    if COVERAGE_XML:
+        command_options['test']['cov_xml'] = ('setup.py', True)
+    if COVERAGE_HTML:
+        command_options['test']['cov_html'] = ('setup.py', True)
+
+    setup(name=MAIN_PACKAGE,
+          version=version,
+          url=URL,
+          description=DESCRIPTION,
+          author=AUTHOR,
+          author_email=EMAIL,
+          license=LICENSE,
+          long_description=read('README.rst'),
+          classifiers=CLASSIFIERS,
+          test_suite='tests',
+          packages=setuptools.find_packages(exclude=['tests', 'tests.*']),
+          install_requires=install_reqs,
+          setup_requires=['six'],
+          cmdclass=cmdclass,
+          tests_require=['pytest-cov', 'pytest'],
+          command_options=command_options,
+          entry_points={'console_scripts': CONSOLE_SCRIPTS})
+
+if __name__ == "__main__":
+    setup_package()

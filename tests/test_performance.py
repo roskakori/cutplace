@@ -19,8 +19,8 @@ import logging
 import os.path
 import unittest
 
-from . import dev_test
-from . import _cutplace
+from cutplace import dev_test
+from cutplace import _cutplace
 
 _log = logging.getLogger("cutplace.dev_reports")
 _hasProfiler = False

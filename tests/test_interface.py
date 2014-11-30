@@ -22,13 +22,13 @@ import unittest
 import xlrd
 from contextlib import closing
 
-from . import checks
-from . import data
-from . import dev_test
-from . import fields
-from . import interface
-from . import errors
-from . import _parsers
+from cutplace import checks
+from cutplace import data
+from cutplace import dev_test
+from cutplace import errors
+from cutplace import fields
+from cutplace import interface
+from cutplace import _parsers
 
 _log = logging.getLogger("cutplace.test_interface")
 

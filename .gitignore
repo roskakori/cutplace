@@ -1,13 +1,44 @@
-.~lock.*
-.DS_Store
-*.pyc
-*.pyo
-/.coverage
-/.idea/workspace.xml
-/build
-/coverage.xml
-/cutplace.egg-info
-/dist
-/nosetests*.xml
-/pep8.txt
-/sloccount.sc
+# Temporary and binary files
+*~
+*.py[cod]
+*.so
+*.cfg
+*.orig
+*.log
+*.pot
+__pycache__/*
+.cache/*
+.*.swp
+
+# Project files
+.ropeproject
+.project
+.pydevproject
+.settings
+.idea
+
+# Package files
+*.egg
+.installed.cfg
+*.egg-info
+
+# Unittest and coverage
+htmlcov/*
+.coverage
+.tox
+coverage.xml
+junit.xml
+
+# Code analysis
+pep8.txt
+sloccount.sc
+
+# Build and docs folder/files
+.eggs/*
+build/*
+dist/*
+sdist/*
+docs/_rst/*
+docs/_build/*
+cover/*
+MANIFEST

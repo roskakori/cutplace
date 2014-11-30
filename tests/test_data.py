@@ -19,8 +19,8 @@ import logging
 import unittest
 
 from cutplace import data
-from cutplace import ranges
 from cutplace import errors
+from cutplace import ranges
 
 
 class DataFormatTest(unittest.TestCase):
