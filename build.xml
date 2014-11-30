@@ -153,7 +153,7 @@
             <arg value="--datadir" />
             <arg file="${slocdata.dir}" />
             <arg value="cutplace" />
-            <redirector output="sloccount.sc">
+            <redirector logError="true" output="sloccount.sc">
                 <outputfilterchain>
                     <linecontains negate="true">
                         <contains value=".svn" />
