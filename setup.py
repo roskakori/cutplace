@@ -33,7 +33,6 @@ COVERAGE_HTML = False
 JUNIT_XML = True
 
 CLASSIFIERS = [
-    'Development Status :: 4 - Beta',
     "Development Status :: 4 - Beta",
     "Environment :: Console",
     "Environment :: Web Environment",
@@ -44,7 +43,12 @@ CLASSIFIERS = [
     "Natural Language :: English",
     "Operating System :: OS Independent",
     'Programming Language :: Python',
+    # TODO #61: "Programming Language :: Python :: 2",
+    # TODO #61: "Programming Language :: Python :: 2.6",
+    # TODO #61: "Programming Language :: Python :: 2.7",
     "Programming Language :: Python :: 3",
+    # TODO #56: "Programming Language :: Python :: 3.2",
+    # TODO #56: "Programming Language :: Python :: 3.3",
     "Programming Language :: Python :: 3.4",
     "Topic :: Documentation",
     "Topic :: Software Development :: Quality Assurance",
