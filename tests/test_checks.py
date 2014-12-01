@@ -59,7 +59,7 @@ class _AbstractCheckTest(unittest.TestCase):
         # on methods that consist of nothing but a single "pass".
         fieldNames = _getTestFieldNames()
         check = checks.AbstractCheck("test check", "", fieldNames)
-        location = errors.InputLocation(self.testCheckRow, hasCell=True)
+        location = errors.InputLocation(self.testCheckRow, has_cell=True)
         check.check_row([], location)
 
 
@@ -67,7 +67,7 @@ class IsUniqueCheckTest(_AbstractCheckTest):
     def testIsUniqueCheck(self):
         fieldNames = _getTestFieldNames()
         check = checks.IsUniqueCheck("test check", "branch_id, customer_id", fieldNames)
-        location = errors.InputLocation(self.testIsUniqueCheck, hasCell=True)
+        location = errors.InputLocation(self.testIsUniqueCheck, has_cell=True)
         check.check_row(_createFieldMap(fieldNames, [38000, 23, "John", "Doe", "male", "08.03.1957"]), location)
         location.advance_line()
         check.check_row(_createFieldMap(fieldNames, [38000, 59, "Jane", "Miller", "female", "04.10.1946"]), location)
@@ -77,8 +77,8 @@ class IsUniqueCheckTest(_AbstractCheckTest):
                             location)
             self.fail("duplicate row must cause CheckError")
         except errors.CheckError as error:
-            self.assertTrue(error.seeAlsoLocation)
-            self.assertNotEqual(location, error.seeAlsoLocation)
+            self.assertTrue(error.see_also_location)
+            self.assertNotEqual(location, error.see_also_location)
             self.assertEqual(error.location.cell, 0)
 
         # These methods should not do anything, but call them anyway for test sake.
@@ -119,14 +119,14 @@ class DistinctCountCheckTest(unittest.TestCase):
         fieldNames = _getTestFieldNames()
         checks.DistinctCountCheck("test check", "branch_id<3", fieldNames)
         check = checks.DistinctCountCheck("test check", "branch_id < 3", fieldNames)
-        location = errors.InputLocation(self.testDistinctCountCheck, hasCell=True)
+        location = errors.InputLocation(self.testDistinctCountCheck, has_cell=True)
         check.check_row(_createFieldMap(fieldNames, [38000, 23, "John", "Doe", "male", "08.03.1957"]), location)
         location.advance_line()
         check.check_row(_createFieldMap(fieldNames, [38001, 59, "Jane", "Miller", "female", "04.10.1946"]), location)
         check.check_at_end(location)
         location.advance_line()
         check.check_row(_createFieldMap(fieldNames, [38003, 59, "Jane", "Miller", "female", "04.10.1946"]), location)
-        self.assertRaises(checks.CheckError, check.check_at_end, location)
+        self.assertRaises(errors.CheckError, check.check_at_end, location)
 
     def testBrokenExpressions(self):
         fieldNames = _getTestFieldNames()
