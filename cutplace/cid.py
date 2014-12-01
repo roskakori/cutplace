@@ -1,5 +1,5 @@
 """
-Reading ICD-Files
+Classes and functions to read and represent cutplace interface definitions.
 """
 # Copyright (C) 2009-2013 Thomas Aglassinger
 #
@@ -15,9 +15,11 @@ Reading ICD-Files
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+import glob
+import imp  # TODO: deprecated; with Python 3, use importlib.
 import inspect
 import logging
+import os.path
 
 from cutplace import data
 from cutplace import fields
@@ -26,6 +28,23 @@ from cutplace import checks
 from cutplace import _tools
 
 _log = logging.getLogger("cutplace")
+
+
+def auto_rows(source_path):
+    """
+    Determine basic data format of `source_path` based on heuristics and return its contents.
+    """
+    suffix = os.path.splitext(source_path)[1].lstrip('.').lower()
+    if suffix == 'ods':
+        raise NotImplementedError('suffix=%s' % suffix)
+    elif suffix in ('xls', 'xlsx'):
+        result = _tools.excel_rows(source_path)
+    else:
+        delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
+        # TODO: Determine delimiter by couting common delimiters with the first 4096 bytes and choosing the maximum one.
+        delimited_format.set_property(data.KEY_ITEM_DELIMITER, ',')
+        result = _tools.delimited_rows(source_path, delimited_format)
+    return result
 
 
 class Cid():
@@ -104,7 +123,7 @@ class Cid():
                 clashing_class_info = self._class_info(clashing_class)
                 class_to_process_info = self._class_info(class_to_process)
                 if clashing_class_info == class_to_process_info:
-                    # HACK: Ignore duplicate class.es Such classes can occur after `importPlugins`
+                    # HACK: Ignore duplicate classes. Such classes can occur after `importPlugins`
                     # has been called more than once.
                     class_to_process = None
                 else:
@@ -401,3 +420,29 @@ class Cid():
         """
         assert check_name is not None
         return self._check_name_to_check_map[check_name]
+
+
+def import_plugins(folder_to_scan_for_plugins):
+    """
+    Import all Python modules found in folder ``folder_to_scan_for_plugins`` (non recursively) consequently
+    making the contained field formats and checks available for CIDs.
+    """
+    def log_imported_items(item_name, base_set, current_set):
+        new_items = [item.__name__ for item in (current_set - base_set)]
+        _log.info('    %s found: %s', item_name, new_items)
+
+    _log.info('import plugins from "%s"', folder_to_scan_for_plugins)
+    modules_to_import = set()
+    base_checks = set(checks.AbstractCheck.__subclasses__())  # @UndefinedVariable
+    base_field_formats = set(fields.AbstractFieldFormat.__subclasses__())  # @UndefinedVariable
+    pattern_to_scan = os.path.join(folder_to_scan_for_plugins, '*.py')
+    for module_to_import_path in glob.glob(pattern_to_scan):
+        module_name = os.path.splitext(os.path.basename(module_to_import_path))[0]
+        modules_to_import.add((module_name, module_to_import_path))
+    for module_name_to_import, modulePathToImport in modules_to_import:
+        _log.info('  import %s from \'%s\'', module_name_to_import, modulePathToImport)
+        imp.load_source(module_name_to_import, modulePathToImport)
+    current_checks = set(checks.AbstractCheck.__subclasses__())  # @UndefinedVariable
+    current_field_formats = set(fields.AbstractFieldFormat.__subclasses__())  # @UndefinedVariable
+    log_imported_items('fields', base_field_formats, current_field_formats)
+    log_imported_items('checks', base_checks, current_checks)

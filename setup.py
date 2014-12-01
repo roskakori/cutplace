@@ -52,7 +52,7 @@ CLASSIFIERS = [
 ]
 
 CONSOLE_SCRIPTS = [
-    'cutplace = cutplace._cutplace:mainForScript'
+    'cutplace = cutplace._cutplace:main_for_script'
 ]
 
 # Versioneer configuration
