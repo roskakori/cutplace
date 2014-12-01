@@ -312,6 +312,13 @@ class RangeValueError(CutplaceError):
     """
 
 
+class DataFormatError(CutplaceError):
+    """
+    Error indicating that a data file cannot be processed due severe format violations.
+    """
+    pass
+
+
 class DataFormatValueError(CutplaceError):
 
     """

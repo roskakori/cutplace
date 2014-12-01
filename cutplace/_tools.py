@@ -37,9 +37,11 @@ import threading
 import unicodedata
 import xlrd
 
+from cutplace import errors
+
 
 # Mapping for value of --log to logging level.
-LogLevelNameToLevelMap = {
+LOG_LEVEL_NAME_TO_LEVEL_MAP = {
     "debug": logging.DEBUG,
     "info": logging.INFO,
     "warning": logging.WARNING,
@@ -567,14 +569,20 @@ def _excelCellValue(cell, datemode):
 
 
 def excel_rows(source_path):
-    book = xlrd.open_workbook(source_path)
-    sheet = book.sheet_by_index(0)
-    datemode = book.datemode
-    for y in range(sheet.nrows):
-        row = []
-        for x in range(sheet.ncols):
-            row.append(_excelCellValue(sheet.cell(y, x), datemode))
-        yield row
+    location = errors.InputLocation(source_path, has_cell=True)
+    try:
+        book = xlrd.open_workbook(source_path)
+        sheet = book.sheet_by_index(0)
+        datemode = book.datemode
+        for y in range(sheet.nrows):
+            row = []
+            for x in range(sheet.ncols):
+                row.append(_excelCellValue(sheet.cell(y, x), datemode))
+                location.advance_cell()
+            yield row
+            location.advance_line()
+    except xlrd.XLRDError as error:
+        raise errors.DataFormatError('cannot read Excel file: %s' % error, location)
 
 
 def delimited_rows(source_path, data_format):
@@ -591,5 +599,6 @@ def delimited_rows(source_path, data_format):
             escapechar=escapechar, quotechar=data_format.quote_character,
             skipinitialspace=data_format.skip_initial_space, strict=True)
 
+        # TODO: raise DataFormatError on basic CVS format violations (e.g. unterminated quotes).
         for row in csv_reader:
             yield row

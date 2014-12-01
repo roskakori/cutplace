@@ -127,5 +127,12 @@ class NumberedTest(unittest.TestCase):
         self.assertEqual(actual, expected)
 
 
+class RowsTest(unittest.TestCase):
+    def test_can_read_excel_rows(self):
+        excel_path = dev_test.getTestInputPath('valid_customers.xls')
+        row_count = len(list(_tools.excel_rows(excel_path)))
+        self.assertTrue(row_count > 0)
+
+
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()

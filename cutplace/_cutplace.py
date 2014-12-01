@@ -17,7 +17,6 @@ Cutplace - Validate flat data according to an interface control document.
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import argparse
-import codecs
 import encodings
 import glob
 import io
@@ -26,12 +25,18 @@ import os
 import sys
 import xlrd
 
+from cutplace import cid
 from cutplace import errors
-from cutplace import version
+from cutplace import validator
 from cutplace import _tools
-from cutplace import _web
+# TODO: from cutplace import _web
+
+# Import constant for version information.
+from cutplace import __version__
 
 DEFAULT_ICD_ENCODING = 'utf-8'
+DEFAULT_LOG_LEVEL = 'warning'
+assert DEFAULT_LOG_LEVEL in _tools.LOG_LEVEL_NAME_TO_LEVEL_MAP
 
 _log = logging.getLogger("cutplace")
 
@@ -39,74 +44,6 @@ _log = logging.getLogger("cutplace")
 def _openForWriteUsingUtf8(targetPath):
     assert targetPath is not None
     return io.open(targetPath, 'w', encoding="utf-8")
-
-
-class _ExitQuietlyOptionError(optparse.OptionError):
-    """
-    Pseudo error to indicate the program should exit quietly, for example when --help or --verbose
-    was specified.
-    """
-    pass
-
-
-class _NoExitOptionParser(optparse.OptionParser):
-    def exit(self, status=0, msg=None):
-        if status:
-            raise optparse.OptionError(msg, "")
-        else:
-            raise _ExitQuietlyOptionError(msg, "")
-
-    def error(self, msg):
-        raise optparse.OptionError(msg, "")
-
-    def print_version(self, targetFile=None):
-        # No super() due to old style class.
-        optparse.OptionParser.print_version(self, targetFile)
-        if self.version:
-            print("Python %s, %s" % (_tools.pythonVersion(), _tools.platformVersion()), file=targetFile)
-
-
-class CutplaceValidationListener(interface.BaseValidationListener):
-    """
-    Listener for ICD events that writes accepted and rejected rows to the files specified in the
-    command line options.
-    """
-    def __init__(self, acceptedCsvWriter=None, rejectedTextFile=None):
-        self.acceptedFile = acceptedCsvWriter
-        self.rejectedFile = rejectedTextFile
-        self.acceptedRowCount = 0
-        self.rejectedRowCount = 0
-        self.checksAtEndFailedCount = 0
-        self.log = logging.getLogger("cutplace")
-
-    def acceptedRow(self, row, location):
-        self.acceptedRowCount += 1
-        if self.acceptedFile is None:
-            self.log.info("accepted: %r", row)
-        else:
-            # Write to a csv.writer.
-            self.acceptedFile.writerow(row)
-
-    def rejectedRow(self, row, error):
-        self.rejectedRowCount += 1
-        rowText = "items: %r" % row
-        errorText = "field error: %s" % error
-        if self.rejectedFile is None:
-            self.log.error("%s", rowText)
-            self.log.error("%s", errorText)
-        else:
-            # Write to a text file.
-            self.rejectedFile.write("%s%s" % (rowText, os.linesep))
-            self.rejectedFile.write("%s%s" % (errorText, os.linesep))
-
-    def checkAtEndFailed(self, error):
-        errorText = "check at end failed: %s" % error
-        self.checksAtEndFailedCount += 1
-        if self.rejectedFile is None:
-            self.log.error("%s", errorText)
-        else:
-            # Write to a text file.
-            self.rejectedFile.write("%s%s" % (errorText, os.linesep))
 
 
 class CutPlace(object):
@@ -127,65 +64,67 @@ class CutPlace(object):
         """Reset options and set them again from argument list such as sys.argv[1:]."""
         assert argv is not None
 
-        usage = """
-  cutplace [options] ICD-FILE
-    validate interface control document in ICD-FILE
-  cutplace [options] ICD-FILE DATA-FILE(S)
-    validate DATA-FILE(S) according to rules specified in ICD-FILE
-  cutplace --web [options]
-    launch web server providing a web interface for validation"""
+        description = 'validate DATA-FILE against interface description CID-FILE'
+        version = '%(prog)s ' + __version__
 
-        parser = _NoExitOptionParser(usage=usage, version="%prog " + version.VERSION_NUMBER)
-        parser.set_defaults(icdEncoding=DEFAULT_ICD_ENCODING, isLogTrace=False, isOpenBrowser=False, logLevel="warning", port=_web.DEFAULT_PORT)
-        parser.add_option("--list-encodings", action="store_true", dest="isShowEncodings", help="show list of available character encodings and exit")
-        validationGroup = optparse.OptionGroup(parser, "Validation options", "Specify how to validate data and how to report the results")
-        validationGroup.add_option("-e", "--icd-encoding", metavar="ENCODING", dest="icdEncoding",
-                help="character encoding to use when reading the ICD (default: %default)")
-        validationGroup.add_option("-P", "--plugins", metavar="FOLDER", dest="pluginsFolderPath",
-                help="folder to scan for plugins (default: %default)")
-        validationGroup.add_option("-s", "--split", action="store_true", dest="isSplit",
-                help="split data in a CSV file containing the accepted rows and a raw text file "
-                + "containing rejected rows with both using UTF-8 as character encoding")
-        parser.add_option_group(validationGroup)
-        webGroup = optparse.OptionGroup(parser, "Web options", "Provide a  GUI for validation using a simple web server")
-        webGroup.add_option("-w", "--web", action="store_true", dest="isWebServer", help="launch web server")
-        webGroup.add_option("-p", "--port", metavar="PORT", type="int", dest="port", help="port for web server (default: %default)")
-        webGroup.add_option("-b", "--browse", action="store_true", dest="isOpenBrowser", help="open validation page in browser")
-        parser.add_option_group(webGroup)
-        loggingGroup = optparse.OptionGroup(parser, "Logging options", "Modify the logging output")
-        loggingGroup.add_option("--log", metavar="LEVEL", type="choice", choices=list(_tools.LogLevelNameToLevelMap.keys()), dest="logLevel", help="set log level to LEVEL (default: %default)")
-        loggingGroup.add_option("-t", "--trace", action="store_true", dest="isLogTrace", help="include Python stack in error messages related to data")
-        parser.add_option_group(loggingGroup)
+        parser = argparse.ArgumentParser(description=description)
+        parser.add_argument('--version', action='version', version=version)
+        # TODO: parser.set_defaults(isLogTrace=False, isOpenBrowser=False, port=_web.DEFAULT_PORT)
+        # TODO: parser.add_option('--list-encodings', action='store_true', dest='isShowEncodings', help='show list of available character encodings and exit')
+        validation_group = parser.add_argument_group('Validation options', 'Specify how to validate data and how to report the results')
+        validation_group.add_argument('-e', '--cid-encoding', metavar='ENCODING', dest='cid_encoding',
+            default=DEFAULT_ICD_ENCODING,
+            help='character encoding to use when reading the CID (default: %s)' % DEFAULT_ICD_ENCODING)
+        validation_group.add_argument('-P', '--plugins', metavar='FOLDER', dest='plugins_folder',
+            help='folder to scan for plugins (default: no plugins)')
+        # TODO: validationGroup.add_option('-s', '--split', action='store_true', dest='isSplit',
+        #               help='split data in a CSV file containing the accepted rows and a raw text file '
+        #               + 'containing rejected rows with both using UTF-8 as character encoding')
+        # TODO: webGroup = optparse.OptionGroup(parser, 'Web options', 'Provide a  GUI for validation using a simple web server')
+        # TODO: webGroup.add_option('-w', '--web', action='store_true', dest='isWebServer', help='launch web server')
+        # TODO: webGroup.add_option('-p', '--port', metavar='PORT', type='int', dest='port', help='port for web server (default: %default)')
+        # TODO: webGroup.add_option('-b', '--browse', action='store_true', dest='isOpenBrowser', help='open validation page in browser')
+        # TODO: parser.add_option_group(webGroup)
+        loggingGroup = parser.add_argument_group('Logging options', 'Modify the logging output')
+        loggingGroup.add_argument('--log', metavar='LEVEL', choices=sorted(_tools.LOG_LEVEL_NAME_TO_LEVEL_MAP.keys()),
+            dest='log_level', default=DEFAULT_LOG_LEVEL,
+            help='set log level to LEVEL (default: %s)' % DEFAULT_LOG_LEVEL)
+        # TODO: loggingGroup.add_argument('-t', '--trace', action='store_true', dest='isLogTrace', help='include Python stack in error messages related to data')
+        parser.add_argument('cid_path', metavar='CID-FILE', help='file containing a cutplace interface definition (CID)')
+        parser.add_argument('data_paths', metavar='DATA-FILE', nargs=argparse.REMAINDER, help='data file(s) to validate')
+        args = parser.parse_args(argv[1:])
 
-        (self.options, others) = parser.parse_args(argv[1:])
+        self._log.setLevel(_tools.LOG_LEVEL_NAME_TO_LEVEL_MAP[args.log_level])
+        self.cid_encoding= args.cid_encoding
+        # FIXME: Remove dummy values below.
+        self.isLogTrace = False
+        self.isOpenBrowser = False
+        self.isShowEncodings = False
+        self.isWebServer = False
+        self.port = 0
+        self.isSplit = False
+        # TODO: self.isLogTrace = self.options.isLogTrace
+        # TODO: self.isOpenBrowser = self.options.isOpenBrowser
+        # TODO: self.isShowEncodings = self.options.isShowEncodings
+        # TODO: self.isWebServer = self.options.isWebServer
+        # TODO: self.port = self.options.port
+        # TODO: self.isSplit = self.options.isSplit
 
-        self._log.setLevel(_tools.LogLevelNameToLevelMap[self.options.logLevel])
-        self.icdEncoding = self.options.icdEncoding
-        self.isLogTrace = self.options.isLogTrace
-        self.isOpenBrowser = self.options.isOpenBrowser
-        self.isShowEncodings = self.options.isShowEncodings
-        self.isWebServer = self.options.isWebServer
-        self.port = self.options.port
-        self.isSplit = self.options.isSplit
-
-        if self.options.pluginsFolderPath is not None:
-            interface.importPlugins(self.options.pluginsFolderPath)
+        if args.plugins_folder is not None:
+            cid.import_plugins(args.plugins_folder)
 
         if not self.isShowEncodings and not self.isWebServer:
-            if len(others) >= 1:
-                icdPath = others[0]
-                try:
-                    self.setIcdFromFile(icdPath)
-                except EnvironmentError as error:
-                    raise IOError("cannot read ICD file %r: %s" % (icdPath, error))
-                if len(others) >= 2:
-                    self.dataToValidatePaths = others[1:]
-            else:
-                parser.error("file containing ICD must be specified")
+            if args.cid_path is None:
+                parser.error('CID-PATH must be specified')
+            try:
+                self.setIcdFromFile(args.cid_path)
+            except (EnvironmentError, OSError) as error:
+                raise IOError('cannot read CID file "%s": %s' % (args.cid_path, error))
+            if args.data_paths is not None:
+                self.dataToValidatePaths = args.data_paths
 
-        self._log.debug("cutplace %s", version.VERSION_NUMBER)
-        self._log.debug("options=%s", self.options)
-        self._log.debug("others=%s", others)
+        self._log.debug('cutplace %s', __version__)
+        self._log.debug('arguments=%s', args)
 
     def validate(self, dataFilePath):
         """
@@ -195,51 +134,20 @@ class CutPlace(object):
         assert self.icd is not None
 
         self.lastValidationWasOk = False
-        isWriteSplit = self.isSplit
-        if isWriteSplit:
-            splitTargetFolder, splitBaseName = os.path.split(dataFilePath)
-            splitBaseName = os.path.splitext(dataFilePath)[0]
-            acceptedCsvPath = os.path.join(splitTargetFolder, splitBaseName + "_accepted.csv")
-            rejectedTextPath = os.path.join(splitTargetFolder, splitBaseName + "_rejected.txt")
-            acceptedCsvFile = open(acceptedCsvPath, "w")
-        try:
-            if isWriteSplit:
-                rejectedTextFile = _openForWriteUsingUtf8(rejectedTextPath)
-                validationSplitListener = CutplaceValidationListener(_tools.UnicodeCsvWriter(acceptedCsvFile), rejectedTextFile)
-            else:
-                validationSplitListener = CutplaceValidationListener()
-            try:
-                self.icd.addValidationListener(validationSplitListener)
-                try:
-                    self.icd.validate(dataFilePath)
-                finally:
-                    self.icd.removeValidationListener(validationSplitListener)
-                shortDataFilePath = os.path.basename(dataFilePath)
-                acceptedRowCount = validationSplitListener.acceptedRowCount
-                rejectedRowCount = validationSplitListener.rejectedRowCount
-                checksAtEndFailedCount = validationSplitListener.checksAtEndFailedCount
-                totalRowCount = acceptedRowCount + rejectedRowCount
-                if rejectedRowCount + checksAtEndFailedCount == 0:
-                    self.lastValidationWasOk = True
-                    print("%s: accepted %d rows" % (shortDataFilePath, acceptedRowCount))
-                else:
-                    print("%s: rejected %d of %d rows. %d final checks failed." \
-                         % (shortDataFilePath, rejectedRowCount, totalRowCount, checksAtEndFailedCount))
-            finally:
-                if isWriteSplit:
-                    rejectedTextFile.close()
-        finally:
-            if isWriteSplit:
-                acceptedCsvFile.close()
+        reader = validator.Reader(self.icd, dataFilePath)
+        reader.validate()
+        self.lastValidationWasOk = True
 
-    def setIcdFromFile(self, newIcdPath):
-        assert newIcdPath is not None
-        newIcd = interface.InterfaceControlDocument()
-        if self.options is not None:
-            newIcd.logTrace = self.options.isLogTrace
-        newIcd.read(newIcdPath, self.icdEncoding)
-        self.icd = newIcd
-        self.interfaceSpecificationPath = newIcdPath
+
+    def setIcdFromFile(self, cid_path):
+        assert cid_path is not None
+        new_cid = cid.Cid()
+        # TODO: if self.options is not None:
+        #          new_cid.logTrace = self.options.isLogTrace
+        cid_rows = cid.auto_rows(cid_path)  # TODO: Pass self.cid_encoding.
+        new_cid.read(cid_path, cid_rows)
+        self.icd = new_cid
+        self.icdPath = cid_path
 
     def _printAvailableEncodings(self):
         for encoding in self._encodingsFromModuleNames():
@@ -305,28 +213,20 @@ def main(argv=None):
     result = 1
     try:
         result = process(argv)
-    except EnvironmentError as error:
+    except (EnvironmentError, OSError) as error:
         result = 3
         _log.error("%s", error)
     except errors.CutplaceUnicodeError as error:
         _log.error("%s", error)
     except errors.CutplaceError as error:
         _log.error("%s", error)
-    except xlrd.XLRDError as error:
-        _log.error("cannot process Excel format: %s", error)
-    except _ExitQuietlyOptionError:
-        # Raised by '--help', '--version', etc., so simply do nothing.
-        pass
-    except optparse.OptionError as error:
-        result = 2
-        _log.error("cannot process command line options: %s", error)
     except Exception as error:
         result = 4
         _log.exception("cannot handle unexpected error: %s", error)
     return result
 
 
-def mainForScript():
+def main_for_script():
     """
     Main routine that reports errors in options to ``sys.stderr`` and does ``sys.exit()``.
     """
@@ -334,4 +234,4 @@ def mainForScript():
     sys.exit(main())
 
 if __name__ == '__main__':
-    mainForScript()
+    main_for_script()
