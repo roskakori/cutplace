@@ -22,12 +22,11 @@ import optparse
 import io
 import sys
 import threading
-import types
 import xml.dom.minidom
 import xml.sax
 import zipfile
 
-from . import _tools
+from cutplace import _tools
 
 _log = logging.getLogger("cutplace.ods")
 
@@ -300,71 +299,6 @@ def _isEmptyRow(row):
     return result
 
 
-def toDocBookXml(odsFilePath, xmlTargetPath, xmlId, title, sheet=1):
-    """
-    Convert ODS file in `odsFilePath` to DocBook XML and store the result in `xmlTargetPath`.
-    """
-    assert odsFilePath is not None
-    assert xmlTargetPath is not None
-    assert xmlId is not None
-    assert title is not None
-
-    # Convert ODS to row list.
-    handler = RowListContentHandler(sheet)
-    contentReadable = odsContent(odsFilePath)
-    try:
-        xml.sax.parse(contentReadable, handler)
-    finally:
-        contentReadable.close()
-
-    # Remove trailing empty rows.
-    rows = handler.rows
-    rowCount = len(rows)
-    while (rowCount > 0) and (_isEmptyRow(rows[rowCount - 1])):
-        rowCount -= 1
-        del rows[rowCount]
-
-    # Find out the maximum number of columns per row.
-    maxColumnCount = 0
-    for row in rows:
-        columnCount = len(row)
-        if columnCount > maxColumnCount:
-            maxColumnCount = columnCount
-
-    # Create DOM.
-    dom = xml.dom.minidom.Document()
-    docType = xml.dom.minidom.getDOMImplementation().createDocumentType("table", "-//OASIS//DTD DocBook XML V4.5//EN", "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd")
-    dom.appendChild(docType)
-    table = dom.createElement("table")
-    # TODO: Validate that `xmlId` is valid.
-    table.setAttribute("xmlId", xmlId)
-    dom.appendChild(table)
-    titleElement = dom.createElement("title")
-    # TODO: Add option to specify table title.
-    titleText = dom.createTextNode(title)
-    titleElement.appendChild(titleText)
-    table.appendChild(titleElement)
-    tgroupElement = dom.createElement("tgroup")
-    tgroupElement.setAttribute("cols", str(maxColumnCount))
-    table.appendChild(tgroupElement)
-    tbody = dom.createElement("tbody")
-    tgroupElement.appendChild(tbody)
-    for row in rows:
-        rowElement = dom.createElement("row")
-        tbody.appendChild(rowElement)
-        for entry in row:
-            entryElement = dom.createElement("entry")
-            entryText = dom.createTextNode(entry)
-            entryElement.appendChild(entryText)
-            rowElement.appendChild(entryElement)
-
-    # Write target file.
-    xmlTargetFile = open(xmlTargetPath, "w")
-    try:
-        xmlTargetFile.write(dom.toprettyxml("  ", encoding="utf-8"))
-    finally:
-        xmlTargetFile.close()
-
 # FIXME: The handlers for the various formats should support items spawning multiple columns.
 # FIXME: Add support for items spawning multiple rows.
 
@@ -373,14 +307,12 @@ def main(arguments):
     assert arguments is not None
 
     _FORMAT_CSV = "csv"
-    _FORMAT_DOCBOOK = "docbook"
     _FORMAT_RST = "rst"
-    _FORMATS = [_FORMAT_CSV, _FORMAT_DOCBOOK, _FORMAT_RST]
+    _FORMATS = [_FORMAT_CSV, _FORMAT_RST]
     _FORMAT_TO_SUFFIX_MAP = {
-                             _FORMAT_CSV: ".csv",
-                             _FORMAT_DOCBOOK: ".xml",
-                             _FORMAT_RST: ".rst"
-                             }
+        _FORMAT_CSV: ".csv",
+        _FORMAT_RST: ".rst"
+    }
     usage = "usage: %prog [options] ODS-FILE [OUTPUT-FILE]"
     parser = optparse.OptionParser(usage)
     parser.set_defaults(format=_FORMAT_CSV, id="insert-id", sheet=1, title="Insert Title")
@@ -411,10 +343,6 @@ def main(arguments):
                     _log.error("option --heading can not be used with --format=csv")
                     sys.exit(1)
                 toCsv(sourceFilePath, targetFilePath, sheet=options.sheet)
-            elif options.format == _FORMAT_DOCBOOK:
-                # FIXME: Add support for --heading with DocBook.
-                assert not options.firstRowIsHeading
-                toDocBookXml(sourceFilePath, targetFilePath, xmlId=options.id, title=options.title, sheet=options.sheet)
             elif options.format == _FORMAT_RST:
                 toRst(sourceFilePath, targetFilePath, firstRowIsHeading=options.firstRowIsHeading, sheet=options.sheet)
             else:  # pragma: no cover
