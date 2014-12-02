@@ -15,16 +15,15 @@ Validate Data files
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 import inspect
 import logging
 import xlrd
 
-from cutplace import data
-from cutplace import cid
-from cutplace import fields
-from cutplace import errors
 from cutplace import checks
+from cutplace import cid
+from cutplace import data
+from cutplace import errors
+from cutplace import fields
 from cutplace import _tools
 
 
