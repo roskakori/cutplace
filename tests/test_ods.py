@@ -30,11 +30,6 @@ class OdsTest(unittest.TestCase):
         testOutPath = dev_test.getTestOutputPath("valid_customers_from__ods.csv")
         _ods.main([testInPath, testOutPath])
 
-    def testConvertToDocBook(self):
-        testInPath = dev_test.getTestInputPath("valid_customers.ods")
-        testOutPath = dev_test.getTestOutputPath("valid_customers_from__ods.xml")
-        _ods.main(["--format=docbook", testInPath, testOutPath])
-
     def testConvertToRst(self):
         testInPath = dev_test.getTestInputPath("valid_customers.ods")
         testOutPath = dev_test.getTestOutputPath("valid_customers_from__ods.rst")
