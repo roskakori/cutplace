@@ -34,7 +34,6 @@ NAME_TO_ASCII_CODE_MAP = {
 
 
 class InputLocation(object):
-
     """
     Location in an input file, consisting of ``line``, an optional ``column`` (pointing at a
     single character) and an optional cell (pointing a cell in a structured input such as CSV).
@@ -218,7 +217,6 @@ def create_caller_input_location(modules_to_ignore=None, has_column=False, has_c
 
 
 class _BaseCutplaceError(Exception):
-
     """
     Exception that supports a `message` describing the error and an optional
     `location` in the input where the error happened.
@@ -282,34 +280,34 @@ class _BaseCutplaceError(Exception):
 
 
 class CutplaceError(_BaseCutplaceError):
-
     """
     Error detected by cutplace caused by issues in the ICD or data.
     """
+    pass
 
 
 class CutplaceUnicodeError(_BaseCutplaceError):
-
     """
-    Error detected by cutplace caused by improperly encoded ICD or data.
+    Error detected by cutplace caused by improperly encoded CID or data.
 
     This error is not derived from `CutplaceError` because it will not be handled in
     any meaningful way and simply results in the the termination of the validation.
     """
+    pass
 
 
 class RangeSyntaxError(CutplaceError):
-
     """
     Error in Range declaration.
     """
+    pass
 
 
 class RangeValueError(CutplaceError):
-
     """
     Error raised when ranges.validate() detects that a value is outside the expected ranges.
     """
+    pass
 
 
 class DataFormatError(CutplaceError):
@@ -320,59 +318,63 @@ class DataFormatError(CutplaceError):
 
 
 class DataFormatValueError(CutplaceError):
-
     """
     Error in data caused by violating the data format.
     """
+    pass
 
 
 class DataFormatSyntaxError(CutplaceError):
-
     """
     Error in data format declaration.
     """
+    pass
 
 
 class FieldValueError(CutplaceError):
-
     """
     Error raised when `AbstractFieldFormat.validated` detects an error.
     """
+    pass
 
 
 class FieldLookupError(CutplaceError):
-
     """
     Error raised when a field cannot be found.
     """
+    pass
 
 
 class FieldSyntaxError(CutplaceError):
-
     """
-    Error raised when a field definition in the ICD is broken.
+    Error raised when a field definition in the CID is broken.
     """
+    pass
 
 
 class CidSyntaxError(CutplaceError):
-
     """
     General syntax error in the specification of the CID.
     """
+    pass
 
 
 class CheckError(CutplaceError):
     """
     Error to be raised when a check fails.
     """
+    pass
 
 
 class CheckSyntaxError(CutplaceError):
     """
-    Error to be raised when the specification of check in the ICD is broken.
+    Error to be raised when the specification of check in the CID is broken.
     """
+    pass
+
 
 class ValidateLineError(CutplaceError):
     """
     Error to be raised when a line in an input file is invalid
     """
+    pass

@@ -242,7 +242,7 @@ def validatedPythonName(name, value):
         raise NameError("%s must not be empty but was: %r" % (name, value))
     if nextType != token.NAME:
         raise NameError("%s must contain only ASCII letters, digits and underscore (_) but is: %r"
-                         % (name, value))
+                % (name, value))
     secondToken = next(toky)
     secondTokenType = secondToken[0]
     if not tokenize.ISEOF(secondTokenType):
@@ -302,7 +302,7 @@ def basedText(longNumber, base, numerals="0123456789abcdefghijklmnopqrstuvwxyz")
     assert base <= len(numerals)
 
     zero = numerals[0]
-    result = ((longNumber == 0) and  zero) \
+    result = ((longNumber == 0) and zero) \
         or (basedText(longNumber // base, base, numerals).lstrip(zero) + numerals[longNumber % base])
     return result
 

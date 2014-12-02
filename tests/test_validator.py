@@ -18,16 +18,15 @@ Tests for validator.
 import logging
 import unittest
 
-from cutplace import validator
-from cutplace import errors
-from cutplace import data
 from cutplace import cid
-from cutplace import _tools
 from cutplace import dev_test
+from cutplace import data
+from cutplace import errors
+from cutplace import validator
+from cutplace import _tools
 
 
 class ValidatorTest(unittest.TestCase):
-
     """
     Tests for data formats.
     """

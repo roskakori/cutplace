@@ -171,12 +171,15 @@
             Note: We do not use failonerror="true" because any violations results in an exit code
             of 1, which would result in the whole build to be considered failed.
             -->
-            <arg value="--repeat" />
-            <arg value="--ignore" />
-            <arg value="E501" />
+            <arg value="--config" />
+            <arg file="pep8.cfg" />
             <arg value="cutplace" />
+            <arg value="tests" />
             <redirector output="pep8.txt" />
         </exec>
+        <concat>
+            <filelist files="pep8.txt"/>
+        </concat>
     </target>
 
     <target name="api" depends="sitebase" description="build API documentation">

@@ -95,7 +95,7 @@ class CutPlace(object):
         args = parser.parse_args(argv[1:])
 
         self._log.setLevel(_tools.LOG_LEVEL_NAME_TO_LEVEL_MAP[args.log_level])
-        self.cid_encoding= args.cid_encoding
+        self.cid_encoding = args.cid_encoding
         # FIXME: Remove dummy values below.
         self.isLogTrace = False
         self.isOpenBrowser = False
@@ -137,7 +137,6 @@ class CutPlace(object):
         reader = validator.Reader(self.icd, dataFilePath)
         reader.validate()
         self.lastValidationWasOk = True
-
 
     def setIcdFromFile(self, cid_path):
         assert cid_path is not None
