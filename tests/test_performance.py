@@ -53,7 +53,7 @@ class PerformanceTest(unittest.TestCase):
             itemName = "profile_lotsOfCustomers"
             targetProfilePath = os.path.join(targetBasePath, itemName) + ".profile"
             targetReportPath = os.path.join(targetBasePath, itemName) + ".txt"
-            cProfile.run("from cutplace import test_performance; test_performance._buildAndValidateManyCustomers()", targetProfilePath)
+            cProfile.run("from tests import test_performance; test_performance._buildAndValidateManyCustomers()", targetProfilePath)
             targetReportFile = io.open(targetReportPath, "w", encoding='utf-8')
             try:
                 stats = pstats.Stats(targetProfilePath, stream=targetReportFile)
