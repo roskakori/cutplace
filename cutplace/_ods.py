@@ -16,9 +16,9 @@ Read and convert ODS files created by OpenOffice.org's Calc.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import argparse
 import csv
 import logging
-import optparse
 import io
 import sys
 import threading
@@ -203,7 +203,7 @@ def _writeRstRow(rstTargetFile, columnLengths, items):
             item = ""
         itemLength = len(item)
         assert columnLength >= itemLength
-        # FIXME: Add support for items containing line separators .
+        # FIXME: Add support for items containing line separators.
         if ("\n" in item) or ("\r" in item):
             raise NotImplementedError("item must not contain line separator: %r" % item)
         rstTargetFile.write("+%s%s" % (item, " " * (columnLength - itemLength)))
@@ -285,20 +285,6 @@ def toRst(odsFilePath, rstTargetPath, firstRowIsHeading=True, sheet=1):
         rstTargetFile.close()
 
 
-def _isEmptyRow(row):
-    """
-    True if row has no items or all items in row are "".
-    """
-    result = True
-    itemIndex = 0
-    while result and (itemIndex < len(row)):
-        if row[itemIndex] != "":
-            result = False
-        else:
-            itemIndex += 1
-    return result
-
-
 # FIXME: The handlers for the various formats should support items spawning multiple columns.
 # FIXME: Add support for items spawning multiple rows.
 
@@ -309,52 +295,45 @@ def main(arguments):
     _FORMAT_CSV = "csv"
     _FORMAT_RST = "rst"
     _FORMATS = [_FORMAT_CSV, _FORMAT_RST]
-    _FORMAT_TO_SUFFIX_MAP = {
-        _FORMAT_CSV: ".csv",
-        _FORMAT_RST: ".rst"
-    }
-    usage = "usage: %prog [options] ODS-FILE [OUTPUT-FILE]"
-    parser = optparse.OptionParser(usage)
-    parser.set_defaults(format=_FORMAT_CSV, id="insert-id", sheet=1, title="Insert Title")
-    parser.add_option("-f", "--format", metavar="FORMAT", type="choice", choices=_FORMATS, dest="format",
-                      help="output format: %s (default: %%default)" % _tools.humanReadableList(_FORMATS))
-    parser.add_option("-i", "--id", metavar="ID", dest="id", help="XML ID table can be referenced with (default: %default)")
-    parser.add_option("-1", "--heading", action="store_true", dest="firstRowIsHeading", help="render first row as heading")
-    parser.add_option("-s", "--sheet", metavar="SHEET", type="long", dest="sheet", help="sheet to convert (default: %default)")
-    parser.add_option("-t", "--title", metavar="TITLE", dest="title", help="title to be used for XML table (default: %default)")
-    options, others = parser.parse_args(arguments)
+    _DEFAULT_FORMAT = _FORMAT_CSV
+    _DEFAULT_SHEET = 1
 
-    # TODO: If no output file is specified, derive name from input file.
-    if options.sheet < 1:
-        _log.error("option --sheet is %d but must be at least 1" % options.sheet)
+    parser = argparse.ArgumentParser(description='convert ODS file to other formats')
+    parser.add_argument("-f", "--format", metavar="FORMAT", default=_DEFAULT_FORMAT, choices=sorted(_FORMATS),
+            dest="format",
+            help="target format: %s (default: %s)" % (_tools.humanReadableList(_FORMATS), _DEFAULT_FORMAT))
+    parser.add_argument("-1", "--heading", action="store_true", dest="firstRowIsHeading",
+            help="render first row as heading")
+    parser.add_argument("-s", "--sheet", metavar="SHEET", default=_DEFAULT_SHEET, type=int, dest="sheet",
+            help="sheet to convert (default: %d)" % _DEFAULT_SHEET)
+    parser.add_argument('source_ods_path', metavar='ODS-FILE', help='the ODS file to convert')
+    parser.add_argument('target_path', metavar='TARGET-FILE', default=None, help='the target file to write')
+    args = parser.parse_args(arguments)
+
+    # Additional command line argument validation.
+    if args.sheet < 1:
+        parser.error("option --sheet is %d but must be at least 1" % args.sheet)
+    if (args.format == _FORMAT_CSV) and args.firstRowIsHeading:
+        parser.error("option --heading can not be used with --format=csv")
+
+    if args.target_path is None:
+        assert args.format in _FORMATS
+        suffix = '.' + args.format
+        args.target_path = _tools.withSuffix(args.source_ods_path, suffix)
+
+    _log.info("convert %r to %r using format %r" % (args.source_ods_path, args.target_path, args.format))
+    try:
+        if args.format == _FORMAT_CSV:
+            toCsv(args.source_ods_path, args.target_path, sheet=args.sheet)
+        elif args.format == _FORMAT_RST:
+            toRst(args.source_ods_path, args.target_path, firstRowIsHeading=args.firstRowIsHeading, sheet=args.sheet)
+        else:  # pragma: no cover
+            raise NotImplementedError("format=%r" % args.format)
+    except EnvironmentError as error:
+        _log.error("cannot convert ods: %s" % error)
         sys.exit(1)
-    elif len(others) in [1, 2]:
-        sourceFilePath = others[0]
-        if len(others) == 2:
-            targetFilePath = others[1]
-        else:
-            assert options.format in _FORMAT_TO_SUFFIX_MAP
-            suffix = _FORMAT_TO_SUFFIX_MAP[options.format]
-            targetFilePath = _tools.withSuffix(sourceFilePath, suffix)
-        _log.info("convert %r to %r using format %r" % (sourceFilePath, targetFilePath, options.format))
-        try:
-            if options.format == _FORMAT_CSV:
-                if options.firstRowIsHeading:
-                    _log.error("option --heading can not be used with --format=csv")
-                    sys.exit(1)
-                toCsv(sourceFilePath, targetFilePath, sheet=options.sheet)
-            elif options.format == _FORMAT_RST:
-                toRst(sourceFilePath, targetFilePath, firstRowIsHeading=options.firstRowIsHeading, sheet=options.sheet)
-            else:  # pragma: no cover
-                raise NotImplementedError("format=%r" % (options.format))
-        except EnvironmentError as error:
-            _log.error("cannot convert ods to csv: %s" % error)
-            sys.exit(1)
-        except Exception as error:
-            _log.error("cannot convert ods to csv: %s" % error, exc_info=1)
-            sys.exit(1)
-    else:
-        _log.error("ODS-FILE must be specified")
+    except Exception as error:
+        _log.exception("cannot convert ods: %s" % error)
         sys.exit(1)
 
 if __name__ == '__main__':  # pragma: no cover
