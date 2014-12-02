@@ -307,7 +307,7 @@ def main(arguments):
     parser.add_argument("-s", "--sheet", metavar="SHEET", default=_DEFAULT_SHEET, type=int, dest="sheet",
             help="sheet to convert (default: %d)" % _DEFAULT_SHEET)
     parser.add_argument('source_ods_path', metavar='ODS-FILE', help='the ODS file to convert')
-    parser.add_argument('target_path', metavar='TARGET-FILE', default=None, help='the target file to write')
+    parser.add_argument('target_path', metavar='TARGET-FILE', nargs='?', help='the target file to write')
     args = parser.parse_args(arguments)
 
     # Additional command line argument validation.
