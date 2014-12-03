@@ -133,6 +133,13 @@ class RowsTest(unittest.TestCase):
         row_count = len(list(_tools.excel_rows(excel_path)))
         self.assertTrue(row_count > 0)
 
+    def test_can_read_ods_rows(self):
+        ods_path = dev_test.getTestIcdPath('customers.ods')
+        ods_rows = list(_tools.ods_rows(ods_path))
+        self.assertTrue(len(ods_rows) > 0)
+        none_empty_rows = [row for row in ods_rows if len(row) > 0]
+        self.assertTrue(len(none_empty_rows) > 0)
+
 
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()
