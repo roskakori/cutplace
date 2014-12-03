@@ -21,115 +21,10 @@ import csv
 import logging
 import io
 import sys
-import threading
-import xml.dom.minidom
-import xml.sax
-import zipfile
 
 from cutplace import _tools
 
 _log = logging.getLogger("cutplace.ods")
-
-
-class AbstractOdsContentHandler(xml.sax.ContentHandler):
-    """
-    Sax ContentHandler for content.xml in ODS.
-    """
-    def __init__(self, sheet=1):
-        assert sheet >= 1
-
-        xml.sax.ContentHandler.__init__(self)
-        self.tablesToSkip = sheet
-        self._log = _log
-
-    def startDocument(self):
-        self.row = None
-        self.cellText = None
-        self.indent = 0
-        self.insideCell = False
-
-    def startElement(self, name, attributes):
-        self.indent += 1
-        if name == "table:table":
-            self.tablesToSkip -= 1
-            self._log.debug("%s<%s> #%d", " " * 2 * self.indent, name, self.tablesToSkip)
-        elif (name == "table:table-cell") and (self.tablesToSkip == 0):
-            try:
-                self.numberColumnsRepeated = int(attributes.getValue("table:number-columns-repeated"))
-            except KeyError:
-                self.numberColumnsRepeated = 1
-            self._log.debug("%s<%s> (%d) %r", " " * 2 * self.indent, name, self.numberColumnsRepeated, list(attributes.items()))
-            self.insideCell = True
-            self.cellText = ""
-        elif (name == "table:table-row") and (self.tablesToSkip == 0):
-            self._log.debug("%s<%s>", " " * 2 * self.indent, name)
-            self.row = []
-
-    def characters(self, text):
-        if self.insideCell and (self.tablesToSkip == 0):
-            self._log.debug("%s%r", " " * 2 * (self.indent + 1), text)
-            self.cellText += text
-
-    def endElement(self, name):
-        if (name == "table:table-cell") and (self.tablesToSkip == 0):
-            self._log.debug("%s</%s>", " " * 2 * self.indent, name)
-            assert self.cellText is not None
-            self.insideCell = False
-            for _ in range(self.numberColumnsRepeated):
-                cellType = type(self.cellText)
-                assert cellType == str, "type(%r)=%r" % (self.cellText, cellType)
-                self.row.append(self.cellText)
-            self.cellText = None
-        if (name == "table:table-row") and (self.tablesToSkip == 0):
-            self._log.debug("%s</%s>", " " * 2 * self.indent, name)
-            assert self.row is not None
-            self.rowCompleted()
-            self.row = None
-        self.indent -= 1
-
-    def rowCompleted(self):
-        """
-        Actions to be performed once ``self.row`` is complete and can be processed.
-        """
-        raise NotImplementedError("rowCompleted must be implemented")
-
-
-class OdsToCsvContentHandler(AbstractOdsContentHandler):
-    def __init__(self, csvWriter, sheet=1):
-        assert csvWriter is not None
-        assert sheet >= 1
-
-        AbstractOdsContentHandler.__init__(self, sheet)
-        self.csvWriter = csvWriter
-
-    def rowCompleted(self):
-        self.csvWriter.writerow(self.row)
-
-
-class RowListContentHandler(AbstractOdsContentHandler):
-    """
-    ContentHandler to collect all rows in a list which can be accessed using the ``rows`` attribute.
-    """
-    def __init__(self, sheet=1):
-        AbstractOdsContentHandler.__init__(self, sheet)
-        self.rows = []
-
-    def rowCompleted(self):
-        self.rows.append(self.row)
-
-
-class RowProducingContentHandler(AbstractOdsContentHandler):
-    """
-    ContentHandler to produce all rows to a target queue where a consumer in a different thread
-    can get them.
-    """
-    def __init__(self, targetQueue, sheet=1):
-        assert targetQueue is not None
-        AbstractOdsContentHandler.__init__(self, sheet)
-        self.queue = targetQueue
-
-    def rowCompleted(self):
-        self.queue.put(self.row)
 
 
 def toCsv(odsFilePath, csvTargetPath, dialect="excel", sheet=1):
@@ -142,51 +37,9 @@ def toCsv(odsFilePath, csvTargetPath, dialect="excel", sheet=1):
     assert sheet is not None
     assert sheet >= 1
 
-    contentReadable = odsContent(odsFilePath)
-    try:
-        csvTargetFile = open(csvTargetPath, "w")
-        try:
-            csvWriter = csv.writer(csvTargetFile, dialect)
-            xml.sax.parse(contentReadable, OdsToCsvContentHandler(csvWriter, sheet))
-        finally:
-            csvTargetFile.close()
-    finally:
-        contentReadable.close()
-
-
-class ProducerThread(threading.Thread):
-    """
-    Thread to produce the contents of an ODS readable to a queue where a consumer can get it.
-
-    Consumers should call ``Queue.get()`` until it returns ``None``. Possible exceptions raised
-    in the background during `run()` are raised again when calling `join()` so no special means
-    are necessary for the consumer to handle exceptions in the producer thread.
-    """
-    def __init__(self, readable, targetQueue, sheet=1):
-        assert readable is not None
-        assert targetQueue is not None
-        assert sheet is not None
-        assert sheet >= 1
-        super(ProducerThread, self).__init__()
-        self.readable = readable
-        self.targetQueue = targetQueue
-        self.sheet = sheet
-        self.error = None
-
-    def run(self):
-        try:
-            xml.sax.parse(self.readable, RowProducingContentHandler(self.targetQueue, self.sheet))
-        except Exception as error:
-            # Remember error information to raise it later during `join()`.
-            self.error = error
-        finally:
-            # The last row always is a `None` to mark the end.
-            self.targetQueue.put(None)
-
-    def join(self):
-        super(ProducerThread, self).join()
-        if self.error is not None:
-            raise self.error
+    with io.open(csvTargetPath, 'w', encoding='utf-8') as csvTargetFile:
+        csvWriter = csv.writer(csvTargetFile, dialect)
+        csvWriter.writerows(_tools.ods_rows(odsFilePath, sheet))
 
 
 def _writeRstRow(rstTargetFile, columnLengths, items):
@@ -222,19 +75,6 @@ def _writeRstSeparatorLine(rstTargetFile, columnLengths, lineSeparator):
     rstTargetFile.write("+\n")
 
 
-def odsContent(source_ods_path):
-    """
-    Readable for content.xml in `source_ods_path`.
-    """
-    assert source_ods_path is not None
-
-    with zipfile.ZipFile(source_ods_path, "r") as zip_archive:
-        xml_data = zip_archive.read("content.xml")
-        result = io.BytesIO(xml_data)
-
-    return result
-
-
 def toRst(odsFilePath, rstTargetPath, firstRowIsHeading=True, sheet=1):
     """
     Convert ODS file in `odsFilePath` to reStructuredText and store the result in `rstTargetPath`.
@@ -243,17 +83,12 @@ def toRst(odsFilePath, rstTargetPath, firstRowIsHeading=True, sheet=1):
     assert rstTargetPath is not None
     assert sheet >= 1
 
-    rowListHandler = RowListContentHandler(sheet)
-    readable = odsContent(odsFilePath)
-    try:
-        xml.sax.parse(readable, rowListHandler)
-    finally:
-        readable.close()
+    rows = list(_tools.ods_rows(odsFilePath, sheet))
 
     # Find out the length of each column.
     lengths = []
     isFirstRow = True
-    for row in rowListHandler.rows:
+    for row in rows:
         for columnIndex in range(len(row)):
             item = row[columnIndex]
             itemLength = len(item)
@@ -269,11 +104,10 @@ def toRst(odsFilePath, rstTargetPath, firstRowIsHeading=True, sheet=1):
         if lengths[columnIndex] == 0:
             raise ValueError("column %d in file %r must not always be empty" % (columnIndex + 1, odsFilePath))
 
-    rstTargetFile = open(rstTargetPath, "w")
-    try:
+    with io.open(rstTargetPath, "w", encoding='utf-8') as rstTargetFile:
         isFirstRow = firstRowIsHeading
         _writeRstSeparatorLine(rstTargetFile, lengths, "-")
-        for row in rowListHandler.rows:
+        for row in rows:
             _writeRstRow(rstTargetFile, lengths, row)
             if isFirstRow:
                 lineSeparator = "="
@@ -281,14 +115,10 @@ def toRst(odsFilePath, rstTargetPath, firstRowIsHeading=True, sheet=1):
             else:
                 lineSeparator = "-"
             _writeRstSeparatorLine(rstTargetFile, lengths, lineSeparator)
-    finally:
-        rstTargetFile.close()
 
 
 # FIXME: The handlers for the various formats should support items spawning multiple columns.
 # FIXME: Add support for items spawning multiple rows.
-
-
 def main(arguments):
     assert arguments is not None
 
