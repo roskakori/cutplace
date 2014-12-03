@@ -24,7 +24,6 @@ from cutplace import _ods
 
 
 class OdsTest(unittest.TestCase):
-
     def testConvertToCsv(self):
         testInPath = dev_test.getTestInputPath("valid_customers.ods")
         testOutPath = dev_test.getTestOutputPath("valid_customers_from__ods.csv")
@@ -50,21 +49,7 @@ class OdsTest(unittest.TestCase):
         self.assertRaises(SystemExit, _ods.main, ["--sheet=0", testInPath, testOutPath])
         # FIXME: Report error when sheet is out of range: self.assertRaises(SystemExit, _ods.main, ["--sheet=17", testInPath, testOutPath])
 
-    def testConsumerProducer(self):
-        testInPath = dev_test.getTestInputPath("valid_customers.ods")
-        contentXmlReadable = _ods.odsContent(testInPath)
-        rowQueue = queue.Queue()
-        producer = _ods.ProducerThread(contentXmlReadable, rowQueue)
-        producer.start()
-        hasRow = True
-        while hasRow:
-            row = rowQueue.get()
-            if row is None:
-                hasRow = False
-        producer.join()
 
 if __name__ == "__main__":  # pragma: no cover
-    logging.basicConfig()
-    logging.getLogger("cutplace").setLevel(logging.INFO)
-    logging.getLogger("cutplace.ods").setLevel(logging.INFO)
+    logging.basicConfig(level=logging.INFO)
     unittest.main()
