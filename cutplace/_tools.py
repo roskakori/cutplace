@@ -18,7 +18,6 @@ from the Python documentation.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from cgi import escape
 import codecs
 import csv
 import datetime
@@ -36,6 +35,8 @@ import tokenize
 import threading
 import unicodedata
 import xlrd
+import zipfile
+from xml.etree import ElementTree
 
 from cutplace import errors
 
@@ -52,6 +53,39 @@ LOG_LEVEL_NAME_TO_LEVEL_MAP = {
 NUMBER_DECIMAL_COMMA = "decimalComma"
 NUMBER_DECIMAL_POINT = "decimalPoint"
 NUMBER_INTEGER = "integer"
+
+# Namespaces used by OpenOffice.org documents.
+_OOO_NAMESPACES = {
+    'chart': 'urn:oasis:names:tc:opendocument:xmlns:chart:1.0',
+    'dc': 'http://purl.org/dc/elements/1.1/',
+    'dom': 'http://www.w3.org/2001/xml-events',
+    'dr3d': 'urn:oasis:names:tc:opendocument:xmlns:dr3d:1.0',
+    'draw': 'urn:oasis:names:tc:opendocument:xmlns:drawing:1.0',
+    'field': 'urn:openoffice:names:experimental:ooo-ms-interop:xmlns:field:1.0',
+    'fo': 'urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0',
+    'form': 'urn:oasis:names:tc:opendocument:xmlns:form:1.0',
+    'math': 'http://www.w3.org/1998/Math/MathML',
+    'meta': 'urn:oasis:names:tc:opendocument:xmlns:meta:1.0',
+    'number': 'urn:oasis:names:tc:opendocument:xmlns:datastyle:1.0',
+    'of': 'urn:oasis:names:tc:opendocument:xmlns:of:1.2',
+    'office': 'urn:oasis:names:tc:opendocument:xmlns:office:1.0',
+    'ooo': 'http://openoffice.org/2004/office',
+    'oooc': 'http://openoffice.org/2004/calc',
+    'ooow': 'http://openoffice.org/2004/writer',
+    'presentation': 'urn:oasis:names:tc:opendocument:xmlns:presentation:1.0',
+    'rdfa': 'http://docs.oasis-open.org/opendocument/meta/rdfa#',
+    'rpt': 'http://openoffice.org/2005/report',
+    'script': 'urn:oasis:names:tc:opendocument:xmlns:script:1.0',
+    'style': 'urn:oasis:names:tc:opendocument:xmlns:style:1.0',
+    'svg': 'urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0',
+    'table': 'urn:oasis:names:tc:opendocument:xmlns:table:1.0',
+    'text': 'urn:oasis:names:tc:opendocument:xmlns:text:1.0',
+    'xforms': 'http://www.w3.org/2002/xforms',
+    'xlink': 'http://www.w3.org/1999/xlink',
+    'xsd': 'http://www.w3.org/2001/XMLSchema',
+    'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+}
+_NUMBER_COLUMNS_REPEATED = '{' + _OOO_NAMESPACES['table'] + '}number-columns-repeated'
 
 
 class UTF8Recoder:
@@ -602,3 +636,47 @@ def delimited_rows(source_path, data_format):
         # TODO: raise DataFormatError on basic CVS format violations (e.g. unterminated quotes).
         for row in csv_reader:
             yield row
+
+
+def ods_content_root(source_ods_path):
+    """
+    `ElementTree` for content.xml in `source_ods_path`.
+    """
+    assert source_ods_path is not None
+
+    with zipfile.ZipFile(source_ods_path, "r") as zip_archive:
+        xml_data = zip_archive.read("content.xml")
+    with io.BytesIO(xml_data) as xml_stream:
+        # result = io.BytesIO(xml_data)
+        tree = ElementTree.parse(xml_stream)
+
+    return tree.getroot()
+
+
+def ods_rows(source_ods_path, sheet=1):
+    """
+    Rows stored in ODS document ``source_ods_path`` in ``sheet``.
+    """
+    assert sheet >= 1
+    content_root = ods_content_root(source_ods_path)
+    table_elements = list(content_root.findall('office:body/office:spreadsheet/table:table', namespaces=_OOO_NAMESPACES))
+    table_count = len(table_elements)
+    if table_count < sheet:
+        raise ValueError('ODS must contain at least %d sheet(s) instead of just %d' % (sheet, table_count))
+    table_element = table_elements[sheet - 1]
+    for table_row in table_element.findall('table:table-row', namespaces=_OOO_NAMESPACES):
+        row = []
+        for table_cell in table_row.findall('table:table-cell', namespaces=_OOO_NAMESPACES):
+            repeated_text = table_cell.attrib.get(_NUMBER_COLUMNS_REPEATED, '1')
+            try:
+                repeated_count = int(repeated_text)
+            except ValueError:
+                # TODO: Raise some CutplaceError with an InputLocation.
+                raise ValueError('table:number-columns-repeated is %r but must be an integer' % repeated_text)
+            text_p = table_cell.find('text:p', namespaces=_OOO_NAMESPACES)
+            if text_p is None:
+                cell_value = ''
+            else:
+                cell_value = text_p.text
+            row.extend([cell_value] * repeated_count)
+        yield row
