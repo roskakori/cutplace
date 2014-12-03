@@ -48,7 +48,7 @@ CLASSIFIERS = [
     # TODO #61: "Programming Language :: Python :: 2.7",
     "Programming Language :: Python :: 3",
     # TODO #56: "Programming Language :: Python :: 3.2",
-    # TODO #56: "Programming Language :: Python :: 3.3",
+    "Programming Language :: Python :: 3.3",
     "Programming Language :: Python :: 3.4",
     "Topic :: Documentation",
     "Topic :: Software Development :: Quality Assurance",

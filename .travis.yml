@@ -6,6 +6,7 @@ virtualenv:
 env:
   matrix:
     - DISTRIB="conda" PYTHON_VERSION="3.4" COVERAGE="true"
+    - DISTRIB="ubuntu" PYTHON_VERSION="3.3" COVERAGE="false"
 install:
   - source tests/travis_install.sh
   - pip install -r requirements.txt
