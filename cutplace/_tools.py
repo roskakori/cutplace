@@ -25,14 +25,12 @@ import decimal
 import errno
 import keyword
 import logging
-import optparse
 import os
 import platform
 import re
 import io
 import token
 import tokenize
-import threading
 import unicodedata
 import xlrd
 import zipfile
@@ -86,150 +84,6 @@ _OOO_NAMESPACES = {
     'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
 }
 _NUMBER_COLUMNS_REPEATED = '{' + _OOO_NAMESPACES['table'] + '}number-columns-repeated'
-
-
-class UTF8Recoder:
-    """
-    Iterator that reads an encoded stream and reencodes the input to UTF-8
-    """
-    def __init__(self, f, encoding):
-        # FIXME: This line raises UnicodeError describe in test_interface.testBrokenAsciiIcd().
-        self.reader = codecs.getreader(encoding)(f)
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):  # @ReservedAssignment
-        try:
-            result = self.reader.next().encode("utf-8")
-        except UnicodeError as error:
-            from . errors import CutplaceUnicodeError
-            raise CutplaceUnicodeError("cannot decode input: %s" % error, cause=error)
-        return result
-
-
-class UnicodeCsvReader:
-    """
-    A CSV reader which will iterate over lines in the CSV file "f",
-    which is encoded in the given encoding.
-    """
-
-    def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
-        f = UTF8Recoder(f, encoding)
-        self.reader = csv.reader(f, dialect=dialect, **kwds)
-
-    def __next__(self):  # @ReservedAssignment
-        row = next(self.reader)
-        return [str(s, "utf-8") for s in row]
-
-    def __iter__(self):
-        return self
-
-
-class UnicodeCsvWriter:
-    """
-    A CSV writer which will write rows to CSV file "f",
-    which is encoded in the given encoding.
-    """
-
-    def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
-        # Redirect output to a queue
-        self.queue = io.StringIO()
-        self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
-        self.stream = f
-        self.encoder = codecs.getincrementalencoder(encoding)()
-
-    def writerow(self, row):
-        self.writer.writerow([s.encode("utf-8") for s in row])
-        # Fetch UTF-8 output from the queue ...
-        data = self.queue.getvalue()
-        data = data.decode("utf-8")
-        # ... and reencode it into the target encoding
-        data = self.encoder.encode(data)
-        # write to the target stream
-        self.stream.write(data)
-        # empty queue
-        self.queue.truncate(0)
-
-    def writerows(self, rows):
-        for row in rows:
-            self.writerow(row)
-
-
-class OptionParserWithPreformattedEpilog(optparse.OptionParser):
-    """
-    Similar to ``optparse.OptionParser`` but preserves the formatting of the ``epilog``.
-    """
-    def format_epilog(self, formatter):
-        return self.epilog
-
-
-def valueOr(value, noneValue):
-    """
-    Value or noneValue in case value is None.
-    """
-    if value is None:
-        result = noneValue
-    else:
-        result = value
-    return result
-
-
-class FinishableThread(threading.Thread):
-    """
-    Thread with a `finish()` method. The thread itself has to check regularly
-    for the `finished()` condition.
-
-    Based on code published at
-    http://stackoverflow.com/questions/5849484/how-to-exit-a-multithreaded-program.
-    """
-    def __init__(self, name):
-        assert name
-        super(FinishableThread, self).__init__()
-        self._stopEvent = threading.Event()
-        self._log = logging.getLogger(name)
-
-    def finish(self):
-        """
-        Stop the thread and wait for it to finish.
-        """
-        if self.isAlive():
-            self.log.info("finished")
-            # Set event to signal thread to terminate.
-            self._stopEvent.set()
-            # Block calling thread until thread really has terminated.
-            self.join()
-        else:
-            self.log.warning("ignored attempt to finish finished thread")
-
-    @property
-    def log(self):
-        return self._log
-
-    @property
-    def finished(self):
-        """
-        ``True`` if `finish()` has been called.
-        """
-        return self._stopEvent.isSet()
-
-
-def listdirMatching(folder, pattern, patternToExclude=None):
-    """
-    Name of entries in folder that match regex ``pattern`` and not matching the optional regex
-    ``patternToExclude``.
-    """
-    assert folder is not None
-    assert pattern is not None
-
-    regex = re.compile(pattern)
-    if patternToExclude:
-        regexToExclude = re.compile(patternToExclude)
-    else:
-        regexToExclude = None
-    for entry in os.listdir(folder):
-        if regex.match(entry) and not (regexToExclude and regexToExclude.match(entry)):
-            yield entry
 
 
 def mkdirs(folder):
@@ -324,20 +178,6 @@ def decamelized(name):
                 result += " " + c.lower()
     else:
         result = ""
-    return result
-
-
-def basedText(longNumber, base, numerals="0123456789abcdefghijklmnopqrstuvwxyz"):
-    # Based on code found at:
-    # http://stackoverflow.com/questions/2267362/convert-integer-to-a-string-in-a-given-numeric-base-in-python
-    assert longNumber is not None
-    assert numerals is not None
-    assert base > 0
-    assert base <= len(numerals)
-
-    zero = numerals[0]
-    result = ((longNumber == 0) and zero) \
-        or (basedText(longNumber // base, base, numerals).lstrip(zero) + numerals[longNumber % base])
     return result
 
 
@@ -436,33 +276,6 @@ def withSuffix(path, suffix=""):
     if suffix:
         result += suffix
     return result
-
-
-def asBytes(text):
-    """
-    Same as ``text`` but represented as list of integers.
-
-    >>> asBytes("abc")
-    [97, 98, 99]
-    >>> asBytes("\\x00\\xff")
-    [0, 255]
-    """
-    assert text is not None
-    return [ord(item) for item in text]
-
-
-def isEqualBytes(some, other):
-    """
-    ``True`` if the bytes of ``some`` and ``other`` match. This allows to
-    compare two raw strings with none ASCII characters without running into
-    a "UnicodeWarning: Unicode equal comparison failed to convert both
-    arguments to Unicode - interpreting them as being unequal".
-    """
-    assert some is not None
-    assert other is not None
-    someBytes = asBytes(some)
-    otherBytes = asBytes(other)
-    return someBytes == otherBytes
 
 
 def asciified(text):
@@ -647,7 +460,6 @@ def ods_content_root(source_ods_path):
     with zipfile.ZipFile(source_ods_path, "r") as zip_archive:
         xml_data = zip_archive.read("content.xml")
     with io.BytesIO(xml_data) as xml_stream:
-        # result = io.BytesIO(xml_data)
         tree = ElementTree.parse(xml_stream)
 
     return tree.getroot()

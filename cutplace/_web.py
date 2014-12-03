@@ -21,6 +21,7 @@ import logging
 import io
 import sys
 import tempfile
+import threading
 
 from . import interface
 from . import version
@@ -283,6 +284,45 @@ Platform: %s</p>
             errorMessage = "ICD file must be specified"
             log.error(errorMessage)
             self.send_error(400, "%s." % cgi.escape(errorMessage))
+
+
+class FinishableThread(threading.Thread):
+    """
+    Thread with a `finish()` method. The thread itself has to check regularly
+    for the `finished()` condition.
+
+    Based on code published at
+    http://stackoverflow.com/questions/5849484/how-to-exit-a-multithreaded-program.
+    """
+    def __init__(self, name):
+        assert name
+        super(FinishableThread, self).__init__()
+        self._stopEvent = threading.Event()
+        self._log = logging.getLogger(name)
+
+    def finish(self):
+        """
+        Stop the thread and wait for it to finish.
+        """
+        if self.isAlive():
+            self.log.info("finished")
+            # Set event to signal thread to terminate.
+            self._stopEvent.set()
+            # Block calling thread until thread really has terminated.
+            self.join()
+        else:
+            self.log.warning("ignored attempt to finish finished thread")
+
+    @property
+    def log(self):
+        return self._log
+
+    @property
+    def finished(self):
+        """
+        ``True`` if `finish()` has been called.
+        """
+        return self._stopEvent.isSet()
 
 
 class WebServer(_tools.FinishableThread):
