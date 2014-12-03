@@ -16,7 +16,6 @@ Tests for `_ods`.
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import logging
-import queue
 import unittest
 
 from cutplace import dev_test
@@ -24,30 +23,30 @@ from cutplace import _ods
 
 
 class OdsTest(unittest.TestCase):
-    def testConvertToCsv(self):
-        testInPath = dev_test.getTestInputPath("valid_customers.ods")
-        testOutPath = dev_test.getTestOutputPath("valid_customers_from__ods.csv")
-        _ods.main([testInPath, testOutPath])
+    def test_can_convert_ods_to_csv(self):
+        source_ods_path = dev_test.getTestInputPath("valid_customers.ods")
+        target_path = dev_test.getTestOutputPath("valid_customers_from__ods.csv")
+        _ods.main([source_ods_path, target_path])
 
-    def testConvertToRst(self):
-        testInPath = dev_test.getTestInputPath("valid_customers.ods")
-        testOutPath = dev_test.getTestOutputPath("valid_customers_from__ods.rst")
-        _ods.main(["--format=rst", testInPath, testOutPath])
+    def test_can_convert_ods_to_rst(self):
+        source_ods_path = dev_test.getTestInputPath("valid_customers.ods")
+        target_path = dev_test.getTestOutputPath("valid_customers_from__ods.rst")
+        _ods.main(["--format=rst", source_ods_path, target_path])
 
-    def testBrokenKinkyFileName(self):
-        testInPath = dev_test.getTestInputPath("valid_customers.ods")
-        testOutPath = dev_test.getTestOutputPath("kinky_file_name//\\:^$\\::/")
-        self.assertRaises(SystemExit, _ods.main, [testInPath, testOutPath])
+    def test_fails_on_kinky_file_name(self):
+        source_ods_path = dev_test.getTestInputPath("valid_customers.ods")
+        target_path = dev_test.getTestOutputPath("kinky_file_name//\\:^$\\::/")
+        self.assertRaises(SystemExit, _ods.main, [source_ods_path, target_path])
 
-    def testBrokenNoOptionsAtAll(self):
+    def test_fails_without_command_line_arguments(self):
         self.assertRaises(SystemExit, _ods.main, [])
 
-    def testBrokenSheet(self):
-        testInPath = dev_test.getTestInputPath("valid_customers.ods")
-        testOutPath = dev_test.getTestOutputPath("valid_customers_from__ods.csv")
-        self.assertRaises(SystemExit, _ods.main, ["--sheet=x", testInPath, testOutPath])
-        self.assertRaises(SystemExit, _ods.main, ["--sheet=0", testInPath, testOutPath])
-        # FIXME: Report error when sheet is out of range: self.assertRaises(SystemExit, _ods.main, ["--sheet=17", testInPath, testOutPath])
+    def test_fails_on_broken_sheet(self):
+        source_ods_path = dev_test.getTestInputPath("valid_customers.ods")
+        target_path = dev_test.getTestOutputPath("valid_customers_from__ods.csv")
+        self.assertRaises(SystemExit, _ods.main, ["--sheet=x", source_ods_path, target_path])
+        self.assertRaises(SystemExit, _ods.main, ["--sheet=0", source_ods_path, target_path])
+        # FIXME: Report error when sheet is out of range: self.assertRaises(SystemExit, _ods.main, ["--sheet=17", source_ods_path, target_path])
 
 
 if __name__ == "__main__":  # pragma: no cover
