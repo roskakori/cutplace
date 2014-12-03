@@ -22,6 +22,7 @@ import unittest
 
 from cutplace import dev_test
 from cutplace import _cutplace
+from cutplace import _tools
 
 _log = logging.getLogger("cutplace.dev_reports")
 _hasProfiler = False
@@ -53,6 +54,7 @@ class PerformanceTest(unittest.TestCase):
             itemName = "profile_lotsOfCustomers"
             targetProfilePath = os.path.join(targetBasePath, itemName) + ".profile"
             targetReportPath = os.path.join(targetBasePath, itemName) + ".txt"
+            _tools.mkdirs(os.path.dirname(targetReportPath))
             cProfile.run("from tests import test_performance; test_performance._buildAndValidateManyCustomers()", targetProfilePath)
             targetReportFile = io.open(targetReportPath, "w", encoding='utf-8')
             try:
