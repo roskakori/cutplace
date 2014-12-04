@@ -54,7 +54,7 @@ class Cid():
     _ID_FIELD_RULE = "f"
     _VALID_IDS = [_ID_CHECK, _ID_DATA_FORMAT, _ID_FIELD_RULE]
 
-    def __init__(self):
+    def __init__(self, cid_path=None):
         self._data_format = None
         self._field_names = []
         self._field_formats = []
@@ -67,6 +67,8 @@ class Cid():
         self._location = None
         self._check_name_to_class_map = self._create_name_to_class_map(checks.AbstractCheck)
         self._field_format_name_to_class_map = self._create_name_to_class_map(fields.AbstractFieldFormat)
+        if cid_path is not None:
+            self.read(cid_path, auto_rows(cid_path))
 
     @property
     def data_format(self):
