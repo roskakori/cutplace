@@ -1,4 +1,4 @@
-autopep >= 1.04
+autopep8 >= 1.04
 coverage >= 3.7
 pep8 >= 1.5
 Sphinx >= 1.2.3
