@@ -10,6 +10,7 @@ env:
 install:
   - source tests/travis_install.sh
   - pip install -r requirements.txt
+  - pip install -r requirements-dev.txt
 before_script:
   - git config --global user.email "roskakori@users.sourceforge.net"
   - git config --global user.name "Thomas Aglassinger"
