@@ -457,10 +457,23 @@ def ods_content_root(source_ods_path):
     """
     assert source_ods_path is not None
 
-    with zipfile.ZipFile(source_ods_path, "r") as zip_archive:
-        xml_data = zip_archive.read("content.xml")
+    location = errors.InputLocation(source_ods_path)
+    try:
+        with zipfile.ZipFile(source_ods_path, "r") as zip_archive:
+            try:
+                xml_data = zip_archive.read("content.xml")
+            except Exception as error:
+                raise errors.DataFormatError('cannot extract content.xml for ODS spreadsheet: %s' % error, location)
+    except errors.DataFormatError:
+        raise
+    except Exception as error:
+        raise errors.DataFormatError('cannot uncompress ODS spreadsheet: %s' % error, location)
+
     with io.BytesIO(xml_data) as xml_stream:
-        tree = ElementTree.parse(xml_stream)
+        try:
+            tree = ElementTree.parse(xml_stream)
+        except Exception as error:
+            raise errors.DataFormatError('cannot parse content.xml: %s' % error, location)
 
     return tree.getroot()
 
@@ -476,19 +489,27 @@ def ods_rows(source_ods_path, sheet=1):
     if table_count < sheet:
         raise ValueError('ODS must contain at least %d sheet(s) instead of just %d' % (sheet, table_count))
     table_element = table_elements[sheet - 1]
+    location = errors.InputLocation(source_ods_path, has_cell=True, has_sheet=True)
+    for _ in range(sheet - 1):
+        location.advance_sheet()
     for table_row in table_element.findall('table:table-row', namespaces=_OOO_NAMESPACES):
         row = []
         for table_cell in table_row.findall('table:table-cell', namespaces=_OOO_NAMESPACES):
             repeated_text = table_cell.attrib.get(_NUMBER_COLUMNS_REPEATED, '1')
             try:
                 repeated_count = int(repeated_text)
+                if repeated_count < 1:
+                    raise errors.DataFormatError(
+                            'table:number-columns-repeated is %r but must be at least 1' % repeated_text, location)
             except ValueError:
-                # TODO: Raise some CutplaceError with an InputLocation.
-                raise ValueError('table:number-columns-repeated is %r but must be an integer' % repeated_text)
+                raise errors.DataFormatError(
+                        'table:number-columns-repeated is %r but must be an integer' % repeated_text, location)
             text_p = table_cell.find('text:p', namespaces=_OOO_NAMESPACES)
             if text_p is None:
                 cell_value = ''
             else:
                 cell_value = text_p.text
             row.extend([cell_value] * repeated_count)
+            location.advance_cell(repeated_count)
         yield row
+        location.advance_line()
