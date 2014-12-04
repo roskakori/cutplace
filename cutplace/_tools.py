@@ -433,7 +433,7 @@ def excel_rows(source_path):
 
 
 def delimited_rows(source_path, data_format):
-    with open(source_path, encoding=data_format.encoding) as csv_file:
+    with io.open(source_path, encoding=data_format.encoding) as csv_file:
         if data_format.escape_character == data_format.quote_character:
             doublequote = False
             escapechar = None
@@ -447,8 +447,13 @@ def delimited_rows(source_path, data_format):
             skipinitialspace=data_format.skip_initial_space, strict=True)
 
         # TODO: raise DataFormatError on basic CVS format violations (e.g. unterminated quotes).
-        for row in csv_reader:
-            yield row
+        location = errors.InputLocation(source_path)
+        try:
+            for row in csv_reader:
+                yield row
+        except csv.Error as error:
+            location.advance_line(csv_reader.line_num)
+            raise errors.DataFormatError('cannot parse delimited file: %s' % error, location)
 
 
 def ods_content_root(source_ods_path):

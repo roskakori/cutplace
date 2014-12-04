@@ -19,6 +19,7 @@ import decimal
 import os.path
 import unittest
 
+from cutplace import cid
 from cutplace import dev_test
 from cutplace import errors
 from cutplace import _tools
@@ -169,6 +170,17 @@ class RowsTest(unittest.TestCase):
         except errors.DataFormatError as error:
             error_message = '%s' % error
             self.assertTrue('cannot parse content.xml' in error_message,
+                    'error_message=%r' % error_message)
+
+    def test_fails_on_delimited_with_unterminated_quote(self):
+        cid_path = dev_test.getTestIcdPath('customers.ods')
+        customer_cid = cid.Cid(cid_path)
+        broken_delimited_path = dev_test.getTestInputPath('broken_customers_with_unterminated_quote.csv')
+        try:
+            _ = list(_tools.delimited_rows(broken_delimited_path, customer_cid.data_format))
+        except errors.DataFormatError as error:
+            error_message = '%s' % error
+            self.assertTrue('cannot parse delimited file' in error_message,
                     'error_message=%r' % error_message)
 
 
