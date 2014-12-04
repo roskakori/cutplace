@@ -20,6 +20,7 @@ import os.path
 import unittest
 
 from cutplace import dev_test
+from cutplace import errors
 from cutplace import _tools
 
 
@@ -139,6 +140,36 @@ class RowsTest(unittest.TestCase):
         self.assertTrue(len(ods_rows) > 0)
         none_empty_rows = [row for row in ods_rows if len(row) > 0]
         self.assertTrue(len(none_empty_rows) > 0)
+
+    def test_fails_on_ods_with_broken_zip(self):
+        broken_ods_path = dev_test.getTestInputPath('customers.csv')
+        try:
+            _ = list(_tools.ods_rows(broken_ods_path))
+            self.fail('expected DataFormatError')
+        except errors.DataFormatError as error:
+            error_message = '%s' % error
+            self.assertTrue('cannot uncompress ODS spreadsheet:' in error_message,
+                    'error_message=%r' % error_message)
+
+    def test_fails_on_ods_without_content_xml(self):
+        broken_ods_path = dev_test.getTestInputPath('broken_without_content_xml.ods')
+        try:
+            _ = list(_tools.ods_rows(broken_ods_path))
+            self.fail('expected DataFormatError')
+        except errors.DataFormatError as error:
+            error_message = '%s' % error
+            self.assertTrue('cannot extract content.xml' in error_message,
+                    'error_message=%r' % error_message)
+
+    def test_fails_on_ods_without_broken_content_xml(self):
+        broken_ods_path = dev_test.getTestInputPath('broken_content_xml.ods')
+        try:
+            _ = list(_tools.ods_rows(broken_ods_path))
+            self.fail('expected DataFormatError')
+        except errors.DataFormatError as error:
+            error_message = '%s' % error
+            self.assertTrue('cannot parse content.xml' in error_message,
+                    'error_message=%r' % error_message)
 
 
 if __name__ == "__main__":  # pragma: no cover
