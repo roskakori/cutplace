@@ -136,7 +136,7 @@ class RowsTest(unittest.TestCase):
         self.assertTrue(row_count > 0)
 
     def test_can_read_ods_rows(self):
-        ods_path = dev_test.getTestIcdPath('customers.ods')
+        ods_path = dev_test.getTestInputPath('valid_customers.ods')
         ods_rows = list(_tools.ods_rows(ods_path))
         self.assertTrue(len(ods_rows) > 0)
         none_empty_rows = [row for row in ods_rows if len(row) > 0]
@@ -170,6 +170,16 @@ class RowsTest(unittest.TestCase):
         except errors.DataFormatError as error:
             error_message = '%s' % error
             self.assertTrue('cannot parse content.xml' in error_message,
+                    'error_message=%r' % error_message)
+
+    def test_fails_on_non_existent_ods_sheet(self):
+        ods_path = dev_test.getTestInputPath('valid_customers.ods')
+        try:
+            _ = list(_tools.ods_rows(ods_path, 123))
+            self.fail('expected DataFormatError')
+        except errors.DataFormatError as error:
+            error_message = '%s' % error
+            self.assertTrue('ODS must contain at least' in error_message,
                     'error_message=%r' % error_message)
 
     def test_fails_on_delimited_with_unterminated_quote(self):
