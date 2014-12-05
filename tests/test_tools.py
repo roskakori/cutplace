@@ -193,6 +193,14 @@ class RowsTest(unittest.TestCase):
             self.assertTrue('cannot parse delimited file' in error_message,
                     'error_message=%r' % error_message)
 
+    def test_can_read_fixed_rows(self):
+        cid_path = dev_test.getTestIcdPath('customers_fixed.ods')
+        customer_cid = cid.Cid(cid_path)
+        fixed_path = dev_test.getTestInputPath('valid_customers_fixed.txt')
+        field_names_and_lengths = cid.field_names_and_lengths(customer_cid)
+        rows = list(_tools.fixed_rows(fixed_path, customer_cid.data_format.encoding, field_names_and_lengths))
+        print(rows)
+
 
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()

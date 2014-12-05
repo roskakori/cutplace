@@ -53,6 +53,10 @@ NUMBER_DECIMAL_COMMA = "decimalComma"
 NUMBER_DECIMAL_POINT = "decimalPoint"
 NUMBER_INTEGER = "integer"
 
+# Valid line delimiters for  `fixed_rows()`.
+_VALID_FIXED_ANY_LINE_DELIMITERS = ('\n', '\r', '\r\n')
+_VALID_FIXED_LINE_DELIMITERS = _VALID_FIXED_ANY_LINE_DELIMITERS + ('any', None)
+
 # Namespaces used by OpenOffice.org documents.
 _OOO_NAMESPACES = {
     'chart': 'urn:oasis:names:tc:opendocument:xmlns:chart:1.0',
@@ -117,7 +121,7 @@ def validatedPythonName(name, value):
     """
     Validated and cleaned up `value` that represents a Python name with any whitespace removed.
     If validation fails, raise `NameError` with mentioning ``name`` as the name under which
-    ``value``  is known to the user.
+    ``value`` is known to the user.
     """
     assert name
     assert value is not None
@@ -590,3 +594,74 @@ def ods_rows(source_ods_path, sheet=1):
             location.advance_cell(repeated_count)
         yield row
         location.advance_line()
+
+
+def fixed_rows(fixed_path, encoding, field_name_and_lengths, line_delimiter='any'):
+    """
+    Rows found in file `fixed_path` using `encoding`. The name and (fixed)
+    length of the fields for each row are specified as a list of tuples
+    `(name, length)`. Each row can end with a line feed unless
+    `line_delimiter=None`. Valid values are: `'\n'`, `'\r'` and `'\r\n'`, in
+    which case other values result in a `errors.DataFormatError`.
+    Additionally `'any'` accepts any of the previous values.
+    """
+    assert fixed_path is not None
+    assert encoding is not None
+    for name, length in field_name_and_lengths:
+        assert name is not None
+        assert length >= 1, 'length for %s must be at least 1 but is %s' % (name, length)
+    assert line_delimiter in _VALID_FIXED_LINE_DELIMITERS, \
+        'line_delimiter=%r but must be one of: %s' % (line_delimiter, _VALID_FIXED_LINE_DELIMITERS)
+
+    with io.open(fixed_path, 'r', encoding=encoding) as fixed_file:
+        location = errors.InputLocation(fixed_path, has_column=True)
+        has_data = True
+        while has_data:
+            field_index = 0
+            row = []
+            for field_name, field_length in field_name_and_lengths:
+                item = fixed_file.read(field_length)
+                item_length = len(item)
+                if item_length == 0:
+                    if field_index > 0:
+                        raise errors.DataFormatError(
+                            'input must contain data for field %s (and any subsequent ones)', location)
+                    # End of input reached.
+                    has_data = False
+                elif item_length == field_length:
+                    row.append(item)
+                    location.advance_column(field_length)
+                    field_index += 1
+                else:
+                    raise errors.DataFormatError(
+                        'cannot read field %s: need %d characters but found only %d: %r'
+                        % (field_name, field_length, item_length, item), location)
+            # Process the line separator.
+            if has_data and (line_delimiter is not None):
+                if line_delimiter in ('\n', '\r', 'any'):
+                    actual_line_delimiter = fixed_file.read(1)
+                elif line_delimiter == '\r\n':
+                    actual_line_delimiter = fixed_file.read(2)
+                if (line_delimiter == 'any') and (actual_line_delimiter != ''):
+                    # Process the optional second character for 'any'.
+                    if actual_line_delimiter not in '\n\r':
+                        raise errors.DataFormatError(
+                            'line delimiter is %r but must be one of: %s' %
+                            (actual_line_delimiter, humanReadableList(('\n', '\r', '\r\n'))), location)
+                    if actual_line_delimiter == '\r':
+                        next_character = fixed_file.read(1)
+                        if next_character == '\n':
+                            actual_line_delimiter += next_character
+                        elif next_character == '':
+                            has_data = False
+                        else:
+                            # Discard the last character read because it is unrelated to line separators.
+                            fixed_file.seek(-1, os.SEEK_CUR)
+                if actual_line_delimiter == '':
+                    has_data = False
+                elif (line_delimiter != 'any') and (actual_line_delimiter != line_delimiter):
+                    raise errors.DataFormatError(
+                        'line delimiter is %r but must be %r' % (actual_line_delimiter, line_delimiter), location)
+            if len(row) > 0:
+                yield row
+                location.advance_line()
