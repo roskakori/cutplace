@@ -441,7 +441,7 @@ def _raise_delimited_data_format_error(delimited_path, reader, error):
     raise errors.DataFormatError('cannot parse delimited file: %s' % error, location)
 
 if sys.version_info[0] >= 3:
-    # Python 3 variant.
+    # Read CSV using Python 3.
     def _delimited_rows(delimited_path, encoding, **keywords):
         with io.open(delimited_path, 'r', newline='', encoding=encoding) as delimited_file:
             csv_reader = csv.reader(delimited_file, **keywords)
@@ -452,7 +452,7 @@ if sys.version_info[0] >= 3:
                 _raise_delimited_data_format_error(delimited_path, csv_reader, error)
 
 else:  # pragma: no cover
-    # Python 2.6+ variant.
+    # Read CSV using Python 2.6+.
     #
     # Note: _UTF8Recoder and _UnicodeReader are derived from <https://docs.python.org/2/library/csv.html#examples>.
     import codecs
@@ -469,29 +469,40 @@ else:  # pragma: no cover
             return self
 
         def next(self):
-            return self.reader.next().encode("utf-8")
+            return self.reader.next().encode('utf-8')
 
     class _UnicodeReader(object):
-        """
-        A CSV reader which will iterate over lines in the CSV file "f",
+        '''
+        A CSV reader which will iterate over lines in the CSV file 'f',
         which is encoded in the given encoding.
-        """
+        '''
 
-        def __init__(self, f, dialect=csv.excel, encoding="utf-8", **keywords):
-            f = _UTF8Recoder(f, encoding)
-            self.reader = csv.reader(f, dialect=dialect, **keywords)
+        def __init__(self, csv_file, dialect=csv.excel, encoding='utf-8', **keywords):
+            csv_file = _UTF8Recoder(csv_file, encoding)
+            self.reader = csv.reader(csv_file, dialect=dialect, **keywords)
 
         def next(self):
             row = self.reader.next()
-            return [unicode(s, "utf-8") for s in row]
+            return [unicode(item, 'utf-8') for item in row]
 
         def __iter__(self):
             return self
 
+    def _key_to_str_value_map(key_to_value_map):
+        """
+        Similar to ``key_to_value_map`` but with values of type `unicode`
+        converted to `str` because in Python 2 `csv.reader` can only process
+        byte strings for formatting parameters, e.g. delimiter=b';' instead of
+        delimiter=u';'. This quickly becomes an annoyance to the caller, in
+        particular with `from __future__ import unicode_literals` enabled.
+        """
+        return dict((key, value if not isinstance(value, unicode) else str(value))
+                    for key, value in key_to_value_map.items())
+
     def _delimited_rows(delimited_path, encoding, **keywords):
         with io.open(delimited_path, 'rb') as delimited_file:
-            # FIXME: convert values in keywords from unicode to str, e.g. delimiter=';' --> delimiter=b';'.
-            unicode_csv_reader = _UnicodeReader(delimited_file, encoding=encoding, **keywords)
+            str_keywords = _key_to_str_value_map(keywords)
+            unicode_csv_reader = _UnicodeReader(delimited_file, encoding=encoding, **str_keywords)
             try:
                 for row in unicode_csv_reader:
                     yield row
