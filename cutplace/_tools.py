@@ -1,8 +1,5 @@
 """
 Various internal utility functions.
-
-Note: The original source code for `UTF8Recoder`, `UnicodeReader` and `UnicodeWriter` is available
-from the Python documentation.
 """
 # Copyright (C) 2009-2013 Thomas Aglassinger
 #
@@ -18,7 +15,11 @@ from the Python documentation.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import codecs
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import csv
 import datetime
 import decimal
@@ -27,8 +28,8 @@ import keyword
 import logging
 import os
 import platform
-import re
 import io
+import sys
 import token
 import tokenize
 import unicodedata
@@ -130,7 +131,7 @@ def validatedPythonName(name, value):
         raise NameError("%s must not be empty but was: %r" % (name, value))
     if nextType != token.NAME:
         raise NameError("%s must contain only ASCII letters, digits and underscore (_) but is: %r"
-                % (name, value))
+                        % (name, value))
     secondToken = next(toky)
     secondTokenType = secondToken[0]
     if not tokenize.ISEOF(secondTokenType):
@@ -191,7 +192,7 @@ def platformVersion():
 
 
 def pythonVersion():
-        return platform.python_version()
+    return platform.python_version()
 
 
 def humanReadableList(items):
@@ -432,28 +433,86 @@ def excel_rows(source_path):
         raise errors.DataFormatError('cannot read Excel file: %s' % error, location)
 
 
-def delimited_rows(source_path, data_format):
-    with io.open(source_path, encoding=data_format.encoding) as csv_file:
-        if data_format.escape_character == data_format.quote_character:
-            doublequote = False
-            escapechar = None
-        else:
-            doublequote = True
-            escapechar = data_format.escape_character
+def _raise_delimited_data_format_error(delimited_path, reader, error):
+    location = errors.InputLocation(delimited_path)
+    line_number = reader.line_num
+    if line_number > 0:
+        location.advance_line(line_number)
+    raise errors.DataFormatError('cannot parse delimited file: %s' % error, location)
 
-        # HACK: Ignore DataFormat.line_delimiter because at least until Python 3.4 csv.reader ignores it anyway.
-        csv_reader = csv.reader(csv_file, delimiter=data_format.item_delimiter, doublequote=doublequote,
-            escapechar=escapechar, quotechar=data_format.quote_character,
-            skipinitialspace=data_format.skip_initial_space, strict=True)
+if sys.version_info[0] >= 3:
+    # Python 3 variant.
+    def _delimited_rows(delimited_path, encoding, **keywords):
+        with io.open(delimited_path, 'r', newline='', encoding=encoding) as delimited_file:
+            csv_reader = csv.reader(delimited_file, **keywords)
+            try:
+                for row in csv_reader:
+                    yield row
+            except csv.Error as error:
+                _raise_delimited_data_format_error(delimited_path, csv_reader, error)
 
-        # TODO: raise DataFormatError on basic CVS format violations (e.g. unterminated quotes).
-        location = errors.InputLocation(source_path)
-        try:
-            for row in csv_reader:
-                yield row
-        except csv.Error as error:
-            location.advance_line(csv_reader.line_num)
-            raise errors.DataFormatError('cannot parse delimited file: %s' % error, location)
+else:  # pragma: no cover
+    # Python 2.6+ variant.
+    #
+    # Note: _UTF8Recoder and _UnicodeReader are derived from <https://docs.python.org/2/library/csv.html#examples>.
+    import codecs
+
+    class _UTF8Recoder(object):
+        """
+        Iterator that reads an encoded stream and reencodes the input to UTF-8
+        """
+
+        def __init__(self, f, encoding):
+            self.reader = codecs.getreader(encoding)(f)
+
+        def __iter__(self):
+            return self
+
+        def next(self):
+            return self.reader.next().encode("utf-8")
+
+    class _UnicodeReader(object):
+        """
+        A CSV reader which will iterate over lines in the CSV file "f",
+        which is encoded in the given encoding.
+        """
+
+        def __init__(self, f, dialect=csv.excel, encoding="utf-8", **keywords):
+            f = _UTF8Recoder(f, encoding)
+            self.reader = csv.reader(f, dialect=dialect, **keywords)
+
+        def next(self):
+            row = self.reader.next()
+            return [unicode(s, "utf-8") for s in row]
+
+        def __iter__(self):
+            return self
+
+    def _delimited_rows(delimited_path, encoding, **keywords):
+        with io.open(delimited_path, 'rb') as delimited_file:
+            # FIXME: convert values in keywords from unicode to str, e.g. delimiter=';' --> delimiter=b';'.
+            unicode_csv_reader = _UnicodeReader(delimited_file, encoding=encoding, **keywords)
+            try:
+                for row in unicode_csv_reader:
+                    yield row
+            except csv.Error as error:
+                _raise_delimited_data_format_error(delimited_path, unicode_csv_reader.reader, error)
+
+
+def delimited_rows(delimited_path, data_format):
+    if data_format.escape_character == data_format.quote_character:
+        doublequote = False
+        escapechar = None
+    else:
+        doublequote = True
+        escapechar = data_format.escape_character
+
+    # HACK: Ignore DataFormat.line_delimiter because at least until Python 3.4 csv.reader ignores it anyway.
+    csv_reader = _delimited_rows(delimited_path, encoding=data_format.encoding, delimiter=data_format.item_delimiter,
+                           doublequote=doublequote, escapechar=escapechar, quotechar=data_format.quote_character,
+                           skipinitialspace=data_format.skip_initial_space, strict=True)
+    for row in csv_reader:
+        yield row
 
 
 def ods_content_root(source_ods_path):
@@ -489,10 +548,12 @@ def ods_rows(source_ods_path, sheet=1):
     """
     assert sheet >= 1
     content_root = ods_content_root(source_ods_path)
-    table_elements = list(content_root.findall('office:body/office:spreadsheet/table:table', namespaces=_OOO_NAMESPACES))
+    table_elements = list(
+        content_root.findall('office:body/office:spreadsheet/table:table', namespaces=_OOO_NAMESPACES))
     table_count = len(table_elements)
     if table_count < sheet:
-        raise ValueError('ODS must contain at least %d sheet(s) instead of just %d' % (sheet, table_count))
+        error_message = 'ODS must contain at least %d sheet(s) instead of just %d' % (sheet, table_count)
+        raise errors.DataFormatError(error_message, errors.InputLocation(source_ods_path))
     table_element = table_elements[sheet - 1]
     location = errors.InputLocation(source_ods_path, has_cell=True, has_sheet=True)
     for _ in range(sheet - 1):
@@ -505,10 +566,10 @@ def ods_rows(source_ods_path, sheet=1):
                 repeated_count = int(repeated_text)
                 if repeated_count < 1:
                     raise errors.DataFormatError(
-                            'table:number-columns-repeated is %r but must be at least 1' % repeated_text, location)
+                        'table:number-columns-repeated is %r but must be at least 1' % repeated_text, location)
             except ValueError:
                 raise errors.DataFormatError(
-                        'table:number-columns-repeated is %r but must be an integer' % repeated_text, location)
+                    'table:number-columns-repeated is %r but must be an integer' % repeated_text, location)
             text_p = table_cell.find('text:p', namespaces=_OOO_NAMESPACES)
             if text_p is None:
                 cell_value = ''
