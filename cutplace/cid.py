@@ -424,6 +424,26 @@ class Cid():
         return self._check_name_to_check_map[check_name]
 
 
+def field_names_and_lengths(fixed_cid):
+    """
+    List of tuples `(field_name, field_length)` for all field format in `fixed_cid` which must be of data format
+    `data.FORMAT_FIXED`.
+    """
+    assert fixed_cid is not None
+    assert fixed_cid.data_format.format == data.FORMAT_FIXED, 'format=' + fixed_cid.data_format.format
+    result = []
+    for field_format in fixed_cid.field_formats:
+        field_name = field_format.field_name
+        assert len(field_format.length.items) == 1
+        field_length_range = field_format.length.items[0]
+        lower, upper = field_length_range
+        assert lower is not None
+        assert lower == upper
+        field_length = lower
+        result.append((field_name, field_length))
+    return result
+
+
 def import_plugins(folder_to_scan_for_plugins):
     """
     Import all Python modules found in folder ``folder_to_scan_for_plugins`` (non recursively) consequently

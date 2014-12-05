@@ -144,7 +144,7 @@ class AbstractFieldFormat(object):
           - `value` contains only valid characters
           - trailing blanks have been removed from `value` for fixed format data
 
-        Concrete fields formats must override this because the default
+        Concrete field formats must override this because the default
         implementation just raises a `NotImplementedError`.
         """
         assert value
@@ -154,11 +154,11 @@ class AbstractFieldFormat(object):
     def validated(self, value):
         """
         Validate that value complies with field description and return the value in its "native"
-        type. If not, raise FieldValueError.
+        type. If not, raise `errors.FieldValueError`.
         """
         self.validate_characters(value)
         if self.data_format.format == data.FORMAT_FIXED:
-            result = self.data_format.strippedOfBlanks(value)
+            result = value.strip()
             self.validate_empty(result)
             # Note: No need to validate the length with fixed length items.
         else:
