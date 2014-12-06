@@ -40,7 +40,7 @@ except ImportError:
 def _build_and_validate_many_customers():
     icd_ods_path = dev_test.getTestIcdPath("customers.ods")
     loc_csv_path = dev_test.getTestFile("input", "lots_of_customers.csv")
-    dev_test.createLotsOfCustomersCsv(loc_csv_path, customerCount=10000)
+    dev_test.createLotsOfCustomersCsv(loc_csv_path, 50)
 
     # Validate the data using the API, so in case of errors we get specific information.
     customers_cid = cid.Cid(icd_ods_path)
