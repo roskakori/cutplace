@@ -379,7 +379,7 @@ def numbered(value, decimalSeparator=".", thousandsSeparator=","):
     return resultType, resultUsesThousandsSeparator, resultValue
 
 
-def _excelCellValue(cell, datemode):
+def _excel_cell_value(cell, datemode):
     """
     The value of ``cell`` as text taking into account the way excel encodes dates and times.
 
@@ -421,6 +421,7 @@ def _excelCellValue(cell, datemode):
 
 
 def excel_rows(source_path):
+    # FIXME: Add sheet parameter.
     location = errors.Location(source_path, has_cell=True)
     try:
         book = xlrd.open_workbook(source_path)
@@ -429,7 +430,7 @@ def excel_rows(source_path):
         for y in range(sheet.nrows):
             row = []
             for x in range(sheet.ncols):
-                row.append(_excelCellValue(sheet.cell(y, x), datemode))
+                row.append(_excel_cell_value(sheet.cell(y, x), datemode))
                 location.advance_cell()
             yield row
             location.advance_line()
@@ -530,38 +531,38 @@ def delimited_rows(delimited_path, data_format):
         yield row
 
 
-def ods_content_root(source_ods_path):
-    """
-    `ElementTree` for content.xml in `source_ods_path`.
-    """
-    assert source_ods_path is not None
-
-    location = errors.Location(source_ods_path)
-    try:
-        with zipfile.ZipFile(source_ods_path, "r") as zip_archive:
-            try:
-                xml_data = zip_archive.read("content.xml")
-            except Exception as error:
-                raise errors.DataFormatError('cannot extract content.xml for ODS spreadsheet: %s' % error, location)
-    except errors.DataFormatError:
-        raise
-    except Exception as error:
-        raise errors.DataFormatError('cannot uncompress ODS spreadsheet: %s' % error, location)
-
-    with io.BytesIO(xml_data) as xml_stream:
-        try:
-            tree = ElementTree.parse(xml_stream)
-        except Exception as error:
-            raise errors.DataFormatError('cannot parse content.xml: %s' % error, location)
-
-    return tree.getroot()
-
-
 def ods_rows(source_ods_path, sheet=1):
     """
     Rows stored in ODS document ``source_ods_path`` in ``sheet``.
     """
     assert sheet >= 1
+
+    def ods_content_root(source_ods_path):
+        """
+        `ElementTree` for content.xml in `source_ods_path`.
+        """
+        assert source_ods_path is not None
+
+        location = errors.Location(source_ods_path)
+        try:
+            with zipfile.ZipFile(source_ods_path, "r") as zip_archive:
+                try:
+                    xml_data = zip_archive.read("content.xml")
+                except Exception as error:
+                    raise errors.DataFormatError('cannot extract content.xml for ODS spreadsheet: %s' % error, location)
+        except errors.DataFormatError:
+            raise
+        except Exception as error:
+            raise errors.DataFormatError('cannot uncompress ODS spreadsheet: %s' % error, location)
+
+        with io.BytesIO(xml_data) as xml_stream:
+            try:
+                tree = ElementTree.parse(xml_stream)
+            except Exception as error:
+                raise errors.DataFormatError('cannot parse content.xml: %s' % error, location)
+
+        return tree.getroot()
+
     content_root = ods_content_root(source_ods_path)
     table_elements = list(
         content_root.findall('office:body/office:spreadsheet/table:table', namespaces=_OOO_NAMESPACES))
@@ -613,9 +614,50 @@ def fixed_rows(fixed_path, encoding, field_name_and_lengths, line_delimiter='any
     assert line_delimiter in _VALID_FIXED_LINE_DELIMITERS, \
         'line_delimiter=%r but must be one of: %s' % (line_delimiter, _VALID_FIXED_LINE_DELIMITERS)
 
+    location = errors.Location(fixed_path, has_column=True)
+    fixed_file = None  # Predefine variable for access in local function.
+
+    def _has_data_after_skipped_line_delimiter():
+        """
+        If `fixed_file` has data, assume they are a line delimiter as specified
+        by `line_delimiter` and read and validate them.
+
+        In case `line_delimiter` is `None`, the result is
+        """
+        assert location is not None
+        assert line_delimiter is not None  # `None` does not need any skipping.
+        assert line_delimiter in _VALID_FIXED_LINE_DELIMITERS
+
+        result = True
+        if line_delimiter is not None:
+            if line_delimiter in ('\n', '\r', 'any'):
+                actual_line_delimiter = fixed_file.read(1)
+            elif line_delimiter == '\r\n':
+                actual_line_delimiter = fixed_file.read(2)
+            if (line_delimiter == 'any') and (actual_line_delimiter != ''):
+                # Process the optional second character for 'any'.
+                if actual_line_delimiter not in '\n\r':
+                    raise errors.DataFormatError(
+                        'line delimiter is %r but must be one of: %s' %
+                        (actual_line_delimiter, humanReadableList(('\n', '\r', '\r\n'))), location)
+                if actual_line_delimiter == '\r':
+                    next_character = fixed_file.read(1)
+                    if next_character == '\n':
+                        actual_line_delimiter += next_character
+                    elif next_character == '':
+                        result = False
+                    else:
+                        # Discard the last character read because it is unrelated to line separators.
+                        fixed_file.seek(-1, os.SEEK_CUR)
+            if actual_line_delimiter == '':
+                result = False
+            elif (line_delimiter != 'any') and (actual_line_delimiter != line_delimiter):
+                raise errors.DataFormatError(
+                    'line delimiter is %r but must be %r' % (actual_line_delimiter, line_delimiter), location)
+        return result
+
+    has_data = True
     with io.open(fixed_path, 'r', encoding=encoding) as fixed_file:
-        location = errors.Location(fixed_path, has_column=True)
-        has_data = True
         while has_data:
             field_index = 0
             row = []
@@ -636,32 +678,8 @@ def fixed_rows(fixed_path, encoding, field_name_and_lengths, line_delimiter='any
                     raise errors.DataFormatError(
                         'cannot read field %s: need %d characters but found only %d: %r'
                         % (field_name, field_length, item_length, item), location)
-            # Process the line separator.
-            if has_data and (line_delimiter is not None):
-                if line_delimiter in ('\n', '\r', 'any'):
-                    actual_line_delimiter = fixed_file.read(1)
-                elif line_delimiter == '\r\n':
-                    actual_line_delimiter = fixed_file.read(2)
-                if (line_delimiter == 'any') and (actual_line_delimiter != ''):
-                    # Process the optional second character for 'any'.
-                    if actual_line_delimiter not in '\n\r':
-                        raise errors.DataFormatError(
-                            'line delimiter is %r but must be one of: %s' %
-                            (actual_line_delimiter, humanReadableList(('\n', '\r', '\r\n'))), location)
-                    if actual_line_delimiter == '\r':
-                        next_character = fixed_file.read(1)
-                        if next_character == '\n':
-                            actual_line_delimiter += next_character
-                        elif next_character == '':
-                            has_data = False
-                        else:
-                            # Discard the last character read because it is unrelated to line separators.
-                            fixed_file.seek(-1, os.SEEK_CUR)
-                if actual_line_delimiter == '':
-                    has_data = False
-                elif (line_delimiter != 'any') and (actual_line_delimiter != line_delimiter):
-                    raise errors.DataFormatError(
-                        'line delimiter is %r but must be %r' % (actual_line_delimiter, line_delimiter), location)
+            if has_data and not _has_data_after_skipped_line_delimiter():
+                has_data = False
             if len(row) > 0:
                 yield row
                 location.advance_line()
