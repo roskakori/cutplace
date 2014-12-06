@@ -1,5 +1,5 @@
 """
-Test for `tools` module.
+Test for `_tools` module.
 """
 # Copyright (C) 2009-2013 Thomas Aglassinger
 #
@@ -26,31 +26,30 @@ from cutplace import _tools
 
 
 class ToolsTest(unittest.TestCase):
-    """TestCase for tools module."""
-    def testCanCreateTestDateTime(self):
+    def test_can_create_test_date_time(self):
         for _ in range(15):
             dateTime = dev_test.createTestDateTime()
             self.assertTrue(dateTime is not None)
             self.assertNotEqual(dateTime, "")
 
-    def testCanCreateTestName(self):
+    def test_can_create_test_name(self):
         for _ in range(15):
             name = dev_test.createTestName()
             self.assertTrue(name is not None)
             self.assertNotEqual(name, "")
 
-    def testCanCreateTestCustomerRow(self):
-        for customderId in range(15):
-            row = dev_test.createTestCustomerRow(customderId)
+    def test_can_create_test_customer_row(self):
+        for customer_id in range(15):
+            row = dev_test.createTestCustomerRow(customer_id)
             self.assertTrue(row is not None)
             self.assertEqual(len(row), 6)
 
-    def testCanQueryVersion(self):
+    def test_can_query_version(self):
         # Simply exercise these functions, their results do not really matter.
         _tools.platformVersion()
         _tools.pythonVersion()
 
-    def testCanValidatePythonName(self):
+    def test_can_validate_python_name(self):
         self.assertEqual(_tools.validatedPythonName("x", "abc_123"), "abc_123")
         self.assertEqual(_tools.validatedPythonName("x", " abc_123 "), "abc_123")
         self.assertRaises(NameError, _tools.validatedPythonName, "x", "1337")
@@ -58,69 +57,69 @@ class ToolsTest(unittest.TestCase):
         self.assertRaises(NameError, _tools.validatedPythonName, "x", " ")
         self.assertRaises(NameError, _tools.validatedPythonName, "x", "a.b")
 
-    def testCanBuildHumanReadableList(self):
+    def test_can_build_human_readable_list(self):
         self.assertEqual(_tools.humanReadableList([]), "")
         self.assertEqual(_tools.humanReadableList(["a"]), "'a'")
         self.assertEqual(_tools.humanReadableList(["a", "b"]), "'a' or 'b'")
         self.assertEqual(_tools.humanReadableList(["a", "b", "c"]), "'a', 'b' or 'c'")
 
-    def _testWithSuffix(self, expectedPath, pathToTest, suffixToTest):
+    def _test_can_derive_suffix(self, expectedPath, pathToTest, suffixToTest):
         actualPath = _tools.withSuffix(pathToTest, suffixToTest)
         self.assertEqual(expectedPath, actualPath)
 
-    def testCanBuildNameWithSuffix(self):
-        self._testWithSuffix("hugo.pas", "hugo.txt", ".pas")
-        self._testWithSuffix("hugo", "hugo.txt", "")
-        self._testWithSuffix("hugo.", "hugo.txt", ".")
-        self._testWithSuffix("hugo.txt", "hugo", ".txt")
-        self._testWithSuffix(os.path.join("eggs", "hugo.pas"), os.path.join("eggs", "hugo.txt"), ".pas")
+    def test_can_build_name_with_suffix(self):
+        self._test_can_derive_suffix("hugo.pas", "hugo.txt", ".pas")
+        self._test_can_derive_suffix("hugo", "hugo.txt", "")
+        self._test_can_derive_suffix("hugo.", "hugo.txt", ".")
+        self._test_can_derive_suffix("hugo.txt", "hugo", ".txt")
+        self._test_can_derive_suffix(os.path.join("eggs", "hugo.pas"), os.path.join("eggs", "hugo.txt"), ".pas")
 
-    def testCanAsciifyText(self):
+    def test_can_asciify_text(self):
         self.assertEqual(_tools.asciified("hello"), "hello")
         self.assertEqual(_tools.asciified("h\xe4ll\xf6"), "hallo")
         self.assertEqual(_tools.asciified("hello.world!"), "hello.world!")
 
-    def testFailAsciifyOnNonUnicode(self):
+    def test_fails_on_asciifying_non_unicode(self):
         self.assertRaises(ValueError, _tools.asciified, b"hello")
         self.assertRaises(ValueError, _tools.asciified, 17)
 
-    def testCanNamifyText(self):
+    def test_can_namify_text(self):
         self.assertEqual(_tools.namified("hello"), "hello")
         self.assertEqual(_tools.namified("hElLo"), "hElLo")
         self.assertEqual(_tools.namified("h3LL0"), "h3LL0")
         self.assertEqual(_tools.namified("Date of birth"), "Date_of_birth")
         self.assertEqual(_tools.namified("a    b"), "a_b")
 
-    def testCanNamifyNumber(self):
+    def test_can_namify_number(self):
         self.assertEqual(_tools.namified("1a"), "x1a")
         self.assertEqual(_tools.namified("3.1415"), "x3_1415")
 
-    def testCanNamifyKeyword(self):
+    def test_can_namify_keyword(self):
         self.assertEqual(_tools.namified("if"), "if_")
 
-    def testCanNamifyEmptyText(self):
+    def test_can_namify_empty_text(self):
         self.assertEqual(_tools.namified(""), "x")
         self.assertEqual(_tools.namified(" "), "x")
         self.assertEqual(_tools.namified("\t"), "x")
 
-    def testCanNamifyControlCharacters(self):
+    def test_can_namify_control_characters(self):
         self.assertEqual(_tools.namified("\r"), "x")
         self.assertEqual(_tools.namified("a\rb"), "a_b")
 
 
 class NumberedTest(unittest.TestCase):
-    def testCanDetectNoneNumber(self):
+    def test_can_detect_none_number(self):
         self.assertEqual(_tools.numbered("123abc"), (None, False, "123abc"))
         self.assertEqual(_tools.numbered("01.02.2014"), (None, False, "01.02.2014"))
 
-    def testCanDetectInteger(self):
+    def test_can_detect_integer(self):
         self.assertEqual(_tools.numbered("123"), (_tools.NUMBER_INTEGER, False, 123))
 
-    def testCanDetectDecimalWithPoint(self):
+    def test_can_detect_decimal_with_point(self):
         self.assertEqual(_tools.numbered("123.45"), (_tools.NUMBER_DECIMAL_POINT, False, decimal.Decimal("123.45")))
         self.assertEqual(_tools.numbered("123,456.78"), (_tools.NUMBER_DECIMAL_POINT, True, decimal.Decimal("123456.78")))
 
-    def testCanDetectDecimalWithComma(self):
+    def test_can_detect_decimal_with_comma(self):
         actual = _tools.numbered("123,45", decimalSeparator=",", thousandsSeparator=".")
         expected = (_tools.NUMBER_DECIMAL_COMMA, False, decimal.Decimal("123.45"))
         self.assertEqual(actual, expected)
