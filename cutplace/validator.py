@@ -1,5 +1,5 @@
 """
-Validate Data files
+Validated processing of data files.
 """
 # Copyright (C) 2009-2013 Thomas Aglassinger
 #
@@ -19,11 +19,8 @@ import inspect
 import logging
 import xlrd
 
-from cutplace import checks
-from cutplace import cid
 from cutplace import data
 from cutplace import errors
-from cutplace import fields
 from cutplace import _tools
 
 
@@ -45,7 +42,7 @@ class Reader(object):
         self._source_path = source_path
         self._location = None
 
-    def rows(self):
+    def _raw_rows(self):
         if self._cid.data_format.format == data.FORMAT_EXCEL:
             return _tools.excel_rows(self._source_path)
         elif self._cid.data_format.format == data.FORMAT_DELIMITED:
@@ -57,26 +54,46 @@ class Reader(object):
             #TODO: implement support for ods
             pass
 
-    def validate(self):
-        self._location = errors.InputLocation(self._source_path, has_cell=True)
+    def rows(self):
+        self._location = errors.Location(self._source_path, has_cell=True)
+        expected_item_count = len(self._cid.field_formats)
 
-        for row in self.rows():
-            #Validate fields
-            if len(row) != len(self._cid.field_formats):
-                    raise errors.ValidateLineError('input line is too long or too long/short')
-            for i in range(0, len(row)):
-                self._cid.field_formats[i].validated(row[i])
+        def validate_field_formats(field_values):
+            actual_item_count = len(field_values)
+            if actual_item_count < expected_item_count:
+                # TODO: change to DataError.
+                raise errors.ValidateLineError(
+                    'row must contain %d fields but only has %d: %s' % (expected_item_count, actual_item_count, field_values),
+                    self._location)
+            for i in range(0, actual_item_count):
+                self._cid.field_formats[i].validated(field_values[i])
+                self._location.advance_cell()
+            if actual_item_count > expected_item_count:
+                # TODO: change to DataError.
+                raise errors.ValidateLineError(
+                    'row must contain %d fields but has %d, additional values are: %s' % (
+                        expected_item_count, actual_item_count, field_values[expected_item_count:]),
+                    self._location)
 
-            #Validate checks for every row
-            field_map = _create_field_map(self._cid.field_names, row)
+        def validate_row_checks(field_values):
+            field_map = _create_field_map(self._cid.field_names, field_values)
             for check_name in self._cid.check_names:
                 self._cid.check_map[check_name].check_row(field_map, self._location)
 
-            self._location.advance_line()
+        def validate_checks_at_end():
+            for check_name in self._cid.check_names:
+                self._cid.check_map[check_name].check_at_end(self._location)
 
-        #Validate checks at end
-        for check_name in self._cid.check_names:
-            self._cid.check_map[check_name].check_at_end(self._location)
+        for row in self._raw_rows():
+            validate_field_formats(row)
+            validate_row_checks(row)
+            yield row
+            self._location.advance_line()
+        validate_checks_at_end()
+
+    def validate(self):
+        for _ in self.rows():
+            pass
 
     def close(self):
         pass

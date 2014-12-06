@@ -67,6 +67,7 @@ class ValidatorTest(unittest.TestCase):
     def test_fails_on_invalid_csv_source_file_with_not_observed_count_expression(self):
         cid_reader = cid.Cid()
         source_path = dev_test.getTestIcdPath("icd_customers.xls")
+        # FIXME: either test `validator` or move to `test_tools`.
         cid_reader.read(source_path, _tools.excel_rows(source_path))
 
         reader = validator.Reader(cid_reader, dev_test.getTestInputPath("broken_customers_with_too_many_branches.csv"))
