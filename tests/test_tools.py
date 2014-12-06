@@ -199,7 +199,12 @@ class RowsTest(unittest.TestCase):
         fixed_path = dev_test.getTestInputPath('valid_customers_fixed.txt')
         field_names_and_lengths = cid.field_names_and_lengths(customer_cid)
         rows = list(_tools.fixed_rows(fixed_path, customer_cid.data_format.encoding, field_names_and_lengths))
-        print(rows)
+        self.assertNotEqual(0, len(rows))
+        for row_index in range(len(rows) - 1):
+            row = rows[row_index]
+            next_row = rows[row_index + 1]
+            self.assertNotEqual(0, len(row))
+            self.assertEqual(len(row), len(next_row))
 
 
 if __name__ == "__main__":  # pragma: no cover
