@@ -49,14 +49,14 @@ class _AbstractCheckTest(unittest.TestCase):
         self.assertTrue(check.location is not None)
 
     def test_fails_on_missing_field_names(self):
-        self.assertRaises(errors.FieldLookupError, checks.AbstractCheck, "missing fields", "", [])
+        self.assertRaises(errors.InterfaceError, checks.AbstractCheck, "missing fields", "", [])
 
     def test_can_check_empty_row(self):
         # HACK: This is just here to make coverage happy because "# pragma: no cover" does not work
         # on methods that consist of nothing but a single "pass".
         field_names = _TEST_FIELD_NAMES
         check = checks.AbstractCheck("test check", "", field_names)
-        location = errors.InputLocation(self.test_can_check_empty_row, has_cell=True)
+        location = errors.Location(self.test_can_check_empty_row, has_cell=True)
         check.check_row([], location)
 
 
@@ -64,7 +64,7 @@ class IsUniqueCheckTest(_AbstractCheckTest):
     def test_fails_on_duplicate(self):
         field_names = _TEST_FIELD_NAMES
         check = checks.IsUniqueCheck("test check", "branch_id, customer_id", field_names)
-        location = errors.InputLocation(self.test_fails_on_duplicate, has_cell=True)
+        location = errors.Location(self.test_fails_on_duplicate, has_cell=True)
         check.check_row(_create_field_map(field_names, [38000, 23, "John", "Doe", "male", "08.03.1957"]), location)
         location.advance_line()
         check.check_row(_create_field_map(field_names, [38000, 59, "Jane", "Miller", "female", "04.10.1946"]), location)
@@ -84,34 +84,34 @@ class IsUniqueCheckTest(_AbstractCheckTest):
 
     def test_fails_on_rule_without_fields(self):
         field_names = _TEST_FIELD_NAMES
-        self.assertRaises(errors.CheckSyntaxError, checks.IsUniqueCheck, "test check", "", field_names)
-        self.assertRaises(errors.CheckSyntaxError, checks.IsUniqueCheck, "test check", "   ", field_names)
+        self.assertRaises(errors.InterfaceError, checks.IsUniqueCheck, "test check", "", field_names)
+        self.assertRaises(errors.InterfaceError, checks.IsUniqueCheck, "test check", "   ", field_names)
 
     def test_fails_on_rule_with_two_consecutive_commas(self):
         field_names = _TEST_FIELD_NAMES
-        self.assertRaises(errors.CheckSyntaxError, checks.IsUniqueCheck, "test check", "branch_id,,customer_id",
+        self.assertRaises(errors.InterfaceError, checks.IsUniqueCheck, "test check", "branch_id,,customer_id",
                 field_names)
-        self.assertRaises(errors.CheckSyntaxError, checks.IsUniqueCheck, "test check", "branch_id,,", field_names)
+        self.assertRaises(errors.InterfaceError, checks.IsUniqueCheck, "test check", "branch_id,,", field_names)
 
     def test_fails_on_rule_starting_with_comma(self):
         field_names = _TEST_FIELD_NAMES
-        self.assertRaises(errors.CheckSyntaxError, checks.IsUniqueCheck, "test check", ",branch_id", field_names)
+        self.assertRaises(errors.InterfaceError, checks.IsUniqueCheck, "test check", ",branch_id", field_names)
 
     def test_fails_on_rule_with_broken_field_name(self):
         field_names = _TEST_FIELD_NAMES
-        self.assertRaises(errors.CheckSyntaxError, checks.IsUniqueCheck, "test check", "branch_id, customer-id",
+        self.assertRaises(errors.InterfaceError, checks.IsUniqueCheck, "test check", "branch_id, customer-id",
                 field_names)
 
     def test_fails_on_rule_with_missing_comma_between_field_names(self):
         field_names = _TEST_FIELD_NAMES
-        self.assertRaises(errors.CheckSyntaxError, checks.IsUniqueCheck, "test check", "branch_id customer_id",
+        self.assertRaises(errors.InterfaceError, checks.IsUniqueCheck, "test check", "branch_id customer_id",
                 field_names)
 
     def test_fails_on_rule_with_duplicate_field_name(self):
         field_names = _TEST_FIELD_NAMES
         first_field_name = field_names[0]
         broken_unique_field_names = ", ".join([first_field_name, first_field_name])
-        self.assertRaises(errors.CheckSyntaxError, checks.IsUniqueCheck, "test check", broken_unique_field_names,
+        self.assertRaises(errors.InterfaceError, checks.IsUniqueCheck, "test check", broken_unique_field_names,
                 field_names)
 
 
@@ -120,7 +120,7 @@ class DistinctCountCheckTest(unittest.TestCase):
         field_names = _TEST_FIELD_NAMES
         checks.DistinctCountCheck("test check", "branch_id<3", field_names)
         check = checks.DistinctCountCheck("test check", "branch_id < 3", field_names)
-        location = errors.InputLocation(self.test_fails_on_too_many_distinct_values, has_cell=True)
+        location = errors.Location(self.test_fails_on_too_many_distinct_values, has_cell=True)
         check.check_row(_create_field_map(field_names, [38000, 23, "John", "Doe", "male", "08.03.1957"]), location)
         location.advance_line()
         check.check_row(_create_field_map(field_names, [38001, 59, "Jane", "Miller", "female", "04.10.1946"]), location)
@@ -131,14 +131,14 @@ class DistinctCountCheckTest(unittest.TestCase):
 
     def test_fails_on_broken_check_rule(self):
         field_names = _TEST_FIELD_NAMES
-        self.assertRaises(errors.CheckSyntaxError, checks.DistinctCountCheck, "broken", "", field_names)
-        self.assertRaises(errors.CheckSyntaxError, checks.DistinctCountCheck, "broken", " ", field_names)
-        self.assertRaises(errors.FieldLookupError, checks.DistinctCountCheck, "broken", "hugo < 3", field_names)
-        self.assertRaises(errors.CheckSyntaxError, checks.DistinctCountCheck, "broken", "branch_id < (100 / 0)",
+        self.assertRaises(errors.InterfaceError, checks.DistinctCountCheck, "broken", "", field_names)
+        self.assertRaises(errors.InterfaceError, checks.DistinctCountCheck, "broken", " ", field_names)
+        self.assertRaises(errors.InterfaceError, checks.DistinctCountCheck, "broken", "hugo < 3", field_names)
+        self.assertRaises(errors.InterfaceError, checks.DistinctCountCheck, "broken", "branch_id < (100 / 0)",
                 field_names)
-        self.assertRaises(errors.CheckSyntaxError, checks.DistinctCountCheck, "broken",
+        self.assertRaises(errors.InterfaceError, checks.DistinctCountCheck, "broken",
                 "branch_id ! broken ^ 5ynt4x ?!?", field_names)
-        self.assertRaises(errors.CheckSyntaxError, checks.DistinctCountCheck, "broken", "branch_id + 123", field_names)
+        self.assertRaises(errors.InterfaceError, checks.DistinctCountCheck, "broken", "branch_id + 123", field_names)
 
 if __name__ == "__main__":  # pragma: no cover
     logging.basicConfig(level=logging.INFO)

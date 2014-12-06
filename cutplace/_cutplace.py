@@ -215,8 +215,6 @@ def main(argv=None):
     except (EnvironmentError, OSError) as error:
         result = 3
         _log.error("%s", error)
-    except errors.CutplaceUnicodeError as error:
-        _log.error("%s", error)
     except errors.CutplaceError as error:
         _log.error("%s", error)
     except Exception as error:

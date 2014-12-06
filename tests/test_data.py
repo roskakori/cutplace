@@ -35,10 +35,10 @@ class DataFormatTest(unittest.TestCase):
             data_format = data.DataFormat(format_name)
             self.assertTrue(data_format)
             self.assertTrue(data_format.__str__())
-        # self.assertRaises(data.DataFormatSyntaxError, data.createDataFormat, "no-such-data-format")
+        # self.assertRaises(data.InterfaceError, data.createDataFormat, "no-such-data-format")
 
     def test_fails_on_invalid_data_format(self):
-        self.assertRaises(errors.DataFormatSyntaxError, data.DataFormat, 'csv')
+        self.assertRaises(errors.InterfaceError, data.DataFormat, 'csv')
 
     def test_can_set_delimited_properties(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
@@ -85,31 +85,31 @@ class DataFormatTest(unittest.TestCase):
 
     def test_fails_on_unsupported_delimited_property(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
-        self.assertRaises(errors.DataFormatSyntaxError, delimited_format.set_property, data.KEY_SHEET, '2')
+        self.assertRaises(errors.InterfaceError, delimited_format.set_property, data.KEY_SHEET, '2')
 
     def test_fails_on_unsupported_fixed_property(self):
         fixed_format = data.DataFormat(data.FORMAT_FIXED)
-        self.assertRaises(errors.DataFormatSyntaxError, fixed_format.set_property, data.KEY_SHEET, 1)
-        self.assertRaises(errors.DataFormatSyntaxError, fixed_format.set_property, data.KEY_ITEM_DELIMITER, ',')
-        self.assertRaises(errors.DataFormatSyntaxError, fixed_format.set_property, data.KEY_SKIP_INITIAL_SPACE, True)
+        self.assertRaises(errors.InterfaceError, fixed_format.set_property, data.KEY_SHEET, 1)
+        self.assertRaises(errors.InterfaceError, fixed_format.set_property, data.KEY_ITEM_DELIMITER, ',')
+        self.assertRaises(errors.InterfaceError, fixed_format.set_property, data.KEY_SKIP_INITIAL_SPACE, True)
 
     def test_fails_on_unsupported_excel_property(self):
         excel_format = data.DataFormat(data.FORMAT_EXCEL)
-        self.assertRaises(errors.DataFormatSyntaxError, excel_format.set_property, data.KEY_DECIMAL_SEPARATOR, ',')
-        self.assertRaises(errors.DataFormatSyntaxError, excel_format.set_property, data.KEY_ESCAPE_CHARACTER, '\\')
-        self.assertRaises(errors.DataFormatSyntaxError, excel_format.set_property, data.KEY_LINE_DELIMITER, '\n')
-        self.assertRaises(errors.DataFormatSyntaxError, excel_format.set_property, data.KEY_QUOTE_CHARACTER, '"')
-        self.assertRaises(errors.DataFormatSyntaxError, excel_format.set_property, data.KEY_ITEM_DELIMITER, ';')
-        self.assertRaises(errors.DataFormatSyntaxError, excel_format.set_property, data.KEY_SKIP_INITIAL_SPACE, True)
+        self.assertRaises(errors.InterfaceError, excel_format.set_property, data.KEY_DECIMAL_SEPARATOR, ',')
+        self.assertRaises(errors.InterfaceError, excel_format.set_property, data.KEY_ESCAPE_CHARACTER, '\\')
+        self.assertRaises(errors.InterfaceError, excel_format.set_property, data.KEY_LINE_DELIMITER, '\n')
+        self.assertRaises(errors.InterfaceError, excel_format.set_property, data.KEY_QUOTE_CHARACTER, '"')
+        self.assertRaises(errors.InterfaceError, excel_format.set_property, data.KEY_ITEM_DELIMITER, ';')
+        self.assertRaises(errors.InterfaceError, excel_format.set_property, data.KEY_SKIP_INITIAL_SPACE, True)
 
     def test_fails_on_unsupported_ods_property(self):
         ods_format = data.DataFormat(data.FORMAT_ODS)
-        self.assertRaises(errors.DataFormatSyntaxError, ods_format.set_property, data.KEY_DECIMAL_SEPARATOR, ',')
-        self.assertRaises(errors.DataFormatSyntaxError, ods_format.set_property, data.KEY_ESCAPE_CHARACTER, '\\')
-        self.assertRaises(errors.DataFormatSyntaxError, ods_format.set_property, data.KEY_LINE_DELIMITER, '\n')
-        self.assertRaises(errors.DataFormatSyntaxError, ods_format.set_property, data.KEY_QUOTE_CHARACTER, '"')
-        self.assertRaises(errors.DataFormatSyntaxError, ods_format.set_property, data.KEY_ITEM_DELIMITER, ';')
-        self.assertRaises(errors.DataFormatSyntaxError, ods_format.set_property, data.KEY_SKIP_INITIAL_SPACE, True)
+        self.assertRaises(errors.InterfaceError, ods_format.set_property, data.KEY_DECIMAL_SEPARATOR, ',')
+        self.assertRaises(errors.InterfaceError, ods_format.set_property, data.KEY_ESCAPE_CHARACTER, '\\')
+        self.assertRaises(errors.InterfaceError, ods_format.set_property, data.KEY_LINE_DELIMITER, '\n')
+        self.assertRaises(errors.InterfaceError, ods_format.set_property, data.KEY_QUOTE_CHARACTER, '"')
+        self.assertRaises(errors.InterfaceError, ods_format.set_property, data.KEY_ITEM_DELIMITER, ';')
+        self.assertRaises(errors.InterfaceError, ods_format.set_property, data.KEY_SKIP_INITIAL_SPACE, True)
 
     def test_can_set_header(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
@@ -118,7 +118,7 @@ class DataFormatTest(unittest.TestCase):
 
     def test_fails_on_non_numeric_header(self):
         fixed_format = data.DataFormat(data.FORMAT_FIXED)
-        self.assertRaises(errors.DataFormatSyntaxError, fixed_format.set_property, data.KEY_HEADER, 'xxx')
+        self.assertRaises(errors.InterfaceError, fixed_format.set_property, data.KEY_HEADER, 'xxx')
 
     def test_can_set_allowed_characters(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
@@ -145,7 +145,7 @@ class DataFormatTest(unittest.TestCase):
 
     def test_fails_on_broken_item_delimiter(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
-        self.assertRaises(errors.DataFormatSyntaxError, delimited_format.set_property,
+        self.assertRaises(errors.InterfaceError, delimited_format.set_property,
                           data.KEY_ITEM_DELIMITER, 'broken-item-delimiter')
 
     def test_can_set_skip_initial_space(self):
@@ -155,7 +155,7 @@ class DataFormatTest(unittest.TestCase):
 
     def test_fails_on_invalid_skip_initial_space(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
-        self.assertRaises(errors.DataFormatSyntaxError, delimited_format.set_property, data.KEY_SKIP_INITIAL_SPACE, 'xx')
+        self.assertRaises(errors.InterfaceError, delimited_format.set_property, data.KEY_SKIP_INITIAL_SPACE, 'xx')
 
     def test_can_set_decimal_separator(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
@@ -213,7 +213,7 @@ class DataFormatTest(unittest.TestCase):
 
     def test_fails_on_non_numeric_sheet(self):
         excel_format = data.DataFormat(data.FORMAT_EXCEL)
-        self.assertRaises(errors.DataFormatSyntaxError, excel_format.set_property, data.KEY_SHEET, 'xxx')
+        self.assertRaises(errors.InterfaceError, excel_format.set_property, data.KEY_SHEET, 'xxx')
 
     def test_fails_on_same_decimal_and_thousands_separator(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)

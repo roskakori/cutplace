@@ -307,7 +307,7 @@ If any of this methods cannot handle the parameters you passed, they raise a
 
   >>> icd.addCheck([]) #doctest: +IGNORE_EXCEPTION_DETAIL
   Traceback (most recent call last):
-  CheckSyntaxError: <source> (R1C2): check row (marked with 'c') must contain at least 2 columns
+  InterfaceError: <source> (R1C2): check row (marked with 'c') must contain at least 2 columns
 
 Validating with listeners
 -------------------------
@@ -539,7 +539,7 @@ parameters:
   ``FullNameLengthIsInRange`` the rule describes a `ranges.Range <api/cutplace.ranges.Range-class.html>`_.
 * ``availableFieldNames=["branch_id", "customer_id", "first_name","last_name",
   "gender", "date_of_birth"]`` (as defined in the ICD and using the same order)
-* ``location`` being the ``tools.InputLocation`` in the ICD where the check was defined.
+* ``location`` being the ``tools.Location`` in the ICD where the check was defined.
 
 The constructor basically has to do 3 things:
 

@@ -227,21 +227,21 @@ class ChoiceFieldFormat(AbstractFieldFormat):
                     previous_toky_text = previousToky[1]
                 else:
                     previous_toky_text = None
-                raise errors.FieldSyntaxError("choice value must precede a comma (,) but found: %r" % previous_toky_text)
+                raise errors.InterfaceError("choice value must precede a comma (,) but found: %r" % previous_toky_text)
             choice = _tools.tokenText(toky)
             if not choice:
-                raise errors.FieldSyntaxError("choice field must be allowed to be empty instead of containing an empty choice")
+                raise errors.InterfaceError("choice field must be allowed to be empty instead of containing an empty choice")
             self.choices.append(choice)
             toky = next(tokens)
             if not _tools.isEofToken(toky):
                 if not _tools.isCommaToken(toky):
-                    raise errors.FieldSyntaxError("comma (,) must follow choice value %r but found: %r" % (choice, toky[1]))
+                    raise errors.InterfaceError("comma (,) must follow choice value %r but found: %r" % (choice, toky[1]))
                 # Process next choice after comma.
                 toky = next(tokens)
                 if _tools.isEofToken(toky):
-                    raise errors.FieldSyntaxError("trailing comma (,) must be removed")
+                    raise errors.InterfaceError("trailing comma (,) must be removed")
         if not self.is_allowed_to_be_empty and not self.choices:
-            raise errors.FieldSyntaxError("choice field without any choices must be allowed to be empty")
+            raise errors.InterfaceError("choice field without any choices must be allowed to be empty")
 
     def validated_value(self, value):
         assert value
@@ -261,7 +261,7 @@ class DecimalFieldFormat(AbstractFieldFormat):
         super(DecimalFieldFormat, self).__init__(field_name, is_allowed_to_be_empty, length_text, rule, data_format,
                                                  empty_value)
         if rule.strip():
-            raise errors.FieldSyntaxError("decimal rule must be empty")
+            raise errors.InterfaceError("decimal rule must be empty")
         self.decimalSeparator = data_format.decimal_separator
         self.thousandsSeparator = data_format.thousands_separator
 
@@ -406,7 +406,7 @@ def get_field_name_index(supposed_field_name, available_field_names):
     """
     The index of `supposedFieldName` in `availableFieldNames`.
 
-    In case it is missing, raise a `FieldLookupError`.
+    In case it is missing, raise a `InterfaceError`.
     """
     assert supposed_field_name is not None
     assert supposed_field_name == supposed_field_name.strip()
@@ -416,7 +416,7 @@ def get_field_name_index(supposed_field_name, available_field_names):
     try:
         field_index = available_field_names.index(field_name)
     except ValueError:
-        raise errors.FieldLookupError("unknown field name %r must be replaced by one of: %s"
+        raise errors.InterfaceError("unknown field name %r must be replaced by one of: %s"
                                       % (field_name, _tools.humanReadableList(available_field_names)))
     return field_index
 
@@ -424,23 +424,23 @@ def get_field_name_index(supposed_field_name, available_field_names):
 def validated_field_name(supposed_field_name, location=None):
     """
     Same as ``supposedFieldName`` except with surrounding white space removed, provided that it
-    describes a valid field name. Otherwise, raise a `FieldSyntaxError` pointing to ``location``.
+    describes a valid field name. Otherwise, raise a `InterfaceError` pointing to ``location``.
     """
     field_name = supposed_field_name.strip()
     if field_name == '':
-        raise errors.FieldSyntaxError("field name must be a valid Python name consisting of ASCII letters, "
+        raise errors.InterfaceError("field name must be a valid Python name consisting of ASCII letters, "
                                       "underscore (_) and digits but is empty", location)
     if keyword.iskeyword(field_name):
-        raise errors.FieldSyntaxError("field name must not be a Python keyword but is: %r" % field_name, location)
+        raise errors.InterfaceError("field name must not be a Python keyword but is: %r" % field_name, location)
     is_first_character = True
     for character in field_name:
         if is_first_character:
             if character not in _ASCII_LETTERS:
-                raise errors.FieldSyntaxError("field name must begin with a lower-case letter but is: %r"
+                raise errors.InterfaceError("field name must begin with a lower-case letter but is: %r"
                                               % field_name, location)
             is_first_character = False
         else:
             if character not in _ASCII_LETTERS_DIGITS_AND_UNDERSCORE:
-                raise errors.FieldSyntaxError("field name must be a valid Python name consisting of ASCII letters, "
+                raise errors.InterfaceError("field name must be a valid Python name consisting of ASCII letters, "
                                               "underscore (%r) and digits but is: %r" % ("_", field_name), location)
     return field_name

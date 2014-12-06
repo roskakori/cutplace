@@ -22,7 +22,7 @@ import sys
 import types
 
 """
-Symbolic names that can be used to improve the legibility of the ICD.
+Symbolic names that can be used to improve the legibility of the CID.
 """
 NAME_TO_ASCII_CODE_MAP = {
     "cr": 13,
@@ -33,15 +33,16 @@ NAME_TO_ASCII_CODE_MAP = {
 }
 
 
-class InputLocation(object):
+class Location(object):
     """
-    Location in an input file, consisting of ``line``, an optional ``column`` (pointing at a
-    single character) and an optional cell (pointing a cell in a structured input such as CSV).
+    Location in an input file, consisting of ``line``, an optional ``column``
+    (pointing at a single character) and an optional cell (pointing to a cell
+    in a structured input such as CSV).
     """
 
     def __init__(self, file_path, has_column=False, has_cell=False, has_sheet=False):
         """
-        Create a new ``InputLocation`` for the input described by ``file_path``. This can also be
+        Create a new ``Location`` for the input described by ``file_path``. This can also be
         a symbolic name such as ``"<source>"`` or ``"<string>"`` in case the input is no actual
         file. If ``file_path`` is no string type, ``"<io>"`` will be used.
 
@@ -60,16 +61,16 @@ class InputLocation(object):
 
         Common examples:
 
-        >>> InputLocation("data.txt", has_column=True)
+        >>> Location("data.txt", has_column=True)
         data.txt (1;1)
-        >>> InputLocation("data.csv", has_cell=True)
+        >>> Location("data.csv", has_cell=True)
         data.csv (R1C1)
-        >>> InputLocation("data.ods", has_cell=True, has_sheet=True)
+        >>> Location("data.ods", has_cell=True, has_sheet=True)
         data.ods (Sheet1!R1C1)
-        >>> InputLocation("data.ods", has_column=True, has_cell=True, has_sheet=True) # for very detailed parsers
+        >>> Location("data.ods", has_column=True, has_cell=True, has_sheet=True) # for very detailed parsers
         data.ods (Sheet1!R1C1;1)
         >>> from io import StringIO
-        >>> InputLocation(StringIO("some text"), has_column=True)
+        >>> Location(io.StringIO("some text"), has_column=True)
         <io> (1;1)
         """
         assert file_path
@@ -184,13 +185,13 @@ class InputLocation(object):
             and (not self._has_column or (self.column == other.column)) \
             and (not self._has_cell or (self.cell == other.cell)) \
             and (not self._has_sheet or (self.sheet == other.sheet))
-    # Note: There is no ``InputLocation.__hash__()`` because it is a mutable class that cannot be
+    # Note: There is no ``Location.__hash__()`` because it is a mutable class that cannot be
     # used as dictionary key.
 
 
-def create_caller_input_location(modules_to_ignore=None, has_column=False, has_cell=False, has_sheet=False):
+def create_caller_location(modules_to_ignore=None, has_column=False, has_cell=False, has_sheet=False):
     """
-    `InputLocation` referring to the calling Python source code.
+    `Location` referring to the calling Python source code.
     """
     actual_modules_to_ignore = ["tools"]
     if modules_to_ignore:
@@ -208,24 +209,36 @@ def create_caller_input_location(modules_to_ignore=None, has_column=False, has_c
             if not ignore_trace:
                 source_path = trace[0]
                 source_line = trace[1] - 1
-        if not source_path:
+        if source_path is None:
             source_path = "<source>"
-    result = InputLocation(source_path, has_column, has_cell, has_sheet)
+    result = Location(source_path, has_column, has_cell, has_sheet)
     if source_line:
         result.advance_line(source_line)
     return result
 
 
-class _BaseCutplaceError(Exception):
+class CutplaceError(Exception):
     """
-    Exception that supports a `message` describing the error and an optional
-    `location` in the input where the error happened.
+    Error caused by issues in the CID or data. Details are provided by the
+    following properties:
+    * `message` - a description of the condition that cause the error and
+      possibly suggestions on what needs to be fixed.
+    * `location` (can be `None`) - `Location` pointing to the source of
+      the error.
+    * `see_also_message`, `see_also_error`  (can be `None`): a message and
+     `Location` describing additional information. For example, when a
+      key field has to be unique but two data rows use the same value, this
+      points to the first value while the actual `message` and `location`
+      point to the duplicate.
+
+    Additionally `__str__()` summarizes all details about the error in a
+    human readable way that can be presented to the end user.
     """
 
     def __init__(self, message, location=None, see_also_message=None, see_also_location=None, cause=None):
         """
         Create exception that supports a `message` describing the error and an optional
-        `InputLocation` in the input where the error happened. If the message is related
+        `Location` in the input where the error happened. If the message is related
         to another location (for example when attempting to redefine a field with
         the same name), ``see_also_message`` should describe the meaning of the other
         location and ``see_also_location`` should point to the location. If the exception is the
@@ -234,18 +247,18 @@ class _BaseCutplaceError(Exception):
         """
         assert message
         assert (see_also_location and see_also_message) or not see_also_location
-        # TODO: Python 2: Use Exception.__init(self, message) because Exception is an old style class.
+        # TODO #61: Python 2: Use Exception.__init(self, message) because Exception is an old style class.
         super().__init__(self, message)
         self._location = copy.copy(location)
         self._see_also_message = see_also_message
         self._see_also_location = copy.copy(see_also_location)
         self._cause = cause
-        # TODO: Replace self._message by calls to something like str(super()).
+        # TODO #61: Replace self._message by calls to something like str(super()).
         self._message = message
 
     @property
     def location(self):
-        """Location in the input that cause the error or `None`."""
+        """Location in the input that caused the error or `None`."""
         return self._location
 
     @property
@@ -263,7 +276,7 @@ class _BaseCutplaceError(Exception):
 
     @property
     def cause(self):
-        """The `Exception` that cause this error or `None`."""
+        """The `Exception` that caused this error or `None`."""
         return self._cause
 
     def __str__(self):
@@ -279,102 +292,55 @@ class _BaseCutplaceError(Exception):
         return result
 
 
-class CutplaceError(_BaseCutplaceError):
+class DataError(CutplaceError):
     """
-    Error detected by cutplace caused by issues in the ICD or data.
-    """
-    pass
-
-
-class CutplaceUnicodeError(_BaseCutplaceError):
-    """
-    Error detected by cutplace caused by improperly encoded CID or data.
-
-    This error is not derived from `CutplaceError` because it will not be handled in
-    any meaningful way and simply results in the the termination of the validation.
+    Error that can be fixed by providing proper data. Typically this is fixed
+    by the end user on site.
     """
     pass
 
 
-class RangeSyntaxError(CutplaceError):
+class InterfaceError(CutplaceError):
     """
-    Error in Range declaration.
-    """
-    pass
-
-
-class RangeValueError(CutplaceError):
-    """
-    Error raised when ranges.validate() detects that a value is outside the expected ranges.
+    Error that can be fixed by providing a proper CID or API calls. Typically
+    this is fixed by the domain expert or the developer.
     """
     pass
 
 
-class DataFormatError(CutplaceError):
+class RangeValueError(DataError):
     """
-    Error indicating that a data file cannot be processed due severe format violations.
+    Error raised when `ranges.Range.validate()` detects that a value is
+    outside the expected ranges.
     """
     pass
 
 
-class DataFormatValueError(CutplaceError):
+class DataFormatError(DataError):
+    """
+    Error indicating that a data file cannot be processed due severe format
+    violations, for example unterminated quotes at the end of a delimited
+    file or an ODS file that cannot be unzipped.
+    """
+    pass
+
+
+class DataFormatValueError(DataError):
     """
     Error in data caused by violating the data format.
     """
     pass
 
 
-class DataFormatSyntaxError(CutplaceError):
-    """
-    Error in data format declaration.
-    """
-    pass
-
-
-class FieldValueError(CutplaceError):
+class FieldValueError(DataError):
     """
     Error raised when `AbstractFieldFormat.validated` detects an error.
     """
     pass
 
 
-class FieldLookupError(CutplaceError):
-    """
-    Error raised when a field cannot be found.
-    """
-    pass
-
-
-class FieldSyntaxError(CutplaceError):
-    """
-    Error raised when a field definition in the CID is broken.
-    """
-    pass
-
-
-class CidSyntaxError(CutplaceError):
-    """
-    General syntax error in the specification of the CID.
-    """
-    pass
-
-
-class CheckError(CutplaceError):
+class CheckError(DataError):
     """
     Error to be raised when a check fails.
-    """
-    pass
-
-
-class CheckSyntaxError(CutplaceError):
-    """
-    Error to be raised when the specification of check in the CID is broken.
-    """
-    pass
-
-
-class ValidateLineError(CutplaceError):
-    """
-    Error to be raised when a line in an input file is invalid
     """
     pass
