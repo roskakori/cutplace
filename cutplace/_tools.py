@@ -421,7 +421,7 @@ def _excelCellValue(cell, datemode):
 
 
 def excel_rows(source_path):
-    location = errors.InputLocation(source_path, has_cell=True)
+    location = errors.Location(source_path, has_cell=True)
     try:
         book = xlrd.open_workbook(source_path)
         sheet = book.sheet_by_index(0)
@@ -438,7 +438,7 @@ def excel_rows(source_path):
 
 
 def _raise_delimited_data_format_error(delimited_path, reader, error):
-    location = errors.InputLocation(delimited_path)
+    location = errors.Location(delimited_path)
     line_number = reader.line_num
     if line_number > 0:
         location.advance_line(line_number)
@@ -536,7 +536,7 @@ def ods_content_root(source_ods_path):
     """
     assert source_ods_path is not None
 
-    location = errors.InputLocation(source_ods_path)
+    location = errors.Location(source_ods_path)
     try:
         with zipfile.ZipFile(source_ods_path, "r") as zip_archive:
             try:
@@ -568,9 +568,9 @@ def ods_rows(source_ods_path, sheet=1):
     table_count = len(table_elements)
     if table_count < sheet:
         error_message = 'ODS must contain at least %d sheet(s) instead of just %d' % (sheet, table_count)
-        raise errors.DataFormatError(error_message, errors.InputLocation(source_ods_path))
+        raise errors.DataFormatError(error_message, errors.Location(source_ods_path))
     table_element = table_elements[sheet - 1]
-    location = errors.InputLocation(source_ods_path, has_cell=True, has_sheet=True)
+    location = errors.Location(source_ods_path, has_cell=True, has_sheet=True)
     for _ in range(sheet - 1):
         location.advance_sheet()
     for table_row in table_element.findall('table:table-row', namespaces=_OOO_NAMESPACES):
@@ -614,7 +614,7 @@ def fixed_rows(fixed_path, encoding, field_name_and_lengths, line_delimiter='any
         'line_delimiter=%r but must be one of: %s' % (line_delimiter, _VALID_FIXED_LINE_DELIMITERS)
 
     with io.open(fixed_path, 'r', encoding=encoding) as fixed_file:
-        location = errors.InputLocation(fixed_path, has_column=True)
+        location = errors.Location(fixed_path, has_column=True)
         has_data = True
         while has_data:
             field_index = 0

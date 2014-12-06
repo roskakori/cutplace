@@ -83,7 +83,7 @@ class Range(object):
 
                                 long_value = int(next_value, base)
                             except ValueError:
-                                raise errors.RangeSyntaxError("number must be an integer but is: %r" % next_value)
+                                raise errors.InterfaceError("number must be an integer but is: %r" % next_value)
                             if after_hyphen:
                                 long_value = - 1 * long_value
                                 after_hyphen = False
@@ -92,11 +92,11 @@ class Range(object):
                                 long_value = errors.NAME_TO_ASCII_CODE_MAP[next_value.lower()]
                             except KeyError:
                                 valid_symbols = _tools.humanReadableList(sorted(errors.NAME_TO_ASCII_CODE_MAP.keys()))
-                                raise errors.RangeSyntaxError("symbolic name %r must be one of: %s"
+                                raise errors.InterfaceError("symbolic name %r must be one of: %s"
                                                               % (next_value, valid_symbols))
                         elif next_type == token.STRING:
                             if len(next_value) != 3:
-                                raise errors.RangeSyntaxError("text for range must contain a single character "
+                                raise errors.InterfaceError("text for range must contain a single character "
                                                               "but is: %r" % next_value)
                             left_quote = next_value[0]
                             right_quote = next_value[2]
@@ -107,14 +107,14 @@ class Range(object):
                             if upper is None:
                                 upper = long_value
                             else:
-                                raise errors.RangeSyntaxError("range must have at most lower and upper limit "
+                                raise errors.InterfaceError("range must have at most lower and upper limit "
                                                               "but found another number: %r" % next_value)
                         elif lower is None:
                             lower = long_value
                         else:
-                            raise errors.RangeSyntaxError("number must be followed by ellipsis (...) but found: %r" % next_value)
+                            raise errors.InterfaceError("number must be followed by ellipsis (...) but found: %r" % next_value)
                     elif after_hyphen:
-                        raise errors.RangeSyntaxError("hyphen (-) must be followed by number but found: %r" % next_value)
+                        raise errors.InterfaceError("hyphen (-) must be followed by number but found: %r" % next_value)
                     elif (next_type == token.OP) and (next_value == "-"):
                         after_hyphen = True
                     elif next_value in (ELLIPSIS, ':'):
@@ -122,11 +122,11 @@ class Range(object):
                     else:
                         message = "range must be specified using integer numbers, text, " \
                                   "symbols and ellipsis (...) but found: %r [token type: %r]" % (next_value, next_type)
-                        raise errors.RangeSyntaxError(message)
+                        raise errors.InterfaceError(message)
                     next_token = next(tokens)
 
                 if after_hyphen:
-                    raise errors.RangeSyntaxError("hyphen (-) at end must be followed by number")
+                    raise errors.InterfaceError("hyphen (-) at end must be followed by number")
 
                 # Decide upon the result.
                 if (lower is None):
@@ -134,7 +134,7 @@ class Range(object):
                         if ellipsis_found:
                             # Handle "...".
                             # TODO: Handle "..." same as ""?
-                            raise errors.RangeSyntaxError("ellipsis (...) must be preceded and/or succeeded by number")
+                            raise errors.InterfaceError("ellipsis (...) must be preceded and/or succeeded by number")
                         else:
                             # Handle "".
                             result = None
@@ -145,7 +145,7 @@ class Range(object):
                 elif ellipsis_found:
                     # Handle "x..." and "x...y".
                     if (upper is not None) and (lower > upper):
-                        raise errors.RangeSyntaxError("lower range %d must be greater or equal "
+                        raise errors.InterfaceError("lower range %d must be greater or equal "
                                                       "to upper range %d" % (lower, upper))
                     result = (lower, upper)
                 else:
@@ -155,7 +155,7 @@ class Range(object):
                     for item in self._items:
                         if self._items_overlap(item, result):
                             # TODO: use _repr_item() or something to display item in error message.
-                            raise errors.RangeSyntaxError("range items must not overlap: %r and %r"
+                            raise errors.InterfaceError("range items must not overlap: %r and %r"
                                                    % (self._repr_item(item), self._repr_item(result)))
                     self._items.append(result)
                 if _tools.isEofToken(next_token):

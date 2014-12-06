@@ -73,46 +73,46 @@ class RangeTest(unittest.TestCase):
         # self.assertEquals(ranges.Range("", "2...3").items, [(2, 3)])
 
     def test_broken_overlapping_multi_range(self):
-        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "1...5, 2...3")
-        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "1..., 2...3")
-        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "...5, 2...3")
-        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "...5, ...3")
-        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "...5, 1...")
-        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "...5, 2")
+        self.assertRaises(errors.InterfaceError, ranges.Range, "1...5, 2...3")
+        self.assertRaises(errors.InterfaceError, ranges.Range, "1..., 2...3")
+        self.assertRaises(errors.InterfaceError, ranges.Range, "...5, 2...3")
+        self.assertRaises(errors.InterfaceError, ranges.Range, "...5, ...3")
+        self.assertRaises(errors.InterfaceError, ranges.Range, "...5, 1...")
+        self.assertRaises(errors.InterfaceError, ranges.Range, "...5, 2")
 
     def test_broken_ranges(self):
-        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "x")
-        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "...")
-        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "-")
-        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "-...")
-        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "1 x")
-        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "-x")
-        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "1 2")
-        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "1...2 3")
-        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "1...2-3")
-        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "1...2...3")
-        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "2...1")
-        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "2...-3")
-        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "-1...-3")
+        self.assertRaises(errors.InterfaceError, ranges.Range, "x")
+        self.assertRaises(errors.InterfaceError, ranges.Range, "...")
+        self.assertRaises(errors.InterfaceError, ranges.Range, "-")
+        self.assertRaises(errors.InterfaceError, ranges.Range, "-...")
+        self.assertRaises(errors.InterfaceError, ranges.Range, "1 x")
+        self.assertRaises(errors.InterfaceError, ranges.Range, "-x")
+        self.assertRaises(errors.InterfaceError, ranges.Range, "1 2")
+        self.assertRaises(errors.InterfaceError, ranges.Range, "1...2 3")
+        self.assertRaises(errors.InterfaceError, ranges.Range, "1...2-3")
+        self.assertRaises(errors.InterfaceError, ranges.Range, "1...2...3")
+        self.assertRaises(errors.InterfaceError, ranges.Range, "2...1")
+        self.assertRaises(errors.InterfaceError, ranges.Range, "2...-3")
+        self.assertRaises(errors.InterfaceError, ranges.Range, "-1...-3")
         try:
             ranges.Range("?")
-            self.fail("test must fail with RangeSyntaxError")
-        except errors.RangeSyntaxError as error:
+            self.fail("test must fail with InterfaceError")
+        except errors.InterfaceError as error:
             self.assertEqual(str(error), "range must be specified using integer numbers, text, "
                                          "symbols and ellipsis (...) but found: '?' [token type: 53]")
         try:
             ranges.Range("1.23")
-            self.fail("test must fail with RangeSyntaxError")
-        except errors.RangeSyntaxError as error:
+            self.fail("test must fail with InterfaceError")
+        except errors.InterfaceError as error:
             self.assertEqual(str(error), "number must be an integer but is: '1.23'")
 
     def test_broken_symbolic_names(self):
-        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "spam")
-        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "Esc...Tab")
+        self.assertRaises(errors.InterfaceError, ranges.Range, "spam")
+        self.assertRaises(errors.InterfaceError, ranges.Range, "Esc...Tab")
 
     def test_broken_text_range(self):
-        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "\"ab\"")
-        self.assertRaises(errors.RangeSyntaxError, ranges.Range, "\"\"")
+        self.assertRaises(errors.InterfaceError, ranges.Range, "\"ab\"")
+        self.assertRaises(errors.InterfaceError, ranges.Range, "\"\"")
 
     def _test_no_range(self, text):
         no_range = ranges.Range(text)

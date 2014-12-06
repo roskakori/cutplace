@@ -42,12 +42,12 @@ class AbstractCheck(object):
         assert available_field_names is not None
 
         if not available_field_names:
-            raise errors.FieldLookupError("field names must be specified", location_of_definition)
+            raise errors.InterfaceError("field names must be specified", location_of_definition)
         self._description = description
         self._rule = rule
         self._fieldNames = available_field_names
         if location_of_definition is None:
-            self._location = errors.create_caller_input_location(["checks"])
+            self._location = errors.create_caller_location(["checks"])
         else:
             self._location = location_of_definition
 
@@ -68,7 +68,7 @@ class AbstractCheck(object):
         Check row and in case it is invalid raise `CheckError`. By default do nothing.
 
         ``RowMap`` is maps all field names to their respective value for this row, ``location`` is
-        the `tools.InputLocation` where the row started in the input.
+        the `tools.Location` where the row started in the input.
         """
         pass
 
@@ -77,7 +77,7 @@ class AbstractCheck(object):
         Check at at end of document when all rows have been read and in case something is wrong
         raise `CheckError`. By default do nothing.
 
-        ``Location`` is the `tools.InputLocation` of the last row in the input.
+        ``Location`` is the `tools.Location` of the last row in the input.
         """
         pass
 
@@ -106,7 +106,7 @@ class AbstractCheck(object):
     @property
     def location(self):
         """
-        The `tools.InputLocation` where the check was defined.
+        The `tools.Location` where the check was defined.
         """
         return self._location
 
@@ -142,22 +142,22 @@ class IsUniqueCheck(AbstractCheck):
             token_value = next_token[1]
             if after_comma:
                 if token_type != tokenize.NAME:
-                    raise errors.CheckSyntaxError("field name must contain only ASCII letters, numbers and underscores (_) "
+                    raise errors.InterfaceError("field name must contain only ASCII letters, numbers and underscores (_) "
                                                   + "but found: %r [token type=%r]" % (token_value, token_type))
                 try:
                     fields.get_field_name_index(token_value, available_field_names)
                     if token_value in unique_field_names:
-                        raise errors.CheckSyntaxError("duplicate field name for unique check must be removed: %s" % token_value)
+                        raise errors.InterfaceError("duplicate field name for unique check must be removed: %s" % token_value)
                     unique_field_names.add(token_value)
-                except errors.FieldLookupError as error:
-                    raise errors.CheckSyntaxError(str(error))
+                except errors.InterfaceError as error:
+                    raise errors.InterfaceError(str(error))
                 self.fieldNamesToCheck.append(token_value)
             elif not _tools.isCommaToken(next_token):
-                raise errors.CheckSyntaxError("after field name a comma (,) must follow but found: %r" % token_value)
+                raise errors.InterfaceError("after field name a comma (,) must follow but found: %r" % token_value)
             after_comma = not after_comma
             next_token = next(toky)
         if not len(self.fieldNamesToCheck):
-            raise errors.CheckSyntaxError("rule must contain at least one field name to check for uniqueness")
+            raise errors.InterfaceError("rule must contain at least one field name to check for uniqueness")
         self.reset()
 
     def reset(self):
@@ -192,7 +192,7 @@ class DistinctCountCheck(AbstractCheck):
 
         # Obtain and validate field to count.
         if first_token[0] != tokenize.NAME:
-            raise errors.CheckSyntaxError("rule must start with a field name but found: %r" % first_token[1])
+            raise errors.InterfaceError("rule must start with a field name but found: %r" % first_token[1])
         self.fieldNameToCount = first_token[1]
         fields.get_field_name_index(self.fieldNameToCount, available_field_names)
         line_where_field_name_ends, column_where_field_name_ends = first_token[3]
@@ -215,9 +215,9 @@ class DistinctCountCheck(AbstractCheck):
         try:
             result = eval(self.expression, {}, local_variables)
         except Exception as message:
-            raise errors.CheckSyntaxError("cannot evaluate count expression %r: %s" % (self.expression, message))
+            raise errors.InterfaceError("cannot evaluate count expression %r: %s" % (self.expression, message))
         if result not in [True, False]:
-            raise errors.CheckSyntaxError("count expression %r must result in %r or %r, but test resulted in: %r" %
+            raise errors.InterfaceError("count expression %r must result in %r or %r, but test resulted in: %r" %
                                           (self.expression, True, False, result))
         return result
 

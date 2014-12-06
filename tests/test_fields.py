@@ -127,7 +127,7 @@ class DecimalFieldFormatTest(unittest.TestCase):
         self.assertRaises(errors.FieldValueError, german_format.validated, "12,345.678")
 
     def test_broken_decimal_syntax(self):
-        self.assertRaises(errors.FieldSyntaxError, fields.DecimalFieldFormat, "x", False, None, "eggs", _anyFormat)
+        self.assertRaises(errors.InterfaceError, fields.DecimalFieldFormat, "x", False, None, "eggs", _anyFormat)
 
 
 class IntegerFieldFormatTest(unittest.TestCase):
@@ -232,11 +232,11 @@ class ChoiceFieldFormatTest(unittest.TestCase):
         self.assertEquals(field_format.validated(""), "")
 
     def test_broken_empty_choice(self):
-        self.assertRaises(errors.FieldSyntaxError, fields.ChoiceFieldFormat, "color", False, None, "", _anyFormat)
-        self.assertRaises(errors.FieldSyntaxError, fields.ChoiceFieldFormat, "color", False, None, " ", _anyFormat)
-        self.assertRaises(errors.FieldSyntaxError, fields.ChoiceFieldFormat, "color", False, None, "red,", _anyFormat)
-        self.assertRaises(errors.FieldSyntaxError, fields.ChoiceFieldFormat, "color", False, None, ",red", _anyFormat)
-        self.assertRaises(errors.FieldSyntaxError, fields.ChoiceFieldFormat, "color", False, None, "red,,green", _anyFormat)
+        self.assertRaises(errors.InterfaceError, fields.ChoiceFieldFormat, "color", False, None, "", _anyFormat)
+        self.assertRaises(errors.InterfaceError, fields.ChoiceFieldFormat, "color", False, None, " ", _anyFormat)
+        self.assertRaises(errors.InterfaceError, fields.ChoiceFieldFormat, "color", False, None, "red,", _anyFormat)
+        self.assertRaises(errors.InterfaceError, fields.ChoiceFieldFormat, "color", False, None, ",red", _anyFormat)
+        self.assertRaises(errors.InterfaceError, fields.ChoiceFieldFormat, "color", False, None, "red,,green", _anyFormat)
 
 
 class PatternFieldFormatTest(unittest.TestCase):

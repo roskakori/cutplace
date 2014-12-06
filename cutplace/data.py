@@ -82,7 +82,7 @@ class DataFormat():
 
     def __init__(self, format_name, location=None):
         if format_name not in _VALID_FORMATS:
-            raise errors.DataFormatSyntaxError('format is %s but must be on of: %s'
+            raise errors.InterfaceError('format is %s but must be on of: %s'
                                                % (format_name, _VALID_FORMATS), location)
         else:
             self._location = location
@@ -157,7 +157,7 @@ class DataFormat():
         name = name.replace(' ', '_')
         varname = '_' + name
         if varname not in self.__dict__:
-            raise errors.DataFormatSyntaxError('format %s does not support property %s'
+            raise errors.InterfaceError('format %s does not support property %s'
                                                % (self.format, name), self._location)
 
         if name == KEY_ENCODING:
@@ -171,11 +171,11 @@ class DataFormat():
             try:
                 self._header = int(value)
             except ValueError:
-                raise errors.DataFormatSyntaxError('header %s must be a number' % value, self._location)
+                raise errors.InterfaceError('header %s must be a number' % value, self._location)
         elif name == KEY_ALLOWED_CHARACTERS:
             try:
                 self._allowed_characters = ranges.Range(value)
-            except errors.RangeSyntaxError as error:
+            except errors.InterfaceError as error:
                 raise errors.DataFormatValueError('value for property %r must be a valid range: %s'
                                                   % (KEY_ALLOWED_CHARACTERS, error), self._location)
         elif name == KEY_LINE_DELIMITER:
@@ -199,9 +199,9 @@ class DataFormat():
                 try:
                     self._sheet = int(value)
                 except ValueError:
-                    raise errors.DataFormatSyntaxError('sheet %s must be a number' % value, self._location)
+                    raise errors.InterfaceError('sheet %s must be a number' % value, self._location)
             else:
-                raise errors.DataFormatSyntaxError('property %s is not valid for excel format' % name, self._location)
+                raise errors.InterfaceError('property %s is not valid for excel format' % name, self._location)
         elif self.format == FORMAT_FIXED:
             self.__dict__[varname] = value
         elif self.format == FORMAT_DELIMITED:
@@ -211,7 +211,7 @@ class DataFormat():
                 elif value in ('False', 'false'):
                     self._skip_initial_space = False
                 else:
-                    raise errors.DataFormatSyntaxError('skip initial space %s must be changed to one of: True, False'
+                    raise errors.InterfaceError('skip initial space %s must be changed to one of: True, False'
                                                        % value, self._location)
             else:
                 self.__dict__[varname] = value
@@ -237,7 +237,7 @@ class DataFormat():
         * a string containing a single character such as "\t".
         * a symbolic name such as "Tab".
 
-        Anything else yields a `DataFormatSyntaxError`.
+        Anything else yields a `InterfaceError`.
         >>> format = DelimitedDataFormat()
         >>> format._validated_character("x", "34")
         '"'
@@ -252,34 +252,34 @@ class DataFormat():
         >>> format._validated_character("x", "")
         Traceback (most recent call last):
             ...
-        DataFormatSyntaxError: value for data format property 'x' must be specified
+        InterfaceError: value for data format property 'x' must be specified
         >>> format._validated_character("x", "Tab Tab")
         Traceback (most recent call last):
             ...
-        DataFormatSyntaxError: value for data format property 'x' must describe a single character but is: 'Tab Tab'
+        InterfaceError: value for data format property 'x' must describe a single character but is: 'Tab Tab'
         >>> format._validated_character("x", "17.23")
         Traceback (most recent call last):
             ...
-        DataFormatSyntaxError: numeric value for data format property 'x' must be an integer but is: '17.23'
+        InterfaceError: numeric value for data format property 'x' must be an integer but is: '17.23'
         >>> format._validated_character("x", "Hugo")
         Traceback (most recent call last):
             ...
-        DataFormatSyntaxError: symbolic name 'Hugo' for data format property 'x' must be one of:
+        InterfaceError: symbolic name 'Hugo' for data format property 'x' must be one of:
         'cr', 'ff', 'lf', 'tab' or 'vt'
         >>> format._validated_character("x", "( ")
         Traceback (most recent call last):
             ...
-        DataFormatSyntaxError: value for data format property 'x' must a number, a single character or
+        InterfaceError: value for data format property 'x' must a number, a single character or
         a symbolic name but is: '( '
         >>> format._validated_character("x", "\"\\")
         Traceback (most recent call last):
             ...
-        DataFormatSyntaxError: value for data format property 'x' must a number, a single character or
+        InterfaceError: value for data format property 'x' must a number, a single character or
         a symbolic name but is: '"\\'
         >>> format._validated_character("x", "\"abc\"")
         Traceback (most recent call last):
             ...
-        DataFormatSyntaxError: text for data format property 'x' must be a single character but is: '"abc"'
+        InterfaceError: text for data format property 'x' must be a single character but is: '"abc"'
         """
         # TODO: Consolidate code with `ranges.__init__()`.
         assert key
@@ -291,7 +291,7 @@ class DataFormat():
             tokens = tokenize.generate_tokens(io.StringIO(value).readline)
             next_token = next(tokens)
             if _tools.isEofToken(next_token):
-                raise errors.DataFormatSyntaxError("value for data format property %r must be specified" % key,
+                raise errors.InterfaceError("value for data format property %r must be specified" % key,
                                                    self._location)
             next_type = next_token[0]
             next_value = next_token[1]
@@ -304,18 +304,18 @@ class DataFormat():
                         base = 10
                     long_value = int(next_value, base)
                 except ValueError:
-                    raise errors.DataFormatSyntaxError('numeric value for data format property %r must be an integer but is: %r'
+                    raise errors.InterfaceError('numeric value for data format property %r must be an integer but is: %r'
                                                        % (key, value), self._location)
             elif next_type == token.NAME:
                 try:
                     long_value = errors.NAME_TO_ASCII_CODE_MAP[next_value.lower()]
                 except KeyError:
                     valid_symbols = _tools.humanReadableList(sorted(errors.NAME_TO_ASCII_CODE_MAP.keys()))
-                    raise errors.DataFormatSyntaxError('symbolic name %r for data format property %r must be one of: %s'
+                    raise errors.InterfaceError('symbolic name %r for data format property %r must be one of: %s'
                                                        % (value, key, valid_symbols), self._location)
             elif next_type == token.STRING:
                 if len(next_value) != 3:
-                    raise errors.DataFormatSyntaxError('text for data format property %r must be a single character but is: %r'
+                    raise errors.InterfaceError('text for data format property %r must be a single character but is: %r'
                                                        % (key, value), self._location)
                 left_quote = next_value[0]
                 right_quote = next_value[2]
@@ -323,13 +323,13 @@ class DataFormat():
                 assert right_quote in "\"\'", "rightQuote=%r" % right_quote
                 long_value = ord(next_value[1])
             else:
-                raise errors.DataFormatSyntaxError('value for data format property %r must a number, '
+                raise errors.InterfaceError('value for data format property %r must a number, '
                                                    'a single character or a symbolic name but is: %r'
                                                    % (key, value), self._location)
             # Ensure there are no further tokens.
             next_token = next(tokens)
             if not _tools.isEofToken(next_token):
-                raise errors.DataFormatSyntaxError('value for data format property %r must describe '
+                raise errors.InterfaceError('value for data format property %r must describe '
                                                    'a single character but is: %r'
                                                    % (key, value), self._location)
             assert long_value is not None

@@ -47,28 +47,28 @@ class CidTest(unittest.TestCase):
 
     def test_fails_on_empty_data_format_property_name(self):
         cid_reader = cid.Cid()
-        self.assertRaises(errors.DataFormatSyntaxError, cid_reader.read, 'inline', [
+        self.assertRaises(errors.InterfaceError, cid_reader.read, 'inline', [
             ['d', 'format', 'delimited'],
             ['d', '', ''],
         ])
 
     def test_fails_on_missing_data_format_value_name(self):
         cid_reader = cid.Cid()
-        self.assertRaises(errors.DataFormatSyntaxError, cid_reader.read, 'inline', [
+        self.assertRaises(errors.InterfaceError, cid_reader.read, 'inline', [
             ['d', 'format', 'delimited'],
             ['d', 'header'],
         ])
 
     def test_fails_on_missing_data_format_property_name(self):
         cid_reader = cid.Cid()
-        self.assertRaises(errors.DataFormatSyntaxError, cid_reader.read, 'inline', [
+        self.assertRaises(errors.InterfaceError, cid_reader.read, 'inline', [
             ['d', 'format', 'delimited'],
             ['d'],
         ])
 
     def test_fails_on_invalid_row_typ(self):
         cid_reader = cid.Cid()
-        self.assertRaises(errors.DataFormatSyntaxError, cid_reader.read, 'inline', [['x']])
+        self.assertRaises(errors.InterfaceError, cid_reader.read, 'inline', [['x']])
 
     def test_can_skip_empty_rows(self):
         cid_reader = cid.Cid()
@@ -138,16 +138,16 @@ class CidTest(unittest.TestCase):
 
     def test_fails_on_empty_field_name(self):
         cid_reader = cid.Cid()
-        self.assertRaises(errors.FieldSyntaxError, cid_reader.read, 'inline', [
+        self.assertRaises(errors.InterfaceError, cid_reader.read, 'inline', [
             ['d', 'format', 'delimited'],
             ['f', '', '38000', '', '5']])
 
     def test_fails_on_invalid_field_name(self):
         cid_reader = cid.Cid()
-        self.assertRaises(errors.FieldSyntaxError, cid_reader.read, 'inline', [
+        self.assertRaises(errors.InterfaceError, cid_reader.read, 'inline', [
             ['d', 'format', 'delimited'],
             ['f', '3', '38000', '', '5']])
-        self.assertRaises(errors.FieldSyntaxError, cid_reader.read, 'inline', [
+        self.assertRaises(errors.InterfaceError, cid_reader.read, 'inline', [
             ['d', 'format', 'delimited'],
             ['f', '%', '38000', '', '5']])
 

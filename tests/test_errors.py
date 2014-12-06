@@ -22,11 +22,12 @@ from cutplace import errors
 
 
 class ErrorsTest(unittest.TestCase):
+    """
+    TestCase for `errors` module.
+    """
 
-    """TestCase for errors module."""
-
-    def test_can_work_with_input_location(self):
-        location = errors.InputLocation("eggs.txt", has_column=True)
+    def test_can_work_with_location(self):
+        location = errors.Location("eggs.txt", has_column=True)
         self.assertEqual(location.line, 0)
         self.assertEqual(location.column, 0)
         self.assertEqual(str(location), "eggs.txt (1;1)")
@@ -40,7 +41,7 @@ class ErrorsTest(unittest.TestCase):
         self.assertEqual(str(location), "eggs.txt (2;1)")
 
         # Test input with cells.
-        location = errors.InputLocation("eggs.csv", has_cell=True)
+        location = errors.Location("eggs.csv", has_cell=True)
         self.assertEqual(location.line, 0)
         self.assertEqual(location.cell, 0)
         self.assertEqual(str(location), "eggs.csv (R1C1)")
@@ -49,7 +50,7 @@ class ErrorsTest(unittest.TestCase):
         self.assertEqual(location.__repr__(), "eggs.csv (R2C18)")
 
         # Test input with sheet.
-        location = errors.InputLocation("eggs.ods", has_cell=True, has_sheet=True)
+        location = errors.Location("eggs.ods", has_cell=True, has_sheet=True)
         self.assertEqual(str(location), "eggs.ods (Sheet1!R1C1)")
         location.advance_sheet()
         location.advance_line()
@@ -59,18 +60,18 @@ class ErrorsTest(unittest.TestCase):
 
         # Test StringIO input.
         input_stream = io.StringIO("hugo was here")
-        location = errors.InputLocation(input_stream)
+        location = errors.Location(input_stream)
         self.assertEqual(str(location), "<io> (1)")
 
-    def test_can_compare_two_input_locations(self):
-        location = errors.InputLocation("eggs.ods", has_cell=True, has_sheet=True)
-        location_other = errors.InputLocation("eggs.ods", has_cell=True, has_sheet=True)
+    def test_can_compare_two_locations(self):
+        location = errors.Location("eggs.ods", has_cell=True, has_sheet=True)
+        location_other = errors.Location("eggs.ods", has_cell=True, has_sheet=True)
         self.assertEqual(location.__eq__(location_other), True)
         self.assertEqual(location.__lt__(location_other), False)
 
-    def test_can_create_base_cutplace_error(self):
-        location = errors.InputLocation("eggs.ods", has_cell=True, has_sheet=True)
-        base_error = errors._BaseCutplaceError("It`s a test", location, "see also message", location, "cause")
+    def test_can_create_cutplace_error(self):
+        location = errors.Location("eggs.ods", has_cell=True, has_sheet=True)
+        base_error = errors.CutplaceError("It`s a test", location, "see also message", location, "cause")
         self.assertEqual(base_error.location, location)
         self.assertEqual(base_error.see_also_location, location)
         self.assertEqual(base_error.cause, "cause")
