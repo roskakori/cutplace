@@ -15,9 +15,10 @@ Development tool and utility functions for testing and test data generation.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import argparse
 import csv
+import io
 import logging
-import optparse
 import os
 import random
 import sys
@@ -170,6 +171,7 @@ def createIcdsCustomerCsv():
     """
     sourceOdsPath = getTestIcdPath("customers.ods")
     targetCsvPath = getTestIcdPath("customers.csv")
+    _log.info('write derived CID to "%s"', targetCsvPath)
     _ods.toCsv(sourceOdsPath, targetCsvPath)
 
 
@@ -177,25 +179,17 @@ def createLotsOfCustomersCsv(targetCsvPath, customerCount=1000):
     # TODO: Use a random seed to generate the same data every time.
     assert targetCsvPath is not None
 
-    targetCsvFile = open(targetCsvPath, "w")
-    _log.info("write lots of customers to \"%s\"", targetCsvPath)
-    try:
-        csvWriter = csv.writer(targetCsvFile)
+    _log.info('write lots of customers to "%s"', targetCsvPath)
+    with io.open(targetCsvPath, "w", newline='', encoding='cp1252') as targetCsvFile:
+        # TODO: Python 2: use portable CSV writer.
+        csv_writer = csv.writer(targetCsvFile)
         for customerId in range(customerCount):
-            csvWriter.writerow(createTestCustomerRow(customerId))
-    finally:
-        targetCsvFile.close()
+            csv_writer.writerow(createTestCustomerRow(customerId))
+
 
 if __name__ == '__main__':
-    logging.basicConfig()
-    logging.getLogger("cutplace").setLevel(logging.INFO)
-
-    usage = "usage: %prog"
-    parser = optparse.OptionParser(usage)
-    options, others = parser.parse_args()
-    if len(others) == 0:
-        createIcdsCustomerCsv()
-        createLotsOfCustomersCsv(getLotsOfCustomersCsvPath())
-    else:
-        sys.stderr.write("unknown option must be removed: %r%s" % (others[0], os.linesep))
-        sys.exit(1)
+    logging.basicConfig(level=logging.INFO)
+    parser = argparse.ArgumentParser()
+    _ = parser.parse_args()
+    createIcdsCustomerCsv()
+    createLotsOfCustomersCsv(getLotsOfCustomersCsvPath())
