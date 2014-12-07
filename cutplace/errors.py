@@ -18,8 +18,6 @@ Errors that can be raised by cutplace.
 import copy
 import os
 import traceback
-import sys
-import types
 
 """
 Symbolic names that can be used to improve the legibility of the CID.

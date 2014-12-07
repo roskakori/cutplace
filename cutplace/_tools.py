@@ -29,6 +29,7 @@ import logging
 import os
 import platform
 import io
+import six
 import sys
 import token
 import tokenize
@@ -465,6 +466,7 @@ else:  # pragma: no cover
     #
     # Note: _UTF8Recoder and _UnicodeReader are derived from <https://docs.python.org/2/library/csv.html#examples>.
     import codecs
+    # TODO: Check if the iterators below can be simplified using `six.Iterator` which already has `next()`.
 
     class _UTF8Recoder(object):
         """
@@ -481,10 +483,10 @@ else:  # pragma: no cover
             return self.reader.next().encode('utf-8')
 
     class _UnicodeReader(object):
-        '''
+        """
         A CSV reader which will iterate over lines in the CSV file 'f',
         which is encoded in the given encoding.
-        '''
+        """
 
         def __init__(self, csv_file, dialect=csv.excel, encoding='utf-8', **keywords):
             csv_file = _UTF8Recoder(csv_file, encoding)
@@ -492,7 +494,7 @@ else:  # pragma: no cover
 
         def next(self):
             row = self.reader.next()
-            return [unicode(item, 'utf-8') for item in row]
+            return [six.text_type(item, 'utf-8') for item in row]
 
         def __iter__(self):
             return self
@@ -505,7 +507,7 @@ else:  # pragma: no cover
         delimiter=u';'. This quickly becomes an annoyance to the caller, in
         particular with `from __future__ import unicode_literals` enabled.
         """
-        return dict((key, value if not isinstance(value, unicode) else str(value))
+        return dict((key, value if not isinstance(value, six.text_type) else str(value))
                     for key, value in key_to_value_map.items())
 
     def _delimited_rows(delimited_path, encoding, **keywords):

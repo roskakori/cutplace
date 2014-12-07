@@ -144,7 +144,7 @@ class RowsTest(unittest.TestCase):
     def test_fails_on_ods_with_broken_zip(self):
         broken_ods_path = dev_test.getTestInputPath('customers.csv')
         try:
-            _ = list(_tools.ods_rows(broken_ods_path))
+            list(_tools.ods_rows(broken_ods_path))
             self.fail('expected DataFormatError')
         except errors.DataFormatError as error:
             error_message = '%s' % error
@@ -154,7 +154,7 @@ class RowsTest(unittest.TestCase):
     def test_fails_on_ods_without_content_xml(self):
         broken_ods_path = dev_test.getTestInputPath('broken_without_content_xml.ods')
         try:
-            _ = list(_tools.ods_rows(broken_ods_path))
+            list(_tools.ods_rows(broken_ods_path))
             self.fail('expected DataFormatError')
         except errors.DataFormatError as error:
             error_message = '%s' % error
@@ -164,7 +164,7 @@ class RowsTest(unittest.TestCase):
     def test_fails_on_ods_without_broken_content_xml(self):
         broken_ods_path = dev_test.getTestInputPath('broken_content_xml.ods')
         try:
-            _ = list(_tools.ods_rows(broken_ods_path))
+            list(_tools.ods_rows(broken_ods_path))
             self.fail('expected DataFormatError')
         except errors.DataFormatError as error:
             error_message = '%s' % error
@@ -174,7 +174,7 @@ class RowsTest(unittest.TestCase):
     def test_fails_on_non_existent_ods_sheet(self):
         ods_path = dev_test.getTestInputPath('valid_customers.ods')
         try:
-            _ = list(_tools.ods_rows(ods_path, 123))
+            list(_tools.ods_rows(ods_path, 123))
             self.fail('expected DataFormatError')
         except errors.DataFormatError as error:
             error_message = '%s' % error
@@ -186,7 +186,7 @@ class RowsTest(unittest.TestCase):
         customer_cid = cid.Cid(cid_path)
         broken_delimited_path = dev_test.getTestInputPath('broken_customers_with_unterminated_quote.csv')
         try:
-            _ = list(_tools.delimited_rows(broken_delimited_path, customer_cid.data_format))
+            list(_tools.delimited_rows(broken_delimited_path, customer_cid.data_format))
         except errors.DataFormatError as error:
             error_message = '%s' % error
             self.assertTrue('cannot parse delimited file' in error_message,

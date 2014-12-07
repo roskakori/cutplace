@@ -111,7 +111,7 @@
         <pyst command="clean" />
         <delete>
             <fileset dir="." includes="**/*.pyc, **/*$py.class" />
-            <fileset dir="." includes="coverage.xml, nosetests.xml, nosetests_performance.xml, pep8.txt, sloccount.sc" />
+            <fileset dir="." includes="coverage.xml, nosetests.xml, nosetests_performance.xml, flake8.txt, sloccount.sc" />
         </delete>
         <delete includeemptydirs="true">
             <fileset dir="${tests-output.dir}" includes="**/*" />
@@ -142,7 +142,7 @@
         <pyst command="docs" />
     </target>
 
-    <target name="reports" depends="sitebase, pep8, sloccount, testdata, performance" description="build developer reports" />
+    <target name="reports" depends="sitebase, flake8, sloccount, testdata, performance" description="build developer reports" />
 
     <target name="sloccount" description="build sloccount report">
         <mkdir dir="${slocdata.dir}" />
@@ -164,21 +164,19 @@
         <delete dir="${slocdata.dir}" />
     </target>
 
-    <target name="pep8" description="build pep8 violations report">
-        <echo message="build pep8 violations report" />
-        <exec executable="pep8">
+    <target name="flake8" description="build flake8 violations report">
+        <echo message="build flake8 violations report" />
+        <exec executable="tox">
             <!--
             Note: We do not use failonerror="true" because any violations results in an exit code
             of 1, which would result in the whole build to be considered failed.
             -->
-            <arg value="--config" />
-            <arg file="pep8.cfg" />
-            <arg value="cutplace" />
-            <arg value="tests" />
-            <redirector output="pep8.txt" />
+            <arg value="-e" />
+            <arg value="flake8" />
+            <redirector output="flake8.txt" />
         </exec>
         <concat>
-            <filelist files="pep8.txt"/>
+            <filelist files="flake8.txt"/>
         </concat>
     </target>
 

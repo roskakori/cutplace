@@ -15,12 +15,10 @@ Tests for validator.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import logging
 import unittest
 
 from cutplace import cid
 from cutplace import dev_test
-from cutplace import data
 from cutplace import errors
 from cutplace import validator
 from cutplace import _tools

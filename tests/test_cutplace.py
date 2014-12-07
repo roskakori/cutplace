@@ -16,12 +16,10 @@ Tests for cutplace application.
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import logging
-import os.path
 import unittest
 
 from cutplace import dev_test
 from cutplace import _cutplace
-from cutplace import _tools
 
 _log = logging.getLogger("cutplace")
 
@@ -47,7 +45,7 @@ class CutplaceTest(unittest.TestCase):
         exit_code = _cutplace.process(['test_can_read_valid_' + suffix + '_cid', cid_path])
         self.assertEqual(0, exit_code)
 
-    def test_can_read_excel_cid(self):
+    def test_can_read_csv_cid(self):
         self._test_can_read_cid('csv')
 
     # TODO #76: def test_can_read_ods_cid(self):

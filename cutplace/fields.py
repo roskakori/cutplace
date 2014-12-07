@@ -22,7 +22,6 @@ import re
 import string
 import sys
 import time
-import token
 
 from cutplace import data
 from cutplace import ranges

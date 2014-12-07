@@ -23,7 +23,6 @@ import io
 import logging
 import os
 import sys
-import xlrd
 
 from cutplace import cid
 from cutplace import errors
@@ -80,11 +79,11 @@ class CutPlace(object):
         # TODO: validationGroup.add_option('-s', '--split', action='store_true', dest='isSplit',
         #               help='split data in a CSV file containing the accepted rows and a raw text file '
         #               + 'containing rejected rows with both using UTF-8 as character encoding')
-        # TODO: webGroup = optparse.OptionGroup(parser, 'Web options', 'Provide a  GUI for validation using a simple web server')
-        # TODO: webGroup.add_option('-w', '--web', action='store_true', dest='isWebServer', help='launch web server')
-        # TODO: webGroup.add_option('-p', '--port', metavar='PORT', type='int', dest='port', help='port for web server (default: %default)')
-        # TODO: webGroup.add_option('-b', '--browse', action='store_true', dest='isOpenBrowser', help='open validation page in browser')
-        # TODO: parser.add_option_group(webGroup)
+        # TODO #77: webGroup = optparse.OptionGroup(parser, 'Web options', 'Provide a  GUI for validation using a simple web server')
+        # TODO #77: webGroup.add_option('-w', '--web', action='store_true', dest='isWebServer', help='launch web server')
+        # TODO #77: webGroup.add_option('-p', '--port', metavar='PORT', type='int', dest='port', help='port for web server (default: %default)')
+        # TODO #77: webGroup.add_option('-b', '--browse', action='store_true', dest='isOpenBrowser', help='open validation page in browser')
+        # TODO #77: parser.add_option_group(webGroup)
         loggingGroup = parser.add_argument_group('Logging options', 'Modify the logging output')
         loggingGroup.add_argument('--log', metavar='LEVEL', choices=sorted(_tools.LOG_LEVEL_NAME_TO_LEVEL_MAP.keys()),
             dest='log_level', default=DEFAULT_LOG_LEVEL,
@@ -96,7 +95,7 @@ class CutPlace(object):
 
         self._log.setLevel(_tools.LOG_LEVEL_NAME_TO_LEVEL_MAP[args.log_level])
         self.cid_encoding = args.cid_encoding
-        # FIXME: Remove dummy values below.
+        # FIXME #77 etc: Remove dummy values below.
         self.isLogTrace = False
         self.isOpenBrowser = False
         self.isShowEncodings = False
@@ -106,8 +105,8 @@ class CutPlace(object):
         # TODO: self.isLogTrace = self.options.isLogTrace
         # TODO: self.isOpenBrowser = self.options.isOpenBrowser
         # TODO: self.isShowEncodings = self.options.isShowEncodings
-        # TODO: self.isWebServer = self.options.isWebServer
-        # TODO: self.port = self.options.port
+        # TODO #77: self.isWebServer = self.options.isWebServer
+        # TODO #77: self.port = self.options.port
         # TODO: self.isSplit = self.options.isSplit
 
         if args.plugins_folder is not None:
@@ -183,7 +182,8 @@ def process(argv=None):
         cutPlace._printAvailableEncodings()
     else:
         if cutPlace.isWebServer:
-            _web.main(cutPlace.port, cutPlace.isOpenBrowser)
+            # TODO #77: _web.main(cutPlace.port, cutPlace.isOpenBrowser)
+            pass
         elif cutPlace.dataToValidatePaths:
             allValidationsOk = True
             for path in cutPlace.dataToValidatePaths:
