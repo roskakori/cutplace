@@ -379,7 +379,7 @@ class Cid():
         """
         The value for field ``field_name`` in ``row``. This looks up the column of the field named
         ``field_name`` and retrieves the data from the matching item in ``row``. If ``row`` does
-        not contain the expected amount of field value, raise a `errors.DataFormatValueError`.
+        not contain the expected amount of field value, raise a `errors.InterfaceError`.
         """
         assert field_name is not None
         assert row is not None
@@ -388,11 +388,11 @@ class Cid():
         expected_row_count = len(self.field_names)
         if actual_row_count != expected_row_count:
             self._location = errors.create_caller_location()
-            raise errors.DataFormatValueError("row must have %d items but has %d: %s"
+            raise errors.InterfaceError("row must have %d items but has %d: %s"
                                               % (expected_row_count, actual_row_count, row), self._location)
 
-        field_index = self.get_field_name_index(field_name)
-        # The following condition must be ``True`` because any deviations should be been detected
+        field_index = self.field_index(field_name)
+        # The following condition must be ``True`` because any deviations should have been detected
         # already by comparing expected and actual row count.
         assert field_index < len(row)
 
