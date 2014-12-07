@@ -54,8 +54,8 @@ class CutplaceTest(unittest.TestCase):
         self._test_can_read_cid('csv')
         os.remove(target_csv_cid_path)
 
-    # TODO #76: def test_can_read_ods_cid(self):
-    #          self._test_can_read_cid('ods')
+    def test_can_read_ods_cid(self):
+        self._test_can_read_cid('ods')
 
     def test_can_read_excel_cid(self):
         self._test_can_read_cid('xls')
@@ -69,19 +69,18 @@ class CutplaceTest(unittest.TestCase):
         exit_code = _cutplace.process(['test_can_validate_proper_csv', cid_path, csv_path])
         self.assertEqual(0, exit_code)
 
-    # TODO #76: After _tools.ods_rows() works, activate this.
-    # def test_can_read_cid_with_plugins(self):
-    #     cid_path = dev_test.getTestIcdPath('customers_with_plugins.ods')
-    #     exit_code = _cutplace.process(['test_can_read_cid_with_plugins', '--plugins', dev_test.getTestPluginsPath(),
-    #         cid_path])
-    #     self.assertEqual(0, exit_code)
-    #
-    # def test_can_validate_proper_csv_with_plugins(self):
-    #     cid_path = dev_test.getTestIcdPath('customers_with_plugins.ods')
-    #     csv_path = dev_test.getTestInputPath('valid_customers.csv')
-    #     exit_code = _cutplace.process(['test_can_validate_proper_csv_with_plugins', '--plugins',
-    #         dev_test.getTestPluginsPath(), cid_path, csv_path])
-    #     self.assertEqual(0, exit_code)
+    def test_can_read_cid_with_plugins(self):
+        cid_path = dev_test.getTestIcdPath('customers_with_plugins.ods')
+        exit_code = _cutplace.process(['test_can_read_cid_with_plugins', '--plugins', dev_test.getTestPluginsPath(),
+            cid_path])
+        self.assertEqual(0, exit_code)
+
+    def test_can_validate_proper_csv_with_plugins(self):
+        cid_path = dev_test.getTestIcdPath('customers_with_plugins.ods')
+        csv_path = dev_test.getTestInputPath('valid_customers.csv')
+        exit_code = _cutplace.process(['test_can_validate_proper_csv_with_plugins', '--plugins',
+            dev_test.getTestPluginsPath(), cid_path, csv_path])
+        self.assertEqual(0, exit_code)
 
     def test_fails_on_non_existent_data(self):
         cid_path = dev_test.getTestIcdPath('customers.xls')
