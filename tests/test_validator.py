@@ -46,6 +46,14 @@ class ValidatorTest(unittest.TestCase):
         reader = validator.Reader(cid_reader, dev_test.getTestInputPath("valid_customers.xls"))
         reader.validate()
 
+    def test_can_open_and_validate_ods_source_file(self):
+        cid_reader = cid.Cid()
+        source_path = dev_test.getTestIcdPath("icd_customers_ods.xls")
+        cid_reader.read(source_path, _tools.excel_rows(source_path))
+
+        reader = validator.Reader(cid_reader, dev_test.getTestInputPath("valid_customers.ods"))
+        reader.validate()
+
     def test_fails_on_invalid_csv_source_file(self):
         cid_reader = cid.Cid()
         source_path = dev_test.getTestIcdPath("icd_customers.xls")
@@ -53,6 +61,22 @@ class ValidatorTest(unittest.TestCase):
 
         reader = validator.Reader(cid_reader, dev_test.getTestInputPath("broken_customers.csv"))
         self.assertRaises(errors.FieldValueError, reader.validate)
+
+    def test_fails_on_csv_source_file_with_fewer_elements_than_expected(self):
+        cid_reader = cid.Cid()
+        source_path = dev_test.getTestIcdPath("icd_customers.xls")
+        cid_reader.read(source_path, _tools.excel_rows(source_path))
+
+        reader = validator.Reader(cid_reader, dev_test.getTestInputPath("broken_customers_fewer_elements.csv"))
+        self.assertRaises(errors.DataFormatError, reader.validate)
+
+    def test_fails_on_csv_source_file_with_more_elements_than_expected(self):
+        cid_reader = cid.Cid()
+        source_path = dev_test.getTestIcdPath("icd_customers.xls")
+        cid_reader.read(source_path, _tools.excel_rows(source_path))
+
+        reader = validator.Reader(cid_reader, dev_test.getTestInputPath("broken_customers_more_elements.csv"))
+        self.assertRaises(errors.DataFormatError, reader.validate)
 
     def test_fails_on_invalid_csv_source_file_with_duplicates(self):
         cid_reader = cid.Cid()

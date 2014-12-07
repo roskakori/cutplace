@@ -18,6 +18,7 @@ Validated processing of data files.
 from cutplace import data
 from cutplace import errors
 from cutplace import _tools
+import itertools
 
 
 def _create_field_map(field_names, field_values):
@@ -25,11 +26,7 @@ def _create_field_map(field_names, field_values):
     assert field_values
     assert len(field_names) == len(field_values)
 
-    # FIXME: There must be a more pythonic way to do this.
-    result = {}
-    for field_index in range(len(field_names) - 1):
-        result[field_names[field_index]] = field_values[field_index]
-    return result
+    return dict(itertools.zip_longest(field_names, field_values))
 
 
 class Reader(object):
