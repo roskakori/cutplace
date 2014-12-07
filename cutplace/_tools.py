@@ -420,22 +420,26 @@ def _excel_cell_value(cell, datemode):
     return result
 
 
-def excel_rows(source_path):
-    # FIXME: Add sheet parameter.
+def excel_rows(source_path, sheet=1):
+    assert source_path is not None
+    assert sheet >= 1, 'sheet=%r' % sheet
+
     location = errors.Location(source_path, has_cell=True)
     try:
-        book = xlrd.open_workbook(source_path)
-        sheet = book.sheet_by_index(0)
-        datemode = book.datemode
-        for y in range(sheet.nrows):
-            row = []
-            for x in range(sheet.ncols):
-                row.append(_excel_cell_value(sheet.cell(y, x), datemode))
-                location.advance_cell()
-            yield row
-            location.advance_line()
+        with xlrd.open_workbook(source_path) as book:
+            sheet = book.sheet_by_index(0)
+            datemode = book.datemode
+            for y in range(sheet.nrows):
+                row = []
+                for x in range(sheet.ncols):
+                    row.append(_excel_cell_value(sheet.cell(y, x), datemode))
+                    location.advance_cell()
+                yield row
+                location.advance_line()
     except xlrd.XLRDError as error:
         raise errors.DataFormatError('cannot read Excel file: %s' % error, location)
+    except UnicodeError as error:
+        raise errors.DataFormatError('cannot decode Excel data: %s' % error, location)
 
 
 def _raise_delimited_data_format_error(delimited_path, reader, error):
