@@ -56,14 +56,14 @@ class Reader(object):
                 raise errors.DataError(
                     'row must contain %d fields but only has %d: %s' % (expected_item_count, actual_item_count, field_values),
                     self._location)
-            for i in range(0, actual_item_count):
-                self._cid.field_formats[i].validated(field_values[i])
-                self._location.advance_cell()
             if actual_item_count > expected_item_count:
                 raise errors.DataError(
                     'row must contain %d fields but has %d, additional values are: %s' % (
                         expected_item_count, actual_item_count, field_values[expected_item_count:]),
                     self._location)
+            for i in range(0, actual_item_count):
+                self._cid.field_formats[i].validated(field_values[i])
+                self._location.advance_cell()
 
         def validate_row_checks(field_values):
             field_map = _create_field_map(self._cid.field_names, field_values)

@@ -68,7 +68,7 @@ class ValidatorTest(unittest.TestCase):
         cid_reader.read(source_path, _tools.excel_rows(source_path))
 
         reader = validator.Reader(cid_reader, dev_test.getTestInputPath("broken_customers_fewer_elements.csv"))
-        self.assertRaises(errors.DataFormatError, reader.validate)
+        self.assertRaises(errors.DataError, reader.validate)
 
     def test_fails_on_csv_source_file_with_more_elements_than_expected(self):
         cid_reader = cid.Cid()
@@ -76,7 +76,7 @@ class ValidatorTest(unittest.TestCase):
         cid_reader.read(source_path, _tools.excel_rows(source_path))
 
         reader = validator.Reader(cid_reader, dev_test.getTestInputPath("broken_customers_more_elements.csv"))
-        self.assertRaises(errors.DataFormatError, reader.validate)
+        self.assertRaises(errors.DataError, reader.validate)
 
     def test_fails_on_invalid_csv_source_file_with_duplicates(self):
         cid_reader = cid.Cid()
