@@ -15,10 +15,6 @@ Validated processing of data files.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import inspect
-import logging
-import xlrd
-
 from cutplace import data
 from cutplace import errors
 from cutplace import _tools
@@ -44,15 +40,14 @@ class Reader(object):
 
     def _raw_rows(self):
         if self._cid.data_format.format == data.FORMAT_EXCEL:
-            return _tools.excel_rows(self._source_path)
+            return _tools.excel_rows(self._source_path, self._cid.data_format.sheet)
         elif self._cid.data_format.format == data.FORMAT_DELIMITED:
             return _tools.delimited_rows(self._source_path, self._cid.data_format)
         elif self._cid.data_format.format == data.FORMAT_FIXED:
-            #TODO: implement support for fixed
+            # TODO: implement support for fixed.
             pass
         elif self._cid.data_format.format == data.FORMAT_ODS:
-            #TODO: implement support for ods
-            pass
+            return _tools.ods_rows(self._source_path, self._cid.data_format.sheet)
 
     def rows(self):
         self._location = errors.Location(self._source_path, has_cell=True)
