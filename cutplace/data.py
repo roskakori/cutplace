@@ -229,7 +229,7 @@ class DataFormat():
         return value
 
     def _validated_character(self, key, value):
-        r"""
+        """
         A single character intended as value for data format property ``key``
         derived from ``value``, which can be:
 
