@@ -29,7 +29,7 @@ coverage.xml
 junit.xml
 
 # Code analysis
-pep8.txt
+flake8.txt
 sloccount.sc
 
 # Build and docs folder/files
