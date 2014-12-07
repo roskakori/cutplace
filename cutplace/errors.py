@@ -325,13 +325,6 @@ class DataFormatError(DataError):
     pass
 
 
-class DataFormatValueError(DataError):
-    """
-    Error in data caused by violating the data format.
-    """
-    pass
-
-
 class FieldValueError(DataError):
     """
     Error raised when `AbstractFieldFormat.validated` detects an error.

@@ -16,7 +16,6 @@ Data formats that describe the general structure of the data.
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import codecs
-import logging
 import io
 import token
 import tokenize
@@ -75,15 +74,14 @@ KEY_THOUSANDS_SEPARATOR = "thousands_separator"
 
 
 class DataFormat():
-
     """
-    Stores the data used by a dataformat.
+    General data format of a file describing the basic structure.
     """
 
     def __init__(self, format_name, location=None):
         if format_name not in _VALID_FORMATS:
             raise errors.InterfaceError('format is %s but must be on of: %s'
-                                               % (format_name, _VALID_FORMATS), location)
+                                        % (format_name, _VALID_FORMATS), location)
         else:
             self._location = location
             self._format = format_name
@@ -152,20 +150,21 @@ class DataFormat():
 
     def set_property(self, name, value):
         """
-        Setting the value auf a property, used by a dataformat
+        Set the value of a data format property. In case the property or
+        value cannot be processed, raise `errors.InterfaceError`.
         """
         name = name.replace(' ', '_')
         varname = '_' + name
         if varname not in self.__dict__:
-            raise errors.InterfaceError('format %s does not support property %s'
-                                               % (self.format, name), self._location)
+            raise errors.InterfaceError(
+                'format %s does not support property %s' % (self.format, name), self._location)
 
         if name == KEY_ENCODING:
             try:
                 codecs.lookup(value)
             except:
-                raise errors.DataFormatValueError('value for data format property %r is %r but must be a valid encoding'
-                                                  % (KEY_ENCODING, self.encoding), self._location)
+                raise errors.InterfaceError('value for data format property %r is %r but must be a valid encoding'
+                                            % (KEY_ENCODING, self.encoding), self._location)
             self._encoding = value
         elif name == KEY_HEADER:
             try:
@@ -176,20 +175,21 @@ class DataFormat():
             try:
                 self._allowed_characters = ranges.Range(value)
             except errors.InterfaceError as error:
-                raise errors.DataFormatValueError('value for property %r must be a valid range: %s'
-                                                  % (KEY_ALLOWED_CHARACTERS, error), self._location)
+                raise errors.InterfaceError('value for property %r must be a valid range: %s'
+                                            % (KEY_ALLOWED_CHARACTERS, error), self._location)
         elif name == KEY_LINE_DELIMITER:
             try:
                 self._line_delimiter = _TEXT_TO_LINE_DELIMITER_MAP[value]
             except KeyError:
-                raise errors.DataFormatValueError('line delimiter %s must be changed to one of: %s'
-                                                  % (value, _VALID_LINE_DELIMITER_TEXTS), self._location)
+                raise errors.InterfaceError('line delimiter %s must be changed to one of: %s'
+                                            % (value, _VALID_LINE_DELIMITER_TEXTS), self._location)
         elif name == KEY_ITEM_DELIMITER:
             self._item_delimiter = self._validated_character(KEY_ITEM_DELIMITER, value)
         elif name == KEY_DECIMAL_SEPARATOR:
             self._decimal_separator = self._validated_choice(KEY_DECIMAL_SEPARATOR, value, _VALID_DECIMAL_SEPARATORS)
         elif name == KEY_THOUSANDS_SEPARATOR:
-            self._thousands_separator = self._validated_choice(KEY_DECIMAL_SEPARATOR, value, _VALID_THOUSANDS_SEPARATORS)
+            self._thousands_separator = self._validated_choice(
+                KEY_DECIMAL_SEPARATOR, value, _VALID_THOUSANDS_SEPARATORS)
         elif name == KEY_ESCAPE_CHARACTER:
             self._escape_character = self._validated_choice(KEY_ESCAPE_CHARACTER, value, _VALID_ESCAPE_CHARACTERS)
         elif name == KEY_QUOTE_CHARACTER:
@@ -212,20 +212,20 @@ class DataFormat():
                     self._skip_initial_space = False
                 else:
                     raise errors.InterfaceError('skip initial space %s must be changed to one of: True, False'
-                                                       % value, self._location)
+                                                % value, self._location)
             else:
                 self.__dict__[varname] = value
 
     def _validated_choice(self, key, value, choices):
         """
-        Validate that `value` is one of the available `choices` and otherwise raise `DataFormatValueError`.
+        Validate that `value` is one of the available `choices` and otherwise raise `errors.InterfaceError`.
         Always returns `value`. To be called from `validated()`.
         """
         assert key
         assert choices
         if value not in choices:
-            raise errors.DataFormatValueError('value for data format property %r is %r but must be one of: %s'
-                                              % (key, value, _tools.humanReadableList(choices)), self._location)
+            raise errors.InterfaceError('value for data format property %r is %r but must be one of: %s'
+                                        % (key, value, _tools.humanReadableList(choices)), self._location)
         return value
 
     def _validated_character(self, key, value):
@@ -292,7 +292,7 @@ class DataFormat():
             next_token = next(tokens)
             if _tools.isEofToken(next_token):
                 raise errors.InterfaceError("value for data format property %r must be specified" % key,
-                                                   self._location)
+                                            self._location)
             next_type = next_token[0]
             next_value = next_token[1]
             if next_type == token.NUMBER:
@@ -304,34 +304,36 @@ class DataFormat():
                         base = 10
                     long_value = int(next_value, base)
                 except ValueError:
-                    raise errors.InterfaceError('numeric value for data format property %r must be an integer but is: %r'
-                                                       % (key, value), self._location)
+                    raise errors.InterfaceError(
+                        'numeric value for data format property %r must be an integer but is: %r'
+                        % (key, value), self._location)
             elif next_type == token.NAME:
                 try:
                     long_value = errors.NAME_TO_ASCII_CODE_MAP[next_value.lower()]
                 except KeyError:
                     valid_symbols = _tools.humanReadableList(sorted(errors.NAME_TO_ASCII_CODE_MAP.keys()))
                     raise errors.InterfaceError('symbolic name %r for data format property %r must be one of: %s'
-                                                       % (value, key, valid_symbols), self._location)
+                                                % (value, key, valid_symbols), self._location)
             elif next_type == token.STRING:
                 if len(next_value) != 3:
-                    raise errors.InterfaceError('text for data format property %r must be a single character but is: %r'
-                                                       % (key, value), self._location)
+                    raise errors.InterfaceError(
+                        'text for data format property %r must be a single character but is: %r'
+                        % (key, value), self._location)
                 left_quote = next_value[0]
                 right_quote = next_value[2]
                 assert left_quote in "\"\'", "leftQuote=%r" % left_quote
                 assert right_quote in "\"\'", "rightQuote=%r" % right_quote
                 long_value = ord(next_value[1])
             else:
-                raise errors.InterfaceError('value for data format property %r must a number, '
-                                                   'a single character or a symbolic name but is: %r'
-                                                   % (key, value), self._location)
+                raise errors.InterfaceError(
+                    'value for data format property %r must a number, a single character or a symbolic name but is: %r'
+                    % (key, value), self._location)
             # Ensure there are no further tokens.
             next_token = next(tokens)
             if not _tools.isEofToken(next_token):
-                raise errors.InterfaceError('value for data format property %r must describe '
-                                                   'a single character but is: %r'
-                                                   % (key, value), self._location)
+                raise errors.InterfaceError(
+                    'value for data format property %r must describe a single character but is: %r'
+                    % (key, value), self._location)
             assert long_value is not None
             assert long_value >= 0
             result = chr(long_value)
@@ -343,15 +345,15 @@ class DataFormat():
         Validate necessary properties.
         """
         if self.decimal_separator == self.thousands_separator:
-            raise errors.DataFormatValueError('decimal separator and thousands separator must be different', self._location)
+            raise errors.InterfaceError('decimal separator and thousands separator must be different', self._location)
         if self.quote_character == self.thousands_separator:
-            raise errors.DataFormatValueError('quote character and thousands separator must be different', self._location)
+            raise errors.InterfaceError('quote character and thousands separator must be different', self._location)
         if self.thousands_separator == self.item_delimiter:
-            raise errors.DataFormatValueError('thousands separator and item delimiter must be different', self._location)
+            raise errors.InterfaceError('thousands separator and item delimiter must be different', self._location)
         if self.quote_character == self.item_delimiter:
-            raise errors.DataFormatValueError('quote character and item delimiter must be different', self._location)
+            raise errors.InterfaceError('quote character and item delimiter must be different', self._location)
         if self.line_delimiter == self.item_delimiter:
-            raise errors.DataFormatValueError('line delimiter and item delimiter must be different', self._location)
+            raise errors.InterfaceError('line delimiter and item delimiter must be different', self._location)
         if self.escape_character == self.item_delimiter:
-            raise errors.DataFormatValueError('escape character and item delimiter must be different', self._location)
+            raise errors.InterfaceError('escape character and item delimiter must be different', self._location)
         self._location = None

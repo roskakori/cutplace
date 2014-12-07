@@ -127,7 +127,7 @@ class DataFormatTest(unittest.TestCase):
 
     def test_fails_on_invalid_allowed_characters(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
-        self.assertRaises(errors.DataFormatValueError, delimited_format.set_property, data.KEY_ALLOWED_CHARACTERS, '3..5')
+        self.assertRaises(errors.InterfaceError, delimited_format.set_property, data.KEY_ALLOWED_CHARACTERS, '3..5')
 
     def test_can_set_encoding(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
@@ -136,7 +136,7 @@ class DataFormatTest(unittest.TestCase):
 
     def test_fails_on_broken_encoding(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
-        self.assertRaises(errors.DataFormatValueError, delimited_format.set_property, data.KEY_ENCODING, "broken-encoding")
+        self.assertRaises(errors.InterfaceError, delimited_format.set_property, data.KEY_ENCODING, "broken-encoding")
 
     def test_can_set_item_delimiter(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
@@ -164,7 +164,7 @@ class DataFormatTest(unittest.TestCase):
 
     def test_fails_on_broken_decimal_separator(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
-        self.assertRaises(errors.DataFormatValueError, delimited_format.set_property,
+        self.assertRaises(errors.InterfaceError, delimited_format.set_property,
                           data.KEY_DECIMAL_SEPARATOR, 'broken-decimal-separator')
 
     def test_can_set_escape_character(self):
@@ -174,7 +174,7 @@ class DataFormatTest(unittest.TestCase):
 
     def test_fails_on_broken_escape_character(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
-        self.assertRaises(errors.DataFormatValueError, delimited_format.set_property,
+        self.assertRaises(errors.InterfaceError, delimited_format.set_property,
                           data.KEY_ESCAPE_CHARACTER, 'broken-escape-character')
 
     def test_can_set_line_delimiter(self):
@@ -184,7 +184,7 @@ class DataFormatTest(unittest.TestCase):
 
     def test_fails_on_unsupported_line_delimiter(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
-        self.assertRaises(errors.DataFormatValueError, delimited_format.set_property, data.KEY_LINE_DELIMITER, 'xx')
+        self.assertRaises(errors.InterfaceError, delimited_format.set_property, data.KEY_LINE_DELIMITER, 'xx')
 
     def test_can_set_quote_character(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
@@ -193,7 +193,7 @@ class DataFormatTest(unittest.TestCase):
 
     def test_fails_on_broken_quote_character(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
-        self.assertRaises(errors.DataFormatValueError, delimited_format.set_property,
+        self.assertRaises(errors.InterfaceError, delimited_format.set_property,
                           data.KEY_QUOTE_CHARACTER, 'broken-quote-character')
 
     def test_can_set_thousands_separator(self):
@@ -203,7 +203,7 @@ class DataFormatTest(unittest.TestCase):
 
     def test_fails_on_broken_thousands_separator(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
-        self.assertRaises(errors.DataFormatValueError, delimited_format.set_property,
+        self.assertRaises(errors.InterfaceError, delimited_format.set_property,
                           data.KEY_THOUSANDS_SEPARATOR, 'broken-thousands-separator')
 
     def test_can_set_sheet(self):
@@ -219,31 +219,31 @@ class DataFormatTest(unittest.TestCase):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
         delimited_format.set_property(data.KEY_DECIMAL_SEPARATOR, '.')
         delimited_format.set_property(data.KEY_THOUSANDS_SEPARATOR, '.')
-        self.assertRaises(errors.DataFormatValueError, delimited_format.validate)
+        self.assertRaises(errors.InterfaceError, delimited_format.validate)
 
     def test_fails_on_same_item_delimiter_and_thousands_separator(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
         delimited_format.set_property(data.KEY_ITEM_DELIMITER, '.')
         delimited_format.set_property(data.KEY_THOUSANDS_SEPARATOR, '.')
-        self.assertRaises(errors.DataFormatValueError, delimited_format.validate)
+        self.assertRaises(errors.InterfaceError, delimited_format.validate)
 
     def test_fails_on_same_quote_character_and_item_delimiter(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
         delimited_format.set_property(data.KEY_QUOTE_CHARACTER, '"')
         delimited_format.set_property(data.KEY_ITEM_DELIMITER, '"')
-        self.assertRaises(errors.DataFormatValueError, delimited_format.validate)
+        self.assertRaises(errors.InterfaceError, delimited_format.validate)
 
     def test_fails_on_same_line_and_item_delimiter(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
         delimited_format.set_property(data.KEY_LINE_DELIMITER, data.LF)
         delimited_format.set_property(data.KEY_ITEM_DELIMITER, '\n')
-        self.assertRaises(errors.DataFormatValueError, delimited_format.validate)
+        self.assertRaises(errors.InterfaceError, delimited_format.validate)
 
     def test_fails_on_same_escape_and_item_delimiter(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
         delimited_format.set_property(data.KEY_ESCAPE_CHARACTER, '\\')
         delimited_format.set_property(data.KEY_ITEM_DELIMITER, '\\')
-        self.assertRaises(errors.DataFormatValueError, delimited_format.validate)
+        self.assertRaises(errors.InterfaceError, delimited_format.validate)
 
 if __name__ == '__main__':
     logging.basicConfig()
