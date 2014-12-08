@@ -15,15 +15,22 @@ Standard checks that can cover a whole row or data set.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import copy
 import io
 import tokenize
 
-from cutplace import fields
-from cutplace import errors
-from cutplace import _tools
+from . import fields
+from . import errors
+from . import _tools
+from ._compat import python_2_unicode_compatible
 
 
+@python_2_unicode_compatible
 class AbstractCheck(object):
     """
     Abstract check to be used as base class for other checks. The constructor should be called by

@@ -16,13 +16,18 @@ Read and convert ODS files created by OpenOffice.org's Calc.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import argparse
 import csv
 import logging
 import io
 import sys
 
-from cutplace import _tools
+from . import _tools
 
 _log = logging.getLogger("cutplace.ods")
 

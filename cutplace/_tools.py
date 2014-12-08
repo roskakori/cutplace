@@ -38,7 +38,7 @@ import xlrd
 import zipfile
 from xml.etree import ElementTree
 
-from cutplace import errors
+from . import errors
 
 
 # Mapping for value of --log to logging level.

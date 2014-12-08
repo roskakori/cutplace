@@ -15,10 +15,16 @@ Validated processing of data files.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from cutplace import data
-from cutplace import errors
-from cutplace import _tools
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import itertools
+
+from . import data
+from . import errors
+from . import _tools
 
 
 def _create_field_map(field_names, field_values):

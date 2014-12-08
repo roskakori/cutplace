@@ -15,6 +15,11 @@ Development tool and utility functions for testing and test data generation.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import argparse
 import csv
 import io
@@ -25,7 +30,7 @@ import sys
 from datetime import timedelta, datetime
 from random import randrange
 
-from cutplace import _ods
+from . import _ods
 
 _log = logging.getLogger("cutplace.dev_test")
 

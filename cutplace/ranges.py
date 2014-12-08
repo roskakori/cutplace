@@ -17,16 +17,23 @@ format.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import io
 import token
 import tokenize
 
-from cutplace import errors
-from cutplace import _tools
+from . import errors
+from . import _tools
+from ._compat import python_2_unicode_compatible
 
 ELLIPSIS = '\u2026'  # '...' as single character.
 
 
+@python_2_unicode_compatible
 class Range(object):
     """
     A range that can be used to validate that a value is within it.

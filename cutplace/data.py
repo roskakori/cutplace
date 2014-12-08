@@ -15,14 +15,20 @@ Data formats that describe the general structure of the data.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import codecs
 import io
 import token
 import tokenize
 
-from cutplace import errors
-from cutplace import ranges
-from cutplace import _tools
+from . import errors
+from . import ranges
+from . import _tools
+from ._compat import python_2_unicode_compatible
 
 ANY = "any"
 CR = "cr"
@@ -73,6 +79,7 @@ KEY_DECIMAL_SEPARATOR = "decimal_separator"
 KEY_THOUSANDS_SEPARATOR = "thousands_separator"
 
 
+@python_2_unicode_compatible
 class DataFormat():
     """
     General data format of a file describing the basic structure.
@@ -88,7 +95,6 @@ class DataFormat():
             self._header = 0
             self._allowed_characters = None
             self._encoding = 'cp1252'
-            self._thousands_separator = ''
             if self.format == FORMAT_DELIMITED:
                 self._item_delimiter = ','
                 self._skip_initial_space = False
@@ -97,6 +103,7 @@ class DataFormat():
                 self._escape_character = '"'
                 self._line_delimiter = None
                 self._quote_character = '"'
+                self._thousands_separator = ''
             elif self.format in (FORMAT_EXCEL, FORMAT_ODS):
                 self._sheet = 1
 
@@ -357,3 +364,26 @@ class DataFormat():
         if self.escape_character == self.item_delimiter:
             raise errors.InterfaceError('escape character and item delimiter must be different', self._location)
         self._location = None
+
+    def __str__(self):
+        result = 'DataFormat(%s; ' % self.format
+        key_to_value_map = {
+            KEY_ALLOWED_CHARACTERS: self.allowed_characters,
+            KEY_ENCODING: self.encoding,
+            KEY_HEADER: self.header,
+        }
+        if self.format == FORMAT_DELIMITED:
+            key_to_value_map[KEY_ITEM_DELIMITER] = self.item_delimiter
+            key_to_value_map[KEY_SKIP_INITIAL_SPACE] = self.skip_initial_space
+        if self.format in (FORMAT_DELIMITED, FORMAT_FIXED):
+            key_to_value_map[KEY_DECIMAL_SEPARATOR] = self.decimal_separator
+            key_to_value_map[KEY_ESCAPE_CHARACTER] = self.escape_character
+            key_to_value_map[KEY_LINE_DELIMITER] = self.line_delimiter
+            key_to_value_map[KEY_QUOTE_CHARACTER] = self.quote_character
+            key_to_value_map[KEY_THOUSANDS_SEPARATOR] = self.thousands_separator
+        elif self.format in (FORMAT_EXCEL, FORMAT_ODS):
+            key_to_value_map[KEY_SHEET] = self.sheet
+        result += ', '.join(
+            ['%s=%r' % (key, value) for key, value in sorted(key_to_value_map.items()) if value is not None])
+        result += ')'
+        return result

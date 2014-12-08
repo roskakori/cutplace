@@ -16,6 +16,11 @@ Cutplace - Validate flat data according to an interface control document.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import argparse
 import encodings
 import glob
@@ -24,11 +29,11 @@ import logging
 import os
 import sys
 
-from cutplace import cid
-from cutplace import errors
-from cutplace import validator
-from cutplace import _tools
-# TODO: from cutplace import _web
+from . import cid
+from . import errors
+from . import validator
+from . import _tools
+# TODO: from . import _web
 
 # Import constant for version information.
 from cutplace import __version__

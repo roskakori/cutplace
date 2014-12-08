@@ -15,6 +15,11 @@ Standard field formats supported by cutplace.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import decimal
 import fnmatch
 import keyword
@@ -23,10 +28,11 @@ import string
 import sys
 import time
 
-from cutplace import data
-from cutplace import ranges
-from cutplace import errors
-from cutplace import _tools
+from . import data
+from . import ranges
+from . import errors
+from . import _tools
+from ._compat import python_2_unicode_compatible
 
 # Expected suffix for classes that describe filed formats.
 _FieldFormatClassSuffix = "FieldFormat"
@@ -35,6 +41,7 @@ _ASCII_LETTERS = set(string.ascii_letters)
 _ASCII_LETTERS_DIGITS_AND_UNDERSCORE = set(string.ascii_letters + string.digits + '_')
 
 
+@python_2_unicode_compatible
 class AbstractFieldFormat(object):
     """
     Abstract format description of a field in a data file to validate which acts as base for all
@@ -43,6 +50,7 @@ class AbstractFieldFormat(object):
       1. Overload `__init__()` but call ``super(..., self).__init__(...)`` from it.
       2. Implement `validatedValue()`.
     """
+
     def __init__(self, field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value=None):
         assert field_name is not None
         assert field_name, "fieldName must not be empty"
@@ -60,7 +68,9 @@ class AbstractFieldFormat(object):
 
     @property
     def field_name(self):
-        """The name of the field."""
+        """
+        The name of the field.
+        """
         return self._field_name
 
     @property

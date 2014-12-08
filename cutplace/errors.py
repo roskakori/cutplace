@@ -15,9 +15,17 @@ Errors that can be raised by cutplace.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import copy
 import os
+import six
 import traceback
+
+from ._compat import python_2_unicode_compatible
 
 """
 Symbolic names that can be used to improve the legibility of the CID.
@@ -31,6 +39,7 @@ NAME_TO_ASCII_CODE_MAP = {
 }
 
 
+@python_2_unicode_compatible
 class Location(object):
     """
     Location in an input file, consisting of ``line``, an optional ``column``
@@ -45,12 +54,12 @@ class Location(object):
         file. If ``file_path`` is no string type, ``"<io>"`` will be used.
 
         If the input is a text or binary file, ``has_column`` should be ``True`` and
-        `advanceColumn()` should be called on every character or byte read.
+        `advance_column()` should be called on every character or byte read.
 
         If the input is a tabular file such as CSV, ``has_cell`` should be ``True`` and
-        `advanceCell()` or `setCell` be called on each cell processed.
+        `advance_cell()` or `setCell` be called on each cell processed.
 
-        If the input is a spreadsheet  format such as ODS or Excel, `advanceSheet()` should be called
+        If the input is a spreadsheet  format such as ODS or Excel, `advance_sheet()` should be called
         each time a new sheet starts.
 
         You can also combine these properties, for example to exactly point out an error location
@@ -215,6 +224,7 @@ def create_caller_location(modules_to_ignore=None, has_column=False, has_cell=Fa
     return result
 
 
+@python_2_unicode_compatible
 class CutplaceError(Exception):
     """
     Error caused by issues in the CID or data. Details are provided by the
@@ -245,8 +255,11 @@ class CutplaceError(Exception):
         """
         assert message
         assert (see_also_location and see_also_message) or not see_also_location
-        # TODO #61: Python 2: Use Exception.__init(self, message) because Exception is an old style class.
-        super().__init__(self, message)
+        if six.PY2:
+            # HACK: We cannot use `super()` here because `Exception` is an old style class.
+            Exception.__init__(self, message)
+        else:
+            super().__init__(self, message)
         self._location = copy.copy(location)
         self._see_also_message = see_also_message
         self._see_also_location = copy.copy(see_also_location)
@@ -256,7 +269,9 @@ class CutplaceError(Exception):
 
     @property
     def location(self):
-        """Location in the input that caused the error or `None`."""
+        """
+        `Location` in the input that caused the error or `None`.
+        """
         return self._location
 
     @property
@@ -269,12 +284,16 @@ class CutplaceError(Exception):
 
     @property
     def see_also_location(self):
-        """The location in the input related to the ``see_also_message`` or ``None``."""
+        """
+        The `Location` in the input related to the ``see_also_message`` or ``None``.
+        """
         return self._see_also_location
 
     @property
     def cause(self):
-        """The `Exception` that caused this error or `None`."""
+        """
+        The `Exception` that caused this error or `None`.
+        """
         return self._cause
 
     def __str__(self):
