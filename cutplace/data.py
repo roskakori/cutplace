@@ -88,7 +88,6 @@ class DataFormat():
             self._header = 0
             self._allowed_characters = None
             self._encoding = 'cp1252'
-            self._thousands_separator = ''
             if self.format == FORMAT_DELIMITED:
                 self._item_delimiter = ','
                 self._skip_initial_space = False
@@ -97,6 +96,7 @@ class DataFormat():
                 self._escape_character = '"'
                 self._line_delimiter = None
                 self._quote_character = '"'
+                self._thousands_separator = ''
             elif self.format in (FORMAT_EXCEL, FORMAT_ODS):
                 self._sheet = 1
 
