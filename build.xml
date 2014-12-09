@@ -25,17 +25,17 @@
         </sequential>
     </macrodef>
 
-    <target name="develop" depends="bdist_egg" description="install current development version">
+    <target name="develop" depends="bdist_wheel" description="install current development version">
         <tstamp />
         <pyst command="develop" />
     </target>
 
-    <target name="install" depends="bdist_egg" description="install binary distribution">
+    <target name="install" depends="bdist_wheel" description="install binary distribution">
         <tstamp />
         <pyst command="install" />
     </target>
 
-    <target name="sdist" depends="bdist_egg" description="build source distribution">
+    <target name="sdist" depends="bdist_wheel" description="build source distribution">
         <!-- Delete Mac OS X Finder cache files. -->
         <delete>
             <fileset defaultexcludes="false" dir="." includes="**/.DS_Store" />
@@ -47,7 +47,7 @@
         </exec>
     </target>
 
-    <target name="sdist_upload" depends="bdist_egg" description="build source distribution">
+    <target name="sdist_upload" depends="bdist_wheel" description="build source distribution">
         <!-- Delete Mac OS X Finder cache files. -->
         <delete>
             <fileset defaultexcludes="false" dir="." includes="**/.DS_Store" />
@@ -60,25 +60,21 @@
         </exec>
     </target>
 
-    <target name="bdist_egg" depends="docs" description="build binary distribution">
-        <tstamp />
-        <pyst command="bdist_egg" />
-    </target>
-
-    <target name="bdist_egg_upload" depends="docs" description="build binary distribution and upload it to PyPI">
+    <target name="bdist_wheel" depends="docs" description="build binary distribution">
         <tstamp />
         <exec executable="python" failonerror="true">
             <arg value="setup.py" />
-            <arg value="bdist_egg" />
-            <arg value="upload" />
+            <arg value="bdist_wheel" />
+            <arg value="--universal" />
         </exec>
     </target>
 
-    <target name="bdist_wininst_upload" depends="docs" description="build Windows installer and upload it to PyPI">
+    <target name="bdist_wheel_upload" depends="docs" description="build binary distribution and upload it to PyPI">
         <tstamp />
         <exec executable="python" failonerror="true">
             <arg value="setup.py" />
-            <arg value="bdist_wininst" />
+            <arg value="bdist_wheel" />
+            <arg value="--universal" />
             <arg value="upload" />
         </exec>
     </target>
