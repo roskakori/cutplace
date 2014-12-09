@@ -18,6 +18,10 @@
     :target: https://coveralls.io/r/roskakori/cutplace?branch=master
     :alt: Test coverage
 
+.. image:: https://landscape.io/github/roskakori/cutplace/master/landscape.svg
+    :target: https://landscape.io/github/roskakori/cutplace/master
+    :alt: Code Health
+
 Cutplace is a tool to validate that data conform to an interface control document (ICD).
 
 For more information, visit <http://roskakori.github.com/cutplace/>.
