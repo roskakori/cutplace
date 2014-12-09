@@ -20,14 +20,13 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import decimal
 import os.path
 import unittest
 
 from cutplace import cid
-from cutplace import dev_test
 from cutplace import errors
 from cutplace import _tools
+from . import dev_test
 
 
 class ToolsTest(unittest.TestCase):

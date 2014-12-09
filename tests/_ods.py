@@ -27,7 +27,7 @@ import logging
 import io
 import sys
 
-from . import _tools
+from cutplace import _tools
 
 _log = logging.getLogger("cutplace.ods")
 

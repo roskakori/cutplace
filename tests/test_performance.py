@@ -28,10 +28,10 @@ import unittest
 
 
 from cutplace import cid
-from cutplace import dev_test
 from cutplace import validator
 from cutplace import _cutplace
 from cutplace import _tools
+from . import dev_test
 
 _log = logging.getLogger("cutplace.dev_reports")
 # Import "best" profiler available.

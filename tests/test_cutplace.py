@@ -24,9 +24,10 @@ import logging
 import os
 import unittest
 
-from cutplace import dev_test
 from cutplace import _cutplace
-from cutplace import _ods
+from . import dev_test
+from . import _ods
+
 
 _log = logging.getLogger("cutplace")
 

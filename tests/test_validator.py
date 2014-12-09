@@ -23,10 +23,10 @@ from __future__ import unicode_literals
 import unittest
 
 from cutplace import cid
-from cutplace import dev_test
 from cutplace import errors
 from cutplace import validator
 from cutplace import _tools
+from . import dev_test
 
 
 class ValidatorTest(unittest.TestCase):
