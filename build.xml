@@ -83,13 +83,6 @@
         </exec>
     </target>
 
-    <target name="testdata" description="generate test data">
-        <exec executable="python" failonerror="true">
-            <arg path="cutplace/dev_test.py" />
-            <env key="PYTHONPATH" value="${basedir}" />
-        </exec>
-    </target>
-
     <target name="test" description="run test suite">
         <exec executable="python" failonerror="false">
             <arg path="setup.py" />
@@ -138,11 +131,11 @@
             </fileset>
 		</copy>
 	</target>
-    <target description="build documentation" name="docs" depends="sitebase, testdata">
+    <target description="build documentation" name="docs" depends="sitebase">
         <pyst command="docs" />
     </target>
 
-    <target name="reports" depends="sitebase, flake8, sloccount, testdata, performance" description="build developer reports" />
+    <target name="reports" depends="sitebase, flake8, sloccount, performance" description="build developer reports" />
 
     <target name="sloccount" description="build sloccount report">
         <mkdir dir="${slocdata.dir}" />

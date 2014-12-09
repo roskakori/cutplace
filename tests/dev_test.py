@@ -149,10 +149,6 @@ def getTestPluginsPath():
     return getTestFolder("input")
 
 
-def getLotsOfCustomersCsvPath():
-    return getTestInputPath("lots_of_customers.csv")
-
-
 def createTestCustomerRow(customerId):
     global _customerId
 
@@ -168,33 +164,3 @@ def createTestCustomerRow(customerId):
         gender = "female"
     dateOfBirth = createTestDateTime("%d.%m.%Y")
     return [branchId, customerId, firstName, surname, gender, dateOfBirth]
-
-
-def createIcdsCustomerCsv():
-    """
-    Create "customers.csv" from "customers.ods".
-    """
-    sourceOdsPath = getTestIcdPath("customers.ods")
-    targetCsvPath = getTestIcdPath("customers.csv")
-    _log.info('write derived CID to "%s"', targetCsvPath)
-    _ods.toCsv(sourceOdsPath, targetCsvPath)
-
-
-def createLotsOfCustomersCsv(targetCsvPath, customerCount=1000):
-    # TODO: Use a random seed to generate the same data every time.
-    assert targetCsvPath is not None
-
-    _log.info('write lots of customers to "%s"', targetCsvPath)
-    with io.open(targetCsvPath, "w", newline='', encoding='cp1252') as targetCsvFile:
-        # TODO: Python 2: use portable CSV writer.
-        csv_writer = csv.writer(targetCsvFile)
-        for customerId in range(customerCount):
-            csv_writer.writerow(createTestCustomerRow(customerId))
-
-
-if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
-    parser = argparse.ArgumentParser()
-    _ = parser.parse_args()
-    createIcdsCustomerCsv()
-    createLotsOfCustomersCsv(getLotsOfCustomersCsvPath())
