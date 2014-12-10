@@ -22,9 +22,7 @@ from __future__ import unicode_literals
 
 import csv
 import datetime
-import decimal
 import errno
-import keyword
 import logging
 import os
 import platform
@@ -33,12 +31,11 @@ import six
 import sys
 import token
 import tokenize
-import unicodedata
 import xlrd
 import zipfile
 from xml.etree import ElementTree
 
-from cutplace import errors
+from . import errors
 
 
 # Mapping for value of --log to logging level.
@@ -144,49 +141,6 @@ def validatedPythonName(name, value):
     return result
 
 
-def camelized(key, firstIsLower=False):
-    """
-    Camelized name of possibly multiple words separated by blanks that can be used for variables.
-    """
-    assert key is not None
-    assert key == key.strip(), "key must be trimmed"
-    result = ""
-    for part in key.split():
-        result += part[0].upper() + part[1:].lower()
-    if firstIsLower and result:
-        result = result[0].lower() + result[1:]
-    return result
-
-
-def decamelized(name):
-    """
-    Decamlized, all lower case ``name`` with former upper case letters marking words separated by blanks.
-
-    Examples:
-
-    >>> decamelized('some')
-    'some'
-    >>> decamelized('someMore')
-    'some more'
-    >>> decamelized('EvenMore')
-    'Even more'
-    >>> decamelized('')
-    ''
-    """
-    assert name is not None
-    assert name == name.strip(), "name must be trimmed"
-    if name:
-        result = name[0]
-        for c in name[1:]:
-            if c.isdigit() or c.islower():
-                result += c
-            else:
-                result += " " + c.lower()
-    else:
-        result = ""
-    return result
-
-
 def platformVersion():
     macVersion = platform.mac_ver()
     if (macVersion[0]):
@@ -284,102 +238,6 @@ def withSuffix(path, suffix=""):
     return result
 
 
-def asciified(text):
-    """
-    Similar to ``text`` but with none ASCII letters replaced by their decomposed ASCII
-    equivalent.
-    """
-    assert text is not None
-    if not isinstance(text, str):
-        raise ValueError("text must be unicode instead of %s" % type(text))
-    result = ""
-    for ch in text:
-        decomp = unicodedata.decomposition(ch)
-        if decomp:
-            result += chr(int(decomp.split()[0], 16))
-        else:
-            result += ch
-    return result
-
-
-def namified(text):
-    """
-    Similar to ``text`` with possible modifications to ensure that it can be used as
-    Python variable name.
-    """
-    assert text is not None
-    result = ""
-    asciifiedText = asciified(text.strip())
-    wasUnderscore = False
-    for ch in asciifiedText:
-        isUnderscore = (ch == "_")
-        if ch.isalnum() or isUnderscore:
-            if not (wasUnderscore and isUnderscore):
-                result += ch
-            wasUnderscore = isUnderscore
-        elif not wasUnderscore:
-            result += "_"
-            wasUnderscore = True
-    if not result or result[0].isdigit():
-        result = "x" + result
-    if keyword.iskeyword(result):
-        result += "_"
-    assert result
-    return result
-
-
-def numbered(value, decimalSeparator=".", thousandsSeparator=","):
-    """
-    Tuple describing ``value`` as type and numberized value.
-    """
-    assert value is not None
-    assert decimalSeparator in (".", ",")
-    assert thousandsSeparator in (".", ",")
-    assert decimalSeparator != thousandsSeparator
-    resultType = None
-    resultUsesThousandsSeparator = False
-    resultValue = value
-    lastThousandsSeparatorIndex = None
-    hasBrokenThousandsSeparator = False
-    try:
-        resultValue = int(value)
-        resultType = NUMBER_INTEGER
-    except ValueError:
-        decimalText = ""
-        decimalDelimiterCount = 0
-        charIndex = 0
-        charCount = len(value)
-        while (charIndex < charCount) and (decimalDelimiterCount <= 1) and not hasBrokenThousandsSeparator:
-            charToExamine = value[charIndex]
-            if charToExamine == thousandsSeparator:
-                if lastThousandsSeparatorIndex is not None:
-                    if (charIndex - lastThousandsSeparatorIndex) == 4:
-                        resultUsesThousandsSeparator = True
-                    else:
-                        hasBrokenThousandsSeparator = True
-                        resultUsesThousandsSeparator = False
-                else:
-                    resultUsesThousandsSeparator = True
-                lastThousandsSeparatorIndex = charIndex
-            else:
-                if charToExamine == decimalSeparator:
-                    charToExamine = "."
-                    decimalDelimiterCount += 1
-                decimalText += charToExamine
-            charIndex += 1
-        if (decimalDelimiterCount <= 1) and not hasBrokenThousandsSeparator:
-            try:
-                resultValue = decimal.Decimal(decimalText)
-                if decimalSeparator == ".":
-                    resultType = NUMBER_DECIMAL_POINT
-                else:
-                    resultType = NUMBER_DECIMAL_COMMA
-            except decimal.InvalidOperation:
-                # Keep default result.
-                pass
-    return resultType, resultUsesThousandsSeparator, resultValue
-
-
 def _excel_cell_value(cell, datemode):
     """
     The value of ``cell`` as text taking into account the way excel encodes dates and times.
@@ -394,10 +252,6 @@ def _excel_cell_value(cell, datemode):
     Formulas are evaluated and yield the respective result.
     """
     assert cell is not None
-
-    # Just import without sanitizing the error message. If we got that far, the import should have worked
-    # already.
-    import xlrd
 
     if cell.ctype == xlrd.XL_CELL_DATE:
         cellTuple = xlrd.xldate_as_tuple(cell.value, datemode)

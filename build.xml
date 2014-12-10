@@ -11,7 +11,6 @@
     <property name="dist" location="${basedir}/dist" />
     <property name="site.dir" location="${build}/site" />
     <property name="reports.dir" location="${site.dir}/reports" />
-    <property name="api.dir" location="${site.dir}/api" />
     <property name="slocdata.dir" location="${basedir}/slocdata" />
 
     <macrodef name="pyst">
@@ -25,17 +24,17 @@
         </sequential>
     </macrodef>
 
-    <target name="develop" depends="bdist_egg" description="install current development version">
+    <target name="develop" depends="bdist_wheel" description="install current development version">
         <tstamp />
         <pyst command="develop" />
     </target>
 
-    <target name="install" depends="bdist_egg" description="install binary distribution">
+    <target name="install" depends="bdist_wheel" description="install binary distribution">
         <tstamp />
         <pyst command="install" />
     </target>
 
-    <target name="sdist" depends="bdist_egg" description="build source distribution">
+    <target name="sdist" depends="bdist_wheel" description="build source distribution">
         <!-- Delete Mac OS X Finder cache files. -->
         <delete>
             <fileset defaultexcludes="false" dir="." includes="**/.DS_Store" />
@@ -47,7 +46,7 @@
         </exec>
     </target>
 
-    <target name="sdist_upload" depends="bdist_egg" description="build source distribution">
+    <target name="sdist_upload" depends="bdist_wheel" description="build source distribution">
         <!-- Delete Mac OS X Finder cache files. -->
         <delete>
             <fileset defaultexcludes="false" dir="." includes="**/.DS_Store" />
@@ -60,33 +59,22 @@
         </exec>
     </target>
 
-    <target name="bdist_egg" depends="docs" description="build binary distribution">
-        <tstamp />
-        <pyst command="bdist_egg" />
-    </target>
-
-    <target name="bdist_egg_upload" depends="docs" description="build binary distribution and upload it to PyPI">
+    <target name="bdist_wheel" depends="docs" description="build binary distribution">
         <tstamp />
         <exec executable="python" failonerror="true">
             <arg value="setup.py" />
-            <arg value="bdist_egg" />
-            <arg value="upload" />
+            <arg value="bdist_wheel" />
+            <arg value="--universal" />
         </exec>
     </target>
 
-    <target name="bdist_wininst_upload" depends="docs" description="build Windows installer and upload it to PyPI">
+    <target name="bdist_wheel_upload" depends="docs" description="build binary distribution and upload it to PyPI">
         <tstamp />
         <exec executable="python" failonerror="true">
             <arg value="setup.py" />
-            <arg value="bdist_wininst" />
+            <arg value="bdist_wheel" />
+            <arg value="--universal" />
             <arg value="upload" />
-        </exec>
-    </target>
-
-    <target name="testdata" description="generate test data">
-        <exec executable="python" failonerror="true">
-            <arg path="cutplace/dev_test.py" />
-            <env key="PYTHONPATH" value="${basedir}" />
         </exec>
     </target>
 
@@ -120,14 +108,13 @@
         <delete dir="${slocdata.dir}" />
     </target>
 
-    <target name="site" depends="reports, docs, api" description="build web site">
+    <target name="site" depends="reports, docs" description="build web site">
         <!-- Dummy target to invoke all dependencies. -->
     </target>
 
     <target name="sitebase">
         <mkdir dir="${site.dir}/images" />
         <mkdir dir="${reports.dir}" />
-        <mkdir dir="${api.dir}" />
     </target>
 
 	<target description="copy web site to github pages for publication" name="gh-pages" depends="site">
@@ -138,11 +125,11 @@
             </fileset>
 		</copy>
 	</target>
-    <target description="build documentation" name="docs" depends="sitebase, testdata">
+    <target description="build documentation" name="docs" depends="sitebase">
         <pyst command="docs" />
     </target>
 
-    <target name="reports" depends="sitebase, flake8, sloccount, testdata, performance" description="build developer reports" />
+    <target name="reports" depends="sitebase, flake8, sloccount, performance" description="build developer reports" />
 
     <target name="sloccount" description="build sloccount report">
         <mkdir dir="${slocdata.dir}" />
@@ -178,12 +165,5 @@
         <concat>
             <filelist files="flake8.txt"/>
         </concat>
-    </target>
-
-    <target name="api" depends="sitebase" description="build API documentation">
-        <exec executable="epydoc" failonerror="true">
-            <arg value="--config" />
-            <arg file=".settings/epydoc.config" />
-        </exec>
     </target>
 </project>

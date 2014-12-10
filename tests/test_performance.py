@@ -15,18 +15,24 @@ Test cutplace performance.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import io
+import csv
 import logging
-import pstats
 import os.path
+import pstats
 import unittest
 
 
 from cutplace import cid
-from cutplace import dev_test
 from cutplace import validator
 from cutplace import _cutplace
 from cutplace import _tools
+from . import dev_test
 
 _log = logging.getLogger("cutplace.dev_reports")
 # Import "best" profiler available.
@@ -37,19 +43,32 @@ except ImportError:
     _log.warning('cProfile is not available, using profile')
 
 
+def _build_lots_of_customers_csv(targetCsvPath, customerCount=1000):
+    # TODO: Use a random seed to generate the same data every time.
+    assert targetCsvPath is not None
+
+    _log.info('write lots of customers to "%s"', targetCsvPath)
+    with io.open(targetCsvPath, "w", newline='', encoding='cp1252') as targetCsvFile:
+        # TODO #61: Python 2: use portable CSV writer.
+        csv_writer = csv.writer(targetCsvFile)
+        for customerId in range(customerCount):
+            csv_writer.writerow(dev_test.createTestCustomerRow(customerId))
+
+
 def _build_and_validate_many_customers():
     icd_ods_path = dev_test.getTestIcdPath("customers.ods")
-    loc_csv_path = dev_test.getTestFile("input", "lots_of_customers.csv")
-    dev_test.createLotsOfCustomersCsv(loc_csv_path, 50)
+    # TODO: Write to 'build/many_customers.csv'
+    many_customers_csv_path = dev_test.getTestFile("input", "lots_of_customers.csv")
+    _build_lots_of_customers_csv(many_customers_csv_path, 50)
 
     # Validate the data using the API, so in case of errors we get specific information.
     customers_cid = cid.Cid(icd_ods_path)
-    reader = validator.Reader(customers_cid, loc_csv_path)
+    reader = validator.Reader(customers_cid, many_customers_csv_path)
     reader.validate()
 
     # Validate the data using the command line application in order to use
     # the whole tool chain from an end user's point of view.
-    exit_code = _cutplace.main(["test_performance.py", icd_ods_path, loc_csv_path])
+    exit_code = _cutplace.main(["test_performance.py", icd_ods_path, many_customers_csv_path])
     if exit_code != 0:
         raise ValueError("exit code of performance test must be 0 but is %d" % exit_code)
 
@@ -73,5 +92,5 @@ class PerformanceTest(unittest.TestCase):
 
 
 if __name__ == '__main__':  # pragma: no cover
-    logging.basicConfig()
+    logging.basicConfig(level=logging.INFO)
     unittest.main()

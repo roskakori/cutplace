@@ -15,6 +15,8 @@ before_script:
   - git config --global user.email "roskakori@users.sourceforge.net"
   - git config --global user.name "Thomas Aglassinger"
 script:
+  - python setup.py sdist --formats=zip
+  - python setup.py bdist_wheel --universal
   - python setup.py test
 after_success:
   - if [[ "$COVERAGE" == "true" ]]; then coveralls || echo "failed"; fi

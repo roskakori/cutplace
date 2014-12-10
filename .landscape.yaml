@@ -1,0 +1,5 @@
+
+max-line-length = 159
+ignore-paths:
+    - cutplace/_version.py
+    - versioneer.py

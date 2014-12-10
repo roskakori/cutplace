@@ -15,14 +15,18 @@ Test for `_tools` module.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import decimal
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import os.path
 import unittest
 
 from cutplace import cid
-from cutplace import dev_test
 from cutplace import errors
 from cutplace import _tools
+from . import dev_test
 
 
 class ToolsTest(unittest.TestCase):
@@ -73,59 +77,6 @@ class ToolsTest(unittest.TestCase):
         self._test_can_derive_suffix("hugo.", "hugo.txt", ".")
         self._test_can_derive_suffix("hugo.txt", "hugo", ".txt")
         self._test_can_derive_suffix(os.path.join("eggs", "hugo.pas"), os.path.join("eggs", "hugo.txt"), ".pas")
-
-    def test_can_asciify_text(self):
-        self.assertEqual(_tools.asciified("hello"), "hello")
-        self.assertEqual(_tools.asciified("h\xe4ll\xf6"), "hallo")
-        self.assertEqual(_tools.asciified("hello.world!"), "hello.world!")
-
-    def test_fails_on_asciifying_non_unicode(self):
-        self.assertRaises(ValueError, _tools.asciified, b"hello")
-        self.assertRaises(ValueError, _tools.asciified, 17)
-
-    def test_can_namify_text(self):
-        self.assertEqual(_tools.namified("hello"), "hello")
-        self.assertEqual(_tools.namified("hElLo"), "hElLo")
-        self.assertEqual(_tools.namified("h3LL0"), "h3LL0")
-        self.assertEqual(_tools.namified("Date of birth"), "Date_of_birth")
-        self.assertEqual(_tools.namified("a    b"), "a_b")
-
-    def test_can_namify_number(self):
-        self.assertEqual(_tools.namified("1a"), "x1a")
-        self.assertEqual(_tools.namified("3.1415"), "x3_1415")
-
-    def test_can_namify_keyword(self):
-        self.assertEqual(_tools.namified("if"), "if_")
-
-    def test_can_namify_empty_text(self):
-        self.assertEqual(_tools.namified(""), "x")
-        self.assertEqual(_tools.namified(" "), "x")
-        self.assertEqual(_tools.namified("\t"), "x")
-
-    def test_can_namify_control_characters(self):
-        self.assertEqual(_tools.namified("\r"), "x")
-        self.assertEqual(_tools.namified("a\rb"), "a_b")
-
-
-class NumberedTest(unittest.TestCase):
-    def test_can_detect_none_number(self):
-        self.assertEqual(_tools.numbered("123abc"), (None, False, "123abc"))
-        self.assertEqual(_tools.numbered("01.02.2014"), (None, False, "01.02.2014"))
-
-    def test_can_detect_integer(self):
-        self.assertEqual(_tools.numbered("123"), (_tools.NUMBER_INTEGER, False, 123))
-
-    def test_can_detect_decimal_with_point(self):
-        self.assertEqual(_tools.numbered("123.45"), (_tools.NUMBER_DECIMAL_POINT, False, decimal.Decimal("123.45")))
-        self.assertEqual(_tools.numbered("123,456.78"), (_tools.NUMBER_DECIMAL_POINT, True, decimal.Decimal("123456.78")))
-
-    def test_can_detect_decimal_with_comma(self):
-        actual = _tools.numbered("123,45", decimalSeparator=",", thousandsSeparator=".")
-        expected = (_tools.NUMBER_DECIMAL_COMMA, False, decimal.Decimal("123.45"))
-        self.assertEqual(actual, expected)
-        actual = _tools.numbered("123.456,78", decimalSeparator=",", thousandsSeparator=".")
-        expected = (_tools.NUMBER_DECIMAL_COMMA, True, decimal.Decimal("123456.78"))
-        self.assertEqual(actual, expected)
 
 
 class RowsTest(unittest.TestCase):

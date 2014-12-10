@@ -15,17 +15,23 @@ Classes and functions to read and represent cutplace interface definitions.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import glob
 import imp  # TODO: deprecated; with Python 3, use importlib.
 import inspect
 import logging
 import os.path
 
-from cutplace import data
-from cutplace import fields
-from cutplace import errors
-from cutplace import checks
-from cutplace import _tools
+from . import data
+from . import fields
+from . import errors
+from . import checks
+from . import _tools
+from ._compat import python_2_unicode_compatible
 
 _log = logging.getLogger("cutplace")
 
@@ -47,7 +53,8 @@ def auto_rows(source_path):
     return result
 
 
-class Cid():
+@python_2_unicode_compatible
+class Cid(object):
     _EMPTY_INDICATOR = "x"
     _ID_CHECK = "c"
     _ID_DATA_FORMAT = "d"
@@ -69,6 +76,13 @@ class Cid():
         self._field_format_name_to_class_map = self._create_name_to_class_map(fields.AbstractFieldFormat)
         if cid_path is not None:
             self.read(cid_path, auto_rows(cid_path))
+
+    def __str__(self):
+        result = 'Cid('
+        if self.data_format is not None:
+            result += 'format=' + self.data_format.format + '; '
+            result += 'fields=%s' % [field_format.name for field_format in self.field_formats]
+        return result
 
     @property
     def data_format(self):
