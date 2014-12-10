@@ -27,9 +27,7 @@ import traceback
 
 from ._compat import python_2_unicode_compatible
 
-"""
-Symbolic names that can be used to improve the legibility of the CID.
-"""
+# Symbolic names that can be used to improve the legibility of the CID.
 NAME_TO_ASCII_CODE_MAP = {
     "cr": 13,
     "ff": 12,

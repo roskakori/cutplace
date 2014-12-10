@@ -20,7 +20,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import itertools
+from six.moves import zip_longest
 
 from . import data
 from . import errors
@@ -32,7 +32,7 @@ def _create_field_map(field_names, field_values):
     assert field_values
     assert len(field_names) == len(field_values)
 
-    return dict(itertools.zip_longest(field_names, field_values))
+    return dict(zip_longest(field_names, field_values))
 
 
 class Reader(object):

@@ -54,7 +54,7 @@ def auto_rows(source_path):
 
 
 @python_2_unicode_compatible
-class Cid():
+class Cid(object):
     _EMPTY_INDICATOR = "x"
     _ID_CHECK = "c"
     _ID_DATA_FORMAT = "d"

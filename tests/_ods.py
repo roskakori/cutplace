@@ -156,7 +156,7 @@ def main(arguments):
         suffix = '.' + args.format
         args.target_path = _tools.withSuffix(args.source_ods_path, suffix)
 
-    _log.info("convert %r to %r using format %r" % (args.source_ods_path, args.target_path, args.format))
+    _log.info("convert %r to %r using format %r", args.source_ods_path, args.target_path, args.format)
     try:
         if args.format == _FORMAT_CSV:
             toCsv(args.source_ods_path, args.target_path, sheet=args.sheet)
@@ -165,10 +165,10 @@ def main(arguments):
         else:  # pragma: no cover
             raise NotImplementedError("format=%r" % args.format)
     except EnvironmentError as error:
-        _log.error("cannot convert ods: %s" % error)
+        _log.error("cannot convert ods: %s", error)
         sys.exit(1)
     except Exception as error:
-        _log.exception("cannot convert ods: %s" % error)
+        _log.exception("cannot convert ods: %s", error)
         sys.exit(1)
 
 if __name__ == '__main__':  # pragma: no cover

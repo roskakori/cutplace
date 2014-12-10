@@ -260,7 +260,7 @@ class Range(object):
                 result = (value >= lower) and (value <= upper)
         return result
 
-    def validate(self, name, value):
+    def validate(self, name, value, location=None):
         """
         Validate that value is within the specified range and in case it is not, raise a `RangeValueError`.
         """
@@ -284,4 +284,5 @@ class Range(object):
                     is_valid = True
                 item_index += 1
             if not is_valid:
-                raise errors.RangeValueError("%s is %r but must be within range: %r" % (name, value, self))
+                raise errors.RangeValueError(
+                    "%s is %r but must be within range: %r" % (name, value, self), location)

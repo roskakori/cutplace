@@ -22,9 +22,7 @@ from __future__ import unicode_literals
 
 import csv
 import datetime
-import decimal
 import errno
-import keyword
 import logging
 import os
 import platform
@@ -33,7 +31,6 @@ import six
 import sys
 import token
 import tokenize
-import unicodedata
 import xlrd
 import zipfile
 from xml.etree import ElementTree
@@ -255,10 +252,6 @@ def _excel_cell_value(cell, datemode):
     Formulas are evaluated and yield the respective result.
     """
     assert cell is not None
-
-    # Just import without sanitizing the error message. If we got that far, the import should have worked
-    # already.
-    import xlrd
 
     if cell.ctype == xlrd.XL_CELL_DATE:
         cellTuple = xlrd.xldate_as_tuple(cell.value, datemode)

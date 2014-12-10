@@ -43,8 +43,4 @@ class FullNameLengthIsInRangeCheck(checks.AbstractCheck):
     def check_row(self, row_map, location):
         full_name = row_map["last_name"] + ", " + row_map["first_name"]
         full_name_length = len(full_name)
-        try:
-            self._full_name_range.validate("full name", full_name_length)
-        except errors.RangeValueError as error:
-            raise errors.CheckError("full name length is %d but must be in range %s: %r" \
-                % (full_name_length, self._full_name_range, full_name))
+        self._full_name_range.validate("length of full name", full_name_length, location)

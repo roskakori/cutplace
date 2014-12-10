@@ -45,11 +45,6 @@ assert DEFAULT_LOG_LEVEL in _tools.LOG_LEVEL_NAME_TO_LEVEL_MAP
 _log = logging.getLogger("cutplace")
 
 
-def _openForWriteUsingUtf8(targetPath):
-    assert targetPath is not None
-    return io.open(targetPath, 'w', encoding="utf-8")
-
-
 class CutPlace(object):
     """
     Command line interface for CutPlace.
@@ -58,14 +53,17 @@ class CutPlace(object):
         self._log = logging.getLogger("cutplace")
         self.options = None
         self.icd = None
-        self.icdEncoding = DEFAULT_ICD_ENCODING
-        self.icdPath = None
-        self.isSplit = False
-        self.dataToValidatePaths = None
+        self.cid_encoding = DEFAULT_ICD_ENCODING
+        self.cid_path = None
+        self.is_split = False
+        self.data_paths = None
         self.lastValidationWasOk = False
+        self.is_web_server = False  # TODO #77: Remove.
 
-    def setOptions(self, argv):
-        """Reset options and set them again from argument list such as sys.argv[1:]."""
+    def set_options(self, argv):
+        """
+        Reset options and set them again from argument list such as ``sys.argv[1:]``.
+        """
         assert argv is not None
 
         description = 'validate DATA-FILE against interface description CID-FILE'
@@ -73,13 +71,14 @@ class CutPlace(object):
 
         parser = argparse.ArgumentParser(description=description)
         parser.add_argument('--version', action='version', version=version)
-        # TODO: parser.set_defaults(isLogTrace=False, isOpenBrowser=False, port=_web.DEFAULT_PORT)
-        # TODO: parser.add_option('--list-encodings', action='store_true', dest='isShowEncodings', help='show list of available character encodings and exit')
-        validation_group = parser.add_argument_group('Validation options', 'Specify how to validate data and how to report the results')
-        validation_group.add_argument('-e', '--cid-encoding', metavar='ENCODING', dest='cid_encoding',
-            default=DEFAULT_ICD_ENCODING,
+        # TODO #77: parser.set_defaults(isLogTrace=False, isOpenBrowser=False, port=_web.DEFAULT_PORT)
+        validation_group = parser.add_argument_group(
+            'Validation options', 'Specify how to validate data and how to report the results')
+        validation_group.add_argument(
+            '-e', '--cid-encoding', metavar='ENCODING', dest='cid_encoding', default=DEFAULT_ICD_ENCODING,
             help='character encoding to use when reading the CID (default: %s)' % DEFAULT_ICD_ENCODING)
-        validation_group.add_argument('-P', '--plugins', metavar='FOLDER', dest='plugins_folder',
+        validation_group.add_argument(
+            '-P', '--plugins', metavar='FOLDER', dest='plugins_folder',
             help='folder to scan for plugins (default: no plugins)')
         # TODO: validationGroup.add_option('-s', '--split', action='store_true', dest='isSplit',
         #               help='split data in a CSV file containing the accepted rows and a raw text file '
@@ -102,11 +101,11 @@ class CutPlace(object):
         self.cid_encoding = args.cid_encoding
         # FIXME #77 etc: Remove dummy values below.
         self.isLogTrace = False
-        self.isOpenBrowser = False
-        self.isShowEncodings = False
-        self.isWebServer = False
-        self.port = 0
-        self.isSplit = False
+        # TODO #77: self.isOpenBrowser = False
+        # TODO #77: self.isShowEncodings = False
+        self.is_web_server = False  # TODO #77: Remove.
+        # TODO #77: self.port = 0
+        self.is_split = False
         # TODO: self.isLogTrace = self.options.isLogTrace
         # TODO: self.isOpenBrowser = self.options.isOpenBrowser
         # TODO: self.isShowEncodings = self.options.isShowEncodings
@@ -117,32 +116,32 @@ class CutPlace(object):
         if args.plugins_folder is not None:
             cid.import_plugins(args.plugins_folder)
 
-        if not self.isShowEncodings and not self.isWebServer:
+        if not self.is_web_server:
             if args.cid_path is None:
                 parser.error('CID-PATH must be specified')
             try:
-                self.setIcdFromFile(args.cid_path)
+                self.set_cid_from_path(args.cid_path)
             except (EnvironmentError, OSError) as error:
                 raise IOError('cannot read CID file "%s": %s' % (args.cid_path, error))
             if args.data_paths is not None:
-                self.dataToValidatePaths = args.data_paths
+                self.data_paths = args.data_paths
 
         self._log.debug('cutplace %s', __version__)
         self._log.debug('arguments=%s', args)
 
-    def validate(self, dataFilePath):
+    def validate(self, data_path):
         """
         Validate data stored in file `dataFilePath`.
         """
-        assert dataFilePath is not None
+        assert data_path is not None
         assert self.icd is not None
 
         self.lastValidationWasOk = False
-        reader = validator.Reader(self.icd, dataFilePath)
+        reader = validator.Reader(self.icd, data_path)
         reader.validate()
         self.lastValidationWasOk = True
 
-    def setIcdFromFile(self, cid_path):
+    def set_cid_from_path(self, cid_path):
         assert cid_path is not None
         new_cid = cid.Cid()
         # TODO: if self.options is not None:
@@ -150,19 +149,7 @@ class CutPlace(object):
         cid_rows = cid.auto_rows(cid_path)  # TODO: Pass self.cid_encoding.
         new_cid.read(cid_path, cid_rows)
         self.icd = new_cid
-        self.icdPath = cid_path
-
-    def _printAvailableEncodings(self):
-        for encoding in self._encodingsFromModuleNames():
-            if encoding != "__init__":
-                print(encoding)
-
-    def _encodingsFromModuleNames(self):
-        # Based on sample code by Peter Otten.
-        encodingsModuleFilePath = os.path.dirname(encodings.__file__)
-        for filePath in glob.glob(os.path.join(encodingsModuleFilePath, "*.py")):
-            fileName = os.path.basename(filePath)
-            yield os.path.splitext(fileName)[0]
+        self.cid_path = cid_path
 
 
 def process(argv=None):
@@ -182,24 +169,21 @@ def process(argv=None):
 
     result = 0
     cutPlace = CutPlace()
-    cutPlace.setOptions(argv)
-    if cutPlace.isShowEncodings:
-        cutPlace._printAvailableEncodings()
-    else:
-        if cutPlace.isWebServer:
-            # TODO #77: _web.main(cutPlace.port, cutPlace.isOpenBrowser)
-            pass
-        elif cutPlace.dataToValidatePaths:
-            allValidationsOk = True
-            for path in cutPlace.dataToValidatePaths:
-                try:
-                    cutPlace.validate(path)
-                    if not cutPlace.lastValidationWasOk:
-                        allValidationsOk = False
-                except EnvironmentError as error:
-                    raise EnvironmentError("cannot read data file %r: %s" % (path, error))
-            if not allValidationsOk:
-                result = 1
+    cutPlace.set_options(argv)
+    if cutPlace.is_web_server:
+        # TODO #77: _web.main(cutPlace.port, cutPlace.isOpenBrowser)
+        pass
+    elif cutPlace.data_paths:
+        all_validations_ok = True
+        for path in cutPlace.data_paths:
+            try:
+                cutPlace.validate(path)
+                if not cutPlace.lastValidationWasOk:
+                    all_validations_ok = False
+            except EnvironmentError as error:
+                raise EnvironmentError("cannot read data file %r: %s" % (path, error))
+        if not all_validations_ok:
+            result = 1
     return result
 
 
@@ -230,7 +214,7 @@ def main(argv=None):
 
 def main_for_script():
     """
-    Main routine that reports errors in options to ``sys.stderr`` and does ``sys.exit()``.
+    Main routine that reports errors in options to `sys.stderr` and does `sys.exit()`.
     """
     logging.basicConfig(level=logging.INFO)
     sys.exit(main())

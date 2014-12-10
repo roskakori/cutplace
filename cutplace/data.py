@@ -80,7 +80,7 @@ KEY_THOUSANDS_SEPARATOR = "thousands_separator"
 
 
 @python_2_unicode_compatible
-class DataFormat():
+class DataFormat(object):
     """
     General data format of a file describing the basic structure.
     """
@@ -169,7 +169,7 @@ class DataFormat():
         if name == KEY_ENCODING:
             try:
                 codecs.lookup(value)
-            except:
+            except LookupError:
                 raise errors.InterfaceError('value for data format property %r is %r but must be a valid encoding'
                                             % (KEY_ENCODING, self.encoding), self._location)
             self._encoding = value

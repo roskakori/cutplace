@@ -110,7 +110,7 @@ class AbstractFieldFormat(object):
         """
         return self._empty_value
 
-    def _example(self):
+    def _get__example(self):
         return self._example
 
     def _set_example(self, new_example):
@@ -118,7 +118,7 @@ class AbstractFieldFormat(object):
             self.validated(new_example)
         self._example = new_example
 
-    example = property(_example, _set_example, doc="Example value or ``None`` if no example is provided.")
+    example = property(_get__example, _set_example, doc="Example value or ``None`` if no example is provided.")
 
     def validate_characters(self, value):
         valid_character_range = self.data_format.allowed_characters
