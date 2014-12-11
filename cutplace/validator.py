@@ -24,7 +24,7 @@ from six.moves import zip_longest
 
 from . import data
 from . import errors
-from . import _tools
+from . import _io_tools
 
 
 def _create_field_map(field_names, field_values):
@@ -43,14 +43,14 @@ class Reader(object):
 
     def _raw_rows(self):
         if self._cid.data_format.format == data.FORMAT_EXCEL:
-            return _tools.excel_rows(self._source_path, self._cid.data_format.sheet)
+            return _io_tools.excel_rows(self._source_path, self._cid.data_format.sheet)
         elif self._cid.data_format.format == data.FORMAT_DELIMITED:
-            return _tools.delimited_rows(self._source_path, self._cid.data_format)
+            return _io_tools.delimited_rows(self._source_path, self._cid.data_format)
         elif self._cid.data_format.format == data.FORMAT_FIXED:
             # TODO: implement support for fixed.
             pass
         elif self._cid.data_format.format == data.FORMAT_ODS:
-            return _tools.ods_rows(self._source_path, self._cid.data_format.sheet)
+            return _io_tools.ods_rows(self._source_path, self._cid.data_format.sheet)
 
     def rows(self):
         self._location = errors.Location(self._source_path, has_cell=True)
