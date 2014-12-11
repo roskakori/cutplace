@@ -31,6 +31,7 @@ from . import fields
 from . import errors
 from . import checks
 from . import _tools
+from . import _io_tools
 from ._compat import python_2_unicode_compatible
 
 _log = logging.getLogger("cutplace")
@@ -42,14 +43,14 @@ def auto_rows(source_path):
     """
     suffix = os.path.splitext(source_path)[1].lstrip('.').lower()
     if suffix == 'ods':
-        result = _tools.ods_rows(source_path)
+        result = _io_tools.ods_rows(source_path)
     elif suffix in ('xls', 'xlsx'):
-        result = _tools.excel_rows(source_path)
+        result = _io_tools.excel_rows(source_path)
     else:
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
         # TODO: Determine delimiter by counting common delimiters with the first 4096 bytes and choosing the maximum one.
         delimited_format.set_property(data.KEY_ITEM_DELIMITER, ',')
-        result = _tools.delimited_rows(source_path, delimited_format)
+        result = _io_tools.delimited_rows(source_path, delimited_format)
     return result
 
 
