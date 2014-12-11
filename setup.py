@@ -1,11 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-    Setup file for cutplace.
+Setup for cutplace.
 
-    This file was generated with PyScaffold 1.3.1, a tool that easily
-    puts up a scaffold for your new Python project. Learn more under:
-    http://pyscaffold.readthedocs.org/
+This file was generated with PyScaffold 1.3.1, a tool that easily
+puts up a scaffold for your new Python project. Learn more under:
+http://pyscaffold.readthedocs.org/
+
+Developer cheat sheet
+---------------------
+
+Run locally from console::
+
+  $ export PYTHONPATH=`pwd`:`pwd`/cutplace:`pwd`/tests
+  $ python -m cutplace._cutplace --version
 """
 
 import os

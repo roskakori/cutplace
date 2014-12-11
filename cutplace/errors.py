@@ -227,12 +227,13 @@ class CutplaceError(Exception):
     """
     Error caused by issues in the CID or data. Details are provided by the
     following properties:
+
     * `message` - a description of the condition that cause the error and
       possibly suggestions on what needs to be fixed.
     * `location` (can be `None`) - `Location` pointing to the source of
       the error.
     * `see_also_message`, `see_also_error`  (can be `None`): a message and
-     `Location` describing additional information. For example, when a
+      `Location` describing additional information. For example, when a
       key field has to be unique but two data rows use the same value, this
       points to the first value while the actual `message` and `location`
       point to the duplicate.

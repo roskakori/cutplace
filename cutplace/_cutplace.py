@@ -22,21 +22,16 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import argparse
-import encodings
-import glob
-import io
 import logging
-import os
 import sys
 
 from . import cid
 from . import errors
 from . import validator
 from . import _tools
-# TODO: from . import _web
+# TODO #77: from . import _web
 
-# Import constant for version information.
-from cutplace import __version__
+from . import __version__
 
 DEFAULT_ICD_ENCODING = 'utf-8'
 DEFAULT_LOG_LEVEL = 'warning'
@@ -45,19 +40,19 @@ assert DEFAULT_LOG_LEVEL in _tools.LOG_LEVEL_NAME_TO_LEVEL_MAP
 _log = logging.getLogger("cutplace")
 
 
-class CutPlace(object):
+class CutplaceApp(object):
     """
-    Command line interface for CutPlace.
+    Command line application to validate CID's and data.
     """
     def __init__(self):
-        self._log = logging.getLogger("cutplace")
+        self._log = _log
         self.options = None
-        self.icd = None
+        self.cid = None
         self.cid_encoding = DEFAULT_ICD_ENCODING
         self.cid_path = None
         self.is_split = False
         self.data_paths = None
-        self.lastValidationWasOk = False
+        self.last_validation_was_ok = False
         self.is_web_server = False  # TODO #77: Remove.
 
     def set_options(self, argv):
@@ -93,8 +88,10 @@ class CutPlace(object):
             dest='log_level', default=DEFAULT_LOG_LEVEL,
             help='set log level to LEVEL (default: %s)' % DEFAULT_LOG_LEVEL)
         # TODO: loggingGroup.add_argument('-t', '--trace', action='store_true', dest='isLogTrace', help='include Python stack in error messages related to data')
-        parser.add_argument('cid_path', metavar='CID-FILE', help='file containing a cutplace interface definition (CID)')
-        parser.add_argument('data_paths', metavar='DATA-FILE', nargs=argparse.REMAINDER, help='data file(s) to validate')
+        parser.add_argument(
+            'cid_path', metavar='CID-FILE', help='file containing a cutplace interface definition (CID)')
+        parser.add_argument(
+            'data_paths', metavar='DATA-FILE', nargs=argparse.REMAINDER, help='data file(s) to validate')
         args = parser.parse_args(argv[1:])
 
         self._log.setLevel(_tools.LOG_LEVEL_NAME_TO_LEVEL_MAP[args.log_level])
@@ -102,13 +99,11 @@ class CutPlace(object):
         # FIXME #77 etc: Remove dummy values below.
         self.isLogTrace = False
         # TODO #77: self.isOpenBrowser = False
-        # TODO #77: self.isShowEncodings = False
         self.is_web_server = False  # TODO #77: Remove.
         # TODO #77: self.port = 0
         self.is_split = False
         # TODO: self.isLogTrace = self.options.isLogTrace
         # TODO: self.isOpenBrowser = self.options.isOpenBrowser
-        # TODO: self.isShowEncodings = self.options.isShowEncodings
         # TODO #77: self.isWebServer = self.options.isWebServer
         # TODO #77: self.port = self.options.port
         # TODO: self.isSplit = self.options.isSplit
@@ -129,27 +124,28 @@ class CutPlace(object):
         self._log.debug('cutplace %s', __version__)
         self._log.debug('arguments=%s', args)
 
-    def validate(self, data_path):
-        """
-        Validate data stored in file `dataFilePath`.
-        """
-        assert data_path is not None
-        assert self.icd is not None
-
-        self.lastValidationWasOk = False
-        reader = validator.Reader(self.icd, data_path)
-        reader.validate()
-        self.lastValidationWasOk = True
-
     def set_cid_from_path(self, cid_path):
         assert cid_path is not None
         new_cid = cid.Cid()
         # TODO: if self.options is not None:
         #          new_cid.logTrace = self.options.isLogTrace
+        _log.info('read CID from "%s"', cid_path)
         cid_rows = cid.auto_rows(cid_path)  # TODO: Pass self.cid_encoding.
         new_cid.read(cid_path, cid_rows)
-        self.icd = new_cid
+        self.cid = new_cid
         self.cid_path = cid_path
+
+    def validate(self, data_path):
+        """
+        Validate data stored in file `dataFilePath`.
+        """
+        assert data_path is not None
+        assert self.cid is not None
+
+        self.last_validation_was_ok = False
+        reader = validator.Reader(self.cid, data_path)
+        reader.validate()
+        self.last_validation_was_ok = True
 
 
 def process(argv=None):
@@ -168,17 +164,17 @@ def process(argv=None):
     assert argv
 
     result = 0
-    cutPlace = CutPlace()
-    cutPlace.set_options(argv)
-    if cutPlace.is_web_server:
+    cutplaceApp = CutplaceApp()
+    cutplaceApp.set_options(argv)
+    if cutplaceApp.is_web_server:
         # TODO #77: _web.main(cutPlace.port, cutPlace.isOpenBrowser)
         pass
-    elif cutPlace.data_paths:
+    elif cutplaceApp.data_paths:
         all_validations_ok = True
-        for path in cutPlace.data_paths:
+        for path in cutplaceApp.data_paths:
             try:
-                cutPlace.validate(path)
-                if not cutPlace.lastValidationWasOk:
+                cutplaceApp.validate(path)
+                if not cutplaceApp.last_validation_was_ok:
                     all_validations_ok = False
             except EnvironmentError as error:
                 raise EnvironmentError("cannot read data file %r: %s" % (path, error))
