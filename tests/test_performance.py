@@ -58,7 +58,7 @@ def _build_lots_of_customers_csv(targetCsvPath, customerCount=1000):
 def _build_and_validate_many_customers():
     icd_ods_path = dev_test.getTestIcdPath("customers.ods")
     # TODO: Write to 'build/many_customers.csv'
-    many_customers_csv_path = dev_test.getTestFile("input", "lots_of_customers.csv")
+    many_customers_csv_path = dev_test.getTestInputPath("lots_of_customers.csv")
     _build_lots_of_customers_csv(many_customers_csv_path, 50)
 
     # Validate the data using the API, so in case of errors we get specific information.

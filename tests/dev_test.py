@@ -123,7 +123,7 @@ def getTestInputPath(fileName):
     Path for test file `fileName` in input folder.
     """
     assert fileName
-    return getTestFile("input", fileName)
+    return getTestFile("data", fileName)
 
 
 def getTestOutputPath(fileName):
@@ -131,7 +131,7 @@ def getTestOutputPath(fileName):
     Path for test file `fileName` in output folder.
     """
     assert fileName
-    return getTestFile("output", fileName)
+    return getTestFile("results", fileName)
 
 
 def getTestIcdPath(fileName):
@@ -139,14 +139,14 @@ def getTestIcdPath(fileName):
     Path for test ICD `fileName`which has to be located in "tests/input/icds".
     """
     assert fileName
-    return getTestFile(os.path.join("input", "icds"), fileName)
+    return getTestFile(os.path.join("data", "icds"), fileName)
 
 
 def getTestPluginsPath():
     """
     Path for folder containing test plugins.
     """
-    return getTestFolder("input")
+    return getTestFolder("data")
 
 
 def createTestCustomerRow(customerId):
