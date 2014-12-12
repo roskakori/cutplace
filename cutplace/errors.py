@@ -121,7 +121,8 @@ class Location(object):
     def advance_line(self, amount=1):
         assert amount is not None
         assert amount > 0
-        # TODO: assert self._has_cell or self._has_column, "has_cell=%r, has_column=%r" % (self._has_cell, self._has_column)
+        # TODO: enable assertion for cell consistency.
+        # assert self._has_cell or self._has_column, "has_cell=%r, has_column=%r" % (self._has_cell, self._has_column)
         self._line += amount
         self._column = 0
         self._cell = 0

@@ -220,31 +220,34 @@ class ChoiceFieldFormat(AbstractFieldFormat):
     Field format accepting only values from a pool of choices.
     """
     def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format):
-        super(ChoiceFieldFormat, self).__init__(field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value="")
+        super(ChoiceFieldFormat, self).__init__(
+            field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value="")
         self.choices = []
 
         # Split rule into tokens, ignoring white space.
         tokens = _tools.tokenize_without_space(rule)
 
         # Extract choices from rule tokens.
-        previousToky = None
+        previous_toky = None
         toky = next(tokens)
         while not _tools.is_eof_token(toky):
             if _tools.is_comma_token(toky):
                 # Handle comma after comma without choice.
-                if previousToky:
-                    previous_toky_text = previousToky[1]
+                if previous_toky:
+                    previous_toky_text = previous_toky[1]
                 else:
                     previous_toky_text = None
                 raise errors.InterfaceError("choice value must precede a comma (,) but found: %r" % previous_toky_text)
             choice = _tools.token_text(toky)
             if not choice:
-                raise errors.InterfaceError("choice field must be allowed to be empty instead of containing an empty choice")
+                raise errors.InterfaceError(
+                    "choice field must be allowed to be empty instead of containing an empty choice")
             self.choices.append(choice)
             toky = next(tokens)
             if not _tools.is_eof_token(toky):
                 if not _tools.is_comma_token(toky):
-                    raise errors.InterfaceError("comma (,) must follow choice value %r but found: %r" % (choice, toky[1]))
+                    raise errors.InterfaceError(
+                        "comma (,) must follow choice value %r but found: %r" % (choice, toky[1]))
                 # Process next choice after comma.
                 toky = next(tokens)
                 if _tools.is_eof_token(toky):
@@ -256,8 +259,8 @@ class ChoiceFieldFormat(AbstractFieldFormat):
         assert value
 
         if value not in self.choices:
-            raise errors.FieldValueError("value is %r but must be one of: %s"
-                                   % (value, _tools.human_readable_list(self.choices)))
+            raise errors.FieldValueError(
+                "value is %r but must be one of: %s" % (value, _tools.human_readable_list(self.choices)))
         return value
 
 
@@ -292,9 +295,10 @@ class DecimalFieldFormat(AbstractFieldFormat):
                 found_decimal_separator = True
             elif self.thousandsSeparator and (character_to_process == self.thousandsSeparator):
                 if found_decimal_separator:
-                    raise errors.FieldValueError("decimal field must contain thousands separator (%r) only before "
-                                                 "decimal separator (%r): %r (position %d)"
-                                                 % (self.thousandsSeparator, self.decimalSeparator, value, valueIndex + 1))
+                    raise errors.FieldValueError(
+                        "decimal field must contain thousands separator (%r) only before "
+                        "decimal separator (%r): %r (position %d)"
+                        % (self.thousandsSeparator, self.decimalSeparator, value, valueIndex + 1))
             else:
                 translated_value += character_to_process
         try:
@@ -343,7 +347,8 @@ class DateTimeFieldFormat(AbstractFieldFormat):
     _human_readable_to_strptime_map = ["%:%%", "DD:%d", "MM:%m", "YYYY:%Y", "YY:%y", "hh:%H", "mm:%M", "ss:%S"]
 
     def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value=None):
-        super(DateTimeFieldFormat, self).__init__(field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value)
+        super(DateTimeFieldFormat, self).__init__(
+            field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value)
         self.human_readable_format = rule
         # Create an actual copy of the rule string so `replace()` will not modify the original..
         strptime_format = "".join(rule)
@@ -386,7 +391,8 @@ class PatternFieldFormat(AbstractFieldFormat):
     Field format accepting values that match a pattern using "*" and "?" as place holders.
     """
     def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value=""):
-        super(PatternFieldFormat, self).__init__(field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value)
+        super(PatternFieldFormat, self).__init__(
+            field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value)
         self.pattern = fnmatch.translate(rule)
         self.regex = re.compile(self.pattern, re.IGNORECASE | re.MULTILINE)
 
@@ -394,7 +400,8 @@ class PatternFieldFormat(AbstractFieldFormat):
         assert value
 
         if not self.regex.match(value):
-            raise errors.FieldValueError("value %r must match pattern: %r (regex %r)" % (value, self.rule, self.pattern))
+            raise errors.FieldValueError(
+                'value %r must match pattern: %r (regex %r)' % (value, self.rule, self.pattern))
         return value
 
 
@@ -403,7 +410,8 @@ class TextFieldFormat(AbstractFieldFormat):
     Field format accepting any text.
     """
     def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value=""):
-        super(TextFieldFormat, self).__init__(field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value)
+        super(TextFieldFormat, self).__init__(
+            field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value)
 
     def validated_value(self, value):
         assert value
@@ -425,8 +433,9 @@ def get_field_name_index(supposed_field_name, available_field_names):
     try:
         field_index = available_field_names.index(field_name)
     except ValueError:
-        raise errors.InterfaceError("unknown field name %r must be replaced by one of: %s"
-                                      % (field_name, _tools.human_readable_list(available_field_names)))
+        raise errors.InterfaceError(
+            'unknown field name %r must be replaced by one of: %s'
+            % (field_name, _tools.human_readable_list(available_field_names)))
     return field_index
 
 
@@ -437,19 +446,21 @@ def validated_field_name(supposed_field_name, location=None):
     """
     field_name = supposed_field_name.strip()
     if field_name == '':
-        raise errors.InterfaceError("field name must be a valid Python name consisting of ASCII letters, "
-                                      "underscore (_) and digits but is empty", location)
+        raise errors.InterfaceError(
+            "field name must be a valid Python name consisting of ASCII letters, "
+            "underscore (_) and digits but is empty", location)
     if keyword.iskeyword(field_name):
         raise errors.InterfaceError("field name must not be a Python keyword but is: %r" % field_name, location)
     is_first_character = True
     for character in field_name:
         if is_first_character:
             if character not in _ASCII_LETTERS:
-                raise errors.InterfaceError("field name must begin with a lower-case letter but is: %r"
-                                              % field_name, location)
+                raise errors.InterfaceError(
+                    "field name must begin with a lower-case letter but is: %r" % field_name, location)
             is_first_character = False
         else:
             if character not in _ASCII_LETTERS_DIGITS_AND_UNDERSCORE:
-                raise errors.InterfaceError("field name must be a valid Python name consisting of ASCII letters, "
-                                              "underscore (%r) and digits but is: %r" % ("_", field_name), location)
+                raise errors.InterfaceError(
+                    "field name must be a valid Python name consisting of ASCII letters, "
+                    "underscore (%r) and digits but is: %r" % ("_", field_name), location)
     return field_name

@@ -84,9 +84,9 @@ class CutplaceApp(object):
         # TODO #77: webGroup.add_option('-b', '--browse', action='store_true', dest='isOpenBrowser', help='open validation page in browser')
         # TODO #77: parser.add_option_group(webGroup)
         loggingGroup = parser.add_argument_group('Logging options', 'Modify the logging output')
-        loggingGroup.add_argument('--log', metavar='LEVEL', choices=sorted(_tools.LOG_LEVEL_NAME_TO_LEVEL_MAP.keys()),
-            dest='log_level', default=DEFAULT_LOG_LEVEL,
-            help='set log level to LEVEL (default: %s)' % DEFAULT_LOG_LEVEL)
+        loggingGroup.add_argument(
+            '--log', metavar='LEVEL', choices=sorted(_tools.LOG_LEVEL_NAME_TO_LEVEL_MAP.keys()), dest='log_level',
+            default=DEFAULT_LOG_LEVEL, help='set log level to LEVEL (default: %s)' % DEFAULT_LOG_LEVEL)
         # TODO: loggingGroup.add_argument('-t', '--trace', action='store_true', dest='isLogTrace', help='include Python stack in error messages related to data')
         parser.add_argument(
             'cid_path', metavar='CID-FILE', help='file containing a cutplace interface definition (CID)')
@@ -118,8 +118,8 @@ class CutplaceApp(object):
                 self.set_cid_from_path(args.cid_path)
             except (EnvironmentError, OSError) as error:
                 raise IOError('cannot read CID file "%s": %s' % (args.cid_path, error))
-            if args.data_paths is not None:
-                self.data_paths = args.data_paths
+        if args.data_paths is not None:
+            self.data_paths = args.data_paths
 
         self._log.debug('cutplace %s', __version__)
         self._log.debug('arguments=%s', args)
@@ -164,17 +164,17 @@ def process(argv=None):
     assert argv
 
     result = 0
-    cutplaceApp = CutplaceApp()
-    cutplaceApp.set_options(argv)
-    if cutplaceApp.is_web_server:
+    cutplace_app = CutplaceApp()
+    cutplace_app.set_options(argv)
+    if cutplace_app.is_web_server:
         # TODO #77: _web.main(cutPlace.port, cutPlace.isOpenBrowser)
         pass
-    elif cutplaceApp.data_paths:
+    elif cutplace_app.data_paths:
         all_validations_ok = True
-        for path in cutplaceApp.data_paths:
+        for path in cutplace_app.data_paths:
             try:
-                cutplaceApp.validate(path)
-                if not cutplaceApp.last_validation_was_ok:
+                cutplace_app.validate(path)
+                if not cutplace_app.last_validation_was_ok:
                     all_validations_ok = False
             except EnvironmentError as error:
                 raise EnvironmentError("cannot read data file %r: %s" % (path, error))

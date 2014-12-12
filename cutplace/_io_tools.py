@@ -82,17 +82,17 @@ def _excel_cell_value(cell, datemode):
     assert cell is not None
 
     if cell.ctype == xlrd.XL_CELL_DATE:
-        cellTuple = xlrd.xldate_as_tuple(cell.value, datemode)
-        assert len(cellTuple) == 6, "cellTuple=%r" % cellTuple
-        if cellTuple[:3] == (0, 0, 0):
-            timeTuple = cellTuple[3:]
-            result = str(datetime.time(*timeTuple))
+        cell_tuple = xlrd.xldate_as_tuple(cell.value, datemode)
+        assert len(cell_tuple) == 6, "cellTuple=%r" % cell_tuple
+        if cell_tuple[:3] == (0, 0, 0):
+            time_tuple = cell_tuple[3:]
+            result = str(datetime.time(*time_tuple))
         else:
-            result = str(datetime.datetime(*cellTuple))
+            result = str(datetime.datetime(*cell_tuple))
     elif cell.ctype == xlrd.XL_CELL_ERROR:
-        defaultErrorText = xlrd.error_text_from_code[0x2a]  # same as "#N/A!"
-        errorCode = cell.value
-        result = str(xlrd.error_text_from_code.get(errorCode, defaultErrorText), "ascii")
+        default_error_text = xlrd.error_text_from_code[0x2a]  # same as "#N/A!"
+        error_code = cell.value
+        result = str(xlrd.error_text_from_code.get(error_code, default_error_text), "ascii")
     elif isinstance(cell.value, str):
         result = cell.value
     else:
@@ -212,9 +212,10 @@ def delimited_rows(delimited_path, data_format):
         escapechar = data_format.escape_character
 
     # HACK: Ignore DataFormat.line_delimiter because at least until Python 3.4 csv.reader ignores it anyway.
-    csv_reader = _delimited_rows(delimited_path, encoding=data_format.encoding, delimiter=data_format.item_delimiter,
-                           doublequote=doublequote, escapechar=escapechar, quotechar=data_format.quote_character,
-                           skipinitialspace=data_format.skip_initial_space, strict=True)
+    csv_reader = _delimited_rows(
+        delimited_path, encoding=data_format.encoding, delimiter=data_format.item_delimiter, doublequote=doublequote,
+        escapechar=escapechar, quotechar=data_format.quote_character, skipinitialspace=data_format.skip_initial_space,
+        strict=True)
     for row in csv_reader:
         yield row
 
@@ -225,7 +226,7 @@ def ods_rows(source_ods_path, sheet=1):
     """
     assert sheet >= 1
 
-    def ods_content_root(source_ods_path):
+    def ods_content_root():
         """
         `ElementTree` for content.xml in `source_ods_path`.
         """
@@ -251,7 +252,7 @@ def ods_rows(source_ods_path, sheet=1):
 
         return tree.getroot()
 
-    content_root = ods_content_root(source_ods_path)
+    content_root = ods_content_root()
     table_elements = list(
         content_root.findall('office:body/office:spreadsheet/table:table', namespaces=_OOO_NAMESPACES))
     table_count = len(table_elements)

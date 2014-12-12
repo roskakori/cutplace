@@ -294,7 +294,6 @@ class DataFormat(object):
         if len(value) == 1 and (value < "0" or value > "9"):
             result = value
         else:
-            result = None
             tokens = tokenize.generate_tokens(io.StringIO(value).readline)
             next_token = next(tokens)
             if _tools.is_eof_token(next_token):

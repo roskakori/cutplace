@@ -68,11 +68,11 @@ def validated_python_name(name, value):
     readable = io.StringIO(value.strip())
     toky = tokenize.generate_tokens(readable.readline)
     next_token = next(toky)
-    nextType = next_token[0]
+    next_type = next_token[0]
     result = next_token[1]
-    if tokenize.ISEOF(nextType):
+    if tokenize.ISEOF(next_type):
         raise NameError("%s must not be empty but was: %r" % (name, value))
-    if nextType != token.NAME:
+    if next_type != token.NAME:
         raise NameError("%s must contain only ASCII letters, digits and underscore (_) but is: %r"
                         % (name, value))
     second_token = next(toky)

@@ -41,6 +41,7 @@ def auto_rows(source_path):
     """
     Determine basic data format of `source_path` based on heuristics and return its contents.
     """
+    # TODO: Move to `io_tools` and recommend to use it in the documentation comment for `Cid.read()`.
     suffix = os.path.splitext(source_path)[1].lstrip('.').lower()
     if suffix == 'ods':
         result = _io_tools.ods_rows(source_path)
@@ -160,9 +161,10 @@ class Cid(object):
         class_name = class_qualifier.split(".")[-1] + class_name_appendix
         result = name_to_class_map.get(class_name)
         if result is None:
-            raise error_to_raise_on_unknown_class("cannot find class for %s %s: related class is %s but must be one of: %s"
-                                                  % (type_name, class_qualifier, class_name,
-                                                     _tools.human_readable_list(sorted(name_to_class_map.keys()))))
+            raise error_to_raise_on_unknown_class(
+                "cannot find class for %s %s: related class is %s but must be one of: %s" % (
+                    type_name, class_qualifier, class_name,
+                    _tools.human_readable_list(sorted(name_to_class_map.keys()))))
         return result
 
     def _create_field_format_class(self, field_type):
@@ -177,7 +179,6 @@ class Cid(object):
     def read(self, source_path, rows):
         # TODO: Detect format and use proper reader.
         self._location = errors.Location(source_path, has_cell=True)
-        # local_interface = interface.self()
         for row in rows:
             if row:
                 row_type = row[0].lower()
@@ -198,8 +199,8 @@ class Cid(object):
                     self.add_check(row_data)
                 elif row_type != '':
                     # Raise error when value is not supported.
-                    raise errors.InterfaceError('CID row type is "%s" but must be empty or one of: C, D, or F'
-                                                       % row_type, self._location)
+                    raise errors.InterfaceError(
+                        'CID row type is "%s" but must be empty or one of: C, D, or F' % row_type, self._location)
             self._location.advance_line()
 
     def add_field_format(self, items):
@@ -254,9 +255,9 @@ class Cid(object):
                 if field_is_allowed_to_be_empty_text == self._EMPTY_INDICATOR:
                     field_is_allowed_to_be_empty = True
                 elif field_is_allowed_to_be_empty_text:
-                    raise errors.InterfaceError("mark for empty field must be %r or empty but is %r"
-                                                  % (self._EMPTY_INDICATOR,
-                                                     field_is_allowed_to_be_empty_text), self._location)
+                    raise errors.InterfaceError(
+                        "mark for empty field must be %r or empty but is %r" % (self._EMPTY_INDICATOR,
+                        field_is_allowed_to_be_empty_text), self._location)
 
             # Obtain length.
             if item_count >= 4:
@@ -289,14 +290,16 @@ class Cid(object):
                 field_type = "Text"
             field_class = self._create_field_format_class(field_type)
             _log.debug("create field: %s(%r, %r, %r)", field_class.__name__, field_name, field_type, field_rule)
-            field_format = field_class.__new__(field_class, field_name, field_is_allowed_to_be_empty, field_length, field_rule)
-            field_format.__init__(field_name, field_is_allowed_to_be_empty, field_length, field_rule, self._data_format)
+            field_format = field_class.__new__(
+                field_class, field_name, field_is_allowed_to_be_empty, field_length, field_rule)
+            field_format.__init__(
+                field_name, field_is_allowed_to_be_empty, field_length, field_rule, self._data_format)
 
             # Validate that field name is unique.
             if field_name in self._field_name_to_format_map:
                 self._location.set_cell(1)
-                raise errors.InterfaceError("field name must be used for only one field: %s" % field_name,
-                                              self._location)
+                raise errors.InterfaceError(
+                    "field name must be used for only one field: %s" % field_name, self._location)
 
             # Set and validate example in case there is one.
             if field_example:
@@ -304,7 +307,8 @@ class Cid(object):
                     field_format.example = field_example
                 except errors.FieldValueError as error:
                     self._location.set_cell(2)
-                    raise errors.InterfaceError("cannot validate example for field %r: %s" % (field_name, error), self._location)
+                    raise errors.InterfaceError(
+                        "cannot validate example for field %r: %s" % (field_name, error), self._location)
 
             # Validate field length for fixed format.
             if self._data_format.format == data.FORMAT_FIXED:
@@ -315,16 +319,17 @@ class Cid(object):
                         (lower, upper) = field_format.length.items[0]
                         if lower == upper:
                             if lower < 1:
-                                raise errors.InterfaceError("length of field %r for fixed data format must be at least"
-                                                              " 1 but is : %s" % (field_name, field_format.length),
-                                                              self._location)
+                                raise errors.InterfaceError(
+                                    "length of field %r for fixed data format must be at least 1 but is: %s"
+                                    % (field_name, field_format.length), self._location)
                             field_length_is_broken = False
                     if field_length_is_broken:
-                        raise errors.InterfaceError("length of field %r for fixed data format must be a single value"
-                                                      " but is: %s" % (field_name, field_format.length), self._location)
+                        raise errors.InterfaceError(
+                            "length of field %r for fixed data format must be a single value but is: %s"
+                            % (field_name, field_format.length), self._location)
                 else:
-                    raise errors.InterfaceError("length of field %r must be specified with fixed data format" % field_name,
-                                                  self._location)
+                    raise errors.InterfaceError(
+                        "length of field %r must be specified with fixed data format" % field_name, self._location)
 
             self._location.set_cell(1)
             self._field_name_to_format_map[field_name] = field_format
@@ -334,8 +339,9 @@ class Cid(object):
             # TODO: Remember location where field format was defined to later include it in error message
             _log.info("%s: defined field: %s", self._location, field_format)
         else:
-            raise errors.InterfaceError("field format row (marked with %r) must at least contain a field name"
-                                          % self._ID_FIELD_RULE, self._location)
+            raise errors.InterfaceError(
+                "field format row (marked with %r) must at least contain a field name"
+                % self._ID_FIELD_RULE, self._location)
 
         assert field_name
         assert field_type
@@ -346,8 +352,8 @@ class Cid(object):
 
         item_count = len(items)
         if item_count < 2:
-            raise errors.InterfaceError("check row (marked with %r) must contain at least 2 columns" % self._ID_CHECK,
-                                          self._location)
+            raise errors.InterfaceError(
+                "check row (marked with %r) must contain at least 2 columns" % self._ID_CHECK, self._location)
         check_description = items[0]
 
         # HACK: skip blank cells between `description` and `type` when `description` has concatenated cells
@@ -359,8 +365,9 @@ class Cid(object):
                 check_type = items[i]
                 rule_index = i + 1
         if not check_type:
-            raise errors.InterfaceError("check type should be one of %s but is %s"
-                                          % (self._check_name_to_class_map.keys(), items[1:-2]), self._location)
+            raise errors.InterfaceError(
+                "check type should be one of %s but is %s"
+                % (self._check_name_to_class_map.keys(), items[1:-2]), self._location)
         if item_count >= 3:
             check_rule = items[rule_index]  # default 2
         else:
@@ -372,8 +379,9 @@ class Cid(object):
         self._location.set_cell(1)
         existing_check = self._check_name_to_check_map.get(check_description)
         if existing_check is not None:
-            raise errors.InterfaceError("check description must be used only once: %r" % check_description,
-                                          self._location, "initial declaration", existing_check.location)
+            raise errors.InterfaceError(
+                "check description must be used only once: %r" % check_description,
+                self._location, "initial declaration", existing_check.location)
         self._check_name_to_check_map[check_description] = check
         self._check_names.append(check_description)
         assert len(self.check_names) == len(self._check_name_to_check_map)
@@ -386,8 +394,9 @@ class Cid(object):
         try:
             result = self._field_name_to_index_map[field_name]
         except KeyError:
-            raise errors.InterfaceError("unknown field name %r must be replaced by one of: %s"
-                                          % (field_name, _tools.human_readable_list(sorted(self.field_names))))
+            raise errors.InterfaceError(
+                "unknown field name %r must be replaced by one of: %s"
+                % (field_name, _tools.human_readable_list(sorted(self.field_names))))
         return result
 
     def field_value_for(self, field_name, row):
@@ -403,8 +412,9 @@ class Cid(object):
         expected_row_count = len(self.field_names)
         if actual_row_count != expected_row_count:
             self._location = errors.create_caller_location()
-            raise errors.InterfaceError("row must have %d items but has %d: %s"
-                                              % (expected_row_count, actual_row_count, row), self._location)
+            raise errors.InterfaceError(
+                "row must have %d items but has %d: %s"
+                % (expected_row_count, actual_row_count, row), self._location)
 
         field_index = self.field_index(field_name)
         # The following condition must be ``True`` because any deviations should have been detected
