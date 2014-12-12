@@ -42,7 +42,7 @@ class CidTest(unittest.TestCase):
 
     def test_can_read_excel_and_create_data_format_delimited(self):
         cid_reader = cid.Cid()
-        source_path = dev_test.getTestIcdPath("icd_customers.xls")
+        source_path = dev_test.path_to_test_cid("icd_customers.xls")
         print(source_path)
         cid_reader.read(source_path, _io_tools.excel_rows(source_path))
 
@@ -92,7 +92,7 @@ class CidTest(unittest.TestCase):
 
     def test_can_read_fields_from_excel(self):
         cid_reader = cid.Cid()
-        source_path = dev_test.getTestIcdPath("icd_customers.xls")
+        source_path = dev_test.path_to_test_cid("icd_customers.xls")
         cid_reader.read(source_path, _io_tools.excel_rows(source_path))
         self.assertEqual(cid_reader.field_names[0], 'branch_id')
         self.assertEqual(cid_reader.field_format_at(0).length.items, ranges.Range('5').items)
@@ -132,7 +132,7 @@ class CidTest(unittest.TestCase):
 
     def test_can_handle_all_field_formats_from_excel(self):
         cid_reader = cid.Cid()
-        source_path = dev_test.getTestIcdPath("alltypes.xls")
+        source_path = dev_test.path_to_test_cid("alltypes.xls")
         cid_reader.read(source_path, _io_tools.excel_rows(source_path))
         self.assertTrue(isinstance(cid_reader.field_format_at(0), fields.IntegerFieldFormat))
         self.assertTrue(isinstance(cid_reader.field_format_at(1), fields.TextFieldFormat))
@@ -157,11 +157,11 @@ class CidTest(unittest.TestCase):
 
     def test_can_read_delimited_rows(self):
         cid_reader = cid.Cid()
-        source_path = dev_test.getTestIcdPath("icd_customers.xls")
+        source_path = dev_test.path_to_test_cid("icd_customers.xls")
 
         cid_reader.read(source_path, _io_tools.excel_rows(source_path))
 
-        delimited_rows = _io_tools.delimited_rows(dev_test.getTestInputPath("valid_customers.csv"), cid_reader._data_format)
+        delimited_rows = _io_tools.delimited_rows(dev_test.path_to_test_data("valid_customers.csv"), cid_reader._data_format)
 
         for row in delimited_rows:
             delimited_row = row
@@ -171,7 +171,7 @@ class CidTest(unittest.TestCase):
 
     def test_can_handle_checks_from_excel(self):
         cid_reader = cid.Cid()
-        source_path = dev_test.getTestIcdPath("customers.xls")
+        source_path = dev_test.path_to_test_cid("customers.xls")
         cid_reader.read(source_path, _io_tools.excel_rows(source_path))
         self.assertTrue(isinstance(cid_reader.check_for(cid_reader.check_names[0]), checks.IsUniqueCheck))
         self.assertTrue(isinstance(cid_reader.check_for(cid_reader.check_names[1]), checks.DistinctCountCheck))

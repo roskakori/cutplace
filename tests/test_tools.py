@@ -30,19 +30,19 @@ from . import dev_test
 class ToolsTest(unittest.TestCase):
     def test_can_create_test_date_time(self):
         for _ in range(15):
-            dateTime = dev_test.createTestDateTime()
+            dateTime = dev_test.random_datetime()
             self.assertTrue(dateTime is not None)
             self.assertNotEqual(dateTime, "")
 
     def test_can_create_test_name(self):
         for _ in range(15):
-            name = dev_test.createTestName()
+            name = dev_test.random_name()
             self.assertTrue(name is not None)
             self.assertNotEqual(name, "")
 
     def test_can_create_test_customer_row(self):
         for customer_id in range(15):
-            row = dev_test.createTestCustomerRow(customer_id)
+            row = dev_test.create_test_customer_row(customer_id)
             self.assertTrue(row is not None)
             self.assertEqual(len(row), 6)
 

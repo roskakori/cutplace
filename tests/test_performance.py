@@ -52,13 +52,13 @@ def _build_lots_of_customers_csv(targetCsvPath, customerCount=1000):
         # TODO #61: Python 2: use portable CSV writer.
         csv_writer = csv.writer(targetCsvFile)
         for customerId in range(customerCount):
-            csv_writer.writerow(dev_test.createTestCustomerRow(customerId))
+            csv_writer.writerow(dev_test.create_test_customer_row(customerId))
 
 
 def _build_and_validate_many_customers():
-    icd_ods_path = dev_test.getTestIcdPath("customers.ods")
+    icd_ods_path = dev_test.path_to_test_cid("customers.ods")
     # TODO: Write to 'build/many_customers.csv'
-    many_customers_csv_path = dev_test.getTestInputPath("lots_of_customers.csv")
+    many_customers_csv_path = dev_test.path_to_test_data("lots_of_customers.csv")
     _build_lots_of_customers_csv(many_customers_csv_path, 50)
 
     # Validate the data using the API, so in case of errors we get specific information.

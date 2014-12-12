@@ -37,65 +37,65 @@ class ValidatorTest(unittest.TestCase):
 
     def test_can_open_and_validate_csv_source_file(self):
         cid_reader = cid.Cid()
-        source_path = dev_test.getTestIcdPath("icd_customers.xls")
+        source_path = dev_test.path_to_test_cid("icd_customers.xls")
         cid_reader.read(source_path, _io_tools.excel_rows(source_path))
 
-        reader = validator.Reader(cid_reader, dev_test.getTestInputPath("valid_customers.csv"))
+        reader = validator.Reader(cid_reader, dev_test.path_to_test_data("valid_customers.csv"))
         reader.validate()
 
     def test_can_open_and_validate_excel_source_file(self):
         cid_reader = cid.Cid()
-        source_path = dev_test.getTestIcdPath("icd_customers_excel.xls")
+        source_path = dev_test.path_to_test_cid("icd_customers_excel.xls")
         cid_reader.read(source_path, _io_tools.excel_rows(source_path))
 
-        reader = validator.Reader(cid_reader, dev_test.getTestInputPath("valid_customers.xls"))
+        reader = validator.Reader(cid_reader, dev_test.path_to_test_data("valid_customers.xls"))
         reader.validate()
 
     def test_can_open_and_validate_ods_source_file(self):
         cid_reader = cid.Cid()
-        source_path = dev_test.getTestIcdPath("icd_customers_ods.xls")
+        source_path = dev_test.path_to_test_cid("icd_customers_ods.xls")
         cid_reader.read(source_path, _io_tools.excel_rows(source_path))
 
-        reader = validator.Reader(cid_reader, dev_test.getTestInputPath("valid_customers.ods"))
+        reader = validator.Reader(cid_reader, dev_test.path_to_test_data("valid_customers.ods"))
         reader.validate()
 
     def test_fails_on_invalid_csv_source_file(self):
         cid_reader = cid.Cid()
-        source_path = dev_test.getTestIcdPath("icd_customers.xls")
+        source_path = dev_test.path_to_test_cid("icd_customers.xls")
         cid_reader.read(source_path, _io_tools.excel_rows(source_path))
 
-        reader = validator.Reader(cid_reader, dev_test.getTestInputPath("broken_customers.csv"))
+        reader = validator.Reader(cid_reader, dev_test.path_to_test_data("broken_customers.csv"))
         self.assertRaises(errors.FieldValueError, reader.validate)
 
     def test_fails_on_csv_source_file_with_fewer_elements_than_expected(self):
         cid_reader = cid.Cid()
-        source_path = dev_test.getTestIcdPath("icd_customers.xls")
+        source_path = dev_test.path_to_test_cid("icd_customers.xls")
         cid_reader.read(source_path, _io_tools.excel_rows(source_path))
 
-        reader = validator.Reader(cid_reader, dev_test.getTestInputPath("broken_customers_fewer_elements.csv"))
+        reader = validator.Reader(cid_reader, dev_test.path_to_test_data("broken_customers_fewer_elements.csv"))
         self.assertRaises(errors.DataError, reader.validate)
 
     def test_fails_on_csv_source_file_with_more_elements_than_expected(self):
         cid_reader = cid.Cid()
-        source_path = dev_test.getTestIcdPath("icd_customers.xls")
+        source_path = dev_test.path_to_test_cid("icd_customers.xls")
         cid_reader.read(source_path, _io_tools.excel_rows(source_path))
 
-        reader = validator.Reader(cid_reader, dev_test.getTestInputPath("broken_customers_more_elements.csv"))
+        reader = validator.Reader(cid_reader, dev_test.path_to_test_data("broken_customers_more_elements.csv"))
         self.assertRaises(errors.DataError, reader.validate)
 
     def test_fails_on_invalid_csv_source_file_with_duplicates(self):
         cid_reader = cid.Cid()
-        source_path = dev_test.getTestIcdPath("icd_customers.xls")
+        source_path = dev_test.path_to_test_cid("icd_customers.xls")
         cid_reader.read(source_path, _io_tools.excel_rows(source_path))
 
-        reader = validator.Reader(cid_reader, dev_test.getTestInputPath("broken_customers_with_duplicates.csv"))
+        reader = validator.Reader(cid_reader, dev_test.path_to_test_data("broken_customers_with_duplicates.csv"))
         self.assertRaises(errors.CheckError, reader.validate)
 
     def test_fails_on_invalid_csv_source_file_with_not_observed_count_expression(self):
         cid_reader = cid.Cid()
-        source_path = dev_test.getTestIcdPath("icd_customers.xls")
+        source_path = dev_test.path_to_test_cid("icd_customers.xls")
         # FIXME: either test `validator` or move to `test_tools`.
         cid_reader.read(source_path, _io_tools.excel_rows(source_path))
 
-        reader = validator.Reader(cid_reader, dev_test.getTestInputPath("broken_customers_with_too_many_branches.csv"))
+        reader = validator.Reader(cid_reader, dev_test.path_to_test_data("broken_customers_with_too_many_branches.csv"))
         self.assertRaises(errors.CheckError, reader.validate)

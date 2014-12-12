@@ -49,13 +49,13 @@ class CutplaceTest(unittest.TestCase):
         self._test_process_exits_with(['--h'], 0)
 
     def _test_can_read_cid(self, suffix):
-        cid_path = dev_test.getTestIcdPath('customers.' + suffix)
+        cid_path = dev_test.path_to_test_cid('customers.' + suffix)
         exit_code = _cutplace.process(['test_can_read_valid_' + suffix + '_cid', cid_path])
         self.assertEqual(0, exit_code)
 
     def test_can_read_csv_cid(self):
-        source_ods_cid_path = dev_test.getTestIcdPath('customers.ods')
-        target_csv_cid_path = dev_test.getTestIcdPath('customers.csv')
+        source_ods_cid_path = dev_test.path_to_test_cid('customers.ods')
+        target_csv_cid_path = dev_test.path_to_test_cid('customers.csv')
         _ods.toCsv(source_ods_cid_path, target_csv_cid_path)
         self._test_can_read_cid('csv')
         os.remove(target_csv_cid_path)
@@ -70,26 +70,26 @@ class CutplaceTest(unittest.TestCase):
         self.assertRaises(IOError, _cutplace.process, ['test_fails_on_non_existent_cid', 'no_such_cid.xls'])
 
     def test_can_validate_proper_csv(self):
-        cid_path = dev_test.getTestIcdPath('customers.xls')
-        csv_path = dev_test.getTestInputPath('valid_customers.csv')
+        cid_path = dev_test.path_to_test_cid('customers.xls')
+        csv_path = dev_test.path_to_test_data('valid_customers.csv')
         exit_code = _cutplace.process(['test_can_validate_proper_csv', cid_path, csv_path])
         self.assertEqual(0, exit_code)
 
     def test_can_read_cid_with_plugins(self):
-        cid_path = dev_test.getTestIcdPath('customers_with_plugins.ods')
-        exit_code = _cutplace.process(['test_can_read_cid_with_plugins', '--plugins', dev_test.getTestPluginsPath(),
+        cid_path = dev_test.path_to_test_cid('customers_with_plugins.ods')
+        exit_code = _cutplace.process(['test_can_read_cid_with_plugins', '--plugins', dev_test.path_to_test_plugins(),
             cid_path])
         self.assertEqual(0, exit_code)
 
     def test_can_validate_proper_csv_with_plugins(self):
-        cid_path = dev_test.getTestIcdPath('customers_with_plugins.ods')
-        csv_path = dev_test.getTestInputPath('valid_customers.csv')
+        cid_path = dev_test.path_to_test_cid('customers_with_plugins.ods')
+        csv_path = dev_test.path_to_test_data('valid_customers.csv')
         exit_code = _cutplace.process(['test_can_validate_proper_csv_with_plugins', '--plugins',
-            dev_test.getTestPluginsPath(), cid_path, csv_path])
+            dev_test.path_to_test_plugins(), cid_path, csv_path])
         self.assertEqual(0, exit_code)
 
     def test_fails_on_non_existent_data(self):
-        cid_path = dev_test.getTestIcdPath('customers.xls')
+        cid_path = dev_test.path_to_test_cid('customers.xls')
         self.assertRaises(IOError, _cutplace.process, ['test_fails_on_non_existent_data', cid_path, 'no_such_data.csv'])
 
     def test_fails_on_unknown_command_line_argument(self):
@@ -101,7 +101,7 @@ class CutplaceTest(unittest.TestCase):
     # TODO: Migrate test cases below.
     # def testValidCsvs(self):
     #     VALID_PREFIX = 'valid_'
-    #     testsInputFolder = dev_test.getTestFolder('input')
+    #     testsInputFolder = dev_test.path_to_test_folder('input')
     #     validCsvFileNames = _tools.listdirMatching(testsInputFolder, VALID_PREFIX + '.*\\.csv', '.*with_head.*')
     #     validCsvPaths = list(os.path.join(testsInputFolder, fileName) for fileName in validCsvFileNames)
     #     for dataPath in validCsvPaths:
@@ -111,9 +111,9 @@ class CutplaceTest(unittest.TestCase):
     #         baseFileNameWithoutValidPrefixAndCsvSuffix = baseFileNameWithoutCsvSuffix[len(VALID_PREFIX):]
     #         # Compute the full path of the related ICD.
     #         icdBaseName = baseFileNameWithoutValidPrefixAndCsvSuffix.split('_')[0]
-    #         icdPath = dev_test.getTestIcdPath(icdBaseName + '.csv')
+    #         icdPath = dev_test.path_to_test_cid(icdBaseName + '.csv')
     #         if not os.path.exists(icdPath):
-    #             icdPath = dev_test.getTestIcdPath(icdBaseName + '.ods')
+    #             icdPath = dev_test.path_to_test_cid(icdBaseName + '.ods')
     #             self.assertTrue(os.path.exists(icdPath),
     #                     'icd '%s' (or '*.csv') for data file '%s' must be created' % (icdPath, dataPath))
     #
@@ -122,14 +122,14 @@ class CutplaceTest(unittest.TestCase):
     #         self.assertEqual(exitCode, 0)
     #
     # def testValidFixedTxt(self):
-    #     icdPath = dev_test.getTestIcdPath('customers_fixed.ods')
-    #     dataPath = dev_test.getTestInputPath('valid_customers_fixed.txt')
+    #     icdPath = dev_test.path_to_test_cid('customers_fixed.ods')
+    #     dataPath = dev_test.path_to_test_data('valid_customers_fixed.txt')
     #     exitCode = _cutplace.main(['test_cutplace.py', icdPath, dataPath])
     #     self.assertEqual(exitCode, 0)
     #
     # def testValidNativeExcelFormats(self):
-    #     icdPath = dev_test.getTestIcdPath('native_excel_formats.ods')
-    #     dataPath = dev_test.getTestInputPath('valid_native_excel_formats.xls')
+    #     icdPath = dev_test.path_to_test_cid('native_excel_formats.ods')
+    #     dataPath = dev_test.path_to_test_data('valid_native_excel_formats.xls')
     #     exitCode = _cutplace.main(['test_cutplace.py', icdPath, dataPath])
     #     self.assertEqual(exitCode, 0)
 
