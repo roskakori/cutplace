@@ -224,30 +224,30 @@ class ChoiceFieldFormat(AbstractFieldFormat):
         self.choices = []
 
         # Split rule into tokens, ignoring white space.
-        tokens = _tools.tokenizeWithoutSpace(rule)
+        tokens = _tools.tokenize_without_space(rule)
 
         # Extract choices from rule tokens.
         previousToky = None
         toky = next(tokens)
-        while not _tools.isEofToken(toky):
-            if _tools.isCommaToken(toky):
+        while not _tools.is_eof_token(toky):
+            if _tools.is_comma_token(toky):
                 # Handle comma after comma without choice.
                 if previousToky:
                     previous_toky_text = previousToky[1]
                 else:
                     previous_toky_text = None
                 raise errors.InterfaceError("choice value must precede a comma (,) but found: %r" % previous_toky_text)
-            choice = _tools.tokenText(toky)
+            choice = _tools.token_text(toky)
             if not choice:
                 raise errors.InterfaceError("choice field must be allowed to be empty instead of containing an empty choice")
             self.choices.append(choice)
             toky = next(tokens)
-            if not _tools.isEofToken(toky):
-                if not _tools.isCommaToken(toky):
+            if not _tools.is_eof_token(toky):
+                if not _tools.is_comma_token(toky):
                     raise errors.InterfaceError("comma (,) must follow choice value %r but found: %r" % (choice, toky[1]))
                 # Process next choice after comma.
                 toky = next(tokens)
-                if _tools.isEofToken(toky):
+                if _tools.is_eof_token(toky):
                     raise errors.InterfaceError("trailing comma (,) must be removed")
         if not self.is_allowed_to_be_empty and not self.choices:
             raise errors.InterfaceError("choice field without any choices must be allowed to be empty")
@@ -257,7 +257,7 @@ class ChoiceFieldFormat(AbstractFieldFormat):
 
         if value not in self.choices:
             raise errors.FieldValueError("value is %r but must be one of: %s"
-                                   % (value, _tools.humanReadableList(self.choices)))
+                                   % (value, _tools.human_readable_list(self.choices)))
         return value
 
 
@@ -426,7 +426,7 @@ def get_field_name_index(supposed_field_name, available_field_names):
         field_index = available_field_names.index(field_name)
     except ValueError:
         raise errors.InterfaceError("unknown field name %r must be replaced by one of: %s"
-                                      % (field_name, _tools.humanReadableList(available_field_names)))
+                                      % (field_name, _tools.human_readable_list(available_field_names)))
     return field_index
 
 

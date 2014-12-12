@@ -137,7 +137,7 @@ def main(arguments):
     parser = argparse.ArgumentParser(description='convert ODS file to other formats')
     parser.add_argument("-f", "--format", metavar="FORMAT", default=_DEFAULT_FORMAT, choices=sorted(_FORMATS),
             dest="format",
-            help="target format: %s (default: %s)" % (_tools.humanReadableList(_FORMATS), _DEFAULT_FORMAT))
+            help="target format: %s (default: %s)" % (_tools.human_readable_list(_FORMATS), _DEFAULT_FORMAT))
     parser.add_argument("-1", "--heading", action="store_true", dest="firstRowIsHeading",
             help="render first row as heading")
     parser.add_argument("-s", "--sheet", metavar="SHEET", default=_DEFAULT_SHEET, type=int, dest="sheet",
@@ -155,7 +155,7 @@ def main(arguments):
     if args.target_path is None:
         assert args.format in _FORMATS
         suffix = '.' + args.format
-        args.target_path = _tools.withSuffix(args.source_ods_path, suffix)
+        args.target_path = _tools.with_suffix(args.source_ods_path, suffix)
 
     _log.info("convert %r to %r using format %r", args.source_ods_path, args.target_path, args.format)
     try:

@@ -162,7 +162,7 @@ class Cid(object):
         if result is None:
             raise error_to_raise_on_unknown_class("cannot find class for %s %s: related class is %s but must be one of: %s"
                                                   % (type_name, class_qualifier, class_name,
-                                                     _tools.humanReadableList(sorted(name_to_class_map.keys()))))
+                                                     _tools.human_readable_list(sorted(name_to_class_map.keys()))))
         return result
 
     def _create_field_format_class(self, field_type):
@@ -274,8 +274,8 @@ class Cid(object):
                         for part in field_type_parts:
                             if field_type:
                                 field_type += "."
-                            field_type += _tools.validatedPythonName("field type part", part)
-                        assert field_type, "empty field type must be detected by validatedPythonName()"
+                            field_type += _tools.validated_python_name("field type part", part)
+                        assert field_type, "empty field type must be detected by validated_python_name()"
                     except NameError as error:
                         raise errors.InterfaceError(str(error), self._location)
 
@@ -387,7 +387,7 @@ class Cid(object):
             result = self._field_name_to_index_map[field_name]
         except KeyError:
             raise errors.InterfaceError("unknown field name %r must be replaced by one of: %s"
-                                          % (field_name, _tools.humanReadableList(sorted(self.field_names))))
+                                          % (field_name, _tools.human_readable_list(sorted(self.field_names))))
         return result
 
     def field_value_for(self, field_name, row):

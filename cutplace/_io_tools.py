@@ -318,16 +318,17 @@ def fixed_rows(fixed_path, encoding, field_name_and_lengths, line_delimiter='any
 
         result = True
         if line_delimiter is not None:
-            if line_delimiter in ('\n', '\r', 'any'):
-                actual_line_delimiter = fixed_file.read(1)
-            elif line_delimiter == '\r\n':
+            if line_delimiter == '\r\n':
                 actual_line_delimiter = fixed_file.read(2)
+            else:
+                assert line_delimiter in ('\n', '\r', 'any')
+                actual_line_delimiter = fixed_file.read(1)
             if (line_delimiter == 'any') and (actual_line_delimiter != ''):
                 # Process the optional second character for 'any'.
                 if actual_line_delimiter not in '\n\r':
                     raise errors.DataFormatError(
                         'line delimiter is %r but must be one of: %s' %
-                        (actual_line_delimiter, _tools.humanReadableList(('\n', '\r', '\r\n'))), location)
+                        (actual_line_delimiter, _tools.human_readable_list(('\n', '\r', '\r\n'))), location)
                 if actual_line_delimiter == '\r':
                     next_character = fixed_file.read(1)
                     if next_character == '\n':

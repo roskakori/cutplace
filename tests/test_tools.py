@@ -30,15 +30,15 @@ from . import dev_test
 class ToolsTest(unittest.TestCase):
     def test_can_create_test_date_time(self):
         for _ in range(15):
-            dateTime = dev_test.random_datetime()
-            self.assertTrue(dateTime is not None)
-            self.assertNotEqual(dateTime, "")
+            random_datetime = dev_test.random_datetime()
+            self.assertTrue(random_datetime is not None)
+            self.assertNotEqual(random_datetime, '')
 
     def test_can_create_test_name(self):
         for _ in range(15):
             name = dev_test.random_name()
             self.assertTrue(name is not None)
-            self.assertNotEqual(name, "")
+            self.assertNotEqual(name, '')
 
     def test_can_create_test_customer_row(self):
         for customer_id in range(15):
@@ -46,35 +46,30 @@ class ToolsTest(unittest.TestCase):
             self.assertTrue(row is not None)
             self.assertEqual(len(row), 6)
 
-    def test_can_query_version(self):
-        # Simply exercise these functions, their results do not really matter.
-        _tools.platformVersion()
-        _tools.pythonVersion()
-
     def test_can_validate_python_name(self):
-        self.assertEqual(_tools.validatedPythonName("x", "abc_123"), "abc_123")
-        self.assertEqual(_tools.validatedPythonName("x", " abc_123 "), "abc_123")
-        self.assertRaises(NameError, _tools.validatedPythonName, "x", "1337")
-        self.assertRaises(NameError, _tools.validatedPythonName, "x", "")
-        self.assertRaises(NameError, _tools.validatedPythonName, "x", " ")
-        self.assertRaises(NameError, _tools.validatedPythonName, "x", "a.b")
+        self.assertEqual(_tools.validated_python_name('x', 'abc_123'), 'abc_123')
+        self.assertEqual(_tools.validated_python_name('x', ' abc_123 '), 'abc_123')
+        self.assertRaises(NameError, _tools.validated_python_name, 'x', '1337')
+        self.assertRaises(NameError, _tools.validated_python_name, 'x', '')
+        self.assertRaises(NameError, _tools.validated_python_name, 'x', ' ')
+        self.assertRaises(NameError, _tools.validated_python_name, 'x', 'a.b')
 
     def test_can_build_human_readable_list(self):
-        self.assertEqual(_tools.humanReadableList([]), "")
-        self.assertEqual(_tools.humanReadableList(["a"]), "'a'")
-        self.assertEqual(_tools.humanReadableList(["a", "b"]), "'a' or 'b'")
-        self.assertEqual(_tools.humanReadableList(["a", "b", "c"]), "'a', 'b' or 'c'")
+        self.assertEqual(_tools.human_readable_list([]), '')
+        self.assertEqual(_tools.human_readable_list(['a']), "'a'")
+        self.assertEqual(_tools.human_readable_list(['a', 'b']), "'a' or 'b'")
+        self.assertEqual(_tools.human_readable_list(['a', 'b', 'c']), "'a', 'b' or 'c'")
 
     def _test_can_derive_suffix(self, expectedPath, pathToTest, suffixToTest):
-        actualPath = _tools.withSuffix(pathToTest, suffixToTest)
+        actualPath = _tools.with_suffix(pathToTest, suffixToTest)
         self.assertEqual(expectedPath, actualPath)
 
     def test_can_build_name_with_suffix(self):
-        self._test_can_derive_suffix("hugo.pas", "hugo.txt", ".pas")
-        self._test_can_derive_suffix("hugo", "hugo.txt", "")
-        self._test_can_derive_suffix("hugo.", "hugo.txt", ".")
-        self._test_can_derive_suffix("hugo.txt", "hugo", ".txt")
-        self._test_can_derive_suffix(os.path.join("eggs", "hugo.pas"), os.path.join("eggs", "hugo.txt"), ".pas")
+        self._test_can_derive_suffix('hugo.pas', 'hugo.txt', '.pas')
+        self._test_can_derive_suffix('hugo', 'hugo.txt', '')
+        self._test_can_derive_suffix('hugo.', 'hugo.txt', '.')
+        self._test_can_derive_suffix('hugo.txt', 'hugo', '.txt')
+        self._test_can_derive_suffix(os.path.join('eggs', 'hugo.pas'), os.path.join('eggs', 'hugo.txt'), '.pas')
 
 
 if __name__ == "__main__":  # pragma: no cover

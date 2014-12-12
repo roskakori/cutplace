@@ -144,7 +144,7 @@ class IsUniqueCheck(AbstractCheck):
         after_comma = True
         next_token = next(toky)
         unique_field_names = set()
-        while not _tools.isEofToken(next_token):
+        while not _tools.is_eof_token(next_token):
             token_type = next_token[0]
             token_value = next_token[1]
             if after_comma:
@@ -159,7 +159,7 @@ class IsUniqueCheck(AbstractCheck):
                 except errors.InterfaceError as error:
                     raise errors.InterfaceError(str(error))
                 self.fieldNamesToCheck.append(token_value)
-            elif not _tools.isCommaToken(next_token):
+            elif not _tools.is_comma_token(next_token):
                 raise errors.InterfaceError("after field name a comma (,) must follow but found: %r" % token_value)
             after_comma = not after_comma
             next_token = next(toky)

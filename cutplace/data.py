@@ -232,7 +232,7 @@ class DataFormat(object):
         assert choices
         if value not in choices:
             raise errors.InterfaceError('value for data format property %r is %r but must be one of: %s'
-                                        % (key, value, _tools.humanReadableList(choices)), self._location)
+                                        % (key, value, _tools.human_readable_list(choices)), self._location)
         return value
 
     def _validated_character(self, key, value):
@@ -297,7 +297,7 @@ class DataFormat(object):
             result = None
             tokens = tokenize.generate_tokens(io.StringIO(value).readline)
             next_token = next(tokens)
-            if _tools.isEofToken(next_token):
+            if _tools.is_eof_token(next_token):
                 raise errors.InterfaceError("value for data format property %r must be specified" % key,
                                             self._location)
             next_type = next_token[0]
@@ -318,7 +318,7 @@ class DataFormat(object):
                 try:
                     long_value = errors.NAME_TO_ASCII_CODE_MAP[next_value.lower()]
                 except KeyError:
-                    valid_symbols = _tools.humanReadableList(sorted(errors.NAME_TO_ASCII_CODE_MAP.keys()))
+                    valid_symbols = _tools.human_readable_list(sorted(errors.NAME_TO_ASCII_CODE_MAP.keys()))
                     raise errors.InterfaceError('symbolic name %r for data format property %r must be one of: %s'
                                                 % (value, key, valid_symbols), self._location)
             elif next_type == token.STRING:
@@ -337,7 +337,7 @@ class DataFormat(object):
                     % (key, value), self._location)
             # Ensure there are no further tokens.
             next_token = next(tokens)
-            if not _tools.isEofToken(next_token):
+            if not _tools.is_eof_token(next_token):
                 raise errors.InterfaceError(
                     'value for data format property %r must describe a single character but is: %r'
                     % (key, value), self._location)

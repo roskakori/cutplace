@@ -76,7 +76,7 @@ class Range(object):
                 ellipsis_found = False
                 after_hyphen = False
                 next_token = next(tokens)
-                while not _tools.isEofToken(next_token) and not _tools.isCommaToken(next_token):
+                while not _tools.is_eof_token(next_token) and not _tools.is_comma_token(next_token):
                     next_type = next_token[0]
                     next_value = next_token[1]
                     if next_type in (token.NAME, token.NUMBER, token.STRING):
@@ -98,7 +98,7 @@ class Range(object):
                             try:
                                 long_value = errors.NAME_TO_ASCII_CODE_MAP[next_value.lower()]
                             except KeyError:
-                                valid_symbols = _tools.humanReadableList(sorted(errors.NAME_TO_ASCII_CODE_MAP.keys()))
+                                valid_symbols = _tools.human_readable_list(sorted(errors.NAME_TO_ASCII_CODE_MAP.keys()))
                                 raise errors.InterfaceError("symbolic name %r must be one of: %s"
                                                               % (next_value, valid_symbols))
                         elif next_type == token.STRING:
@@ -165,7 +165,7 @@ class Range(object):
                             raise errors.InterfaceError("range items must not overlap: %r and %r"
                                                    % (self._repr_item(item), self._repr_item(result)))
                     self._items.append(result)
-                if _tools.isEofToken(next_token):
+                if _tools.is_eof_token(next_token):
                     end_reached = True
 
     @property

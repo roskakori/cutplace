@@ -56,20 +56,7 @@ def mkdirs(folder):
             raise
 
 
-def attemptToRemove(filePath):
-    """
-    Like ``os.remove()`` but does not raise an `OSError` if ``filePath`` does not exist.
-    """
-    assert filePath is not None
-
-    try:
-        os.remove(filePath)
-    except OSError as error:
-        if error.errno != errno.EEXIST:
-            raise
-
-
-def validatedPythonName(name, value):
+def validated_python_name(name, value):
     """
     Validated and cleaned up `value` that represents a Python name with any whitespace removed.
     If validation fails, raise `NameError` with mentioning ``name`` as the name under which
@@ -80,108 +67,95 @@ def validatedPythonName(name, value):
 
     readable = io.StringIO(value.strip())
     toky = tokenize.generate_tokens(readable.readline)
-    nextToken = next(toky)
-    nextType = nextToken[0]
-    result = nextToken[1]
+    next_token = next(toky)
+    nextType = next_token[0]
+    result = next_token[1]
     if tokenize.ISEOF(nextType):
         raise NameError("%s must not be empty but was: %r" % (name, value))
     if nextType != token.NAME:
         raise NameError("%s must contain only ASCII letters, digits and underscore (_) but is: %r"
                         % (name, value))
-    secondToken = next(toky)
-    secondTokenType = secondToken[0]
-    if not tokenize.ISEOF(secondTokenType):
-        raise NameError("%s must be a single word, but after %r there also is %r" % (name, result, secondToken[1]))
+    second_token = next(toky)
+    second_token_type = second_token[0]
+    if not tokenize.ISEOF(second_token_type):
+        raise NameError("%s must be a single word, but after %r there also is %r" % (name, result, second_token[1]))
     return result
 
 
-def platformVersion():
-    macVersion = platform.mac_ver()
-    if (macVersion[0]):
-        result = "Mac OS %s (%s)" % (macVersion[0], macVersion[2])
-    else:
-        result = platform.platform()
-    return result
-
-
-def pythonVersion():
-    return platform.python_version()
-
-
-def humanReadableList(items):
+def human_readable_list(items):
     """
     All values in `items` in a human readable form. This is meant to be used in error messages, where
     dumping "%r" to the user does not cut it.
     """
     assert items is not None
-    itemCount = len(items)
-    if itemCount == 0:
+    item_count = len(items)
+    if item_count == 0:
         result = ""
-    elif itemCount == 1:
+    elif item_count == 1:
         result = "%r" % items[0]
     else:
         result = ""
-        for itemIndex in range(itemCount):
-            if itemIndex == itemCount - 1:
+        for item_index in range(item_count):
+            if item_index == item_count - 1:
                 result += " or "
-            elif itemIndex > 0:
+            elif item_index > 0:
                 result += ", "
-            result += "%r" % items[itemIndex]
+            result += "%r" % items[item_index]
         assert result
     assert result is not None
     return result
 
 
-def tokenizeWithoutSpace(text):
+def tokenize_without_space(text):
     """
     ``text`` split into token with any white space tokens removed.
     """
     assert text is not None
     for toky in tokenize.generate_tokens(io.StringIO(text).readline):
-        tokyType = toky[0]
-        tokyText = toky[1]
-        if ((tokyType != token.INDENT) and tokyText.strip()) or (tokyType == token.ENDMARKER):
+        toky_type = toky[0]
+        toky_text = toky[1]
+        if ((toky_type != token.INDENT) and toky_text.strip()) or (toky_type == token.ENDMARKER):
             yield toky
 
 
-def tokenText(toky):
+def token_text(toky):
     assert toky is not None
-    tokyType = toky[0]
-    tokyText = toky[1]
-    if tokyType == token.STRING:
-        result = tokyText[1:-1]
+    toky_type = toky[0]
+    toky_text = toky[1]
+    if toky_type == token.STRING:
+        result = toky_text[1:-1]
     else:
-        result = tokyText
+        result = toky_text
     return result
 
 
-def isEofToken(someToken):
+def is_eof_token(some_token):
     """
     True if `someToken` is a token that represents an "end of file".
     """
-    assert someToken is not None
-    return tokenize.ISEOF(someToken[0])
+    assert some_token is not None
+    return tokenize.ISEOF(some_token[0])
 
 
-def isCommaToken(someToken):
+def is_comma_token(some_token):
     """
     True if `someToken` is a token that represents a comma (,).
     """
-    assert someToken
-    return (someToken[0] == token.OP) and (someToken[1] == ",")
+    assert some_token
+    return (some_token[0] == token.OP) and (some_token[1] == ",")
 
 
-def withSuffix(path, suffix=""):
+def with_suffix(path, suffix=''):
     """
     Same as `path` but with suffix changed to `suffix`.
 
     Examples:
 
-    >>> withSuffix("eggs.txt", ".rst")
+    >>> with_suffix("eggs.txt", ".rst")
     'eggs.rst'
-    >>> withSuffix("eggs.txt", "")
+    >>> with_suffix("eggs.txt", "")
     'eggs'
-    >>> withSuffix(os.path.join("spam", "eggs.txt"), ".rst")
+    >>> with_suffix(os.path.join("spam", "eggs.txt"), ".rst")
     'spam/eggs.rst'
     """
     assert path is not None
