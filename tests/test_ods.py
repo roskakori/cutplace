@@ -51,7 +51,7 @@ class OdsTest(unittest.TestCase):
         target_path = dev_test.path_to_test_result('valid_customers_from__ods.csv')
         self.assertRaises(SystemExit, _ods.main, ['--sheet=x', source_ods_path, target_path])
         self.assertRaises(SystemExit, _ods.main, ['--sheet=0', source_ods_path, target_path])
-        # FIXME: Report error when sheet is out of range: self.assertRaises(SystemExit, _ods.main, ['--sheet=17', source_ods_path, target_path])
+        self.assertRaises(SystemExit, _ods.main, ['--sheet=17', source_ods_path, target_path])
 
 
 if __name__ == '__main__':  # pragma: no cover
