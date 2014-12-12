@@ -5,11 +5,38 @@ Revision history
 This chapter describes improvements compared to earlier versions of cutplace.
 
 
-Version 0.7.2, 2013-07-03
+Version 0.8.0, 2014-12-xx
 =========================
 
-* Fixed ``ImportError`` during installation without xlrd already installed
-  (issue #50).
+Reworked the whole code base to fix some long standing bug and migrate it to
+Python 3.2+ while retaining support for Python 2.6+. A big thank you goes to
+Patrick Heuberger, Patrick XXX and Jakob Neuberger for doing this as a school project
+for HTL Wiener Neustadt.
+
+* The distribution now uses the wheel format instead of egg. A source distribution
+  is still available as ZIP.
+
+Due the cleanup a some functionality was removed as it seems a good idea to have
+at some time but in my experience was never used:
+
+* The ``cutplace`` command line options ``--accept`` and ``--reject`` are gone
+  and all output options related to it. If you still need a filter to
+  build a file the preserves all valid rows and removes rejected ones, a few
+  line of Python code can do the trick.
+
+* The tool ``cutsniff`` to build a draft CID is gone as it only takes a few
+  minutes to build a draft anyway. Furthermore, the plain CSV results always needed
+  quite some work to get a more presentable format concerning layout and colors.
+
+The API has been reworked too and is much cleaner and more pythonic now. The
+project structure conforms to the guidelines collected by TODO. The basic project
+structure and build process are provided by ``pyscaffold`` (TODO: Link).
+
+* All essential functions can be accessed after a simple ``import cutplace``. The
+  various sub modules are needed only for special requirements.
+
+* All errors raised by ``cutplace`` are now collected in ``cutplace.errors``.
+
 
 Version 0.7.1, 2012-05-20
 =========================

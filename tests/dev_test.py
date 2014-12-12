@@ -139,7 +139,7 @@ def getTestIcdPath(fileName):
     Path for test ICD `fileName`which has to be located in "tests/input/icds".
     """
     assert fileName
-    return getTestFile(os.path.join("data", "icds"), fileName)
+    return getTestFile(os.path.join("data", "cids"), fileName)
 
 
 def getTestPluginsPath():
