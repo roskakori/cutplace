@@ -26,13 +26,13 @@ import inspect
 import logging
 import os.path
 
-from . import data
-from . import fields
-from . import errors
-from . import checks
-from . import _io_tools
-from . import _tools
-from ._compat import python_2_unicode_compatible
+from cutplace import data
+from cutplace import fields
+from cutplace import errors
+from cutplace import checks
+from cutplace import _io_tools
+from cutplace import _tools
+from cutplace._compat import python_2_unicode_compatible
 
 _log = logging.getLogger("cutplace")
 

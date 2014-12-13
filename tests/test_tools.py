@@ -24,7 +24,7 @@ import os.path
 import unittest
 
 from cutplace import _tools
-from . import dev_test
+from tests import dev_test
 
 
 class ToolsTest(unittest.TestCase):

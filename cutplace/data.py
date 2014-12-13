@@ -25,10 +25,10 @@ import io
 import token
 import tokenize
 
-from . import errors
-from . import ranges
-from . import _tools
-from ._compat import python_2_unicode_compatible
+from cutplace import errors
+from cutplace import ranges
+from cutplace import _tools
+from cutplace._compat import python_2_unicode_compatible
 
 ANY = "any"
 CR = "cr"

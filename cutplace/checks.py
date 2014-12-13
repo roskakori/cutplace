@@ -24,10 +24,10 @@ import copy
 import io
 import tokenize
 
-from . import fields
-from . import errors
-from . import _tools
-from ._compat import python_2_unicode_compatible
+from cutplace import fields
+from cutplace import errors
+from cutplace import _tools
+from cutplace._compat import python_2_unicode_compatible
 
 
 @python_2_unicode_compatible

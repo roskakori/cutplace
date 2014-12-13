@@ -26,9 +26,9 @@ import io
 import token
 import tokenize
 
-from . import errors
-from . import _tools
-from ._compat import python_2_unicode_compatible
+from cutplace import errors
+from cutplace import _tools
+from cutplace._compat import python_2_unicode_compatible
 
 ELLIPSIS = '\u2026'  # '...' as single character.
 

@@ -28,11 +28,11 @@ import string
 import sys
 import time
 
-from . import data
-from . import ranges
-from . import errors
-from . import _tools
-from ._compat import python_2_unicode_compatible
+from cutplace import data
+from cutplace import ranges
+from cutplace import errors
+from cutplace import _tools
+from cutplace._compat import python_2_unicode_compatible
 
 # Expected suffix for classes that describe filed formats.
 _FieldFormatClassSuffix = "FieldFormat"

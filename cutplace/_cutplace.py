@@ -25,14 +25,14 @@ import argparse
 import logging
 import sys
 
-from . import cid
-from . import errors
-from . import validator
-from . import _io_tools
-from . import _tools
-# TODO #77: from . import _web
+from cutplace import cid
+from cutplace import errors
+from cutplace import validator
+from cutplace import _io_tools
+from cutplace import _tools
+# TODO #77: from cutplace import _web
 
-from . import __version__
+from cutplace import __version__
 
 DEFAULT_ICD_ENCODING = 'utf-8'
 DEFAULT_LOG_LEVEL = 'warning'

@@ -23,8 +23,8 @@ from __future__ import unicode_literals
 import logging
 import unittest
 
-from . import dev_test
-from . import _ods
+from tests import dev_test
+from tests import _ods
 
 
 class OdsTest(unittest.TestCase):

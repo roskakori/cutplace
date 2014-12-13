@@ -22,9 +22,9 @@ from __future__ import unicode_literals
 
 from six.moves import zip_longest
 
-from . import data
-from . import errors
-from . import _io_tools
+from cutplace import data
+from cutplace import errors
+from cutplace import _io_tools
 
 
 def _create_field_map(field_names, field_values):
