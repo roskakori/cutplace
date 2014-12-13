@@ -25,6 +25,7 @@ import zipfile
 from xml.etree import ElementTree
 import datetime
 
+from cutplace import data
 from cutplace import errors
 from cutplace import _tools
 
@@ -373,3 +374,20 @@ def fixed_rows(fixed_path, encoding, field_name_and_lengths, line_delimiter='any
             if len(row) > 0:
                 yield row
                 location.advance_line()
+
+
+def auto_rows(source_path):
+    """
+    Determine basic data format of `source_path` based on heuristics and return its contents.
+    """
+    suffix = os.path.splitext(source_path)[1].lstrip('.').lower()
+    if suffix == 'ods':
+        result = ods_rows(source_path)
+    elif suffix in ('xls', 'xlsx'):
+        result = excel_rows(source_path)
+    else:
+        delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
+        # TODO: Determine delimiter by counting common delimiters with the first 4096 bytes and choosing the maximum one.
+        delimited_format.set_property(data.KEY_ITEM_DELIMITER, ',')
+        result = delimited_rows(source_path, delimited_format)
+    return result

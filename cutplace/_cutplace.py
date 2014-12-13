@@ -28,6 +28,7 @@ import sys
 from . import cid
 from . import errors
 from . import validator
+from . import _io_tools
 from . import _tools
 # TODO #77: from . import _web
 
@@ -130,7 +131,7 @@ class CutplaceApp(object):
         # TODO: if self.options is not None:
         #          new_cid.logTrace = self.options.isLogTrace
         _log.info('read CID from "%s"', cid_path)
-        cid_rows = cid.auto_rows(cid_path)  # TODO: Pass self.cid_encoding.
+        cid_rows = _io_tools.auto_rows(cid_path)  # TODO: Pass self.cid_encoding.
         new_cid.read(cid_path, cid_rows)
         self.cid = new_cid
         self.cid_path = cid_path

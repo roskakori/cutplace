@@ -30,29 +30,11 @@ from . import data
 from . import fields
 from . import errors
 from . import checks
-from . import _tools
 from . import _io_tools
+from . import _tools
 from ._compat import python_2_unicode_compatible
 
 _log = logging.getLogger("cutplace")
-
-
-def auto_rows(source_path):
-    """
-    Determine basic data format of `source_path` based on heuristics and return its contents.
-    """
-    # TODO: Move to `io_tools` and recommend to use it in the documentation comment for `Cid.read()`.
-    suffix = os.path.splitext(source_path)[1].lstrip('.').lower()
-    if suffix == 'ods':
-        result = _io_tools.ods_rows(source_path)
-    elif suffix in ('xls', 'xlsx'):
-        result = _io_tools.excel_rows(source_path)
-    else:
-        delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
-        # TODO: Determine delimiter by counting common delimiters with the first 4096 bytes and choosing the maximum one.
-        delimited_format.set_property(data.KEY_ITEM_DELIMITER, ',')
-        result = _io_tools.delimited_rows(source_path, delimited_format)
-    return result
 
 
 @python_2_unicode_compatible
@@ -77,7 +59,7 @@ class Cid(object):
         self._check_name_to_class_map = self._create_name_to_class_map(checks.AbstractCheck)
         self._field_format_name_to_class_map = self._create_name_to_class_map(fields.AbstractFieldFormat)
         if cid_path is not None:
-            self.read(cid_path, auto_rows(cid_path))
+            self.read(cid_path, _io_tools.auto_rows(cid_path))
 
     def __str__(self):
         result = 'Cid('

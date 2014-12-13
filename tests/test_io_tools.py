@@ -29,17 +29,23 @@ from tests import dev_test
 
 
 class RowsTest(unittest.TestCase):
+    def _assert_rows_contain_data(self, rows):
+        self.assertTrue(rows is not None)
+
+        # Convert possible generator to list so it can be queried multiple times.
+        rows_as_list = list(rows)
+
+        self.assertTrue(len(rows_as_list) > 0)
+        none_empty_rows = [row for row in rows_as_list if len(row) > 0]
+        self.assertTrue(len(none_empty_rows) > 0)
+
     def test_can_read_excel_rows(self):
         excel_path = dev_test.path_to_test_data('valid_customers.xls')
-        row_count = len(list(_io_tools.excel_rows(excel_path)))
-        self.assertTrue(row_count > 0)
+        self._assert_rows_contain_data(_io_tools.excel_rows(excel_path))
 
     def test_can_read_ods_rows(self):
         ods_path = dev_test.path_to_test_data('valid_customers.ods')
-        ods_rows = list(_io_tools.ods_rows(ods_path))
-        self.assertTrue(len(ods_rows) > 0)
-        none_empty_rows = [row for row in ods_rows if len(row) > 0]
-        self.assertTrue(len(none_empty_rows) > 0)
+        self._assert_rows_contain_data(_io_tools.ods_rows(ods_path))
 
     def test_fails_on_ods_with_broken_zip(self):
         broken_ods_path = dev_test.path_to_test_data('customers.csv')
@@ -104,6 +110,15 @@ class RowsTest(unittest.TestCase):
             next_row = rows[row_index + 1]
             self.assertNotEqual(0, len(row))
             self.assertEqual(len(row), len(next_row))
+
+    def test_can_auto_read_excel_rows(self):
+        excel_path = dev_test.path_to_test_data('valid_customers.xls')
+        self._assert_rows_contain_data(_io_tools.auto_rows(excel_path))
+
+    def test_can_auto_read_ods_rows(self):
+        ods_path = dev_test.path_to_test_data('valid_customers.ods')
+        self._assert_rows_contain_data(_io_tools.auto_rows(ods_path))
+
 
 
 if __name__ == "__main__":  # pragma: no cover
