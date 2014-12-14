@@ -56,7 +56,7 @@ class AbstractFieldFormat(object):
         assert field_name, "fieldName must not be empty"
         assert is_allowed_to_be_empty is not None
         assert rule is not None, "to specify \"no rule\" use \"\" instead of None"
-        assert data_format is not None
+        #assert data_format is not None
 
         self._field_name = field_name
         self._is_allowed_to_be_empty = is_allowed_to_be_empty
@@ -385,6 +385,25 @@ class RegExFieldFormat(AbstractFieldFormat):
             raise errors.FieldValueError("value %r must match regular expression: %r" % (value, self.rule))
         return value
 
+    def as_sql(self):
+        column_def = ""
+        constraint = ""
+
+        if self._length.items is not None:
+            column_def = self._field_name + " VARCHAR(" + str(self._length.items[0][1]) + ")"
+            constraint += "CONSTRAINT chk_" + self._field_name + "_len CHECK (len(" + self._field_name + " >= " \
+                          + str(self._length.items[0][0]) + ")) "
+        else:
+            column_def = self._field_name + " VARCHAR(255)"
+
+        if not self.is_allowed_to_be_empty:
+            column_def += " NOT NULL"
+
+        constraint += "CONSTRAINT chk_" + self._field_name + "_regex CHECK (" + self._field_name + " like '" \
+                      + str(self.regex.pattern) + "')"
+
+        return [column_def, constraint]
+
 
 class PatternFieldFormat(AbstractFieldFormat):
     """
@@ -404,6 +423,25 @@ class PatternFieldFormat(AbstractFieldFormat):
                 'value %r must match pattern: %r (regex %r)' % (value, self.rule, self.pattern))
         return value
 
+    def as_sql(self):
+        column_def = ""
+        constraint = ""
+
+        if self._length.items is not None:
+            column_def = self._field_name + " VARCHAR(" + str(self._length.items[0][1]) + ")"
+            constraint += "CONSTRAINT chk_" + self._field_name + "_len CHECK (len(" + self._field_name + " >= " \
+                          + str(self._length.items[0][0]) + ")) "
+        else:
+            column_def = self._field_name + " VARCHAR(255)"
+
+        if not self.is_allowed_to_be_empty:
+            column_def += " NOT NULL"
+
+        constraint += "CONSTRAINT chk_" + self._field_name + "_pattern CHECK (" + self._field_name + " like '" \
+                      + str(self.regex.pattern.split('\\Z')[0]) + "')"
+
+        return [column_def, constraint]
+
 
 class TextFieldFormat(AbstractFieldFormat):
     """
@@ -417,6 +455,22 @@ class TextFieldFormat(AbstractFieldFormat):
         assert value
         # TODO: Validate Text with rules like: 32..., a...z and so on.
         return value
+
+    def as_sql(self):
+        column_def = ""
+        constraint = ""
+
+        if self._length.items is not None:
+            column_def = self._field_name + " VARCHAR(" + str(self._length.items[0][1]) + ")"
+            constraint = "CONSTRAINT chk_" + self._field_name + " CHECK (len(" + self._field_name + " >= " + \
+                         str(self._length.items[0][0]) + "))"
+        else:
+            column_def = self._field_name + " VARCHAR(255)"
+
+        if not self.is_allowed_to_be_empty:
+            column_def += " NOT NULL"
+
+        return [column_def, constraint]
 
 
 def get_field_name_index(supposed_field_name, available_field_names):
