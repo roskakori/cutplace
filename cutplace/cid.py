@@ -26,13 +26,13 @@ import inspect
 import logging
 import os.path
 
-from cutplace import data
-from cutplace import fields
-from cutplace import errors
-from cutplace import checks
-from cutplace import _io_tools
-from cutplace import _tools
-from cutplace._compat import python_2_unicode_compatible
+from . import data
+from . import fields
+from . import errors
+from . import checks
+from . import _io_tools
+from . import _tools
+from ._compat import python_2_unicode_compatible
 
 _log = logging.getLogger("cutplace")
 
@@ -46,6 +46,7 @@ class Cid(object):
     _VALID_IDS = [_ID_CHECK, _ID_DATA_FORMAT, _ID_FIELD_RULE]
 
     def __init__(self, cid_path=None):
+        self._cid_path = cid_path
         self._data_format = None
         self._field_names = []
         self._field_formats = []
@@ -161,6 +162,8 @@ class Cid(object):
     def read(self, source_path, rows):
         # TODO: Detect format and use proper reader.
         self._location = errors.Location(source_path, has_cell=True)
+        if self._cid_path is None:
+            self._cid_path = source_path
         for row in rows:
             if row:
                 row_type = row[0].lower()
@@ -319,7 +322,7 @@ class Cid(object):
             self._field_names.append(field_name)
             self._field_formats.append(field_format)
             # TODO: Remember location where field format was defined to later include it in error message
-            _log.debug("%s: defined field: %s", self._location, field_format)
+            _log.info("%s: defined field: %s", self._location, field_format)
         else:
             raise errors.InterfaceError(
                 "field format row (marked with %r) must at least contain a field name"
@@ -429,6 +432,25 @@ class Cid(object):
         """
         assert check_name is not None
         return self._check_name_to_check_map[check_name]
+
+    def as_sql(self,db):
+        create_table = "CREATE TABLE " + self._cid_path + " ("
+        constraints = ""
+
+        # get column definitions and constraints for all fields
+        for field in self._field_formats:
+            column_def, constraint = field.as_sql(db)
+            create_table += column_def + ",\n"
+            constraints += constraint + ",\n"
+
+        # get constraints for all checks
+        for i in range(len(self._check_names)):
+            constraints += "CONSTRAINT " + self._check_names[i] + self.check_map[self._check_names[i]]+ ",\n"
+
+        create_table += constraints
+
+        create_table += ");"
+        return create_table
 
 
 def field_names_and_lengths(fixed_cid):
