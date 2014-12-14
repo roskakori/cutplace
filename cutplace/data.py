@@ -87,8 +87,8 @@ class DataFormat(object):
 
     def __init__(self, format_name, location=None):
         if format_name not in _VALID_FORMATS:
-            raise errors.InterfaceError('format is %s but must be on of: %s'
-                                        % (format_name, _VALID_FORMATS), location)
+            raise errors.InterfaceError(
+                'format is %s but must be on of: %s' % (format_name, _VALID_FORMATS), location)
         else:
             self._location = location
             self._format = format_name
@@ -170,8 +170,9 @@ class DataFormat(object):
             try:
                 codecs.lookup(value)
             except LookupError:
-                raise errors.InterfaceError('value for data format property %r is %r but must be a valid encoding'
-                                            % (KEY_ENCODING, self.encoding), self._location)
+                raise errors.InterfaceError(
+                    'value for data format property %r is %r but must be a valid encoding'
+                    % (KEY_ENCODING, self.encoding), self._location)
             self._encoding = value
         elif name == KEY_HEADER:
             try:
@@ -182,14 +183,16 @@ class DataFormat(object):
             try:
                 self._allowed_characters = ranges.Range(value)
             except errors.InterfaceError as error:
-                raise errors.InterfaceError('value for property %r must be a valid range: %s'
-                                            % (KEY_ALLOWED_CHARACTERS, error), self._location)
+                raise errors.InterfaceError(
+                    'value for property %r must be a valid range: %s'
+                    % (KEY_ALLOWED_CHARACTERS, error), self._location)
         elif name == KEY_LINE_DELIMITER:
             try:
                 self._line_delimiter = _TEXT_TO_LINE_DELIMITER_MAP[value]
             except KeyError:
-                raise errors.InterfaceError('line delimiter %s must be changed to one of: %s'
-                                            % (value, _VALID_LINE_DELIMITER_TEXTS), self._location)
+                raise errors.InterfaceError(
+                    'line delimiter %s must be changed to one of: %s'
+                    % (value, _VALID_LINE_DELIMITER_TEXTS), self._location)
         elif name == KEY_ITEM_DELIMITER:
             self._item_delimiter = self._validated_character(KEY_ITEM_DELIMITER, value)
         elif name == KEY_DECIMAL_SEPARATOR:
@@ -218,8 +221,8 @@ class DataFormat(object):
                 elif value in ('False', 'false'):
                     self._skip_initial_space = False
                 else:
-                    raise errors.InterfaceError('skip initial space %s must be changed to one of: True, False'
-                                                % value, self._location)
+                    raise errors.InterfaceError(
+                        'skip initial space %s must be changed to one of: True, False' % value, self._location)
             else:
                 self.__dict__[varname] = value
 
@@ -231,8 +234,9 @@ class DataFormat(object):
         assert key
         assert choices
         if value not in choices:
-            raise errors.InterfaceError('value for data format property %r is %r but must be one of: %s'
-                                        % (key, value, _tools.human_readable_list(choices)), self._location)
+            raise errors.InterfaceError(
+                'value for data format property %r is %r but must be one of: %s'
+                % (key, value, _tools.human_readable_list(choices)), self._location)
         return value
 
     def _validated_character(self, key, value):
@@ -297,8 +301,8 @@ class DataFormat(object):
             tokens = tokenize.generate_tokens(io.StringIO(value).readline)
             next_token = next(tokens)
             if _tools.is_eof_token(next_token):
-                raise errors.InterfaceError("value for data format property %r must be specified" % key,
-                                            self._location)
+                raise errors.InterfaceError(
+                    "value for data format property %r must be specified" % key, self._location)
             next_type = next_token[0]
             next_value = next_token[1]
             if next_type == token.NUMBER:
@@ -318,8 +322,9 @@ class DataFormat(object):
                     long_value = errors.NAME_TO_ASCII_CODE_MAP[next_value.lower()]
                 except KeyError:
                     valid_symbols = _tools.human_readable_list(sorted(errors.NAME_TO_ASCII_CODE_MAP.keys()))
-                    raise errors.InterfaceError('symbolic name %r for data format property %r must be one of: %s'
-                                                % (value, key, valid_symbols), self._location)
+                    raise errors.InterfaceError(
+                        'symbolic name %r for data format property %r must be one of: %s'
+                        % (value, key, valid_symbols), self._location)
             elif next_type == token.STRING:
                 if len(next_value) != 3:
                     raise errors.InterfaceError(
