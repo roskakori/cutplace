@@ -1,10 +1,10 @@
 """
 Utility functions for compatibility with Python 2 and 3.
-
 """
 # TODO: Probably we can eventually replace ``six`` by ``future``from
-# https://pypi.python.org/pypi/future and remove compar all together.
+# https://pypi.python.org/pypi/future and remove `_compat` all together.
 import six
+
 
 def python_2_unicode_compatible(cls):
     """

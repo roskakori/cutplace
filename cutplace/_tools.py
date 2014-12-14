@@ -23,7 +23,6 @@ from __future__ import unicode_literals
 import errno
 import logging
 import os
-import platform
 import io
 import token
 import tokenize
