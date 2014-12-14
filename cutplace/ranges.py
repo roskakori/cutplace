@@ -92,7 +92,7 @@ class Range(object):
                             except ValueError:
                                 raise errors.InterfaceError("number must be an integer but is: %r" % next_value)
                             if after_hyphen:
-                                long_value = - 1 * long_value
+                                long_value *= - 1
                                 after_hyphen = False
                         elif next_type == token.NAME:
                             try:
@@ -100,11 +100,11 @@ class Range(object):
                             except KeyError:
                                 valid_symbols = _tools.human_readable_list(sorted(errors.NAME_TO_ASCII_CODE_MAP.keys()))
                                 raise errors.InterfaceError("symbolic name %r must be one of: %s"
-                                                              % (next_value, valid_symbols))
+                                                            % (next_value, valid_symbols))
                         elif next_type == token.STRING:
                             if len(next_value) != 3:
                                 raise errors.InterfaceError("text for range must contain a single character "
-                                                              "but is: %r" % next_value)
+                                                            "but is: %r" % next_value)
                             left_quote = next_value[0]
                             right_quote = next_value[2]
                             assert left_quote in "\"\'", "leftQuote=%r" % left_quote
@@ -115,7 +115,7 @@ class Range(object):
                                 upper = long_value
                             else:
                                 raise errors.InterfaceError("range must have at most lower and upper limit "
-                                                              "but found another number: %r" % next_value)
+                                                            "but found another number: %r" % next_value)
                         elif lower is None:
                             lower = long_value
                         else:
@@ -153,7 +153,7 @@ class Range(object):
                     # Handle "x..." and "x...y".
                     if (upper is not None) and (lower > upper):
                         raise errors.InterfaceError("lower range %d must be greater or equal "
-                                                      "to upper range %d" % (lower, upper))
+                                                    "to upper range %d" % (lower, upper))
                     result = (lower, upper)
                 else:
                     # Handle "x".
@@ -163,7 +163,7 @@ class Range(object):
                         if self._items_overlap(item, result):
                             # TODO: use _repr_item() or something to display item in error message.
                             raise errors.InterfaceError("range items must not overlap: %r and %r"
-                                                   % (self._repr_item(item), self._repr_item(result)))
+                                                        % (self._repr_item(item), self._repr_item(result)))
                     self._items.append(result)
                 if _tools.is_eof_token(next_token):
                     end_reached = True

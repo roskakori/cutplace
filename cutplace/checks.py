@@ -128,6 +128,11 @@ class AbstractCheck(object):
         """
         return self._location
 
+    def as_sql(self):
+        """
+        Converts the check to a sql constraint
+        """
+        raise NotImplementedError
 
 class IsUniqueCheck(AbstractCheck):
     """
@@ -169,6 +174,9 @@ class IsUniqueCheck(AbstractCheck):
 
     def reset(self):
         self.unique_values = {}
+
+    def as_sql(self):
+        return "UNIQUE( " + ",".join(self._fieldNames) + ") "
 
     def check_row(self, row_map, location):
         key = []
@@ -239,3 +247,6 @@ class DistinctCountCheck(AbstractCheck):
         if not self._eval():
             raise errors.CheckError("distinct count is %d but check requires: %r" %
                                     (self._distinct_count(), self.expression), location)
+
+    def as_sql(self):
+        return ""
