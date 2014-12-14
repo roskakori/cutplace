@@ -164,7 +164,8 @@ class DataFormat(object):
         varname = '_' + name
         if varname not in self.__dict__:
             raise errors.InterfaceError(
-                'format %s does not support property %s' % (self.format, name), self._location)
+                'property %s for format %s must be one of %s'
+                % (name, self.format, _tools.human_readable_list(list(self.__dict__.keys()))), self._location)
 
         if name == KEY_ENCODING:
             try:
@@ -205,13 +206,11 @@ class DataFormat(object):
         elif name == KEY_QUOTE_CHARACTER:
             self._quote_character = self._validated_choice(KEY_QUOTE_CHARACTER, value, _VALID_QUOTE_CHARACTERS)
         elif self.format in (FORMAT_EXCEL, FORMAT_ODS):
-            if name == KEY_SHEET:
-                try:
-                    self._sheet = int(value)
-                except ValueError:
-                    raise errors.InterfaceError('sheet %s must be a number' % value, self._location)
-            else:
-                raise errors.InterfaceError('property %s is not valid for excel format' % name, self._location)
+            assert name == KEY_SHEET, 'name=%r' % name
+            try:
+                self._sheet = int(value)
+            except ValueError:
+                raise errors.InterfaceError('sheet %s must be a number' % value, self._location)
         elif self.format == FORMAT_FIXED:
             self.__dict__[varname] = value
         elif self.format == FORMAT_DELIMITED:
