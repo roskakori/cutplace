@@ -34,8 +34,8 @@ from cutplace import _tools
 
 from cutplace import __version__
 
-DEFAULT_ICD_ENCODING = 'utf-8'
-DEFAULT_LOG_LEVEL = 'warning'
+DEFAULT_CID_ENCODING = 'utf-8'
+DEFAULT_LOG_LEVEL = 'info'
 assert DEFAULT_LOG_LEVEL in _tools.LOG_LEVEL_NAME_TO_LEVEL_MAP
 
 _log = logging.getLogger("cutplace")
@@ -47,14 +47,14 @@ class CutplaceApp(object):
     """
     def __init__(self):
         self._log = _log
-        self.options = None
         self.cid = None
-        self.cid_encoding = DEFAULT_ICD_ENCODING
+        self.cid_encoding = DEFAULT_CID_ENCODING
         self.cid_path = None
         self.is_split = False
         self.data_paths = None
         self.last_validation_was_ok = False
         self.is_web_server = False  # TODO #77: Remove.
+        self.all_validations_were_ok = True
 
     def set_options(self, argv):
         """
@@ -71,8 +71,8 @@ class CutplaceApp(object):
         validation_group = parser.add_argument_group(
             'Validation options', 'Specify how to validate data and how to report the results')
         validation_group.add_argument(
-            '-e', '--cid-encoding', metavar='ENCODING', dest='cid_encoding', default=DEFAULT_ICD_ENCODING,
-            help='character encoding to use when reading the CID (default: %s)' % DEFAULT_ICD_ENCODING)
+            '-e', '--cid-encoding', metavar='ENCODING', dest='cid_encoding', default=DEFAULT_CID_ENCODING,
+            help='character encoding to use when reading the CID (default: %s)' % DEFAULT_CID_ENCODING)
         validation_group.add_argument(
             '-P', '--plugins', metavar='FOLDER', dest='plugins_folder',
             help='folder to scan for plugins (default: no plugins)')
@@ -138,15 +138,19 @@ class CutplaceApp(object):
 
     def validate(self, data_path):
         """
-        Validate data stored in file `dataFilePath`.
+        Validate data stored in file `data_path`.
         """
         assert data_path is not None
         assert self.cid is not None
 
-        self.last_validation_was_ok = False
+        _log.info('validate "%s"', data_path)
         reader = validator.Reader(self.cid, data_path)
-        reader.validate()
-        self.last_validation_was_ok = True
+        try:
+            reader.validate()
+            _log.info('  accepted %d rows', reader.accepted_rows_count)
+        except errors.CutplaceError as error:
+            _log.error('  %s', error)
+            self.all_validations_were_ok = False
 
 
 def process(argv=None):
@@ -171,15 +175,12 @@ def process(argv=None):
         # TODO #77: _web.main(cutPlace.port, cutPlace.isOpenBrowser)
         pass
     elif cutplace_app.data_paths:
-        all_validations_ok = True
-        for path in cutplace_app.data_paths:
+        for data_path in cutplace_app.data_paths:
             try:
-                cutplace_app.validate(path)
-                if not cutplace_app.last_validation_was_ok:
-                    all_validations_ok = False
-            except EnvironmentError as error:
-                raise EnvironmentError("cannot read data file %r: %s" % (path, error))
-        if not all_validations_ok:
+                cutplace_app.validate(data_path)
+            except (EnvironmentError, OSError) as error:
+                raise EnvironmentError("cannot read data file %r: %s" % (data_path, error))
+        if not cutplace_app.all_validations_were_ok:
             result = 1
     return result
 

@@ -319,7 +319,7 @@ class Cid(object):
             self._field_names.append(field_name)
             self._field_formats.append(field_format)
             # TODO: Remember location where field format was defined to later include it in error message
-            _log.info("%s: defined field: %s", self._location, field_format)
+            _log.debug("%s: defined field: %s", self._location, field_format)
         else:
             raise errors.InterfaceError(
                 "field format row (marked with %r) must at least contain a field name"

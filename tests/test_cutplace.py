@@ -24,6 +24,7 @@ import logging
 import os
 import unittest
 
+from cutplace import errors
 from cutplace import _cutplace
 from tests import dev_test
 from tests import _ods
@@ -32,7 +33,34 @@ from tests import _ods
 _log = logging.getLogger("cutplace")
 
 
-class CutplaceTest(unittest.TestCase):
+class CutplaceAppTest(unittest.TestCase):
+    def setUp(self):
+        customers_cid_path = dev_test.path_to_test_cid('customers.ods')
+        self._cutplace_app = _cutplace.CutplaceApp()
+        self._cutplace_app.set_cid_from_path(customers_cid_path)
+        self._valid_customers_csv_path = dev_test.path_to_test_data('valid_customers.csv')
+        self._broken_customers_non_csv_path = dev_test.path_to_test_data('valid_customers.ods')
+
+    def test_can_validate_csv(self):
+        self._cutplace_app.validate(self._valid_customers_csv_path)
+        self.assertTrue(self._cutplace_app.all_validations_were_ok)
+
+    def test_can_validate_csv_multiple_times(self):
+        for _ in range(5):
+            self._cutplace_app.validate(self._valid_customers_csv_path)
+        self.assertTrue(self._cutplace_app.all_validations_were_ok)
+
+    def test_can_detect_unmatched_data_format(self):
+        self._cutplace_app.validate(self._broken_customers_non_csv_path)
+        self.assertFalse(self._cutplace_app.all_validations_were_ok)
+
+    def test_can_validate_after_error(self):
+        self.test_can_detect_unmatched_data_format()
+        self._cutplace_app.validate(self._valid_customers_csv_path)
+        self.assertFalse(self._cutplace_app.all_validations_were_ok)
+
+
+class CutplaceMainTest(unittest.TestCase):
     """Test cases for cutplace command line interface."""
     def _test_process_exits_with(self, arguments, expected_exit_code):
         try:

@@ -40,6 +40,8 @@ class Reader(object):
         self._cid = cid
         self._source_path = source_path
         self._location = None
+        self.accepted_rows_count = None
+        self.rejected_rows_count = None
 
     def _raw_rows(self):
         if self._cid.data_format.format == data.FORMAT_EXCEL:
@@ -52,7 +54,29 @@ class Reader(object):
         elif self._cid.data_format.format == data.FORMAT_ODS:
             return _io_tools.ods_rows(self._source_path, self._cid.data_format.sheet)
 
-    def rows(self):
+    @property
+    def source_path(self):
+        """
+        The path of the file to be read.
+        """
+        return self._source_path
+
+    def rows(self, on_error='raise'):
+        """
+        Data rows of `source_path`.
+
+        If a row cannot be read, ``on_error`` specified what to do about it:
+
+        * 'continue': quietly continue with the next row
+        * 'raise' (the default): raise an exception and stop reading.
+        * 'yield': instead of of a row, the result contains an `errors.DataError`
+
+        Even with ``on_error`` set to ' continue'  or 'yield' certain errors still cause a stop, for example checks
+        at the end of the file still raise a `errors.CheckError` and generally broken files result in an
+        `error.DataFormatError`.
+        """
+        assert on_error in ('continue', 'raise', 'yield')
+
         self._location = errors.Location(self._source_path, has_cell=True)
         expected_item_count = len(self._cid.field_formats)
 
@@ -80,12 +104,31 @@ class Reader(object):
             for check_name in self._cid.check_names:
                 self._cid.check_map[check_name].check_at_end(self._location)
 
-        for row in self._raw_rows():
-            validate_field_formats(row)
-            validate_row_checks(row)
-            yield row
-            self._location.advance_line()
-        validate_checks_at_end()
+        self.accepted_rows_count = 0
+        self.rejected_rows_count = 0
+        for check in self._cid.check_map.values():
+            check.reset()
+        try:
+            for row in self._raw_rows():
+                try:
+                    validate_field_formats(row)
+                    validate_row_checks(row)
+                    self.accepted_rows_count += 1
+                    yield row
+                    self._location.advance_line()
+                except errors.DataError as error:
+                    if on_error == 'raise':
+                        raise
+                    self.rejected_rows_count += 1
+                    if on_error == 'yield':
+                        yield error
+                    else:
+                        assert on_error == 'continue'
+            validate_checks_at_end()
+        finally:
+            for check in self._cid.check_map.values():
+                check.cleanup()
+
 
     def validate(self):
         for _ in self.rows():
