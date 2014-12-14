@@ -352,8 +352,6 @@ class DataFormat(object):
         """
         if self.decimal_separator == self.thousands_separator:
             raise errors.InterfaceError('decimal separator and thousands separator must be different', self._location)
-        if self.quote_character == self.thousands_separator:
-            raise errors.InterfaceError('quote character and thousands separator must be different', self._location)
         if self.thousands_separator == self.item_delimiter:
             raise errors.InterfaceError('thousands separator and item delimiter must be different', self._location)
         if self.quote_character == self.item_delimiter:
