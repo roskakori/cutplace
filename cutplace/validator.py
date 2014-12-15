@@ -129,7 +129,6 @@ class Reader(object):
             for check in self._cid.check_map.values():
                 check.cleanup()
 
-
     def validate(self):
         for _ in self.rows():
             pass
