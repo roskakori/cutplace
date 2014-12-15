@@ -52,7 +52,7 @@ class AbstractCheck(object):
             raise errors.InterfaceError("field names must be specified", location_of_definition)
         self._description = description
         self._rule = rule
-        self._fieldNames = available_field_names
+        self._field_names = available_field_names
         if location_of_definition is None:
             self._location = errors.create_caller_location(["checks"])
         else:
@@ -126,7 +126,7 @@ class AbstractCheck(object):
 
         The order of field names in this list match the order of declaration in the ICD.
         """
-        return self._location
+        return self._field_names
 
 
 class IsUniqueCheck(AbstractCheck):
