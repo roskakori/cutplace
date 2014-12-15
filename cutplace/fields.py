@@ -40,6 +40,11 @@ _FieldFormatClassSuffix = "FieldFormat"
 _ASCII_LETTERS = set(string.ascii_letters)
 _ASCII_LETTERS_DIGITS_AND_UNDERSCORE = set(string.ascii_letters + string.digits + '_')
 
+MSSQL = "mssql"
+ORACLE = "oracle"
+DB2 = "db2"
+MYSQL = "mysql"
+
 
 @python_2_unicode_compatible
 class AbstractFieldFormat(object):
@@ -56,7 +61,7 @@ class AbstractFieldFormat(object):
         assert field_name, "fieldName must not be empty"
         assert is_allowed_to_be_empty is not None
         assert rule is not None, "to specify \"no rule\" use \"\" instead of None"
-        assert data_format is not None
+        #assert data_format is not None
 
         self._field_name = field_name
         self._is_allowed_to_be_empty = is_allowed_to_be_empty
@@ -210,6 +215,12 @@ class AbstractFieldFormat(object):
         ]
         return result
 
+    def as_sql(self, db):
+        """
+        The information of the field will be converted to a column definition in an sql create table statement
+        """
+        raise NotImplementedError
+
     def __str__(self):
         return "%s(%r, %r, %r, %r)" % (self.__class__.__name__, self.field_name, self.is_allowed_to_be_empty,
                                        self.length, self.rule)
@@ -262,6 +273,21 @@ class ChoiceFieldFormat(AbstractFieldFormat):
             raise errors.FieldValueError(
                 "value is %r but must be one of: %s" % (value, _tools.human_readable_list(self.choices)))
         return value
+
+    def as_sql(self, db):
+        if all(choice.isnumeric() for choice in self.choices):
+            column_def, _ = IntegerFieldFormat(self._field_name, self._is_allowed_to_be_empty,
+                                               self._length.description, self._rule, self._data_format,
+                                               self._empty_value).as_sql(db)
+            constraint = "CONSTRAINT chk_" + self._field_name + " CHECK( "+self._field_name + " IN [" + \
+                         ",".join(map(str, self.choices)) + "] )"
+        else:
+            max_length = max(self.choices, key=len)
+            column_def = self._field_name + " VARCHAR(" + str(len(max_length)) + ")"
+            column_def += " NOT NULL" if not self._is_allowed_to_be_empty else ""
+            constraint = "CONSTRAINT chk_" + self._field_name + " CHECK( "+self._field_name + " IN ['" + \
+                         "','".join(map(str, self.choices))+"'] )"
+        return [column_def, constraint]
 
 
 class DecimalFieldFormat(AbstractFieldFormat):
@@ -337,6 +363,43 @@ class IntegerFieldFormat(AbstractFieldFormat):
             raise errors.FieldValueError(str(error))
         return long_value
 
+    def as_sql(self, db):
+        if (self._rule == '') and (self.length.description is None):  # TODO: fix this statement
+            column_def = self._field_name + " INTEGER"
+        else:
+            if (self._rule == '') and (self._length.description is not None):
+                range_limit = 10 ** max([item[1] for item in self._length.items])  # get the highest integer of the range
+            else:
+                range_limit = max([rule[1] for rule in self.rangeRule.items])  # get the highest integer of the range
+
+            if range_limit < 2 ** 15 - 1:
+                column_def = self._field_name + " SMALLINT"
+            elif range_limit < 2 ** 31 - 1:
+                column_def = self._field_name + " INTEGER"
+            else:
+                if (db == MSSQL or db == DB2) and range_limit < 2 ** 63 - 1:
+                    column_def = self._field_name + " BIGINT"
+                else:
+                    column_def, _ = DecimalFieldFormat(self._field_name, self._is_allowed_to_be_empty,
+                                                       self._length.description, self._rule, self._data_format,
+                                                       self._empty_value).as_sql(db)
+
+        if not self.is_allowed_to_be_empty:
+            column_def += " NOT NULL"
+
+        constraint = ""
+        for i in range(len(self.rangeRule.items)):
+            if i == 0:
+                constraint = "CONSTRAINT chk_" + self._field_name + " CHECK( "
+            constraint += "( " + self._field_name + " BETWEEN " + str(self.rangeRule.items[i][0]) + " AND " + \
+                          str(self.rangeRule.items[i][1]) + " )"
+            if i < len(self.rangeRule.items) - 1:
+                constraint += " OR "
+            else:
+                constraint += " )"
+
+        return [column_def, constraint]
+
 
 class DateTimeFieldFormat(AbstractFieldFormat):
     """
@@ -368,6 +431,19 @@ class DateTimeFieldFormat(AbstractFieldFormat):
                                          % (self.human_readable_format, self.strptimeFormat, value, sys.exc_info()[1]))
         return result
 
+    def as_sql(self, db):
+        if "hh" in self.human_readable_format and "YY" in self.human_readable_format:
+            column_def = self._field_name + " DATETIME"
+        elif "hh" in self.human_readable_format:
+            column_def = self._field_name + " TIME"
+        else:
+            column_def = self._field_name + " DATE"
+
+        if not self.is_allowed_to_be_empty:
+            column_def += " NOT NULL"
+
+        return [column_def, ""]
+
 
 class RegExFieldFormat(AbstractFieldFormat):
     """
@@ -384,6 +460,25 @@ class RegExFieldFormat(AbstractFieldFormat):
         if not self.regex.match(value):
             raise errors.FieldValueError("value %r must match regular expression: %r" % (value, self.rule))
         return value
+
+    def as_sql(self, db):
+        column_def = ""
+        constraint = ""
+
+        if self._length.items is not None:
+            column_def = self._field_name + " VARCHAR(" + str(self._length.items[0][1]) + ")"
+            constraint += "CONSTRAINT chk_" + self._field_name + "_len CHECK (len(" + self._field_name + " >= " \
+                          + str(self._length.items[0][0]) + ")) "
+        else:
+            column_def = self._field_name + " VARCHAR(255)"
+
+        if not self.is_allowed_to_be_empty:
+            column_def += " NOT NULL"
+
+        constraint += "CONSTRAINT chk_" + self._field_name + "_regex CHECK (" + self._field_name + " like '" \
+                      + str(self.regex.pattern) + "')"
+
+        return [column_def, constraint]
 
 
 class PatternFieldFormat(AbstractFieldFormat):
@@ -404,6 +499,25 @@ class PatternFieldFormat(AbstractFieldFormat):
                 'value %r must match pattern: %r (regex %r)' % (value, self.rule, self.pattern))
         return value
 
+    def as_sql(self, db):
+        column_def = ""
+        constraint = ""
+
+        if self._length.items is not None:
+            column_def = self._field_name + " VARCHAR(" + str(max([item[1] for item in self._length.items])) + ")"
+            constraint += "CONSTRAINT chk_" + self._field_name + "_len CHECK (len(" + self._field_name + " >= " \
+                          + str(self._length.items[0][0]) + ")) "
+        else:
+            column_def = self._field_name + " VARCHAR(255)"
+
+        if not self.is_allowed_to_be_empty:
+            column_def += " NOT NULL"
+
+        constraint += "CONSTRAINT chk_" + self._field_name + "_pattern CHECK (" + self._field_name + " like '" \
+                      + self._rule + "')"
+
+        return [column_def, constraint]
+
 
 class TextFieldFormat(AbstractFieldFormat):
     """
@@ -417,6 +531,22 @@ class TextFieldFormat(AbstractFieldFormat):
         assert value
         # TODO: Validate Text with rules like: 32..., a...z and so on.
         return value
+
+    def as_sql(self, db):
+        column_def = ""
+        constraint = ""
+
+        if self._length.items is not None:
+            column_def = self._field_name + " VARCHAR(" + str(max([item[1] for item in self._length.items])) + ")"
+            constraint = "CONSTRAINT chk_" + self._field_name + " CHECK (len(" + self._field_name + " >= " + \
+                         str(self._length.items[0][0]) + "))"
+        else:
+            column_def = self._field_name + " VARCHAR(255)"
+
+        if not self.is_allowed_to_be_empty:
+            column_def += " NOT NULL"
+
+        return [column_def, constraint]
 
 
 def get_field_name_index(supposed_field_name, available_field_names):
