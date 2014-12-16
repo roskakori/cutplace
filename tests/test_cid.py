@@ -22,10 +22,12 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import io
 import unittest
 
 from cutplace import checks
 from cutplace import cid
+from cutplace import data
 from cutplace import errors
 from cutplace import fields
 from cutplace import ranges
@@ -175,6 +177,14 @@ class CidTest(unittest.TestCase):
         cid_reader.read(source_path, _io_tools.excel_rows(source_path))
         self.assertTrue(isinstance(cid_reader.check_for(cid_reader.check_names[0]), checks.IsUniqueCheck))
         self.assertTrue(isinstance(cid_reader.check_for(cid_reader.check_names[1]), checks.DistinctCountCheck))
+
+    def test_can_be_rendered_as_str(self):
+        customers_cid_path = dev_test.path_to_test_cid("customers.xls")
+        customers_cid = cid.Cid(customers_cid_path)
+        cid_str = str(customers_cid)
+        self.assertTrue('Cid' in cid_str)
+        self.assertTrue(data.FORMAT_DELIMITED in cid_str)
+        self.assertTrue(customers_cid.field_names[0] in cid_str)
 
 
 if __name__ == '__main__':
