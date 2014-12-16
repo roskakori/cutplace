@@ -16,7 +16,7 @@ def python_2_unicode_compatible(cls):
 
     The implementation is based on ``django.utils.encoding``.
     """
-    if six.PY2:
+    if six.PY2:  # pragma: no cover
         cls.__unicode__ = cls.__str__
         cls.__str__ = lambda self: self.__unicode__().encode('utf-8')
     return cls
