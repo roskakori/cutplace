@@ -28,7 +28,7 @@ import pstats
 import unittest
 
 
-from cutplace import cid
+from cutplace import interface
 from cutplace import validator
 from cutplace import _cutplace
 from cutplace import _tools
@@ -62,7 +62,7 @@ def _build_and_validate_many_customers():
     _build_lots_of_customers_csv(many_customers_csv_path, 50)
 
     # Validate the data using the API, so in case of errors we get specific information.
-    customers_cid = cid.Cid(icd_ods_path)
+    customers_cid = interface.Cid(icd_ods_path)
     reader = validator.Reader(customers_cid, many_customers_csv_path)
     reader.validate()
 

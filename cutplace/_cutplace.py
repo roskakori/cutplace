@@ -25,10 +25,10 @@ import argparse
 import logging
 import sys
 
-from cutplace import cid
+from cutplace import interface
 from cutplace import errors
 from cutplace import validator
-from cutplace import _io_tools
+from cutplace import iotools
 from cutplace import _tools
 # TODO #77: from cutplace import _web
 
@@ -110,7 +110,7 @@ class CutplaceApp(object):
         # TODO: self.isSplit = self.options.isSplit
 
         if args.plugins_folder is not None:
-            cid.import_plugins(args.plugins_folder)
+            interface.import_plugins(args.plugins_folder)
 
         if not self.is_web_server:
             if args.cid_path is None:
@@ -127,11 +127,11 @@ class CutplaceApp(object):
 
     def set_cid_from_path(self, cid_path):
         assert cid_path is not None
-        new_cid = cid.Cid()
+        new_cid = interface.Cid()
         # TODO: if self.options is not None:
         #          new_cid.logTrace = self.options.isLogTrace
         _log.info('read CID from "%s"', cid_path)
-        cid_rows = _io_tools.auto_rows(cid_path)  # TODO: Pass self.cid_encoding.
+        cid_rows = iotools.auto_rows(cid_path)  # TODO: Pass self.cid_encoding.
         new_cid.read(cid_path, cid_rows)
         self.cid = new_cid
         self.cid_path = cid_path

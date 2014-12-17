@@ -26,13 +26,13 @@ import inspect
 import logging
 import os.path
 
-from . import data
-from . import fields
-from . import errors
-from . import checks
-from . import _io_tools
-from . import _tools
-from ._compat import python_2_unicode_compatible
+from cutplace import data
+from cutplace import fields
+from cutplace import errors
+from cutplace import checks
+from cutplace import iotools
+from cutplace import _tools
+from cutplace._compat import python_2_unicode_compatible
 
 _log = logging.getLogger("cutplace")
 
@@ -60,7 +60,7 @@ class Cid(object):
         self._check_name_to_class_map = self._create_name_to_class_map(checks.AbstractCheck)
         self._field_format_name_to_class_map = self._create_name_to_class_map(fields.AbstractFieldFormat)
         if cid_path is not None:
-            self.read(cid_path, _io_tools.auto_rows(cid_path))
+            self.read(cid_path, iotools.auto_rows(cid_path))
 
     def __str__(self):
         result = 'Cid('

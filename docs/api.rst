@@ -66,6 +66,166 @@ This is the easiest way to describe an interface. The resulting document is
 human readable even for non coders and quite simple to edit and maintain. It
 also keeps declaration and validation in separate files.
 
+
+it, use:
+
+>>> import os
+>>> import os.path
+>>> from cutplace import interface
+>>>
+>>> # Compute the path of a test file in a system independent manner,
+>>> # assuming that the current folder is "docs".
+>>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>>
+>>> icd = interface.InterfaceControlDocument()
+>>> icd.read(os.path.abspath(icdPath))
+>>> icd.fieldNames
+[u'branch_id', u'customer_id', u'first_name', u'surname', u'gender', u'date_of_birth']
+
+This is the easiest way to describe an interface. The resulting document is
+human readable even for non coders and quite simple to edit and maintain. It
+also keeps declaration and validation in separate files.
+
+
+it, use:
+
+>>> import os
+>>> import os.path
+>>> from cutplace import interface
+>>>
+>>> # Compute the path of a test file in a system independent manner,
+>>> # assuming that the current folder is "docs".
+>>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>>
+>>> icd = interface.InterfaceControlDocument()
+>>> icd.read(os.path.abspath(icdPath))
+>>> icd.fieldNames
+[u'branch_id', u'customer_id', u'first_name', u'surname', u'gender', u'date_of_birth']
+
+This is the easiest way to describe an interface. The resulting document is
+human readable even for non coders and quite simple to edit and maintain. It
+also keeps declaration and validation in separate files.
+
+
+it, use:
+
+>>> import os
+>>> import os.path
+>>> from cutplace import interface
+>>>
+>>> # Compute the path of a test file in a system independent manner,
+>>> # assuming that the current folder is "docs".
+>>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>>
+>>> icd = interface.InterfaceControlDocument()
+>>> icd.read(os.path.abspath(icdPath))
+>>> icd.fieldNames
+[u'branch_id', u'customer_id', u'first_name', u'surname', u'gender', u'date_of_birth']
+
+This is the easiest way to describe an interface. The resulting document is
+human readable even for non coders and quite simple to edit and maintain. It
+also keeps declaration and validation in separate files.
+
+
+it, use:
+
+>>> import os
+>>> import os.path
+>>> from cutplace import interface
+>>>
+>>> # Compute the path of a test file in a system independent manner,
+>>> # assuming that the current folder is "docs".
+>>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>>
+>>> icd = interface.InterfaceControlDocument()
+>>> icd.read(os.path.abspath(icdPath))
+>>> icd.fieldNames
+[u'branch_id', u'customer_id', u'first_name', u'surname', u'gender', u'date_of_birth']
+
+This is the easiest way to describe an interface. The resulting document is
+human readable even for non coders and quite simple to edit and maintain. It
+also keeps declaration and validation in separate files.
+
+
+it, use:
+
+>>> import os
+>>> import os.path
+>>> from cutplace import interface
+>>>
+>>> # Compute the path of a test file in a system independent manner,
+>>> # assuming that the current folder is "docs".
+>>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>>
+>>> icd = interface.InterfaceControlDocument()
+>>> icd.read(os.path.abspath(icdPath))
+>>> icd.fieldNames
+[u'branch_id', u'customer_id', u'first_name', u'surname', u'gender', u'date_of_birth']
+
+This is the easiest way to describe an interface. The resulting document is
+human readable even for non coders and quite simple to edit and maintain. It
+also keeps declaration and validation in separate files.
+
+
+it, use:
+
+>>> import os
+>>> import os.path
+>>> from cutplace import interface
+>>>
+>>> # Compute the path of a test file in a system independent manner,
+>>> # assuming that the current folder is "docs".
+>>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>>
+>>> icd = interface.InterfaceControlDocument()
+>>> icd.read(os.path.abspath(icdPath))
+>>> icd.fieldNames
+[u'branch_id', u'customer_id', u'first_name', u'surname', u'gender', u'date_of_birth']
+
+This is the easiest way to describe an interface. The resulting document is
+human readable even for non coders and quite simple to edit and maintain. It
+also keeps declaration and validation in separate files.
+
+
+it, use:
+
+>>> import os
+>>> import os.path
+>>> from cutplace import interface
+>>>
+>>> # Compute the path of a test file in a system independent manner,
+>>> # assuming that the current folder is "docs".
+>>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>>
+>>> icd = interface.InterfaceControlDocument()
+>>> icd.read(os.path.abspath(icdPath))
+>>> icd.fieldNames
+[u'branch_id', u'customer_id', u'first_name', u'surname', u'gender', u'date_of_birth']
+
+This is the easiest way to describe an interface. The resulting document is
+human readable even for non coders and quite simple to edit and maintain. It
+also keeps declaration and validation in separate files.
+
+
+it, use:
+
+>>> import os
+>>> import os.path
+>>> from cutplace import interface
+>>>
+>>> # Compute the path of a test file in a system independent manner,
+>>> # assuming that the current folder is "docs".
+>>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>>
+>>> icd = interface.InterfaceControlDocument()
+>>> icd.read(os.path.abspath(icdPath))
+>>> icd.fieldNames
+[u'branch_id', u'customer_id', u'first_name', u'surname', u'gender', u'date_of_birth']
+
+This is the easiest way to describe an interface. The resulting document is
+human readable even for non coders and quite simple to edit and maintain. It
+also keeps declaration and validation in separate files.
+
 Validating data
 ---------------
 
@@ -189,6 +349,186 @@ validation code:
 >>> icd.read(icdPath)
 >>> # Validate the data.
 >>> for row in interface.validatedRows(icd, dataPath):
+...   pass # We could also do something useful with the data in
+fragment containing a complete example you can use as base for your own
+validation code:
+
+>>> # Validate a test CSV file.
+>>> import os.path
+>>> from cutplace import interface
+>>> # Change this to use your own files.
+>>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
+>>> # Define the interface.
+>>> icd = interface.InterfaceControlDocument()
+>>> icd.read(icdPath)
+>>> # Validate the data.
+>>> for row in interface.validatedRows(icd, dataPath):
+...   pass # We could also do something useful with the data in
+fragment containing a complete example you can use as base for your own
+validation code:
+
+>>> # Validate a test CSV file.
+>>> import os.path
+>>> from cutplace import interface
+>>> # Change this to use your own files.
+>>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
+>>> # Define the interface.
+>>> icd = interface.InterfaceControlDocument()
+>>> icd.read(icdPath)
+>>> # Validate the data.
+>>> for row in interface.validatedRows(icd, dataPath):
+...   pass # We could also do something useful with the data in
+fragment containing a complete example you can use as base for your own
+validation code:
+
+>>> # Validate a test CSV file.
+>>> import os.path
+>>> from cutplace import interface
+>>> # Change this to use your own files.
+>>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
+>>> # Define the interface.
+>>> icd = interface.InterfaceControlDocument()
+>>> icd.read(icdPath)
+>>> # Validate the data.
+>>> for row in interface.validatedRows(icd, dataPath):
+...   pass # We could also do something useful with the data in
+fragment containing a complete example you can use as base for your own
+validation code:
+
+>>> # Validate a test CSV file.
+>>> import os.path
+>>> from cutplace import interface
+>>> # Change this to use your own files.
+>>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
+>>> # Define the interface.
+>>> icd = interface.InterfaceControlDocument()
+>>> icd.read(icdPath)
+>>> # Validate the data.
+>>> for row in interface.validatedRows(icd, dataPath):
+...   pass # We could also do something useful with the data in
+fragment containing a complete example you can use as base for your own
+validation code:
+
+>>> # Validate a test CSV file.
+>>> import os.path
+>>> from cutplace import interface
+>>> # Change this to use your own files.
+>>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
+>>> # Define the interface.
+>>> icd = interface.InterfaceControlDocument()
+>>> icd.read(icdPath)
+>>> # Validate the data.
+>>> for row in interface.validatedRows(icd, dataPath):
+...   pass # We could also do something useful with the data in
+fragment containing a complete example you can use as base for your own
+validation code:
+
+>>> # Validate a test CSV file.
+>>> import os.path
+>>> from cutplace import interface
+>>> # Change this to use your own files.
+>>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
+>>> # Define the interface.
+>>> icd = interface.InterfaceControlDocument()
+>>> icd.read(icdPath)
+>>> # Validate the data.
+>>> for row in interface.validatedRows(icd, dataPath):
+...   pass # We could also do something useful with the data in
+fragment containing a complete example you can use as base for your own
+validation code:
+
+>>> # Validate a test CSV file.
+>>> import os.path
+>>> from cutplace import interface
+>>> # Change this to use your own files.
+>>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
+>>> # Define the interface.
+>>> icd = interface.InterfaceControlDocument()
+>>> icd.read(icdPath)
+>>> # Validate the data.
+>>> for row in interface.validatedRows(icd, dataPath):
+...   pass # We could also do something useful with the data in
+fragment containing a complete example you can use as base for your own
+validation code:
+
+>>> # Validate a test CSV file.
+>>> import os.path
+>>> from cutplace import interface
+>>> # Change this to use your own files.
+>>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
+>>> # Define the interface.
+>>> icd = interface.InterfaceControlDocument()
+>>> icd.read(icdPath)
+>>> # Validate the data.
+>>> for row in interface.validatedRows(icd, dataPath):
+...   pass # We could also do something useful with the data in
+fragment containing a complete example you can use as base for your own
+validation code:
+
+>>> # Validate a test CSV file.
+>>> import os.path
+>>> from cutplace import interface
+>>> # Change this to use your own files.
+>>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
+>>> # Define the interface.
+>>> icd = interface.InterfaceControlDocument()
+>>> icd.read(icdPath)
+>>> # Validate the data.
+>>> for row in interface.validatedRows(icd, dataPath):
+...   pass # We could also do something useful with the data in
+fragment containing a complete example you can use as base for your own
+validation code:
+
+>>> # Validate a test CSV file.
+>>> import os.path
+>>> from cutplace import interface
+>>> # Change this to use your own files.
+>>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
+>>> # Define the interface.
+>>> icd = interface.InterfaceControlDocument()
+>>> icd.read(icdPath)
+>>> # Validate the data.
+>>> for row in interface.validatedRows(icd, dataPath):
+...   pass # We could also do something useful with the data in
+fragment containing a complete example you can use as base for your own
+validation code:
+
+>>> # Validate a test CSV file.
+>>> import os.path
+>>> from cutplace import interface
+>>> # Change this to use your own files.
+>>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
+>>> # Define the interface.
+>>> icd = interface.InterfaceControlDocument()
+>>> icd.read(icdPath)
+>>> # Validate the data.
+>>> for row in interface.validatedRows(icd, dataPath):
+...   pass # We could also do something useful with the data in
+fragment containing a complete example you can use as base for your own
+validation code:
+
+>>> # Validate a test CSV file.
+>>> import os.path
+>>> from cutplace import interface
+>>> # Change this to use your own files.
+>>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
+>>> # Define the interface.
+>>> icd = interface.InterfaceControlDocument()
+>>> icd.read(icdPath)
+>>> # Validate the data.
+>>> for row in interface.validatedRows(icd, dataPath):
 ...   pass # We could also do something useful with the data in ``row`` here.
 
 In case you want to process the data, simply replace the ``pass`` inside the
@@ -261,6 +601,294 @@ Building an ICD in the code
 ---------------------------
 
 In some cases it might be preferable to include the ICD in the code, for
+instance for trivial interfaces that are only used internally. Here is an
+example of a simple ICD for CSV data with 3 fields:
+
+First, import the necessary modules:
+
+>>> from cutplace import data
+>>> from cutplace import fields
+>>> from cutplace import interface
+
+Next create an empty ICD:
+
+>>> icd = interface.InterfaceControlDocument()
+
+As the ICD will not be read from an input file, error messages would not be
+able to refer to any file in case of errors. To have at least some reference,
+we need to tell the ICD that it is declared from source code:
+
+>>> icd.setLocationToSourceCode()
+
+That way, error messages will refer you to the Python module where this call
+happened.
+
+>>> # Use CSV as data format. This is the same as having a spreadsheet
+>>> # with the cells:
+>>> #
+>>> # | F | Format         | CSV |
+>>> # | F | Item separator | ;   |
+>>> icd.addDataFormat([data.KEY_FORMAT, data.FORMAT_CSV])
+>>> icd.addDataFormat([data.KEY_ITEM_DELIMITER, ";"])
+>>>
+>>> # Add a couple of fields.
+>>> icd.addFieldFormat(["id", "", "", "1:5", "Integer"])
+>>> icd.addFieldFormat(["name"])
+>>> icd.addFieldFormat(["dateOfBirth", "", "X", "", "DateTime", "YYYY-MM-DD"])
+>>>
+>>> # Make sure that the
+instance for trivial interfaces that are only used internally. Here is an
+example of a simple ICD for CSV data with 3 fields:
+
+First, import the necessary modules:
+
+>>> from cutplace import data
+>>> from cutplace import fields
+>>> from cutplace import interface
+
+Next create an empty ICD:
+
+>>> icd = interface.InterfaceControlDocument()
+
+As the ICD will not be read from an input file, error messages would not be
+able to refer to any file in case of errors. To have at least some reference,
+we need to tell the ICD that it is declared from source code:
+
+>>> icd.setLocationToSourceCode()
+
+That way, error messages will refer you to the Python module where this call
+happened.
+
+>>> # Use CSV as data format. This is the same as having a spreadsheet
+>>> # with the cells:
+>>> #
+>>> # | F | Format         | CSV |
+>>> # | F | Item separator | ;   |
+>>> icd.addDataFormat([data.KEY_FORMAT, data.FORMAT_CSV])
+>>> icd.addDataFormat([data.KEY_ITEM_DELIMITER, ";"])
+>>>
+>>> # Add a couple of fields.
+>>> icd.addFieldFormat(["id", "", "", "1:5", "Integer"])
+>>> icd.addFieldFormat(["name"])
+>>> icd.addFieldFormat(["dateOfBirth", "", "X", "", "DateTime", "YYYY-MM-DD"])
+>>>
+>>> # Make sure that the
+instance for trivial interfaces that are only used internally. Here is an
+example of a simple ICD for CSV data with 3 fields:
+
+First, import the necessary modules:
+
+>>> from cutplace import data
+>>> from cutplace import fields
+>>> from cutplace import interface
+
+Next create an empty ICD:
+
+>>> icd = interface.InterfaceControlDocument()
+
+As the ICD will not be read from an input file, error messages would not be
+able to refer to any file in case of errors. To have at least some reference,
+we need to tell the ICD that it is declared from source code:
+
+>>> icd.setLocationToSourceCode()
+
+That way, error messages will refer you to the Python module where this call
+happened.
+
+>>> # Use CSV as data format. This is the same as having a spreadsheet
+>>> # with the cells:
+>>> #
+>>> # | F | Format         | CSV |
+>>> # | F | Item separator | ;   |
+>>> icd.addDataFormat([data.KEY_FORMAT, data.FORMAT_CSV])
+>>> icd.addDataFormat([data.KEY_ITEM_DELIMITER, ";"])
+>>>
+>>> # Add a couple of fields.
+>>> icd.addFieldFormat(["id", "", "", "1:5", "Integer"])
+>>> icd.addFieldFormat(["name"])
+>>> icd.addFieldFormat(["dateOfBirth", "", "X", "", "DateTime", "YYYY-MM-DD"])
+>>>
+>>> # Make sure that the
+instance for trivial interfaces that are only used internally. Here is an
+example of a simple ICD for CSV data with 3 fields:
+
+First, import the necessary modules:
+
+>>> from cutplace import data
+>>> from cutplace import fields
+>>> from cutplace import interface
+
+Next create an empty ICD:
+
+>>> icd = interface.InterfaceControlDocument()
+
+As the ICD will not be read from an input file, error messages would not be
+able to refer to any file in case of errors. To have at least some reference,
+we need to tell the ICD that it is declared from source code:
+
+>>> icd.setLocationToSourceCode()
+
+That way, error messages will refer you to the Python module where this call
+happened.
+
+>>> # Use CSV as data format. This is the same as having a spreadsheet
+>>> # with the cells:
+>>> #
+>>> # | F | Format         | CSV |
+>>> # | F | Item separator | ;   |
+>>> icd.addDataFormat([data.KEY_FORMAT, data.FORMAT_CSV])
+>>> icd.addDataFormat([data.KEY_ITEM_DELIMITER, ";"])
+>>>
+>>> # Add a couple of fields.
+>>> icd.addFieldFormat(["id", "", "", "1:5", "Integer"])
+>>> icd.addFieldFormat(["name"])
+>>> icd.addFieldFormat(["dateOfBirth", "", "X", "", "DateTime", "YYYY-MM-DD"])
+>>>
+>>> # Make sure that the
+instance for trivial interfaces that are only used internally. Here is an
+example of a simple ICD for CSV data with 3 fields:
+
+First, import the necessary modules:
+
+>>> from cutplace import data
+>>> from cutplace import fields
+>>> from cutplace import interface
+
+Next create an empty ICD:
+
+>>> icd = interface.InterfaceControlDocument()
+
+As the ICD will not be read from an input file, error messages would not be
+able to refer to any file in case of errors. To have at least some reference,
+we need to tell the ICD that it is declared from source code:
+
+>>> icd.setLocationToSourceCode()
+
+That way, error messages will refer you to the Python module where this call
+happened.
+
+>>> # Use CSV as data format. This is the same as having a spreadsheet
+>>> # with the cells:
+>>> #
+>>> # | F | Format         | CSV |
+>>> # | F | Item separator | ;   |
+>>> icd.addDataFormat([data.KEY_FORMAT, data.FORMAT_CSV])
+>>> icd.addDataFormat([data.KEY_ITEM_DELIMITER, ";"])
+>>>
+>>> # Add a couple of fields.
+>>> icd.addFieldFormat(["id", "", "", "1:5", "Integer"])
+>>> icd.addFieldFormat(["name"])
+>>> icd.addFieldFormat(["dateOfBirth", "", "X", "", "DateTime", "YYYY-MM-DD"])
+>>>
+>>> # Make sure that the
+instance for trivial interfaces that are only used internally. Here is an
+example of a simple ICD for CSV data with 3 fields:
+
+First, import the necessary modules:
+
+>>> from cutplace import data
+>>> from cutplace import fields
+>>> from cutplace import interface
+
+Next create an empty ICD:
+
+>>> icd = interface.InterfaceControlDocument()
+
+As the ICD will not be read from an input file, error messages would not be
+able to refer to any file in case of errors. To have at least some reference,
+we need to tell the ICD that it is declared from source code:
+
+>>> icd.setLocationToSourceCode()
+
+That way, error messages will refer you to the Python module where this call
+happened.
+
+>>> # Use CSV as data format. This is the same as having a spreadsheet
+>>> # with the cells:
+>>> #
+>>> # | F | Format         | CSV |
+>>> # | F | Item separator | ;   |
+>>> icd.addDataFormat([data.KEY_FORMAT, data.FORMAT_CSV])
+>>> icd.addDataFormat([data.KEY_ITEM_DELIMITER, ";"])
+>>>
+>>> # Add a couple of fields.
+>>> icd.addFieldFormat(["id", "", "", "1:5", "Integer"])
+>>> icd.addFieldFormat(["name"])
+>>> icd.addFieldFormat(["dateOfBirth", "", "X", "", "DateTime", "YYYY-MM-DD"])
+>>>
+>>> # Make sure that the
+instance for trivial interfaces that are only used internally. Here is an
+example of a simple ICD for CSV data with 3 fields:
+
+First, import the necessary modules:
+
+>>> from cutplace import data
+>>> from cutplace import fields
+>>> from cutplace import interface
+
+Next create an empty ICD:
+
+>>> icd = interface.InterfaceControlDocument()
+
+As the ICD will not be read from an input file, error messages would not be
+able to refer to any file in case of errors. To have at least some reference,
+we need to tell the ICD that it is declared from source code:
+
+>>> icd.setLocationToSourceCode()
+
+That way, error messages will refer you to the Python module where this call
+happened.
+
+>>> # Use CSV as data format. This is the same as having a spreadsheet
+>>> # with the cells:
+>>> #
+>>> # | F | Format         | CSV |
+>>> # | F | Item separator | ;   |
+>>> icd.addDataFormat([data.KEY_FORMAT, data.FORMAT_CSV])
+>>> icd.addDataFormat([data.KEY_ITEM_DELIMITER, ";"])
+>>>
+>>> # Add a couple of fields.
+>>> icd.addFieldFormat(["id", "", "", "1:5", "Integer"])
+>>> icd.addFieldFormat(["name"])
+>>> icd.addFieldFormat(["dateOfBirth", "", "X", "", "DateTime", "YYYY-MM-DD"])
+>>>
+>>> # Make sure that the
+instance for trivial interfaces that are only used internally. Here is an
+example of a simple ICD for CSV data with 3 fields:
+
+First, import the necessary modules:
+
+>>> from cutplace import data
+>>> from cutplace import fields
+>>> from cutplace import interface
+
+Next create an empty ICD:
+
+>>> icd = interface.InterfaceControlDocument()
+
+As the ICD will not be read from an input file, error messages would not be
+able to refer to any file in case of errors. To have at least some reference,
+we need to tell the ICD that it is declared from source code:
+
+>>> icd.setLocationToSourceCode()
+
+That way, error messages will refer you to the Python module where this call
+happened.
+
+>>> # Use CSV as data format. This is the same as having a spreadsheet
+>>> # with the cells:
+>>> #
+>>> # | F | Format         | CSV |
+>>> # | F | Item separator | ;   |
+>>> icd.addDataFormat([data.KEY_FORMAT, data.FORMAT_CSV])
+>>> icd.addDataFormat([data.KEY_ITEM_DELIMITER, ";"])
+>>>
+>>> # Add a couple of fields.
+>>> icd.addFieldFormat(["id", "", "", "1:5", "Integer"])
+>>> icd.addFieldFormat(["name"])
+>>> icd.addFieldFormat(["dateOfBirth", "", "X", "", "DateTime", "YYYY-MM-DD"])
+>>>
+>>> # Make sure that the
 instance for trivial interfaces that are only used internally. Here is an
 example of a simple ICD for CSV data with 3 fields:
 
