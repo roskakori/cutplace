@@ -364,25 +364,22 @@ class IntegerFieldFormat(AbstractFieldFormat):
         return long_value
 
     def as_sql(self, db):
-        if (self._rule == '') and (self.length.description is None):  # TODO: fix this statement
+        if (self._rule == '') and (self._length.description is not None):
+            range_limit = 10 ** max([item[1] for item in self._length.items])  # get the highest integer of the range
+        else:
+            range_limit = max([rule[1] for rule in self.rangeRule.items])  # get the highest integer of the range
+
+        if range_limit < 2 ** 15 - 1:
+            column_def = self._field_name + " SMALLINT"
+        elif range_limit < 2 ** 31 - 1:
             column_def = self._field_name + " INTEGER"
         else:
-            if (self._rule == '') and (self._length.description is not None):
-                range_limit = 10 ** max([item[1] for item in self._length.items])  # get the highest integer of the range
+            if db in (MSSQL, DB2) and range_limit < 2 ** 63 - 1:
+                column_def = self._field_name + " BIGINT"
             else:
-                range_limit = max([rule[1] for rule in self.rangeRule.items])  # get the highest integer of the range
-
-            if range_limit < 2 ** 15 - 1:
-                column_def = self._field_name + " SMALLINT"
-            elif range_limit < 2 ** 31 - 1:
-                column_def = self._field_name + " INTEGER"
-            else:
-                if (db == MSSQL or db == DB2) and range_limit < 2 ** 63 - 1:
-                    column_def = self._field_name + " BIGINT"
-                else:
-                    column_def, _ = DecimalFieldFormat(self._field_name, self._is_allowed_to_be_empty,
-                                                       self._length.description, self._rule, self._data_format,
-                                                       self._empty_value).as_sql(db)
+                column_def, _ = DecimalFieldFormat(self._field_name, self._is_allowed_to_be_empty,
+                                                   self._length.description, self._rule, self._data_format,
+                                                   self._empty_value).as_sql(db)
 
         if not self.is_allowed_to_be_empty:
             column_def += " NOT NULL"
@@ -427,8 +424,9 @@ class DateTimeFieldFormat(AbstractFieldFormat):
         try:
             result = time.strptime(value, self.strptimeFormat)
         except ValueError:
-            raise errors.FieldValueError("date must match format %s (%s) but is: %r (%s)"
-                                         % (self.human_readable_format, self.strptimeFormat, value, sys.exc_info()[1]))
+            raise errors.FieldValueError(
+                "date must match format %s (%s) but is: %r (%s)"
+                % (self.human_readable_format, self.strptimeFormat, value, sys.exc_info()[1]))
         return result
 
     def as_sql(self, db):
