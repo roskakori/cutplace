@@ -53,6 +53,11 @@ class _AbstractCheckTest(unittest.TestCase):
         check = checks.AbstractCheck("test check", "", field_names)
         self.assertTrue(check.location is not None)
 
+    def test_has_field_names(self):
+        field_names = _TEST_FIELD_NAMES
+        check = checks.AbstractCheck("test check", "", field_names)
+        self.assertEqual(field_names, check.field_names)
+
     def test_fails_on_missing_field_names(self):
         self.assertRaises(errors.InterfaceError, checks.AbstractCheck, "missing fields", "", [])
 

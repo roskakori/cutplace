@@ -66,7 +66,10 @@ class Cid(object):
         result = 'Cid('
         if self.data_format is not None:
             result += 'format=' + self.data_format.format + '; '
-            result += 'fields=%s' % [field_format.name for field_format in self.field_formats]
+            result += 'fields=[%s]' % ', '.join([
+                field_format.__class__.__name__ + '(' + field_format.field_name + ')'
+                for field_format in self.field_formats
+            ])
         return result
 
     @property
@@ -134,17 +137,16 @@ class Cid(object):
                 result[plain_class_name] = class_to_process
         return result
 
-    def _create_class(self, name_to_class_map, class_qualifier, class_name_appendix, type_name,
-                      error_to_raise_on_unknown_class):
+    def _create_class(self, name_to_class_map, class_qualifier, class_name_appendix, type_name):
         assert name_to_class_map
         assert class_qualifier
         assert class_name_appendix
         assert type_name
-        assert error_to_raise_on_unknown_class is not None
+
         class_name = class_qualifier.split(".")[-1] + class_name_appendix
         result = name_to_class_map.get(class_name)
         if result is None:
-            raise error_to_raise_on_unknown_class(
+            raise errors.InterfaceError(
                 "cannot find class for %s %s: related class is %s but must be one of: %s" % (
                     type_name, class_qualifier, class_name,
                     _tools.human_readable_list(sorted(name_to_class_map.keys()))))
@@ -152,12 +154,11 @@ class Cid(object):
 
     def _create_field_format_class(self, field_type):
         assert field_type
-        return self._create_class(self._field_format_name_to_class_map, field_type, "FieldFormat", "field",
-                                  errors.InterfaceError)
+        return self._create_class(self._field_format_name_to_class_map, field_type, "FieldFormat", "field")
 
     def _create_check_class(self, check_type):
         assert check_type
-        return self._create_class(self._check_name_to_class_map, check_type, "Check", "check", errors.InterfaceError)
+        return self._create_class(self._check_name_to_class_map, check_type, "Check", "check")
 
     def read(self, source_path, rows):
         # TODO: Detect format and use proper reader.
