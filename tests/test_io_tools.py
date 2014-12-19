@@ -120,6 +120,5 @@ class RowsTest(unittest.TestCase):
         self._assert_rows_contain_data(iotools.auto_rows(ods_path))
 
 
-
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()

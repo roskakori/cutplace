@@ -61,7 +61,7 @@ class AbstractFieldFormat(object):
         assert field_name, "fieldName must not be empty"
         assert is_allowed_to_be_empty is not None
         assert rule is not None, "to specify \"no rule\" use \"\" instead of None"
-        #assert data_format is not None
+        assert data_format is not None
 
         self._field_name = field_name
         self._is_allowed_to_be_empty = is_allowed_to_be_empty
@@ -279,14 +279,14 @@ class ChoiceFieldFormat(AbstractFieldFormat):
             column_def, _ = IntegerFieldFormat(self._field_name, self._is_allowed_to_be_empty,
                                                self._length.description, self._rule, self._data_format,
                                                self._empty_value).as_sql(db)
-            constraint = "CONSTRAINT chk_" + self._field_name + " CHECK( "+self._field_name + " IN [" + \
+            constraint = "CONSTRAINT chk_" + self._field_name + " CHECK( " + self._field_name + " IN [" + \
                          ",".join(map(str, self.choices)) + "] )"
         else:
             max_length = max(self.choices, key=len)
             column_def = self._field_name + " VARCHAR(" + str(len(max_length)) + ")"
             column_def += " NOT NULL" if not self._is_allowed_to_be_empty else ""
-            constraint = "CONSTRAINT chk_" + self._field_name + " CHECK( "+self._field_name + " IN ['" + \
-                         "','".join(map(str, self.choices))+"'] )"
+            constraint = "CONSTRAINT chk_" + self._field_name + " CHECK( " + self._field_name + " IN ['" + \
+                         "','".join(map(str, self.choices)) + "'] )"
         return [column_def, constraint]
 
 

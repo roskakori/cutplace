@@ -29,8 +29,8 @@ from cutplace import data
 from cutplace import errors
 from cutplace import fields
 
-_anyFormat = data.DataFormat(data.FORMAT_DELIMITED)
-_fixedFormat = data.DataFormat(data.FORMAT_FIXED)
+_ANY_FORMAT = data.DataFormat(data.FORMAT_DELIMITED)
+_FIXED_FORMAT = data.DataFormat(data.FORMAT_FIXED)
 
 
 def _create_german_decimal_format():
@@ -47,15 +47,15 @@ class AbstractFieldFormatTest(unittest.TestCase):
     """
 
     def test_can_accept_empty_value_for_field_allowed_to_be_empty(self):
-        field_format = fields.AbstractFieldFormat("x", True, None, "", _anyFormat)
+        field_format = fields.AbstractFieldFormat("x", True, None, "", _ANY_FORMAT)
         field_format.validate_empty("")
 
     def test_can_reject_empty_value_for_field_not_allowed_to_be_empty(self):
-        field_format = fields.AbstractFieldFormat("x", False, None, "", _anyFormat)
+        field_format = fields.AbstractFieldFormat("x", False, None, "", _ANY_FORMAT)
         self.assertRaises(errors.FieldValueError, field_format.validate_empty, "")
 
     def test_validate_length(self):
-        field_format = fields.AbstractFieldFormat("x", False, "3:5", "", _anyFormat)
+        field_format = fields.AbstractFieldFormat("x", False, "3:5", "", _ANY_FORMAT)
         field_format.validate_length("123")
         field_format.validate_length("1234")
         field_format.validate_length("12345")
@@ -63,15 +63,15 @@ class AbstractFieldFormatTest(unittest.TestCase):
         self.assertRaises(errors.FieldValueError, field_format.validate_length, "123456")
 
     def test_empty_and_length_limit(self):
-        field_format = fields.AbstractFieldFormat("x", True, "3:5", "", _anyFormat)
+        field_format = fields.AbstractFieldFormat("x", True, "3:5", "", _ANY_FORMAT)
         field_format.validate_length("")
 
     def test_validate(self):
-        field_format = fields.AbstractFieldFormat("x", True, "3:5", "", _anyFormat)
+        field_format = fields.AbstractFieldFormat("x", True, "3:5", "", _ANY_FORMAT)
         self.assertRaises(NotImplementedError, field_format.validated, "xyz")
 
     def test_as_sql(self):
-        field_format = fields.AbstractFieldFormat("x", True, "3:5", "", _anyFormat)
+        field_format = fields.AbstractFieldFormat("x", True, "3:5", "", _ANY_FORMAT)
         self.assertRaises(NotImplementedError, field_format.as_sql, "xyz")
 
 
@@ -80,7 +80,7 @@ class DateTimeFieldFormatTest(unittest.TestCase):
     Tests  for `DateTimeFieldFormat`.
     """
     def test_valid_dates(self):
-        field_format = fields.DateTimeFieldFormat("x", False, None, "YYYY-MM-DD", _anyFormat)
+        field_format = fields.DateTimeFieldFormat("x", False, None, "YYYY-MM-DD", _ANY_FORMAT)
         field_format.validated("2000-01-01")
         field_format.validated("2000-02-29")
         field_format.validated("1955-02-28")
@@ -89,12 +89,12 @@ class DateTimeFieldFormatTest(unittest.TestCase):
         field_format.validated("9999-12-31")
 
     def test_empty_date(self):
-        field_format = fields.DateTimeFieldFormat("x", True, None, "YYYY-MM-DD", _anyFormat)
+        field_format = fields.DateTimeFieldFormat("x", True, None, "YYYY-MM-DD", _ANY_FORMAT)
         self.assertEquals(field_format.validated(""), None)
         self.assertNotEquals(field_format.validated("2000-01-01"), None)
 
     def test_broken_dates(self):
-        field_format = fields.DateTimeFieldFormat("x", False, None, "YYYY-MM-DD", _anyFormat)
+        field_format = fields.DateTimeFieldFormat("x", False, None, "YYYY-MM-DD", _ANY_FORMAT)
         self.assertRaises(errors.FieldValueError, field_format.validated, "2000-02-30")
         self.assertRaises(errors.FieldValueError, field_format.validated, "0000-01-01")
         self.assertRaises(errors.FieldValueError, field_format.validated, "this is a bad day")
@@ -103,25 +103,25 @@ class DateTimeFieldFormatTest(unittest.TestCase):
         field_format.validated("2000-1-1")
 
     def test_percent_sign(self):
-        field_format = fields.DateTimeFieldFormat("x", False, None, "%YYYY-MM-DD", _anyFormat)
+        field_format = fields.DateTimeFieldFormat("x", False, None, "%YYYY-MM-DD", _ANY_FORMAT)
         field_format.validated("%2000-01-01")
 
     def test_can_output_sql_date(self):
-        field_format = fields.DateTimeFieldFormat("x", True, None, "YYYY-MM-DD", _anyFormat)
+        field_format = fields.DateTimeFieldFormat("x", True, None, "YYYY-MM-DD", _ANY_FORMAT)
         self.assertEqual(field_format.as_sql(fields.MSSQL)[0], "x DATE")
 
     def test_can_output_sql_time(self):
-        field_format = fields.DateTimeFieldFormat("x", True, None, "hh:mm:ss", _anyFormat)
+        field_format = fields.DateTimeFieldFormat("x", True, None, "hh:mm:ss", _ANY_FORMAT)
         self.assertEqual(field_format.as_sql(fields.MSSQL)[0], "x TIME")
 
     def test_can_output_sql_datetime(self):
-        field_format = fields.DateTimeFieldFormat("x", True, None, "YYYY:MM:DD hh:mm:ss", _anyFormat)
+        field_format = fields.DateTimeFieldFormat("x", True, None, "YYYY:MM:DD hh:mm:ss", _ANY_FORMAT)
         self.assertEqual(field_format.as_sql(fields.MSSQL)[0], "x DATETIME")
-        field_format = fields.DateTimeFieldFormat("x", True, None, "YY:MM:DD hh:mm:ss", _anyFormat)
+        field_format = fields.DateTimeFieldFormat("x", True, None, "YY:MM:DD hh:mm:ss", _ANY_FORMAT)
         self.assertEqual(field_format.as_sql(fields.MSSQL)[0], "x DATETIME")
 
     def test_can_output_sql_datetime_not_null(self):
-        field_format = fields.DateTimeFieldFormat("x", False, None, "YYYY:MM:DD hh:mm:ss", _anyFormat)
+        field_format = fields.DateTimeFieldFormat("x", False, None, "YYYY:MM:DD hh:mm:ss", _ANY_FORMAT)
         self.assertEqual(field_format.as_sql(fields.MSSQL)[0], "x DATETIME NOT NULL")
 
 
@@ -130,7 +130,7 @@ class DecimalFieldFormatTest(unittest.TestCase):
     Test for `DecimalFieldFormat`.
     """
     def test_valid_decimals(self):
-        field_format = fields.DecimalFieldFormat("x", False, None, "", _anyFormat)
+        field_format = fields.DecimalFieldFormat("x", False, None, "", _ANY_FORMAT)
         self.assertEqual(decimal.Decimal("17.23"), field_format.validated("17.23"))
         self.assertEqual(decimal.Decimal("17.123456789"), field_format.validated("17.123456789"))
 
@@ -144,7 +144,7 @@ class DecimalFieldFormatTest(unittest.TestCase):
         self.assertEqual(decimal.Decimal("171234567.89"), german_decimal_field_format.validated("171.234.567,89"))
 
     def test_broken_decimals(self):
-        field_format = fields.DecimalFieldFormat("x", False, None, "", _anyFormat)
+        field_format = fields.DecimalFieldFormat("x", False, None, "", _ANY_FORMAT)
         self.assertRaises(errors.FieldValueError, field_format.validated, "")
         self.assertRaises(errors.FieldValueError, field_format.validated, "eggs")
         self.assertRaises(errors.FieldValueError, field_format.validated, "12.345,678")
@@ -154,7 +154,7 @@ class DecimalFieldFormatTest(unittest.TestCase):
         self.assertRaises(errors.FieldValueError, german_format.validated, "12,345.678")
 
     def test_broken_decimal_syntax(self):
-        self.assertRaises(errors.InterfaceError, fields.DecimalFieldFormat, "x", False, None, "eggs", _anyFormat)
+        self.assertRaises(errors.InterfaceError, fields.DecimalFieldFormat, "x", False, None, "eggs", _ANY_FORMAT)
 
 
 class IntegerFieldFormatTest(unittest.TestCase):
@@ -162,39 +162,39 @@ class IntegerFieldFormatTest(unittest.TestCase):
     Tests  for `IntegerFieldFormat`.
     """
     def test_within_range(self):
-        field_format = fields.IntegerFieldFormat("x", False, None, "1:10", _anyFormat)
+        field_format = fields.IntegerFieldFormat("x", False, None, "1:10", _ANY_FORMAT)
         self.assertEquals(field_format.validated("1"), 1)
         self.assertEquals(field_format.validated("7"), 7)
         self.assertEquals(field_format.validated("10"), 10)
-        field_format = fields.IntegerFieldFormat("x", False, None, "123", _anyFormat)
+        field_format = fields.IntegerFieldFormat("x", False, None, "123", _ANY_FORMAT)
         self.assertEquals(field_format.validated("123"), 123)
 
     def test_too_small(self):
-        field_format = fields.IntegerFieldFormat("x", False, None, "1:10", _anyFormat)
+        field_format = fields.IntegerFieldFormat("x", False, None, "1:10", _ANY_FORMAT)
         self.assertRaises(errors.FieldValueError, field_format.validated, "0")
 
     def test_too_big(self):
-        field_format = fields.IntegerFieldFormat("x", False, None, "1:10", _anyFormat)
+        field_format = fields.IntegerFieldFormat("x", False, None, "1:10", _ANY_FORMAT)
         self.assertRaises(errors.FieldValueError, field_format.validated, "11")
 
     def test_no_number(self):
-        field_format = fields.IntegerFieldFormat("x", False, None, "1:10", _anyFormat)
+        field_format = fields.IntegerFieldFormat("x", False, None, "1:10", _ANY_FORMAT)
         self.assertRaises(errors.FieldValueError, field_format.validated, "abc")
 
     def test_as_icd_row(self):
-        field_format = fields.IntegerFieldFormat("x", False, None, "1:10", _anyFormat)
+        field_format = fields.IntegerFieldFormat("x", False, None, "1:10", _ANY_FORMAT)
         length = field_format.length
         items = length.items
         self.assertEquals(items, None)
         self.assertEquals(field_format.as_icd_row(), ["x", "", "", "", "Integer", "1:10"])
 
     def test_can_process_valid_example(self):
-        field_format = fields.IntegerFieldFormat("x", False, None, "1:10", _anyFormat)
+        field_format = fields.IntegerFieldFormat("x", False, None, "1:10", _ANY_FORMAT)
         field_format.example = "3"
         self.assertEqual(field_format.example, "3")
 
     def test_fails_on_invalid_example(self):
-        field_format = fields.IntegerFieldFormat("x", False, None, "1:10", _anyFormat)
+        field_format = fields.IntegerFieldFormat("x", False, None, "1:10", _ANY_FORMAT)
         try:
             field_format.example = "11"
         except errors.FieldValueError:
@@ -202,42 +202,42 @@ class IntegerFieldFormatTest(unittest.TestCase):
             pass
 
     def test_can_output_sql_default(self):
-        field_format = fields.IntegerFieldFormat("x", True, None, "", _anyFormat)
+        field_format = fields.IntegerFieldFormat("x", True, None, "", _ANY_FORMAT)
         column_def, constraint = field_format.as_sql(fields.MSSQL)
         # FIXME: self.assertEqual(column_def, "x INTEGER")
         self.assertEqual(constraint, "CONSTRAINT chk_x CHECK( ( x BETWEEN -2147483648 AND 2147483647 ) )")
 
     def test_can_output_sql_smallint_with_rule(self):
-        field_format = fields.IntegerFieldFormat("x", True, None, "1:10", _anyFormat)
+        field_format = fields.IntegerFieldFormat("x", True, None, "1:10", _ANY_FORMAT)
         self.assertEqual(field_format.as_sql(fields.MSSQL)[0], "x SMALLINT")
 
     def test_can_output_sql_smallint_with_range(self):
-        field_format = fields.IntegerFieldFormat("x", True, "1:3", "", _anyFormat)
+        field_format = fields.IntegerFieldFormat("x", True, "1:3", "", _ANY_FORMAT)
         self.assertEqual(field_format.as_sql(fields.MSSQL)[0], "x SMALLINT")
 
     def test_can_output_sql_integer_with_rule(self):
-        field_format = fields.IntegerFieldFormat("x", True, None, "1:" + str(10**6), _anyFormat)
+        field_format = fields.IntegerFieldFormat("x", True, None, "1:" + str(10 ** 6), _ANY_FORMAT)
         column_def, constraint = field_format.as_sql(fields.MSSQL)
         self.assertEqual(column_def, "x INTEGER")
-        self.assertEqual(constraint, "CONSTRAINT chk_x CHECK( ( x BETWEEN 1 AND " + str(10**6) + " ) )")
+        self.assertEqual(constraint, "CONSTRAINT chk_x CHECK( ( x BETWEEN 1 AND " + str(10 ** 6) + " ) )")
 
     def test_can_output_sql_integer_with_range(self):
-        field_format = fields.IntegerFieldFormat("x", True, "1:6", "", _anyFormat)
+        field_format = fields.IntegerFieldFormat("x", True, "1:6", "", _ANY_FORMAT)
         column_def, constraint = field_format.as_sql(fields.MSSQL)
         self.assertEqual(column_def, "x INTEGER")
         self.assertEqual(constraint, "CONSTRAINT chk_x CHECK( ( x BETWEEN -2147483648 AND 2147483647 ) )")
 
     def test_can_output_sql_bigint_with_range(self):
-        field_format = fields.IntegerFieldFormat("x", True, "1:10", "", _anyFormat)
+        field_format = fields.IntegerFieldFormat("x", True, "1:10", "", _ANY_FORMAT)
         column_def, constraint = field_format.as_sql(fields.MSSQL)
         self.assertEqual(column_def, "x BIGINT")
         self.assertEqual(constraint, "CONSTRAINT chk_x CHECK( ( x BETWEEN -2147483648 AND 2147483647 ) )")
 
     def test_can_output_sql_bigint_with_rule(self):
-        field_format = fields.IntegerFieldFormat("x", True, None, "1:" + str(10**10), _anyFormat)
+        field_format = fields.IntegerFieldFormat("x", True, None, "1:" + str(10 ** 10), _ANY_FORMAT)
         column_def, constraint = field_format.as_sql(fields.MSSQL)
         self.assertEqual(column_def, "x BIGINT")
-        self.assertEqual(constraint, "CONSTRAINT chk_x CHECK( ( x BETWEEN 1 AND " + str(10**10) + " ) )")
+        self.assertEqual(constraint, "CONSTRAINT chk_x CHECK( ( x BETWEEN 1 AND " + str(10 ** 10) + " ) )")
 
 
 class RegExFieldFormatTest(unittest.TestCase):
@@ -245,16 +245,16 @@ class RegExFieldFormatTest(unittest.TestCase):
     Tests  for `RegExFieldFormat`.
     """
     def test_match(self):
-        field_format = fields.RegExFieldFormat("x", False, None, r"a.*", _anyFormat)
+        field_format = fields.RegExFieldFormat("x", False, None, r"a.*", _ANY_FORMAT)
         self.assertEquals(field_format.validated("abc"), "abc")
 
     def test_no_match(self):
-        field_format = fields.RegExFieldFormat("x", False, None, r"a.*", _anyFormat)
+        field_format = fields.RegExFieldFormat("x", False, None, r"a.*", _ANY_FORMAT)
         self.assertRaises(errors.FieldValueError, field_format.validated, "xyz")
 
     def test_broken_regex(self):
         try:
-            fields.RegExFieldFormat("x", False, None, "*", _anyFormat)
+            fields.RegExFieldFormat("x", False, None, "*", _ANY_FORMAT)
             self.fail("broken pattern must raise error")
         except:
             # Ignore error caused by broken pattern. It would be better to use assertFails but
@@ -268,7 +268,7 @@ class ChoiceFieldFormatTest(unittest.TestCase):
     Tests  for `ChoiceFieldFormat`.
     """
     def test_matching_choice(self):
-        field_format = fields.ChoiceFieldFormat("color", False, None, "red,grEEn, blue ", _anyFormat)
+        field_format = fields.ChoiceFieldFormat("color", False, None, "red,grEEn, blue ", _ANY_FORMAT)
         self.assertEquals(field_format.validated("red"), "red")
         # Value without blanks around it.
         self.assertEquals(field_format.validated("grEEn"), "grEEn")
@@ -279,50 +279,50 @@ class ChoiceFieldFormatTest(unittest.TestCase):
         self.assertRaises(errors.FieldValueError, field_format.validated, "")
 
     def test_improper_choice(self):
-        field_format = fields.ChoiceFieldFormat("color", False, None, "red,green, blue ", _anyFormat)
+        field_format = fields.ChoiceFieldFormat("color", False, None, "red,green, blue ", _ANY_FORMAT)
         self.assertRaises(errors.FieldValueError, field_format.validated, "tree")
 
     def test_matching_only_choice(self):
-        field_format = fields.ChoiceFieldFormat("color", False, None, "red", _anyFormat)
+        field_format = fields.ChoiceFieldFormat("color", False, None, "red", _ANY_FORMAT)
         self.assertEquals(field_format.validated("red"), "red")
 
     def test_match_with_umlaut(self):
-        field_format = fields.ChoiceFieldFormat("geschlecht", False, None, "\"männlich\", \"weiblich\"", _anyFormat)
+        field_format = fields.ChoiceFieldFormat("geschlecht", False, None, "\"männlich\", \"weiblich\"", _ANY_FORMAT)
         self.assertEquals(field_format.validated("männlich"), "männlich")
         self.assertRaises(errors.FieldValueError, field_format.validated, "unbekannt")
 
     def test_possibly_empty_field_with_length(self):
-        field_format = fields.ChoiceFieldFormat("optional_color", True, ":5", "red, green, blue", _anyFormat)
+        field_format = fields.ChoiceFieldFormat("optional_color", True, ":5", "red, green, blue", _ANY_FORMAT)
         self.assertEquals(field_format.validated("red"), "red")
         self.assertEquals(field_format.validated(""), "")
 
     def test_broken_empty_choice(self):
-        self.assertRaises(errors.InterfaceError, fields.ChoiceFieldFormat, "color", False, None, "", _anyFormat)
-        self.assertRaises(errors.InterfaceError, fields.ChoiceFieldFormat, "color", False, None, " ", _anyFormat)
-        self.assertRaises(errors.InterfaceError, fields.ChoiceFieldFormat, "color", False, None, "red,", _anyFormat)
-        self.assertRaises(errors.InterfaceError, fields.ChoiceFieldFormat, "color", False, None, ",red", _anyFormat)
-        self.assertRaises(errors.InterfaceError, fields.ChoiceFieldFormat, "color", False, None, "red,,green", _anyFormat)
+        self.assertRaises(errors.InterfaceError, fields.ChoiceFieldFormat, "color", False, None, "", _ANY_FORMAT)
+        self.assertRaises(errors.InterfaceError, fields.ChoiceFieldFormat, "color", False, None, " ", _ANY_FORMAT)
+        self.assertRaises(errors.InterfaceError, fields.ChoiceFieldFormat, "color", False, None, "red,", _ANY_FORMAT)
+        self.assertRaises(errors.InterfaceError, fields.ChoiceFieldFormat, "color", False, None, ",red", _ANY_FORMAT)
+        self.assertRaises(errors.InterfaceError, fields.ChoiceFieldFormat, "color", False, None, "red,,green", _ANY_FORMAT)
 
     def test_can_output_sql_varchar(self):
-        field_format = fields.ChoiceFieldFormat("color", True, None, "red,grEEn, blue ", _anyFormat)
+        field_format = fields.ChoiceFieldFormat("color", True, None, "red,grEEn, blue ", _ANY_FORMAT)
         column_def, constraint = field_format.as_sql(fields.MSSQL)
         self.assertEqual(column_def, "color VARCHAR(5)")
         self.assertEqual(constraint, "CONSTRAINT chk_color CHECK( color IN ['red','grEEn','blue'] )")
 
     def test_can_output_sql_smallint(self):
-        field_format = fields.ChoiceFieldFormat("color", True, None, "1,2, 3 ", _anyFormat)
+        field_format = fields.ChoiceFieldFormat("color", True, None, "1,2, 3 ", _ANY_FORMAT)
         column_def, constraint = field_format.as_sql(fields.MSSQL)
         self.assertEqual(column_def, "color SMALLINT")
         self.assertEqual(constraint, "CONSTRAINT chk_color CHECK( color IN [1,2,3] )")
 
     def test_can_output_sql_integer(self):
-        field_format = fields.ChoiceFieldFormat("color", True, None, "1000000,2, 3 ", _anyFormat)
+        field_format = fields.ChoiceFieldFormat("color", True, None, "1000000,2, 3 ", _ANY_FORMAT)
         column_def, constraint = field_format.as_sql(fields.MSSQL)
         self.assertEqual(column_def, "color INTEGER")
         self.assertEqual(constraint, "CONSTRAINT chk_color CHECK( color IN [1000000,2,3] )")
 
     def test_can_output_sql_bigint(self):
-        field_format = fields.ChoiceFieldFormat("color", True, None, "10000000000,2, 3 ", _anyFormat)
+        field_format = fields.ChoiceFieldFormat("color", True, None, "10000000000,2, 3 ", _ANY_FORMAT)
         column_def, constraint = field_format.as_sql(fields.MSSQL)
         self.assertEqual(column_def, "color BIGINT")
         self.assertEqual(constraint, "CONSTRAINT chk_color CHECK( color IN [10000000000,2,3] )")
@@ -333,18 +333,18 @@ class PatternFieldFormatTest(unittest.TestCase):
     Tests for `PatternFieldFormat`.
     """
     def test_can_accept_value_matching_pattern(self):
-        field_format = fields.PatternFieldFormat("x", False, None, "h*g?", _anyFormat)
+        field_format = fields.PatternFieldFormat("x", False, None, "h*g?", _ANY_FORMAT)
         self.assertEquals(field_format.validated("hgo"), "hgo")
         self.assertEquals(field_format.validated("hugo"), "hugo")
         self.assertEquals(field_format.validated("huuuuga"), "huuuuga")
 
     def test_fails_on_value_not_matching_pattern(self):
-        field_format = fields.PatternFieldFormat("x", False, None, "h*g?", _anyFormat)
+        field_format = fields.PatternFieldFormat("x", False, None, "h*g?", _ANY_FORMAT)
         self.assertRaises(errors.FieldValueError, field_format.validated, "")
         self.assertRaises(errors.FieldValueError, field_format.validated, "hang")
 
     def test_can_output_sql_without_range(self):
-        field_format = fields.PatternFieldFormat("x", False, None, "h*g?", _anyFormat)
+        field_format = fields.PatternFieldFormat("x", False, None, "h*g?", _ANY_FORMAT)
         column_def, constraint = field_format.as_sql(fields.MSSQL)
         self.assertEqual(column_def, "x VARCHAR(255) NOT NULL")
         self.assertEqual(constraint, "CONSTRAINT chk_x_pattern CHECK (x like 'h*g?')")

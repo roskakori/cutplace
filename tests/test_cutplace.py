@@ -24,7 +24,6 @@ import logging
 import os
 import unittest
 
-from cutplace import errors
 from cutplace import _cutplace
 from tests import dev_test
 from tests import _ods

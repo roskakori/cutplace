@@ -134,6 +134,7 @@ class AbstractCheck(object):
         """
         raise NotImplementedError
 
+
 class IsUniqueCheck(AbstractCheck):
     """
     Check to ensure that all rows are unique concerning certain key fields.
