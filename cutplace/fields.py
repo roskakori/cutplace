@@ -185,36 +185,6 @@ class AbstractFieldFormat(object):
             result = self.empty_value
         return result
 
-    def as_icd_row(self):
-        """
-        The description of the field format as row that can be written to an ICD except for the
-        leading row mark "f".
-        """
-        if self.example is not None:
-            example_text = self.example
-        else:
-            example_text = ""
-        if self.is_allowed_to_be_empty:
-            is_allowed_to_be_empty_mark = "X"
-        else:
-            is_allowed_to_be_empty_mark = ""
-        if self.length.items:
-            length_text = str(self._length)
-        else:
-            length_text = ""
-        field_type_name = self.__class__.__name__
-        assert field_type_name.endswith(_FieldFormatClassSuffix), "field_type_name=%r" % field_type_name
-        field_type_name = field_type_name[:len(field_type_name) - len(_FieldFormatClassSuffix)]
-        result = [
-            self._field_name,
-            example_text,
-            is_allowed_to_be_empty_mark,
-            length_text,
-            field_type_name,
-            self._rule,
-        ]
-        return result
-
     def as_sql(self, db):
         """
         The information of the field will be converted to a column definition in an sql create table statement

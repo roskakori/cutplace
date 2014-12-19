@@ -181,13 +181,6 @@ class IntegerFieldFormatTest(unittest.TestCase):
         field_format = fields.IntegerFieldFormat("x", False, None, "1:10", _ANY_FORMAT)
         self.assertRaises(errors.FieldValueError, field_format.validated, "abc")
 
-    def test_as_icd_row(self):
-        field_format = fields.IntegerFieldFormat("x", False, None, "1:10", _ANY_FORMAT)
-        length = field_format.length
-        items = length.items
-        self.assertEquals(items, None)
-        self.assertEquals(field_format.as_icd_row(), ["x", "", "", "", "Integer", "1:10"])
-
     def test_can_process_valid_example(self):
         field_format = fields.IntegerFieldFormat("x", False, None, "1:10", _ANY_FORMAT)
         field_format.example = "3"
