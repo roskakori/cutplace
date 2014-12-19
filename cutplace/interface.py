@@ -161,13 +161,15 @@ class Cid(object):
         return self._create_class(self._check_name_to_class_map, check_type, "Check", "check")
 
     def read(self, source_path, rows):
+        assert self.data_format is None, 'CID must be read only once'
+
         # TODO: Detect format and use proper reader.
         self._location = errors.Location(source_path, has_cell=True)
         if self._cid_path is None:
             self._cid_path = source_path
         for row in rows:
             if row:
-                row_type = row[0].lower()
+                row_type = row[0].lower().strip()
                 row_data = (row[1:] + [''] * 6)[:6]
                 if row_type == 'd':
                     name, value = row_data[:2]
@@ -188,6 +190,10 @@ class Cid(object):
                     raise errors.InterfaceError(
                         'CID row type is "%s" but must be empty or one of: C, D, or F' % row_type, self._location)
             self._location.advance_line()
+        if self.data_format is None:
+            raise errors.InterfaceError('data format must be specified', self._location)
+        if len(self.field_names) == 0 is None:
+            raise errors.InterfaceError('fields must be specified', self._location)
 
     def add_field_format(self, items):
         """
@@ -429,12 +435,12 @@ class Cid(object):
     def check_for(self, check_name):
         """
         The `checks.AbstractCheck` for ``check_name``. If no such check has been defined,
-        raise a ``KeyError`` .
+        raise a `KeyError`.
         """
         assert check_name is not None
         return self._check_name_to_check_map[check_name]
 
-    def as_sql(self,db):
+    def as_sql(self, db):
         create_table = "CREATE TABLE " + self._cid_path + " ("
         constraints = ""
 
@@ -446,7 +452,7 @@ class Cid(object):
 
         # get constraints for all checks
         for i in range(len(self._check_names)):
-            constraints += "CONSTRAINT " + self._check_names[i] + self.check_map[self._check_names[i]]+ ",\n"
+            constraints += "CONSTRAINT " + self._check_names[i] + self.check_map[self._check_names[i]] + ",\n"
 
         create_table += constraints
 

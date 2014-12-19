@@ -58,7 +58,7 @@ class CidTest(unittest.TestCase):
             ['d', '', ''],
         ])
 
-    def test_fails_on_missing_data_format_value_name(self):
+    def test_fails_on_missing_data_format_property_value(self):
         cid_reader = interface.Cid()
         self.assertRaises(errors.InterfaceError, cid_reader.read, 'inline', [
             ['d', 'format', 'delimited'],
@@ -143,19 +143,36 @@ class CidTest(unittest.TestCase):
         self.assertTrue(isinstance(cid_reader.field_format_at(4), fields.DecimalFieldFormat))
 
     def test_fails_on_empty_field_name(self):
-        cid_reader = interface.Cid()
-        self.assertRaises(errors.InterfaceError, cid_reader.read, 'inline', [
-            ['d', 'format', 'delimited'],
-            ['f', '', '38000', '', '5']])
+        cid_to_read = interface.Cid()
+        self.assertRaises(
+            errors.InterfaceError, cid_to_read.read, 'inline', [
+                ['d', 'format', 'delimited'],
+                ['f', '', '38000', '', '5']
+            ])
 
-    def test_fails_on_invalid_field_name(self):
-        cid_reader = interface.Cid()
-        self.assertRaises(errors.InterfaceError, cid_reader.read, 'inline', [
-            ['d', 'format', 'delimited'],
-            ['f', '3', '38000', '', '5']])
-        self.assertRaises(errors.InterfaceError, cid_reader.read, 'inline', [
-            ['d', 'format', 'delimited'],
-            ['f', '%', '38000', '', '5']])
+    def test_fails_on_numeric_field_name(self):
+        cid_to_read = interface.Cid()
+        self.assertRaises(
+            errors.InterfaceError, cid_to_read.read, 'inline', [
+                ['d', 'format', 'delimited'],
+                ['f', '3', '38000', '', '5']
+            ])
+
+    def test_fails_on_special_character_as_field_name(self):
+        cid_to_read = interface.Cid()
+        self.assertRaises(
+            errors.InterfaceError, cid_to_read.read, 'inline', [
+                ['d', 'format', 'delimited'],
+                ['f', '%', '38000', '', '5']
+            ])
+
+    def test_fails_on_python_keyword_as_field_name(self):
+        cid_to_read = interface.Cid()
+        self.assertRaises(
+            errors.InterfaceError, cid_to_read.read, 'inline', [
+                ['d', 'format', 'delimited'],
+                ['f', 'class', '38000', '', '5']
+            ])
 
     def test_can_read_delimited_rows(self):
         cid_reader = interface.Cid()
@@ -180,11 +197,38 @@ class CidTest(unittest.TestCase):
 
     def test_can_be_rendered_as_str(self):
         customers_cid_path = dev_test.path_to_test_cid("customers.xls")
-        customers_cid = cid.Cid(customers_cid_path)
+        customers_cid = interface.Cid(customers_cid_path)
         cid_str = str(customers_cid)
         self.assertTrue('Cid' in cid_str)
         self.assertTrue(data.FORMAT_DELIMITED in cid_str)
         self.assertTrue(customers_cid.field_names[0] in cid_str)
+
+    def _create_cid_from_string(self, cid_text):
+        with io.StringIO(cid_text) as cid_string_io:
+            result = interface.Cid(cid_string_io)
+        return result
+
+    def test_can_create_cid_from_text(self):
+        cid_text = '\n'.join([
+            ',Example CID as CSV from a string',
+            'D,Format,%s' % data.FORMAT_DELIMITED,
+            ' ,Name         ,,,Length,Type    ,Rule',
+            'F,name         ,,,...50',
+            'F,height       ,,,      ,Decimal',
+            'F,date_of_birth,,,      ,DateTime,YYYY-MM-DD',
+        ])
+        cid_from_text = self._create_cid_from_string(cid_text)
+        self.assertEqual(data.FORMAT_DELIMITED, cid_from_text.data_format.format)
+
+    def test_fails_on_broken_cid_from_text(self):
+        cid_text = '\n'.join([
+            ',Example CID as CSV from a string',
+            'D,Format,no_such_format',
+        ])
+        self.assertRaises(errors.InterfaceError, self._create_cid_from_string, cid_text)
+
+    def test_fails_on_empty_cid_from_text(self):
+        self.assertRaises(errors.InterfaceError, self._create_cid_from_string, '')
 
 
 if __name__ == '__main__':

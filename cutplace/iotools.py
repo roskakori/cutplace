@@ -15,15 +15,14 @@ Various internal utility functions.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import csv
+import datetime
 import io
 import os
-import sys
 import six
-import csv
 import xlrd
 import zipfile
 from xml.etree import ElementTree
-import datetime
 
 from cutplace import data
 from cutplace import errors
@@ -133,18 +132,7 @@ def _raise_delimited_data_format_error(delimited_path, reader, error):
         location.advance_line(line_number)
     raise errors.DataFormatError('cannot parse delimited file: %s' % error, location)
 
-if sys.version_info[0] >= 3:
-    # Read CSV using Python 3.
-    def _delimited_rows(delimited_path, encoding, **keywords):
-        with io.open(delimited_path, 'r', newline='', encoding=encoding) as delimited_file:
-            csv_reader = csv.reader(delimited_file, **keywords)
-            try:
-                for row in csv_reader:
-                    yield row
-            except csv.Error as error:
-                _raise_delimited_data_format_error(delimited_path, csv_reader, error)
-
-else:  # pragma: no cover
+if six.PY2:  # pragma: no cover
     # Read CSV using Python 2.6+.
     #
     # Note: _UTF8Recoder and _UnicodeReader are derived from <https://docs.python.org/2/library/csv.html#examples>.
@@ -193,18 +181,22 @@ else:  # pragma: no cover
         return dict((key, value if not isinstance(value, six.text_type) else str(value))
                     for key, value in key_to_value_map.items())
 
-    def _delimited_rows(delimited_path, encoding, **keywords):
-        with io.open(delimited_path, 'rb') as delimited_file:
-            str_keywords = _key_to_str_value_map(keywords)
-            unicode_csv_reader = _UnicodeReader(delimited_file, encoding=encoding, **str_keywords)
-            try:
-                for row in unicode_csv_reader:
-                    yield row
-            except csv.Error as error:
-                _raise_delimited_data_format_error(delimited_path, unicode_csv_reader.reader, error)
+    def _delimited_reader(delimited_file, encoding, **keywords):
+        """
+        Similar to `csv.reader` but with support for unicode.
+        """
+        str_keywords = _key_to_str_value_map(keywords)
+        return _UnicodeReader(delimited_file, encoding=encoding, **str_keywords)
 
 
-def delimited_rows(delimited_path, data_format):
+def delimited_rows(delimited_source, data_format):
+    """
+    Rows in ``delimited_source`` with using ``data_format``. In case
+    ``data_source`` is a string, it is considered a path to file which
+    is automatically opened and closed in oder to retrieve the data.
+    Otherwise ``data_source`` is considered to be a filelike object that
+    can be read directly and is be opened and closed by the caller.
+    """
     if data_format.escape_character == data_format.quote_character:
         doublequote = False
         escapechar = None
@@ -212,13 +204,36 @@ def delimited_rows(delimited_path, data_format):
         doublequote = True
         escapechar = data_format.escape_character
 
-    # HACK: Ignore DataFormat.line_delimiter because at least until Python 3.4 csv.reader ignores it anyway.
-    csv_reader = _delimited_rows(
-        delimited_path, encoding=data_format.encoding, delimiter=data_format.item_delimiter, doublequote=doublequote,
-        escapechar=escapechar, quotechar=data_format.quote_character, skipinitialspace=data_format.skip_initial_space,
-        strict=True)
-    for row in csv_reader:
-        yield row
+    if isinstance(delimited_source, six.string_types):
+        is_opened = True
+        if six.PY2:
+            delimited_file = io.open(delimited_source, 'rb')
+        else:
+            delimited_file = io.open(delimited_source, 'r', newline='', encoding=data_format.encoding)
+    else:
+        is_opened = False
+        delimited_file = delimited_source
+    keywords = {
+        'delimiter': data_format.item_delimiter,
+        'doublequote': doublequote,
+        'escapechar': escapechar,
+        'quotechar': data_format.quote_character,
+        'skipinitialspace': data_format.skip_initial_space,
+        'strict': True,
+    }
+    try:
+        if six.PY2:
+            delimited_reader = _delimited_reader(delimited_file, data_format.encoding, **keywords)
+        else:
+            delimited_reader = csv.reader(delimited_file, **keywords)
+        try:
+            for row in delimited_reader:
+                yield row
+        except csv.Error as error:
+            _raise_delimited_data_format_error(delimited_source, delimited_reader, error)
+    finally:
+        if is_opened:
+            delimited_file.close()
 
 
 def ods_rows(source_ods_path, sheet=1):
@@ -376,18 +391,27 @@ def fixed_rows(fixed_path, encoding, field_name_and_lengths, line_delimiter='any
                 location.advance_line()
 
 
-def auto_rows(source_path):
+def auto_rows(source):
     """
-    Determine basic data format of `source_path` based on heuristics and return its contents.
+    Determine basic data format of `source` based on heuristics and return its contents.
+    If source is a string, it is considered a path to a file, otherwise assume it is a
+    filelike object providing a ``read()`` method.
     """
-    suffix = os.path.splitext(source_path)[1].lstrip('.').lower()
-    if suffix == 'ods':
-        result = ods_rows(source_path)
-    elif suffix in ('xls', 'xlsx'):
-        result = excel_rows(source_path)
-    else:
+    result = None
+    if isinstance(source, six.string_types):
+        suffix = os.path.splitext(source)[1].lstrip('.').lower()
+        if suffix == 'ods':
+            result = ods_rows(source)
+        elif suffix in ('xls', 'xlsx'):
+            result = excel_rows(source)
+    elif isinstance(source, io.BytesIO):
+        # TODO: Assume ODS; cannot use XLS and XLSX (at least not without temp file) because the readers need a file.
+        raise NotImplementedError('ODS from io.BytesIO')
+    if result is None:
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
         # TODO: Determine delimiter by counting common delimiters with the first 4096 bytes and choosing the maximum one.
         delimited_format.set_property(data.KEY_ITEM_DELIMITER, ',')
-        result = delimited_rows(source_path, delimited_format)
+        delimited_format.validate()
+        result = delimited_rows(source, delimited_format)
+
     return result
