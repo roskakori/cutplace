@@ -53,9 +53,8 @@ class Cid(object):
         self._field_name_to_format_map = {}
         self._field_name_to_index_map = {}
         self._check_names = []
+        # TODO: Change to tuple(check_name, check).
         self._check_name_to_check_map = {}
-        self._validation_listeners = []
-        self._reset_counts()
         self._location = None
         self._check_name_to_class_map = self._create_name_to_class_map(checks.AbstractCheck)
         self._field_format_name_to_class_map = self._create_name_to_class_map(fields.AbstractFieldFormat)
@@ -99,12 +98,6 @@ class Cid(object):
         """List of check names in no particular order."""
         return self._check_name_to_check_map
 
-    def _reset_counts(self):
-        self.accepted_count = 0
-        self.rejected_count = 0
-        self.failed_checks_at_end_count = 0
-        self.passed_checks_at_end_count = 0
-
     def _class_info(self, some_class):
         assert some_class is not None
         qualified_name = some_class.__module__ + "." + some_class.__name__
@@ -127,7 +120,7 @@ class Cid(object):
                 clashing_class_info = self._class_info(clashing_class)
                 class_to_process_info = self._class_info(class_to_process)
                 if clashing_class_info == class_to_process_info:
-                    # HACK: Ignore duplicate classes. Such classes can occur after `importPlugins`
+                    # HACK: Ignore duplicate classes. Such classes can occur after `import_plugins`
                     # has been called more than once.
                     class_to_process = None
                 else:
