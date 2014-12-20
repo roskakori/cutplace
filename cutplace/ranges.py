@@ -184,6 +184,22 @@ class Range(object):
         """
         return self._items
 
+    @property
+    def min(self):
+        """
+        The minimum value of all items in the list
+        """
+
+        return min([item[0] for item in self._items])
+
+    @property
+    def max(self):
+        """
+        The maximum value of all items in the list
+        """
+
+        return max([item[1] for item in self._items])
+
     def _repr_item(self, item):
         """
         Human readable description of a range item.

@@ -430,21 +430,17 @@ class RegExFieldFormat(AbstractFieldFormat):
         return value
 
     def as_sql(self, db):
-        column_def = ""
         constraint = ""
 
         if self._length.items is not None:
-            column_def = self._field_name + " VARCHAR(" + str(self._length.items[0][1]) + ")"
-            constraint += "CONSTRAINT chk_" + self._field_name + "_len CHECK (len(" + self._field_name + " >= " \
-                          + str(self._length.items[0][0]) + ")) "
+            column_def = self._field_name + " varchar(" + str(self._length.max) + ")"
+            constraint = "constraint chk_" + self._field_name + " check (length(" + self._field_name + " >= " + \
+                         str(self._length.min) + "))"
         else:
-            column_def = self._field_name + " VARCHAR(255)"
+            column_def = self._field_name + " varchar(255)"
 
         if not self.is_allowed_to_be_empty:
-            column_def += " NOT NULL"
-
-        constraint += "CONSTRAINT chk_" + self._field_name + "_regex CHECK (" + self._field_name + " like '" \
-                      + str(self.regex.pattern) + "')"
+            column_def += " not null"
 
         return [column_def, constraint]
 
@@ -468,21 +464,17 @@ class PatternFieldFormat(AbstractFieldFormat):
         return value
 
     def as_sql(self, db):
-        column_def = ""
         constraint = ""
 
         if self._length.items is not None:
-            column_def = self._field_name + " VARCHAR(" + str(max([item[1] for item in self._length.items])) + ")"
-            constraint += "CONSTRAINT chk_" + self._field_name + "_len CHECK (len(" + self._field_name + " >= " \
-                          + str(self._length.items[0][0]) + ")) "
+            column_def = self._field_name + " varchar(" + str(self._length.max) + ")"
+            constraint = "constraint chk_" + self._field_name + " check (length(" + self._field_name + " >= " + \
+                         str(self._length.min) + "))"
         else:
-            column_def = self._field_name + " VARCHAR(255)"
+            column_def = self._field_name + " varchar(255)"
 
         if not self.is_allowed_to_be_empty:
-            column_def += " NOT NULL"
-
-        constraint += "CONSTRAINT chk_" + self._field_name + "_pattern CHECK (" + self._field_name + " like '" \
-                      + self._rule + "')"
+            column_def += " not null"
 
         return [column_def, constraint]
 
@@ -501,18 +493,17 @@ class TextFieldFormat(AbstractFieldFormat):
         return value
 
     def as_sql(self, db):
-        column_def = ""
         constraint = ""
 
         if self._length.items is not None:
-            column_def = self._field_name + " VARCHAR(" + str(max([item[1] for item in self._length.items])) + ")"
-            constraint = "CONSTRAINT chk_" + self._field_name + " CHECK (len(" + self._field_name + " >= " + \
-                         str(self._length.items[0][0]) + "))"
+            column_def = self._field_name + " varchar(" + str(self._length.max) + ")"
+            constraint = "constraint chk_" + self._field_name + " check (length(" + self._field_name + " >= " + \
+                         str(self._length.min) + "))"
         else:
-            column_def = self._field_name + " VARCHAR(255)"
+            column_def = self._field_name + " varchar(255)"
 
         if not self.is_allowed_to_be_empty:
-            column_def += " NOT NULL"
+            column_def += " not null"
 
         return [column_def, constraint]
 
