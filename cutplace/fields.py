@@ -442,7 +442,7 @@ class RegExFieldFormat(AbstractFieldFormat):
         if not self.is_allowed_to_be_empty:
             column_def += " not null"
 
-        return [column_def, constraint]
+        return column_def, constraint
 
 
 class PatternFieldFormat(AbstractFieldFormat):
@@ -476,7 +476,7 @@ class PatternFieldFormat(AbstractFieldFormat):
         if not self.is_allowed_to_be_empty:
             column_def += " not null"
 
-        return [column_def, constraint]
+        return column_def, constraint
 
 
 class TextFieldFormat(AbstractFieldFormat):
@@ -505,7 +505,7 @@ class TextFieldFormat(AbstractFieldFormat):
         if not self.is_allowed_to_be_empty:
             column_def += " not null"
 
-        return [column_def, constraint]
+        return column_def, constraint
 
 
 def get_field_name_index(supposed_field_name, available_field_names):

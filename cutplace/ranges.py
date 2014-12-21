@@ -63,6 +63,8 @@ class Range(object):
             # Use empty ranges.
             self._description = None
             self._items = None
+            self._lower_limit = None
+            self._upper_limit = None
         else:
             self._description = text
             self._items = []
@@ -168,6 +170,18 @@ class Range(object):
                 if _tools.is_eof_token(next_token):
                     end_reached = True
 
+            self._lower_limit = None
+            self._upper_limit = None
+
+            for item in self._items:
+                if item[0] is not None:
+                    if self._lower_limit is None or item[0] < self._lower_limit:
+                        self._lower_limit = item[0]
+
+                if item[1] is not None:
+                    if self._upper_limit is None or item[1] > self._upper_limit:
+                        self._upper_limit = item[1]
+
     @property
     def description(self):
         """
@@ -185,20 +199,20 @@ class Range(object):
         return self._items
 
     @property
-    def min(self):
+    def lower_limit(self):
         """
         The minimum value of all items in the list
         """
 
-        return min([item[0] for item in self._items])
+        return self._lower_limit
 
     @property
-    def max(self):
+    def upper_limit(self):
         """
         The maximum value of all items in the list
         """
 
-        return max([item[1] for item in self._items])
+        return self._upper_limit
 
     def _repr_item(self, item):
         """

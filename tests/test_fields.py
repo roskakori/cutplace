@@ -339,8 +339,8 @@ class PatternFieldFormatTest(unittest.TestCase):
     def test_can_output_sql_without_range(self):
         field_format = fields.PatternFieldFormat("x", False, None, "h*g?", _ANY_FORMAT)
         column_def, constraint = field_format.as_sql(fields.MSSQL)
-        self.assertEqual(column_def, "x VARCHAR(255) NOT NULL")
-        self.assertEqual(constraint, "CONSTRAINT chk_x_pattern CHECK (x like 'h*g?')")
+        self.assertEqual(column_def, "x varchar(255) not null")
+        self.assertEqual(constraint, "")
 
 
 if __name__ == '__main__':  # pragma: no cover
