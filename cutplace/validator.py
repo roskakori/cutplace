@@ -24,6 +24,7 @@ from six.moves import zip_longest
 
 from cutplace import data
 from cutplace import errors
+from cutplace import interface
 from cutplace import iotools
 
 
@@ -44,15 +45,17 @@ class Reader(object):
         self.rejected_rows_count = None
 
     def _raw_rows(self):
-        if self._cid.data_format.format == data.FORMAT_EXCEL:
-            return iotools.excel_rows(self._source_path, self._cid.data_format.sheet)
-        elif self._cid.data_format.format == data.FORMAT_DELIMITED:
-            return iotools.delimited_rows(self._source_path, self._cid.data_format)
-        elif self._cid.data_format.format == data.FORMAT_FIXED:
-            # TODO: implement support for fixed.
-            pass
-        elif self._cid.data_format.format == data.FORMAT_ODS:
-            return iotools.ods_rows(self._source_path, self._cid.data_format.sheet)
+        data_format = self._cid.data_format
+        if data_format.format == data.FORMAT_EXCEL:
+            return iotools.excel_rows(self._source_path, data_format.sheet)
+        elif data_format.format == data.FORMAT_DELIMITED:
+            return iotools.delimited_rows(self._source_path, data_format)
+        elif data_format.format == data.FORMAT_FIXED:
+            return iotools.fixed_rows(
+                self._source_path, data_format.encoding, interface.field_names_and_lengths(self._cid),
+                data_format.line_delimiter)
+        elif data_format.format == data.FORMAT_ODS:
+            return iotools.ods_rows(self._source_path, data_format.sheet)
 
     @property
     def source_path(self):
