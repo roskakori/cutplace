@@ -198,10 +198,10 @@ def delimited_rows(delimited_source, data_format):
     can be read directly and is be opened and closed by the caller.
     """
     if data_format.escape_character == data_format.quote_character:
-        doublequote = False
+        doublequote = True
         escapechar = None
     else:
-        doublequote = True
+        doublequote = False
         escapechar = data_format.escape_character
 
     if isinstance(delimited_source, six.string_types):

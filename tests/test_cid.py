@@ -16,13 +16,11 @@ Tests for `cid` module
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import io
 import unittest
 
 from cutplace import checks
@@ -196,11 +194,6 @@ class CidTest(unittest.TestCase):
         self.assertTrue(data.FORMAT_DELIMITED in cid_str)
         self.assertTrue(customers_cid.field_names[0] in cid_str)
 
-    def _create_cid_from_string(self, cid_text):
-        with io.StringIO(cid_text) as cid_string_io:
-            result = interface.Cid(cid_string_io)
-        return result
-
     def test_can_create_cid_from_text(self):
         cid_text = '\n'.join([
             ',Example CID as CSV from a string',
@@ -210,7 +203,7 @@ class CidTest(unittest.TestCase):
             'F,height       ,,,      ,Decimal',
             'F,date_of_birth,,,      ,DateTime,YYYY-MM-DD',
         ])
-        cid_from_text = self._create_cid_from_string(cid_text)
+        cid_from_text = interface.create_cid_from_string(cid_text)
         self.assertEqual(data.FORMAT_DELIMITED, cid_from_text.data_format.format)
 
     def test_fails_on_broken_cid_from_text(self):
@@ -218,10 +211,10 @@ class CidTest(unittest.TestCase):
             ',Example CID as CSV from a string',
             'D,Format,no_such_format',
         ])
-        self.assertRaises(errors.InterfaceError, self._create_cid_from_string, cid_text)
+        self.assertRaises(errors.InterfaceError, interface.create_cid_from_string, cid_text)
 
     def test_fails_on_empty_cid_from_text(self):
-        self.assertRaises(errors.InterfaceError, self._create_cid_from_string, '')
+        self.assertRaises(errors.InterfaceError, interface.create_cid_from_string, '')
 
 
 if __name__ == '__main__':

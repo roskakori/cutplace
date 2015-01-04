@@ -20,6 +20,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import io
 import unittest
 
 from cutplace import interface
@@ -33,6 +34,7 @@ class ValidatorTest(unittest.TestCase):
     """
     Tests for data formats.
     """
+    # TODO: Cleanup: rename all the ``cid_reader`` variables to ``cid``.
     _TEST_ENCODING = "cp1252"
 
     def test_can_open_and_validate_csv_source_file(self):
@@ -107,3 +109,23 @@ class ValidatorTest(unittest.TestCase):
 
         reader = validator.Reader(cid_reader, dev_test.path_to_test_data("broken_customers_with_too_many_branches.csv"))
         self.assertRaises(errors.CheckError, reader.validate)
+
+    def test_can_process_escape_character(self):
+        """
+        Regression test for #49: Fails when last char of field is escaped.
+        """
+        cid_text = '\n'.join([
+            'd,format,delimited',
+            'd,line delimiter,lf',
+            'd,encoding,ascii',
+            'd,quote character,""""',
+            'd,escape character,"\\"',
+            'f,some_fields'
+        ])
+        cid = interface.create_cid_from_string(cid_text)
+        with io.StringIO('"\\"x"\n') as data_starting_with_escape_character:
+            reader = validator.Reader(cid, data_starting_with_escape_character)
+            reader.validate()
+        with io.StringIO('"x\\""\n') as data_ending_with_escape_character:
+            reader = validator.Reader(cid, data_ending_with_escape_character)
+            reader.validate()

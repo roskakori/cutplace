@@ -23,6 +23,7 @@ from __future__ import unicode_literals
 import glob
 import imp  # TODO: deprecated; with Python 3, use importlib.
 import inspect
+import io
 import logging
 import os.path
 
@@ -451,6 +452,15 @@ class Cid(object):
 
         create_table += ");"
         return create_table
+
+
+def create_cid_from_string(cid_text):
+    """
+    A `Cid` as described in ``cid_text`` using CSV format (factory function).
+    """
+    with io.StringIO(cid_text) as cid_string_io:
+        result = Cid(cid_string_io)
+    return result
 
 
 def field_names_and_lengths(fixed_cid):
