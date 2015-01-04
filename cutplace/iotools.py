@@ -30,7 +30,7 @@ from cutplace import _tools
 
 # Valid line delimiters for  `fixed_rows()`.
 _VALID_FIXED_ANY_LINE_DELIMITERS = ('\n', '\r', '\r\n')
-_VALID_FIXED_LINE_DELIMITERS = _VALID_FIXED_ANY_LINE_DELIMITERS + ('any', None)
+_VALID_FIXED_LINE_DELIMITERS = data.LINE_DELIMITER_TO_TEXT_MAP.keys()
 
 # Namespaces used by OpenOffice.org documents.
 _OOO_NAMESPACES = {
@@ -302,16 +302,16 @@ def ods_rows(source_ods_path, sheet=1):
         location.advance_line()
 
 
-def fixed_rows(fixed_path, encoding, field_name_and_lengths, line_delimiter='any'):
+def fixed_rows(fixed_source, encoding, field_name_and_lengths, line_delimiter='any'):
     """
-    Rows found in file `fixed_path` using `encoding`. The name and (fixed)
+    Rows found in file `fixed_source` using `encoding`. The name and (fixed)
     length of the fields for each row are specified as a list of tuples
     `(name, length)`. Each row can end with a line feed unless
     `line_delimiter=None`. Valid values are: `'\n'`, `'\r'` and `'\r\n'`, in
     which case other values result in a `errors.DataFormatError`.
     Additionally `'any'` accepts any of the previous values.
     """
-    assert fixed_path is not None
+    assert fixed_source is not None
     assert encoding is not None
     for name, length in field_name_and_lengths:
         assert name is not None
@@ -319,7 +319,7 @@ def fixed_rows(fixed_path, encoding, field_name_and_lengths, line_delimiter='any
     assert line_delimiter in _VALID_FIXED_LINE_DELIMITERS, \
         'line_delimiter=%r but must be one of: %s' % (line_delimiter, _VALID_FIXED_LINE_DELIMITERS)
 
-    location = errors.Location(fixed_path, has_column=True)
+    location = errors.Location(fixed_source, has_column=True)
     fixed_file = None  # Predefine variable for access in local function.
 
     def _has_data_after_skipped_line_delimiter():
@@ -327,10 +327,10 @@ def fixed_rows(fixed_path, encoding, field_name_and_lengths, line_delimiter='any
         If `fixed_file` has data, assume they are a line delimiter as specified
         by `line_delimiter` and read and validate them.
 
-        In case `line_delimiter` is `None`, the result is
+        In case `line_delimiter` is `None`, the result is always ``True`` even
+        if the input has already reached its end.
         """
         assert location is not None
-        assert line_delimiter is not None  # `None` does not need any skipping.
         assert line_delimiter in _VALID_FIXED_LINE_DELIMITERS
 
         result = True
@@ -362,13 +362,25 @@ def fixed_rows(fixed_path, encoding, field_name_and_lengths, line_delimiter='any
                     'line delimiter is %r but must be %r' % (actual_line_delimiter, line_delimiter), location)
         return result
 
+    if isinstance(fixed_source, six.string_types):
+        fixed_file = io.open(fixed_source, 'r', encoding=encoding)
+        is_opened = True
+    else:
+        fixed_file = fixed_source
+        is_opened = False
+
     has_data = True
-    with io.open(fixed_path, 'r', encoding=encoding) as fixed_file:
+    try:
         while has_data:
             field_index = 0
             row = []
             for field_name, field_length in field_name_and_lengths:
                 item = fixed_file.read(field_length)
+                if not is_opened:
+                    # Ensure that the input is a text file, `io.StringIO` or something similar. Binary files,
+                    # `io.BytesIO` and the like cannot be used because the return bytes instead of strings.
+                    assert isinstance(item, six.text_type), \
+                        '%s: fixed_source must yield strings but got type %s, value %r' % (location, type(item), item)
                 item_length = len(item)
                 if item_length == 0:
                     if field_index > 0:
@@ -389,7 +401,9 @@ def fixed_rows(fixed_path, encoding, field_name_and_lengths, line_delimiter='any
             if len(row) > 0:
                 yield row
                 location.advance_line()
-
+    finally:
+        if is_opened:
+            fixed_file.close()
 
 def auto_rows(source):
     """

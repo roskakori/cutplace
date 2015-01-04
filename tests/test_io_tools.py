@@ -20,8 +20,10 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import io
 import unittest
 
+from cutplace import data
 from cutplace import interface
 from cutplace import errors
 from cutplace import iotools
@@ -110,6 +112,60 @@ class RowsTest(unittest.TestCase):
             next_row = rows[row_index + 1]
             self.assertNotEqual(0, len(row))
             self.assertEqual(len(row), len(next_row))
+
+    @staticmethod
+    def _create_fixed_data_format_and_fields_for_name_and_height():
+        """
+        A tuple of ``(data_format, field_names_and_lengths)`` that can be
+        passed to `iotools.fixed_rows()` and describes a fixed data format
+        with 2 fields ``name``  and ``size``.
+        """
+        data_format = data.DataFormat(data.FORMAT_FIXED)
+        field_names_and_lengths = (
+            ('name', 4),
+            ('size', 3),
+        )
+        return (data_format, field_names_and_lengths)
+
+    def _test_can_read_fixed_rows_from_stringio(self, data_text, data_format=None):
+        default_data_format, field_names_and_lengths =\
+            RowsTest._create_fixed_data_format_and_fields_for_name_and_height()
+        actual_data_format = default_data_format if data_format is None else data_format
+        actual_data_format.validate()
+        with io.StringIO(data_text) as data_io:
+            rows = list(iotools.fixed_rows(
+                data_io, actual_data_format.encoding, field_names_and_lengths, actual_data_format.line_delimiter))
+        self._assert_rows_contain_data(rows)
+        for row in rows:
+            for item in row:
+                self.assertTrue(item in data_text, 'item %r must be part of data %r' % (item, data_text))
+
+    def test_can_read_fixed_rows_with_any_line_delimiter(self):
+        data_format, _ = RowsTest._create_fixed_data_format_and_fields_for_name_and_height()
+        data_format.set_property('line_delimiter', 'any')
+        self._test_can_read_fixed_rows_from_stringio('hugo172\nsepp163\n', data_format)
+
+    def test_can_read_fixed_rows_with_crlf_line_delimiter_combinations(self):
+        base_data_text = 'hugo172\nsepp163\n'
+        for line_delimiter in ('\n', '\r', '\r\n'):
+            line_delimiter_text = data.LINE_DELIMITER_TO_TEXT_MAP[line_delimiter]
+            data_format, _ = RowsTest._create_fixed_data_format_and_fields_for_name_and_height()
+            data_format.set_property('line_delimiter', line_delimiter_text)
+            data_text = base_data_text.replace('\n', line_delimiter)
+            self._test_can_read_fixed_rows_from_stringio(data_text, data_format)
+
+    def test_can_read_fixed_rows_with_missing_terminating_line_delimiter(self):
+        data_format, field_names_and_lengths = RowsTest._create_fixed_data_format_and_fields_for_name_and_height()
+        data_format.set_property('line_delimiter', 'any')
+        data_format.validate()
+        with io.StringIO('hugo172\nsepp163') as data_io:
+            rows = list(iotools.fixed_rows(
+                data_io, data_format.encoding, field_names_and_lengths, data_format.line_delimiter))
+        self._assert_rows_contain_data(rows)
+        self.assertEqual(2, len(rows))
+
+    def test_can_read_fixed_rows_without_line_delimiter(self):
+        self._test_can_read_fixed_rows_from_stringio('hugo172sepp163')
 
     def test_can_auto_read_excel_rows(self):
         excel_path = dev_test.path_to_test_data('valid_customers.xls')

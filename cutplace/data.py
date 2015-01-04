@@ -35,35 +35,36 @@ CR = "cr"
 LF = "lf"
 CRLF = "crlf"
 
-
-_LINE_DELIMITER_TO_TEXT_MAP = {
+#: A mapping for internal line delimiters (e.g. '\n') to the textual
+#: representation in the CID (e.g. 'lf').
+#:
+#: Note: it would have been convenient to have keys with the same values as
+#: `io.open()`'s ``newline`` parameter. However, ``newline`` does not
+#: provide a value for "no newline" and already uses ``None`` to represent
+#: 'any'.
+LINE_DELIMITER_TO_TEXT_MAP = {
     ANY: ANY,
     "\n": LF,
     "\r": CR,
-    "\r\n": CRLF
+    "\r\n": CRLF,
+    # TODO: Change default of line_delimiter to 'any'.
+    # Consider that this requires the key for "no line delimiter" to be e.g. 'none' instead of ``None``.
+    None: 'none',
 }
+_TEXT_TO_LINE_DELIMITER_MAP = dict([(value, key) for key, value in LINE_DELIMITER_TO_TEXT_MAP.items()])
+assert len(LINE_DELIMITER_TO_TEXT_MAP) == len(_TEXT_TO_LINE_DELIMITER_MAP), \
+    'values in LINE_DELIMITER_TO_TEXT_MAP must be unique'
 
-
-# Build reverse mapping for `_LINE_DELIMITER_TO_TEXT_MAP`.
-_TEXT_TO_LINE_DELIMITER_MAP = {}
-for line_delimiter, line_delimiter_text in list(_LINE_DELIMITER_TO_TEXT_MAP.items()):
-    _TEXT_TO_LINE_DELIMITER_MAP[line_delimiter_text] = line_delimiter
-
-
-_VALID_LINE_DELIMITER_TEXTS = sorted(_LINE_DELIMITER_TO_TEXT_MAP.values())
-_VALID_LINE_DELIMITERS = sorted(_LINE_DELIMITER_TO_TEXT_MAP.keys())
 _VALID_QUOTE_CHARACTERS = ["\"", "\'"]
 _VALID_ESCAPE_CHARACTERS = ["\"", "\\"]
 _VALID_DECIMAL_SEPARATORS = [".", ","]
 _VALID_THOUSANDS_SEPARATORS = [",", ".", ""]
 _VALID_FORMATS = ['delimited', 'excel', 'fixed', 'ods']
 
-
 FORMAT_DELIMITED = "delimited"
 FORMAT_EXCEL = "excel"
 FORMAT_FIXED = "fixed"
 FORMAT_ODS = "ods"
-
 
 KEY_ALLOWED_CHARACTERS = "allowed_characters"
 KEY_ENCODING = "encoding"
@@ -106,6 +107,14 @@ class DataFormat(object):
                 self._thousands_separator = ''
             elif self.format in (FORMAT_EXCEL, FORMAT_ODS):
                 self._sheet = 1
+            if self.format in (FORMAT_DELIMITED, FORMAT_FIXED):
+                # Valid values for property 'line delimiter', which is only available for delimited and fixed data
+                # with no line delimiter only allowed for fixed data.
+                self._VALID_LINE_DELIMITER_TEXTS = sorted([
+                    line_delimiter_text
+                    for line_delimiter, line_delimiter_text in LINE_DELIMITER_TO_TEXT_MAP.items()
+                    if (line_delimiter is not None) or (self.format == FORMAT_FIXED)
+                ])
 
     @property
     def format(self):
@@ -167,6 +176,7 @@ class DataFormat(object):
             raise errors.InterfaceError(
                 'property %s for format %s must be one of %s'
                 % (name, self.format, valid_property_names), self._location)
+        # TODO: Use lower_value = value.lower() for KEY_LINE_DELIMITER and KEY_SKIP_INITIAL_SPACE.
 
         if name == KEY_ENCODING:
             try:
@@ -199,8 +209,8 @@ class DataFormat(object):
                 self._line_delimiter = _TEXT_TO_LINE_DELIMITER_MAP[value]
             except KeyError:
                 raise errors.InterfaceError(
-                    'line delimiter %s must be changed to one of: %s'
-                    % (value, _VALID_LINE_DELIMITER_TEXTS), self._location)
+                    'line delimiter %r must be changed to one of: %s'
+                    % (value, _tools.human_readable_list(self._VALID_LINE_DELIMITER_TEXTS)), self._location)
         elif name == KEY_QUOTE_CHARACTER:
             self._quote_character = self._validated_choice(KEY_QUOTE_CHARACTER, value, _VALID_QUOTE_CHARACTERS)
         elif name == KEY_THOUSANDS_SEPARATOR:
@@ -208,6 +218,7 @@ class DataFormat(object):
                 KEY_DECIMAL_SEPARATOR, value, _VALID_THOUSANDS_SEPARATORS)
         elif self.format == FORMAT_DELIMITED:
             if name == KEY_SKIP_INITIAL_SPACE:
+                # TODO: Cleanup: if lower_value == 'true': ...
                 if value in ('True', 'true'):
                     self._skip_initial_space = True
                 elif value in ('False', 'false'):
@@ -357,6 +368,8 @@ class DataFormat(object):
         """
         Validate that property values are consistent.
         """
+        # TODO: Remember locations where properties have been set.
+        # TODO: Add see_also_locations for contradicting properties.
         if self.format in (FORMAT_DELIMITED, FORMAT_FIXED):
             if self.decimal_separator == self.thousands_separator:
                 raise errors.InterfaceError('decimal separator and thousands separator must be different', self._location)
