@@ -22,6 +22,11 @@
     :target: https://landscape.io/github/roskakori/cutplace/master
     :alt: Code Health
 
-Cutplace is a tool to validate that data conform to an interface control document (ICD).
+Cutplace is a tool to validate that tabular data stored in CSV, Excel, ODS
+and PRN files conform to an interface definition (CID).
+
+Additionally, `cutplace` provides an easy to use API to read and write
+tabular data files using a common interface without having to deal with
+the intrinsic of data format specific modules.
 
 For more information, visit <http://roskakori.github.com/cutplace/>.

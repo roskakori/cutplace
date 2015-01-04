@@ -59,6 +59,14 @@ class ValidatorTest(unittest.TestCase):
         reader = validator.Reader(cid_reader, dev_test.path_to_test_data("valid_customers.ods"))
         reader.validate()
 
+    def test_can_open_and_validate_fixed_source_file(self):
+        cid_reader = interface.Cid()
+        source_path = dev_test.path_to_test_cid("customers_fixed.xls")
+        cid_reader.read(source_path, iotools.excel_rows(source_path))
+
+        reader = validator.Reader(cid_reader, dev_test.path_to_test_data("valid_customers_fixed.txt"))
+        reader.validate()
+
     def test_fails_on_invalid_csv_source_file(self):
         cid_reader = interface.Cid()
         source_path = dev_test.path_to_test_cid("icd_customers.xls")

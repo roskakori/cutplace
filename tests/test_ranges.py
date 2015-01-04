@@ -78,13 +78,20 @@ class RangeTest(unittest.TestCase):
         # self.assertEquals(ranges.Range("", "2...3").items, [None, (2, 3)])
         # self.assertEquals(ranges.Range("", "2...3").items, [(2, 3)])
 
-    def test_minimum_property(self):
-        self.assertEquals(ranges.Range("5...9").min, 5)
-        self.assertEquals(ranges.Range("1...2, 5...9").min, 1)
+    def test_can_get_lower_limit(self):
+        self.assertEquals(ranges.Range("5...9").lower_limit, 5)
+        self.assertEquals(ranges.Range("0...").lower_limit, 0)
+        self.assertEquals(ranges.Range("...0").lower_limit, None)
+        self.assertEquals(ranges.Range("...1, 3...").lower_limit, 3)
+        self.assertEquals(ranges.Range("5...9").lower_limit, 5)
+        self.assertEquals(ranges.Range("1...2, 5...9").lower_limit, 1)
 
-    def test_maximum_property(self):
-        self.assertEquals(ranges.Range("1...2").max, 2)
-        self.assertEquals(ranges.Range("1...2, 5...9").max, 9)
+    def test_can_get_upper_limit(self):
+        self.assertEquals(ranges.Range("1...2").upper_limit, 2)
+        self.assertEquals(ranges.Range("0...").upper_limit, None)
+        self.assertEquals(ranges.Range("...0").upper_limit, 0)
+        self.assertEquals(ranges.Range("...1, 3...").upper_limit, 1)
+        self.assertEquals(ranges.Range("1...2, 5...9").upper_limit, 9)
 
     def test_broken_overlapping_multi_range(self):
         self.assertRaises(errors.InterfaceError, ranges.Range, "1...5, 2...3")
