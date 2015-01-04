@@ -188,6 +188,12 @@ class DataFormat(object):
                 raise errors.InterfaceError(
                     'value for property %r must be a valid range: %s'
                     % (KEY_ALLOWED_CHARACTERS, error), self._location)
+        elif name == KEY_DECIMAL_SEPARATOR:
+            self._decimal_separator = self._validated_choice(KEY_DECIMAL_SEPARATOR, value, _VALID_DECIMAL_SEPARATORS)
+        elif name == KEY_ESCAPE_CHARACTER:
+            self._escape_character = self._validated_choice(KEY_ESCAPE_CHARACTER, value, _VALID_ESCAPE_CHARACTERS)
+        elif name == KEY_ITEM_DELIMITER:
+            self._item_delimiter = self._validated_character(KEY_ITEM_DELIMITER, value)
         elif name == KEY_LINE_DELIMITER:
             try:
                 self._line_delimiter = _TEXT_TO_LINE_DELIMITER_MAP[value]
@@ -195,25 +201,11 @@ class DataFormat(object):
                 raise errors.InterfaceError(
                     'line delimiter %s must be changed to one of: %s'
                     % (value, _VALID_LINE_DELIMITER_TEXTS), self._location)
-        elif name == KEY_ITEM_DELIMITER:
-            self._item_delimiter = self._validated_character(KEY_ITEM_DELIMITER, value)
-        elif name == KEY_DECIMAL_SEPARATOR:
-            self._decimal_separator = self._validated_choice(KEY_DECIMAL_SEPARATOR, value, _VALID_DECIMAL_SEPARATORS)
+        elif name == KEY_QUOTE_CHARACTER:
+            self._quote_character = self._validated_choice(KEY_QUOTE_CHARACTER, value, _VALID_QUOTE_CHARACTERS)
         elif name == KEY_THOUSANDS_SEPARATOR:
             self._thousands_separator = self._validated_choice(
                 KEY_DECIMAL_SEPARATOR, value, _VALID_THOUSANDS_SEPARATORS)
-        elif name == KEY_ESCAPE_CHARACTER:
-            self._escape_character = self._validated_choice(KEY_ESCAPE_CHARACTER, value, _VALID_ESCAPE_CHARACTERS)
-        elif name == KEY_QUOTE_CHARACTER:
-            self._quote_character = self._validated_choice(KEY_QUOTE_CHARACTER, value, _VALID_QUOTE_CHARACTERS)
-        elif self.format in (FORMAT_EXCEL, FORMAT_ODS):
-            assert name == KEY_SHEET, 'name=%r' % name
-            try:
-                self._sheet = int(value)
-            except ValueError:
-                raise errors.InterfaceError('sheet %s must be a number' % value, self._location)
-        elif self.format == FORMAT_FIXED:
-            self.__dict__[property_attribute_name] = value
         elif self.format == FORMAT_DELIMITED:
             if name == KEY_SKIP_INITIAL_SPACE:
                 if value in ('True', 'true'):
@@ -225,6 +217,14 @@ class DataFormat(object):
                         'skip initial space %s must be changed to one of: True, False' % value, self._location)
             else:
                 self.__dict__[property_attribute_name] = value
+        elif self.format in (FORMAT_EXCEL, FORMAT_ODS):
+            assert name == KEY_SHEET, 'name=%r' % name
+            try:
+                self._sheet = int(value)
+            except ValueError:
+                raise errors.InterfaceError('sheet %s must be a number' % value, self._location)
+        elif self.format == FORMAT_FIXED:
+            self.__dict__[property_attribute_name] = value
         else:
             assert False, 'name=%r' % name
 
@@ -355,18 +355,20 @@ class DataFormat(object):
 
     def validate(self):
         """
-        Validate necessary properties.
+        Validate that property values are consistent.
         """
-        if self.decimal_separator == self.thousands_separator:
-            raise errors.InterfaceError('decimal separator and thousands separator must be different', self._location)
-        if self.thousands_separator == self.item_delimiter:
-            raise errors.InterfaceError('thousands separator and item delimiter must be different', self._location)
-        if self.quote_character == self.item_delimiter:
-            raise errors.InterfaceError('quote character and item delimiter must be different', self._location)
-        if self.line_delimiter == self.item_delimiter:
-            raise errors.InterfaceError('line delimiter and item delimiter must be different', self._location)
-        if self.escape_character == self.item_delimiter:
-            raise errors.InterfaceError('escape character and item delimiter must be different', self._location)
+        if self.format in (FORMAT_DELIMITED, FORMAT_FIXED):
+            if self.decimal_separator == self.thousands_separator:
+                raise errors.InterfaceError('decimal separator and thousands separator must be different', self._location)
+        if self.format == FORMAT_DELIMITED:
+            if self.escape_character == self.item_delimiter:
+                raise errors.InterfaceError('escape character and item delimiter must be different', self._location)
+            if self.line_delimiter == self.item_delimiter:
+                raise errors.InterfaceError('line delimiter and item delimiter must be different', self._location)
+            if self.quote_character == self.item_delimiter:
+                raise errors.InterfaceError('quote character and item delimiter must be different', self._location)
+            if self.thousands_separator == self.item_delimiter:
+                raise errors.InterfaceError('thousands separator and item delimiter must be different', self._location)
         self._location = None
 
     def __str__(self):
@@ -377,13 +379,13 @@ class DataFormat(object):
             KEY_HEADER: self.header,
         }
         if self.format == FORMAT_DELIMITED:
+            key_to_value_map[KEY_ESCAPE_CHARACTER] = self.escape_character
             key_to_value_map[KEY_ITEM_DELIMITER] = self.item_delimiter
+            key_to_value_map[KEY_QUOTE_CHARACTER] = self.quote_character
             key_to_value_map[KEY_SKIP_INITIAL_SPACE] = self.skip_initial_space
         if self.format in (FORMAT_DELIMITED, FORMAT_FIXED):
             key_to_value_map[KEY_DECIMAL_SEPARATOR] = self.decimal_separator
-            key_to_value_map[KEY_ESCAPE_CHARACTER] = self.escape_character
             key_to_value_map[KEY_LINE_DELIMITER] = self.line_delimiter
-            key_to_value_map[KEY_QUOTE_CHARACTER] = self.quote_character
             key_to_value_map[KEY_THOUSANDS_SEPARATOR] = self.thousands_separator
         elif self.format in (FORMAT_EXCEL, FORMAT_ODS):
             key_to_value_map[KEY_SHEET] = self.sheet
