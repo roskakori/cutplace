@@ -157,15 +157,16 @@ class DataFormat(object):
 
     def set_property(self, name, value):
         """
-        Set the value of a data format property. In case the property or
+        Set data format property ``name`` to ``value``. In case the property or
         value cannot be processed, raise `errors.InterfaceError`.
         """
         name = name.replace(' ', '_')
-        varname = '_' + name
-        if varname not in self.__dict__:
+        property_attribute_name = '_' + name
+        if property_attribute_name not in self.__dict__:
+            valid_property_names = _tools.human_readable_list(list(self.__dict__.keys()))
             raise errors.InterfaceError(
                 'property %s for format %s must be one of %s'
-                % (name, self.format, _tools.human_readable_list(list(self.__dict__.keys()))), self._location)
+                % (name, self.format, valid_property_names), self._location)
 
         if name == KEY_ENCODING:
             try:
@@ -212,7 +213,7 @@ class DataFormat(object):
             except ValueError:
                 raise errors.InterfaceError('sheet %s must be a number' % value, self._location)
         elif self.format == FORMAT_FIXED:
-            self.__dict__[varname] = value
+            self.__dict__[property_attribute_name] = value
         elif self.format == FORMAT_DELIMITED:
             if name == KEY_SKIP_INITIAL_SPACE:
                 if value in ('True', 'true'):
@@ -223,7 +224,9 @@ class DataFormat(object):
                     raise errors.InterfaceError(
                         'skip initial space %s must be changed to one of: True, False' % value, self._location)
             else:
-                self.__dict__[varname] = value
+                self.__dict__[property_attribute_name] = value
+        else:
+            assert False, 'name=%r' % name
 
     def _validated_choice(self, key, value, choices):
         """
