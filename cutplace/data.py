@@ -25,6 +25,8 @@ import io
 import token
 import tokenize
 
+import six
+
 from cutplace import errors
 from cutplace import ranges
 from cutplace import _tools
@@ -69,7 +71,6 @@ FORMAT_ODS = "ods"
 KEY_ALLOWED_CHARACTERS = "allowed_characters"
 KEY_ENCODING = "encoding"
 KEY_ESCAPE_CHARACTER = "escape_character"
-KEY_FORMAT = "format"
 KEY_HEADER = "header"
 KEY_ITEM_DELIMITER = "item_delimiter"
 KEY_LINE_DELIMITER = "line_delimiter"
@@ -169,14 +170,16 @@ class DataFormat(object):
         Set data format property ``name`` to ``value``. In case the property or
         value cannot be processed, raise `errors.InterfaceError`.
         """
+        assert name is not None
+        assert (value is not None) or name in (KEY_ALLOWED_CHARACTERS, KEY_LINE_DELIMITER)
+
         name = name.replace(' ', '_')
         property_attribute_name = '_' + name
         if property_attribute_name not in self.__dict__:
             valid_property_names = _tools.human_readable_list(list(self.__dict__.keys()))
             raise errors.InterfaceError(
-                'property %s for format %s must be one of %s'
-                % (name, self.format, valid_property_names), self._location)
-        # TODO: Use lower_value = value.lower() for KEY_LINE_DELIMITER and KEY_SKIP_INITIAL_SPACE.
+                'data format property %r for format %s is %r but must be one of %s'
+                % (name, self.format, value, valid_property_names), self._location)
 
         if name == KEY_ENCODING:
             try:
@@ -187,10 +190,7 @@ class DataFormat(object):
                     % (KEY_ENCODING, self.encoding), self._location)
             self._encoding = value
         elif name == KEY_HEADER:
-            try:
-                self._header = int(value)
-            except ValueError:
-                raise errors.InterfaceError('header %s must be a number' % value, self._location)
+            self._header = self._validated_int_at_least_0(name, value)
         elif name == KEY_ALLOWED_CHARACTERS:
             try:
                 self._allowed_characters = ranges.Range(value)
@@ -218,42 +218,56 @@ class DataFormat(object):
                 KEY_DECIMAL_SEPARATOR, value, _VALID_THOUSANDS_SEPARATORS)
         elif self.format == FORMAT_DELIMITED:
             if name == KEY_SKIP_INITIAL_SPACE:
-                # TODO: Cleanup: if lower_value == 'true': ...
-                if value in ('True', 'true'):
-                    self._skip_initial_space = True
-                elif value in ('False', 'false'):
-                    self._skip_initial_space = False
-                else:
-                    raise errors.InterfaceError(
-                        'skip initial space %s must be changed to one of: True, False' % value, self._location)
+                self._skip_initial_space = self._validated_bool(name, value)
             else:
                 self.__dict__[property_attribute_name] = value
         elif self.format in (FORMAT_EXCEL, FORMAT_ODS):
             assert name == KEY_SHEET, 'name=%r' % name
-            try:
-                self._sheet = int(value)
-            except ValueError:
-                raise errors.InterfaceError('sheet %s must be a number' % value, self._location)
+            self._sheet = self._validated_int_at_least_0(name, value)
         elif self.format == FORMAT_FIXED:
             self.__dict__[property_attribute_name] = value
         else:
             assert False, 'name=%r' % name
 
-    def _validated_choice(self, key, value, choices):
+    def _validated_choice(self, key, value, choices, ignore_case=False):
         """
-        Validate that `value` is one of the available `choices` and otherwise raise `errors.InterfaceError`.
-        Always returns `value`. To be called from `validated()`.
+        Same as ``value`` or ``value.lower()`` in case ``ignore_case`` is set
+        to ``True``. If the supposed result is not on of the available
+        ``choices``, raise `errors.InterfaceError`.
         """
         assert key
+        assert value is not None
         assert choices
-        if value not in choices:
+
+        result = value if not ignore_case else value.lower()
+        if result not in choices:
             raise errors.InterfaceError(
-                'value for data format property %r is %r but must be one of: %s'
+                'data format property %r is %r but must be one of: %s'
                 % (key, value, _tools.human_readable_list(choices)), self._location)
-        return value
+        return result
+
+    def _validated_bool(self, key, value):
+        assert key
+        assert value is not None
+        bool_text = self._validated_choice(key, value, ('false', 'true'), True)
+        result = (bool_text == 'true')
+        return result
+
+    def _validated_int_at_least_0(self, key, value):
+        assert key
+        assert value is not None
+        try:
+            result = int(value)
+        except ValueError:
+            raise errors.InterfaceError(
+                'data format property %r is %r but must be a number' % (key, value), self._location)
+        if result < 0:
+            raise errors.InterfaceError(
+                'data format property %r is %d but must be at least 0' % (key, result), self._location)
+        return result
 
     def _validated_character(self, key, value):
-        """
+        r"""
         A single character intended as value for data format property ``key``
         derived from ``value``, which can be:
 
@@ -262,7 +276,7 @@ class DataFormat(object):
         * a symbolic name such as "Tab".
 
         Anything else yields a `InterfaceError`.
-        >>> format = DelimitedDataFormat()
+        >>> format = DataFormat(FORMAT_DELIMITED)
         >>> format._validated_character("x", "34")
         '"'
         >>> format._validated_character("x", "9")
@@ -295,12 +309,12 @@ class DataFormat(object):
             ...
         InterfaceError: value for data format property 'x' must a number, a single character or
         a symbolic name but is: '( '
-        >>> format._validated_character("x", "\"\\")
+        >>> format._validated_character("x", '\"\\')
         Traceback (most recent call last):
             ...
         InterfaceError: value for data format property 'x' must a number, a single character or
         a symbolic name but is: '"\\'
-        >>> format._validated_character("x", "\"abc\"")
+        >>> format._validated_character("x", '"abc"')
         Traceback (most recent call last):
             ...
         InterfaceError: text for data format property 'x' must be a single character but is: '"abc"'
@@ -366,8 +380,10 @@ class DataFormat(object):
 
     def validate(self):
         """
-        Validate that property values are consistent.
+        Validate that property values are consistent and set default values
+        for properties that have not been set yet.
         """
+        # TODO: Change errors messages to "A and B are both %s but must be different from each other".
         # TODO: Remember locations where properties have been set.
         # TODO: Add see_also_locations for contradicting properties.
         if self.format in (FORMAT_DELIMITED, FORMAT_FIXED):
