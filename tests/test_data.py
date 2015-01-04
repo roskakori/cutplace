@@ -58,7 +58,7 @@ class DataFormatTest(unittest.TestCase):
         delimited_format.set_property(data.KEY_LINE_DELIMITER, data.CRLF)
         delimited_format.set_property(data.KEY_QUOTE_CHARACTER, '\"')
         delimited_format.set_property(data.KEY_THOUSANDS_SEPARATOR, '.')
-        self.assertTrue(delimited_format.validate)
+        delimited_format.validate()
 
     def test_can_set_fixed_properties(self):
         fixed_format = data.DataFormat(data.FORMAT_FIXED)
@@ -70,7 +70,7 @@ class DataFormatTest(unittest.TestCase):
         fixed_format.set_property(data.KEY_LINE_DELIMITER, data.CRLF)
         fixed_format.set_property(data.KEY_QUOTE_CHARACTER, '\"')
         fixed_format.set_property(data.KEY_THOUSANDS_SEPARATOR, '.')
-        self.assertTrue(fixed_format.validate)
+        fixed_format.validate()
 
     def test_can_set_excel_properties(self):
         excel_format = data.DataFormat(data.FORMAT_EXCEL)
@@ -78,7 +78,7 @@ class DataFormatTest(unittest.TestCase):
         excel_format.set_property(data.KEY_ALLOWED_CHARACTERS, None)
         excel_format.set_property(data.KEY_HEADER, 0)
         excel_format.set_property(data.KEY_SHEET, 1)
-        self.assertTrue(excel_format.validate)
+        excel_format.validate()
 
     def test_can_set_ods_properties(self):
         ods_format = data.DataFormat(data.FORMAT_ODS)
@@ -86,7 +86,7 @@ class DataFormatTest(unittest.TestCase):
         ods_format.set_property(data.KEY_ALLOWED_CHARACTERS, None)
         ods_format.set_property(data.KEY_HEADER, 0)
         ods_format.set_property(data.KEY_SHEET, 1)
-        self.assertTrue(ods_format.validate)
+        ods_format.validate()
 
     def test_fails_on_unsupported_delimited_property(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
