@@ -31,7 +31,6 @@ from cutplace import errors
 from cutplace import fields
 from cutplace import ranges
 from cutplace import iotools
-from iotools import excel_rows
 from tests import dev_test
 
 
