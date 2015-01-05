@@ -189,22 +189,24 @@ class Cid(object):
         if len(self.field_names) == 0:
             raise errors.InterfaceError('fields must be specified', self._location)
 
-    def add_field_format(self, items):
+    def add_field_format(self, possibly_incomplete_items):
         """
-        Add field as described by `items`. The meanings of the items are:
+        Add field as described by `possibly_incomplete_items`, which is a
+        list consisting of:
 
         1) field name
         2) optional: example value (can be empty)
         3) optional: empty flag ("X"=field is allowed to be empty)
-        4) optional: length ("lower:upper")
-        5) optional: field type
+        4) optional: length (using the syntax of `ranges.Range`).
+        5) optional: field type (e.g. 'Integer' for `fields.IntegerFieldFormat`)
         6) optional: rule to validate field (depending on type)
 
-        Further values in `items` are ignored.
+        Any missing items are interpreted as empty string (``''``).
+        Additional items are ignored.
 
-        Any errors detected result in a `errors.InterfaceError`.
+        Any errors detected cause an `errors.InterfaceError`.
         """
-        assert items is not None
+        assert possibly_incomplete_items is not None
         assert self._location is not None
 
         if self._data_format is None:
@@ -217,126 +219,104 @@ class Cid(object):
         assert len(self._field_name_to_format_map) == field_count
         assert len(self._field_name_to_index_map) == field_count
 
-        field_name = None
-        field_example = None
-        field_is_allowed_to_be_empty = False
-        field_length = None
-        field_type = None
-        field_rule = ""
+        items = (possibly_incomplete_items + 6 * [''])[:6]
 
-        item_count = len(items)
-        if item_count >= 1:
-            # Obtain field name.
-            field_name = fields.validated_field_name(items[0], self._location)
+        # Obtain field name.
+        field_name = fields.validated_field_name(items[0], self._location)
+        if field_name in self._field_name_to_format_map:
+            # TODO: Add see_also_location pointing to previous declaration.
+            raise errors.InterfaceError(
+                'duplicate field name must be changed to a unique one: %s' % field_name, self._location)
 
-            # Obtain example.
-            if item_count >= 2:
-                self._location.advance_cell()
-                field_example = items[1]
+        # Obtain example.
+        self._location.advance_cell()
+        field_example = items[1]
 
-            # Obtain "empty" flag.
-            if item_count >= 3:
-                self._location.advance_cell()
-                field_is_allowed_to_be_empty_text = items[2].strip().lower()
-                if field_is_allowed_to_be_empty_text == self._EMPTY_INDICATOR:
-                    field_is_allowed_to_be_empty = True
-                elif field_is_allowed_to_be_empty_text:
-                    raise errors.InterfaceError(
-                        "mark for empty field must be %r or empty but is %r" % (self._EMPTY_INDICATOR,
-                        field_is_allowed_to_be_empty_text), self._location)
-
-            # Obtain length.
-            if item_count >= 4:
-                self._location.advance_cell()
-                field_length = items[3].strip()
-
-            # Obtain field type.
-            if item_count >= 5:
-                self._location.advance_cell()
-                field_type_item = items[4].strip()
-                if field_type_item:
-                    field_type = ""
-                    field_type_parts = field_type_item.split(".")
-                    try:
-                        for part in field_type_parts:
-                            if field_type:
-                                field_type += "."
-                            field_type += _tools.validated_python_name("field type part", part)
-                        assert field_type, "empty field type must be detected by validated_python_name()"
-                    except NameError as error:
-                        raise errors.InterfaceError(str(error), self._location)
-
-            # Obtain rule.
-            if item_count >= 6:
-                self._location.advance_cell()
-                field_rule = items[5].strip()
-
-            # Obtain class for field type.
-            if not field_type:
-                field_type = "Text"
-            field_class = self._create_field_format_class(field_type)
-            _log.debug("create field: %s(%r, %r, %r)", field_class.__name__, field_name, field_type, field_rule)
-            field_format = field_class.__new__(
-                field_class, field_name, field_is_allowed_to_be_empty, field_length, field_rule)
-            field_format.__init__(
-                field_name, field_is_allowed_to_be_empty, field_length, field_rule, self._data_format)
-
-            # Validate that field name is unique.
-            if field_name in self._field_name_to_format_map:
-                self._location.set_cell(1)
-                # TODO: Add see_also_location pointing to previous declaration.
-                raise errors.InterfaceError(
-                    'duplicate field name must be changed to a unique one: %s' % field_name, self._location)
-
-            # Set and validate example in case there is one.
-            if field_example:
-                try:
-                    field_format.example = field_example
-                except errors.FieldValueError as error:
-                    self._location.set_cell(2)
-                    raise errors.InterfaceError(
-                        "cannot validate example for field %r: %s" % (field_name, error), self._location)
-
-            # Validate field length.
-            # TODO #82: Cleanup validation for declared field formats.
-            self._location.set_cell(4)
-            field_length = field_format.length
-            if self._data_format.format == data.FORMAT_FIXED:
-                if field_length.items is None:
-                    raise errors.InterfaceError(
-                        "length of field %r must be specified with fixed data format" % field_name, self._location)
-                if field_length.lower_limit != field_length.upper_limit:
-                    raise errors.InterfaceError(
-                        "length of field %r for fixed data format must be a specific number but is: %s"
-                        % (field_name, field_format.length), self._location)
-                if field_length.lower_limit < 1:
-                    raise errors.InterfaceError(
-                        "length of field %r for fixed data format must be at least 1 but is: %d"
-                        % (field_name, field_format.length.lower_limit), self._location)
-            elif field_length.lower_limit is not None:
-                if field_length.lower_limit < 0:
-                    raise errors.InterfaceError(
-                        "lower limit for length of field %r must be at least 0 but is: %d"
-                        % (field_name, field_format.length.lower_limit), self._location)
-            elif field_length.upper_limit is not None:
-                # Note: 0 as upper limit is valid for a field that must always be empty.
-                if field_length.upper_limit < 0:
-                    raise errors.InterfaceError(
-                        "upper limit for length of field %r must be at least 0 but is: %d"
-                        % (field_name, field_format.length.upper_limit), self._location)
-
-
-            self._location.set_cell(1)
-            self._field_name_to_format_map[field_name] = field_format
-            self._field_name_to_index_map[field_name] = len(self._field_names)
-            self._field_names.append(field_name)
-            self._field_formats.append(field_format)
-            # TODO: Remember location where field format was defined to later include it in error message
-            _log.info("%s: defined field: %s", self._location, field_format)
+        # Obtain "empty" mark.
+        self._location.advance_cell()
+        field_is_allowed_to_be_empty_text = items[2].strip().lower()
+        if field_is_allowed_to_be_empty_text == '':
+            field_is_allowed_to_be_empty = False
+        elif field_is_allowed_to_be_empty_text == self._EMPTY_INDICATOR:
+            field_is_allowed_to_be_empty = True
         else:
             raise errors.InterfaceError(
-                "field format row (marked with %r) must at least contain a field name"
-                % self._ID_FIELD_RULE, self._location)
+                "mark for empty field must be %r or empty but is %r" % (self._EMPTY_INDICATOR,
+                field_is_allowed_to_be_empty_text), self._location)
+
+        # Obtain length.
+        self._location.advance_cell()
+        field_length = items[3]
+
+        # Obtain field type and rule.
+        self._location.advance_cell()
+        field_type_item = items[4].strip()
+        if field_type_item == '':
+            field_type = 'Text'
+        else:
+            field_type = ''
+            field_type_parts = field_type_item.split(".")
+            try:
+                for part in field_type_parts:
+                    if field_type:
+                        field_type += "."
+                    field_type += _tools.validated_python_name("field type part", part)
+                assert field_type, "empty field type must be detected by validated_python_name()"
+            except NameError as error:
+                raise errors.InterfaceError(str(error), self._location)
+        field_class = self._create_field_format_class(field_type)
+        self._location.advance_cell()
+        field_rule = items[5].strip()
+        _log.debug("create field: %s(%r, %r, %r)", field_class.__name__, field_name, field_type, field_rule)
+        field_format = field_class.__new__(
+            field_class, field_name, field_is_allowed_to_be_empty, field_length, field_rule)
+        field_format.__init__(
+            field_name, field_is_allowed_to_be_empty, field_length, field_rule, self._data_format)
+
+        # Validate field length.
+        # TODO #82: Cleanup validation for declared field formats.
+        self._location.set_cell(4)
+        field_length = field_format.length
+        if self._data_format.format == data.FORMAT_FIXED:
+            if field_length.items is None:
+                raise errors.InterfaceError(
+                    "length of field %r must be specified with fixed data format" % field_name, self._location)
+            if field_length.lower_limit != field_length.upper_limit:
+                raise errors.InterfaceError(
+                    "length of field %r for fixed data format must be a specific number but is: %s"
+                    % (field_name, field_format.length), self._location)
+            if field_length.lower_limit < 1:
+                raise errors.InterfaceError(
+                    "length of field %r for fixed data format must be at least 1 but is: %d"
+                    % (field_name, field_format.length.lower_limit), self._location)
+        elif field_length.lower_limit is not None:
+            if field_length.lower_limit < 0:
+                raise errors.InterfaceError(
+                    "lower limit for length of field %r must be at least 0 but is: %d"
+                    % (field_name, field_format.length.lower_limit), self._location)
+        elif field_length.upper_limit is not None:
+            # Note: 0 as upper limit is valid for a field that must always be empty.
+            if field_length.upper_limit < 0:
+                raise errors.InterfaceError(
+                    "upper limit for length of field %r must be at least 0 but is: %d"
+                    % (field_name, field_format.length.upper_limit), self._location)
+
+        # Set and validate example in case there is one.
+        if field_example != '':
+            try:
+                field_format.example = field_example
+            except errors.FieldValueError as error:
+                self._location.set_cell(2)
+                raise errors.InterfaceError(
+                    "cannot validate example for field %r: %s" % (field_name, error), self._location)
+
+        self._location.set_cell(1)
+        self._field_name_to_format_map[field_name] = field_format
+        self._field_name_to_index_map[field_name] = len(self._field_names)
+        self._field_names.append(field_name)
+        self._field_formats.append(field_format)
+        # TODO: Remember location where field format was defined to later include it in error message
+        _log.info("%s: defined field: %s", self._location, field_format)
 
         assert field_name
         assert field_type
