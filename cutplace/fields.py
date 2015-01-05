@@ -49,19 +49,21 @@ MYSQL = "mysql"
 @python_2_unicode_compatible
 class AbstractFieldFormat(object):
     """
-    Abstract format description of a field in a data file to validate which acts as base for all
-    other field formats. To implement another field format, it is usually sufficient to:
+    Abstract format description of a field in a data file, acting base for all
+    other field formats. To implement another field format, it is usually
+    sufficient to:
 
-      1. Overload `__init__()` but call ``super(..., self).__init__(...)`` from it.
-      2. Implement `validatedValue()`.
+      1. Overload `__init__()` but call ``super().__init__(...)`` from it.
+      2. Implement `validated_value()`.
     """
 
     def __init__(self, field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value=None):
         assert field_name is not None
-        assert field_name, "fieldName must not be empty"
-        assert is_allowed_to_be_empty is not None
-        assert rule is not None, "to specify \"no rule\" use \"\" instead of None"
+        assert field_name, 'field_name must not be empty'
+        assert is_allowed_to_be_empty in (False, True), 'is_allowed_to_be_empty=%r' % is_allowed_to_be_empty
+        assert rule is not None, 'to specify "no rule" use "" instead of None'
         assert data_format is not None
+        # TODO #82: Cleanup validation for declared field formats.
 
         self._field_name = field_name
         self._is_allowed_to_be_empty = is_allowed_to_be_empty

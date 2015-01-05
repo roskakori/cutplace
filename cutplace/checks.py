@@ -49,7 +49,7 @@ class AbstractCheck(object):
         assert available_field_names is not None
 
         if not available_field_names:
-            raise errors.InterfaceError("field names must be specified", location_of_definition)
+            raise errors.InterfaceError("field names must be specified before check", location_of_definition)
         self._description = description
         self._rule = rule
         self._field_names = available_field_names

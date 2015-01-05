@@ -21,6 +21,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import fnmatch
 import unittest
 
 from cutplace import checks
@@ -30,6 +31,7 @@ from cutplace import errors
 from cutplace import fields
 from cutplace import ranges
 from cutplace import iotools
+from iotools import excel_rows
 from tests import dev_test
 
 
@@ -79,7 +81,9 @@ class CidTest(unittest.TestCase):
         cid_reader.read('inline', [
             [],
             [''],
-            ['d', 'format', 'delimited']])
+            ['d', 'format', 'delimited'],
+            ['f', 'some'],
+        ])
         self.assertEqual(cid_reader._data_format.format, "delimited")
 
     def test_can_read_field_type_text_field(self):
@@ -206,15 +210,154 @@ class CidTest(unittest.TestCase):
         cid_from_text = interface.create_cid_from_string(cid_text)
         self.assertEqual(data.FORMAT_DELIMITED, cid_from_text.data_format.format)
 
-    def test_fails_on_broken_cid_from_text(self):
-        cid_text = '\n'.join([
-            ',Example CID as CSV from a string',
-            'D,Format,no_such_format',
-        ])
-        self.assertRaises(errors.InterfaceError, interface.create_cid_from_string, cid_text)
+    def _test_fails_on_broken_cid_from_text(self, cid_text, anticipated_error_message_pattern=None):
+        assert cid_text is not None
+        try:
+            interface.create_cid_from_string(cid_text)
+            self.fail('InterfaceError must be raised')
+        except errors.InterfaceError as anticipated_error:
+            if anticipated_error_message_pattern is not None:
+                anticipated_error_message = '%s' % anticipated_error
+                if not fnmatch.fnmatch(anticipated_error_message, anticipated_error_message_pattern):
+                    self.fail(
+                        'anticipated error message must match %r but is %r'
+                        % (anticipated_error_message_pattern, anticipated_error_message)
+                    )
 
     def test_fails_on_empty_cid_from_text(self):
-        self.assertRaises(errors.InterfaceError, interface.create_cid_from_string, '')
+        self._test_fails_on_broken_cid_from_text('', '*data format must be specified*')
+
+    def test_fails_on_unknown_data_format(self):
+        cid_text = '\n'.join([
+            ',CID referring to an unknown data format',
+            'D,Format,no_such_format',
+        ])
+        self._test_fails_on_broken_cid_from_text(cid_text, '*format is no_such_format but must be on of*')
+
+    def test_fails_on_field_before_data_format(self):
+        cid_text = '\n'.join([
+            ',CID where a field is declared before the data format',
+            ' ,Name         ,,,Length,Type    ,Rule',
+            'F,some         ,,,      ,',
+            'D,Format,%s' % data.FORMAT_DELIMITED,
+        ])
+        self._test_fails_on_broken_cid_from_text(cid_text, '*data format must be specified before first field*')
+
+    def test_fails_on_check_before_data_format_and_fields(self):
+        cid_text = '\n'.join([
+            ',CID where a check is declared ahead of the data format and fields',
+            'C,some_is_unique,IsUnique,some'
+            'D,Format,%s' % data.FORMAT_DELIMITED,
+            ' ,Name         ,,,Length,Type    ,Rule',
+            'F,some         ,,,      ,',
+        ])
+        self._test_fails_on_broken_cid_from_text(cid_text, '*field names must be specified before check*')
+
+    def test_fails_on_check_before_fields(self):
+        cid_text = '\n'.join([
+            ',CID where a check is declared ahead of any fields',
+            'D,Format,%s' % data.FORMAT_DELIMITED,
+            'C,some_is_unique,IsUnique,some'
+            ' ,Name         ,,,Length,Type    ,Rule',
+            'F,some         ,,,      ,',
+        ])
+        self._test_fails_on_broken_cid_from_text(cid_text, '*field names must be specified before check*')
+
+    def test_fails_on_unknown_field_type(self):
+        cid_text = '\n'.join([
+            ',CID referring to a field with a type for which there is no class',
+            'D,Format,%s' % data.FORMAT_DELIMITED,
+            ' ,Name         ,,,Length,Type    ,Rule',
+            'F,some         ,,,      ,NoSuchType',
+        ])
+        self._test_fails_on_broken_cid_from_text(cid_text, '*cannot find class*')
+
+    def test_fails_on_unknown_field_type(self):
+        cid_text = '\n'.join([
+            ',CID referring to a field with a type for which there is no class',
+            'D,Format,%s' % data.FORMAT_DELIMITED,
+            ' ,Name         ,,,Length,Type    ,Rule',
+            'F,some         ,,,      ,NoSuchType',
+        ])
+        self._test_fails_on_broken_cid_from_text(cid_text, '*cannot find class*')
+
+    def test_fails_on_no_fields_at_all(self):
+        cid_text = '\n'.join([
+            ',CID without any fields at all',
+            'D,Format,%s' % data.FORMAT_DELIMITED,
+        ])
+        self._test_fails_on_broken_cid_from_text(cid_text, '*fields must be specified*')
+
+    def test_fails_on_duplicate_field_name(self):
+        cid_text = '\n'.join([
+            ',CID where a field is declared twice with the same name',
+            'D,Format,%s' % data.FORMAT_DELIMITED,
+            ' ,Name         ,,,Length,Type    ,Rule',
+            'F,duplicate    ,,,      ,        ,',
+            'F,duplicate    ,,,      ,        ,',
+        ])
+        self._test_fails_on_broken_cid_from_text(
+            cid_text, '*duplicate field name must be changed to a unique one: duplicate')
+
+    def test_fails_on_broken_example(self):
+        cid_text = '\n'.join([
+            ',CID with a broken example for a field',
+            'D,Format,%s' % data.FORMAT_DELIMITED,
+            ' ,Name         ,   ,,Length,Type    ,Rule',
+            'F,some         ,abc,,      ,Integer',
+        ])
+        self._test_fails_on_broken_cid_from_text(
+            cid_text, '*cannot validate example for field *: value must be an integer number*')
+
+    def test_fails_on_lower_field_length_less_than_0(self):
+        cid_text = '\n'.join([
+            ',CID with a field that can have less than 0 characters',
+            'D,Format,%s' % data.FORMAT_DELIMITED,
+            ' ,Name         ,,,Length,Type    ,Rule',
+            'F,some         ,,,-1:   ,',
+        ])
+        self._test_fails_on_broken_cid_from_text(
+            cid_text, '*lower limit for length of field * must be at least 0 but is: -1')
+
+    def test_fails_on_upper_field_length_less_than_0(self):
+        cid_text = '\n'.join([
+            ',CID with a field that can have less than 0 characters',
+            'D,Format,%s' % data.FORMAT_DELIMITED,
+            ' ,Name         ,,,Length,Type    ,Rule',
+            'F,some         ,,,:-1   ,',
+        ])
+        self._test_fails_on_broken_cid_from_text(
+            cid_text, '*upper limit for length of field * must be at least 0 but is: -1')
+
+    def test_fails_on_missing_fixed_field_length(self):
+        cid_text = '\n'.join([
+            ',CID with a fixed field without length',
+            'D,Format,%s' % data.FORMAT_FIXED,
+            ' ,Name         ,,,Length,Type    ,Rule',
+            'F,some         ,,,      ,',
+        ])
+        self._test_fails_on_broken_cid_from_text(
+            cid_text, '*length of field * must be specified with fixed data format')
+
+    def test_fails_on_fixed_field_length_less_than_1(self):
+        cid_text = '\n'.join([
+            ',CID with a field that has less than 1 character',
+            'D,Format,%s' % data.FORMAT_FIXED,
+            ' ,Name         ,,,Length,Type    ,Rule',
+            'F,some         ,,,0    ,',
+        ])
+        self._test_fails_on_broken_cid_from_text(
+            cid_text, '*length of field * for fixed data format must be at least 1 but is: 0')
+
+    def test_fails_on_range_for_fixed_field_length(self):
+        cid_text = '\n'.join([
+            ',CID with a range as fixed field length',
+            'D,Format,%s' % data.FORMAT_FIXED,
+            ' ,Name         ,,,Length,Type    ,Rule',
+            'F,some         ,,,1:    ,',
+        ])
+        self._test_fails_on_broken_cid_from_text(
+            cid_text, '*length of field * for fixed data format must be a specific number but is: 1:')
 
 
 if __name__ == '__main__':

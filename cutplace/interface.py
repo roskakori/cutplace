@@ -143,7 +143,7 @@ class Cid(object):
             raise errors.InterfaceError(
                 "cannot find class for %s %s: related class is %s but must be one of: %s" % (
                     type_name, class_qualifier, class_name,
-                    _tools.human_readable_list(sorted(name_to_class_map.keys()))))
+                    _tools.human_readable_list(sorted(name_to_class_map.keys()))), self._location)
         return result
 
     def _create_field_format_class(self, field_type):
@@ -186,7 +186,7 @@ class Cid(object):
             self._location.advance_line()
         if self.data_format is None:
             raise errors.InterfaceError('data format must be specified', self._location)
-        if len(self.field_names) == 0 is None:
+        if len(self.field_names) == 0:
             raise errors.InterfaceError('fields must be specified', self._location)
 
     def add_field_format(self, items):
@@ -284,8 +284,9 @@ class Cid(object):
             # Validate that field name is unique.
             if field_name in self._field_name_to_format_map:
                 self._location.set_cell(1)
+                # TODO: Add see_also_location pointing to previous declaration.
                 raise errors.InterfaceError(
-                    "field name must be used for only one field: %s" % field_name, self._location)
+                    'duplicate field name must be changed to a unique one: %s' % field_name, self._location)
 
             # Set and validate example in case there is one.
             if field_example:
@@ -296,26 +297,34 @@ class Cid(object):
                     raise errors.InterfaceError(
                         "cannot validate example for field %r: %s" % (field_name, error), self._location)
 
-            # Validate field length for fixed format.
+            # Validate field length.
+            # TODO #82: Cleanup validation for declared field formats.
+            self._location.set_cell(4)
+            field_length = field_format.length
             if self._data_format.format == data.FORMAT_FIXED:
-                self._location.set_cell(4)
-                if field_format.length.items:
-                    field_length_is_broken = True
-                    if len(field_format.length.items) == 1:
-                        (lower, upper) = field_format.length.items[0]
-                        if lower == upper:
-                            if lower < 1:
-                                raise errors.InterfaceError(
-                                    "length of field %r for fixed data format must be at least 1 but is: %s"
-                                    % (field_name, field_format.length), self._location)
-                            field_length_is_broken = False
-                    if field_length_is_broken:
-                        raise errors.InterfaceError(
-                            "length of field %r for fixed data format must be a single value but is: %s"
-                            % (field_name, field_format.length), self._location)
-                else:
+                if field_length.items is None:
                     raise errors.InterfaceError(
                         "length of field %r must be specified with fixed data format" % field_name, self._location)
+                if field_length.lower_limit != field_length.upper_limit:
+                    raise errors.InterfaceError(
+                        "length of field %r for fixed data format must be a specific number but is: %s"
+                        % (field_name, field_format.length), self._location)
+                if field_length.lower_limit < 1:
+                    raise errors.InterfaceError(
+                        "length of field %r for fixed data format must be at least 1 but is: %d"
+                        % (field_name, field_format.length.lower_limit), self._location)
+            elif field_length.lower_limit is not None:
+                if field_length.lower_limit < 0:
+                    raise errors.InterfaceError(
+                        "lower limit for length of field %r must be at least 0 but is: %d"
+                        % (field_name, field_format.length.lower_limit), self._location)
+            elif field_length.upper_limit is not None:
+                # Note: 0 as upper limit is valid for a field that must always be empty.
+                if field_length.upper_limit < 0:
+                    raise errors.InterfaceError(
+                        "upper limit for length of field %r must be at least 0 but is: %d"
+                        % (field_name, field_format.length.upper_limit), self._location)
+
 
             self._location.set_cell(1)
             self._field_name_to_format_map[field_name] = field_format
