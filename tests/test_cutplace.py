@@ -59,8 +59,10 @@ class CutplaceAppTest(unittest.TestCase):
         self.assertFalse(self._cutplace_app.all_validations_were_ok)
 
 
-class CutplaceMainTest(unittest.TestCase):
-    """Test cases for cutplace command line interface."""
+class CutplaceProcessTest(unittest.TestCase):
+    """
+    Test cases for `_cutplace.process`.
+    """
     def _test_process_exits_with(self, arguments, expected_exit_code):
         try:
             _cutplace.process(['test_cutplace.py'] + arguments)
@@ -159,6 +161,48 @@ class CutplaceMainTest(unittest.TestCase):
     #     dataPath = dev_test.path_to_test_data('valid_native_excel_formats.xls')
     #     exitCode = _cutplace.main(['test_cutplace.py', icdPath, dataPath])
     #     self.assertEqual(exitCode, 0)
+
+
+class CutplaceMainTest(unittest.TestCase):
+    """
+    Test cases for cutplace command line interface in `_cutplace.main()`.
+    """
+    def test_can_read_cid(self):
+        cid_path = dev_test.path_to_test_cid('customers.ods')
+        self.assertEqual(0, _cutplace.main(['test', cid_path]))
+
+    def test_can_validate_proper_data(self):
+        cid_path = dev_test.path_to_test_cid('customers.ods')
+        data_path = dev_test.path_to_test_data('valid_customers.csv')
+        self.assertEqual(0, _cutplace.main(['test', cid_path, data_path]))
+
+    def test_can_deal_with_broken_data(self):
+        cid_path = dev_test.path_to_test_cid('customers.ods')
+        data_path = dev_test.path_to_test_data('broken_customers.csv')
+        self.assertEqual(1, _cutplace.main(['test', cid_path, data_path]))
+
+    def test_can_deal_with_broken_cid(self):
+        broken_cid_path = dev_test.path_to_test_cid('broken_syntax_error.ods')
+        self.assertEqual(1, _cutplace.main(['test', broken_cid_path]))
+
+    def test_can_deal_with_non_existent_cid(self):
+        self.assertEqual(3, _cutplace.main(['test', 'no_such_file.xxx']))
+
+    def _test_fails_with_system_exit(self, expected_code, argv):
+        try:
+            _cutplace.main(argv)
+            self.fail()
+        except SystemExit as anticipated_error:
+            self.assertEqual(expected_code, anticipated_error.code)
+
+    def test_can_show_help(self):
+        self._test_fails_with_system_exit(0, ['test', '--help'])
+
+    def test_can_show_version(self):
+        self._test_fails_with_system_exit(0, ['test', '--version'])
+
+    def test_fails_without_any_arguments(self):
+        self._test_fails_with_system_exit(2, ['test'])
 
 
 if __name__ == '__main__':  # pragma: no cover

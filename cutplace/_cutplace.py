@@ -114,7 +114,7 @@ class CutplaceApp(object):
 
         if not self.is_web_server:
             if args.cid_path is None:
-                parser.error('CID-PATH must be specified')
+                parser.error('CID-FILE must be specified')
             try:
                 self.set_cid_from_path(args.cid_path)
             except (EnvironmentError, OSError) as error:
@@ -156,15 +156,15 @@ class CutplaceApp(object):
 def process(argv=None):
     """
     Do whatever the command line options ``argv`` request. In case of error, raise an appropriate
-    ``Exception``.
+    `Exception`.
 
     Return 0 unless ``argv`` requested to validate one or more files and at least one of them
     contained rejected data. In this case, the result is 1.
 
     Before calling this, module ``logging`` has to be set up properly. For example, by calling
-    ``logging.basicConfig()``.
+    `logging.basicConfig()`.
     """
-    if argv is None:
+    if argv is None:  # pragma: no cover
         argv = sys.argv
     assert argv
 
@@ -187,12 +187,20 @@ def process(argv=None):
 
 def main(argv=None):
     """
-    Main routine that might raise errors but won't ``sys.exit()`` unless ``argv`` is broken.
+    Main routine that logs errors and won't ``sys.exit()`` unless ``argv`` is broken.
 
     Before calling this, module ``logging`` has to be set up properly. For example, by calling
     ``logging.basicConfig()``.
+
+    The result can be:
+    * 0 - everything worked out fine
+    * 1 - validation failed and rejected data must be fixed
+    * 2 - arguments passed in ``argv`` must be fixed
+    * 3 - a proper environment for the program to run must be provided (files must exist,
+      access rights must be provided, ...)
+    * 4 - something unexpected happened and the program code must be fixed
     """
-    if argv is None:
+    if argv is None:  # pragma: no cover
         argv = sys.argv
     assert argv
 
@@ -204,13 +212,13 @@ def main(argv=None):
         _log.error("%s", error)
     except errors.CutplaceError as error:
         _log.error("%s", error)
-    except Exception as error:
+    except Exception as error:  # pragma: no cover
         result = 4
         _log.exception("cannot handle unexpected error: %s", error)
     return result
 
 
-def main_for_script():
+def main_for_script():  # pragma: no cover
     """
     Main routine that reports errors in options to `sys.stderr` and does `sys.exit()`.
     """
