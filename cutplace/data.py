@@ -25,8 +25,6 @@ import io
 import token
 import tokenize
 
-import six
-
 from cutplace import errors
 from cutplace import ranges
 from cutplace import _tools

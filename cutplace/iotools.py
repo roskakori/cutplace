@@ -405,6 +405,7 @@ def fixed_rows(fixed_source, encoding, field_name_and_lengths, line_delimiter='a
         if is_opened:
             fixed_file.close()
 
+
 def auto_rows(source):
     """
     Determine basic data format of `source` based on heuristics and return its contents.
