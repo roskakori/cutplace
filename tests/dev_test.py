@@ -20,6 +20,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import fnmatch
 import logging
 import os
 import random
@@ -227,9 +228,7 @@ def path_to_test_plugins():
     return path_to_test_folder("data")
 
 
-def create_test_customer_row(customerId):
-    global _customer_id
-
+def create_test_customer_row(customer_id):
     branch_id = random.choice(["38000", "38053", "38111"])
     is_male = random.choice([True, False])
     first_name = random_first_name(is_male)
@@ -241,4 +240,13 @@ def create_test_customer_row(customerId):
     else:
         gender = "female"
     date_of_birth = random_datetime("%d.%m.%Y")
-    return [branch_id, customerId, first_name, surname, gender, date_of_birth]
+    return [branch_id, customer_id, first_name, surname, gender, date_of_birth]
+
+
+def assert_fnmatches(test_case, actual_value, expected_pattern):
+    assert test_case is not None
+    assert expected_pattern is not None
+
+    test_case.assertNotEqual(None, actual_value)
+    if not fnmatch.fnmatch(actual_value, expected_pattern):
+        test_case.fail('%r must match pattern %r' % (actual_value, expected_pattern))

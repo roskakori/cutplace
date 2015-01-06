@@ -90,31 +90,31 @@ class CidTest(unittest.TestCase):
             ['d', 'format', 'delimited'],
             ['f', 'branch_id', '38000', '', '5']])
         self.assertEqual(cid_reader.field_names[0], 'branch_id')
-        self.assertEqual(cid_reader.field_format_at(0).length.description, ranges.Range('5').description)
+        self.assertEqual(cid_reader.field_formats[0].length.description, ranges.Range('5').description)
 
     def test_can_read_fields_from_excel(self):
         cid_reader = interface.Cid()
         source_path = dev_test.path_to_test_cid("icd_customers.xls")
         cid_reader.read(source_path, iotools.excel_rows(source_path))
         self.assertEqual(cid_reader.field_names[0], 'branch_id')
-        self.assertEqual(cid_reader.field_format_at(0).length.items, ranges.Range('5').items)
-        self.assertTrue(isinstance(cid_reader.field_format_at(0), fields.TextFieldFormat))
+        self.assertEqual(cid_reader.field_formats[0].length.items, ranges.Range('5').items)
+        self.assertTrue(isinstance(cid_reader.field_formats[0], fields.TextFieldFormat))
         self.assertEqual(cid_reader.field_names[1], 'customer_id')
-        self.assertTrue(isinstance(cid_reader.field_format_at(1), fields.IntegerFieldFormat))
-        self.assertEqual(cid_reader.field_format_at(1).length.items, ranges.Range('2...').items)
+        self.assertTrue(isinstance(cid_reader.field_formats[1], fields.IntegerFieldFormat))
+        self.assertEqual(cid_reader.field_formats[1].length.items, ranges.Range('2...').items)
         self.assertEqual(cid_reader.field_names[2], 'first_name')
-        self.assertTrue(isinstance(cid_reader.field_format_at(2), fields.TextFieldFormat))
-        self.assertEqual(cid_reader.field_format_at(2).length.items, ranges.Range('...60').items)
+        self.assertTrue(isinstance(cid_reader.field_formats[2], fields.TextFieldFormat))
+        self.assertEqual(cid_reader.field_formats[2].length.items, ranges.Range('...60').items)
         self.assertEqual(cid_reader.field_names[3], 'surname')
-        self.assertTrue(isinstance(cid_reader.field_format_at(3), fields.TextFieldFormat))
-        self.assertEqual(cid_reader.field_format_at(3).length.items, ranges.Range('...60').items)
+        self.assertTrue(isinstance(cid_reader.field_formats[3], fields.TextFieldFormat))
+        self.assertEqual(cid_reader.field_formats[3].length.items, ranges.Range('...60').items)
         self.assertEqual(cid_reader.field_names[4], 'gender')
-        self.assertTrue(isinstance(cid_reader.field_format_at(4), fields.ChoiceFieldFormat))
-        self.assertEqual(cid_reader.field_format_at(4).length.items, ranges.Range('2...6').items)
+        self.assertTrue(isinstance(cid_reader.field_formats[4], fields.ChoiceFieldFormat))
+        self.assertEqual(cid_reader.field_formats[4].length.items, ranges.Range('2...6').items)
         self.assertEqual(cid_reader.field_names[5], 'date_of_birth')
-        self.assertTrue(isinstance(cid_reader.field_format_at(5), fields.DateTimeFieldFormat))
-        self.assertTrue(cid_reader.field_format_at(5).is_allowed_to_be_empty)
-        self.assertEqual(cid_reader.field_format_at(5).length.items, ranges.Range('10').items)
+        self.assertTrue(isinstance(cid_reader.field_formats[5], fields.DateTimeFieldFormat))
+        self.assertTrue(cid_reader.field_formats[5].is_allowed_to_be_empty)
+        self.assertEqual(cid_reader.field_formats[5].length.items, ranges.Range('10').items)
 
     def test_can_handle_all_field_formats_from_array(self):
         cid_reader = interface.Cid()
@@ -126,21 +126,21 @@ class CidTest(unittest.TestCase):
             ['f', 'dec', '', '', '', 'Decimal', ''],
             ['f', 'text']
         ])
-        self.assertTrue(isinstance(cid_reader.field_format_at(0), fields.IntegerFieldFormat))
-        self.assertTrue(isinstance(cid_reader.field_format_at(1), fields.ChoiceFieldFormat))
-        self.assertTrue(isinstance(cid_reader.field_format_at(2), fields.DateTimeFieldFormat))
-        self.assertTrue(isinstance(cid_reader.field_format_at(3), fields.DecimalFieldFormat))
-        self.assertTrue(isinstance(cid_reader.field_format_at(4), fields.TextFieldFormat))
+        self.assertTrue(isinstance(cid_reader.field_formats[0], fields.IntegerFieldFormat))
+        self.assertTrue(isinstance(cid_reader.field_formats[1], fields.ChoiceFieldFormat))
+        self.assertTrue(isinstance(cid_reader.field_formats[2], fields.DateTimeFieldFormat))
+        self.assertTrue(isinstance(cid_reader.field_formats[3], fields.DecimalFieldFormat))
+        self.assertTrue(isinstance(cid_reader.field_formats[4], fields.TextFieldFormat))
 
     def test_can_handle_all_field_formats_from_excel(self):
         cid_reader = interface.Cid()
         source_path = dev_test.path_to_test_cid("alltypes.xls")
         cid_reader.read(source_path, iotools.excel_rows(source_path))
-        self.assertTrue(isinstance(cid_reader.field_format_at(0), fields.IntegerFieldFormat))
-        self.assertTrue(isinstance(cid_reader.field_format_at(1), fields.TextFieldFormat))
-        self.assertTrue(isinstance(cid_reader.field_format_at(2), fields.ChoiceFieldFormat))
-        self.assertTrue(isinstance(cid_reader.field_format_at(3), fields.DateTimeFieldFormat))
-        self.assertTrue(isinstance(cid_reader.field_format_at(4), fields.DecimalFieldFormat))
+        self.assertTrue(isinstance(cid_reader.field_formats[0], fields.IntegerFieldFormat))
+        self.assertTrue(isinstance(cid_reader.field_formats[1], fields.TextFieldFormat))
+        self.assertTrue(isinstance(cid_reader.field_formats[2], fields.ChoiceFieldFormat))
+        self.assertTrue(isinstance(cid_reader.field_formats[3], fields.DateTimeFieldFormat))
+        self.assertTrue(isinstance(cid_reader.field_formats[4], fields.DecimalFieldFormat))
 
     def test_fails_on_empty_field_name(self):
         cid_to_read = interface.Cid()
@@ -208,6 +208,21 @@ class CidTest(unittest.TestCase):
         cid_from_text = interface.create_cid_from_string(cid_text)
         self.assertEqual(data.FORMAT_DELIMITED, cid_from_text.data_format.format)
 
+    def test_can_access_field_information(self):
+        cid_text = '\n'.join([
+            ',Example CID as CSV from a string',
+            'D,Format,%s' % data.FORMAT_DELIMITED,
+            ' ,Name         ,,,Length,Type    ,Rule',
+            'F,name         ,,,...50',
+            'F,height       ,,,      ,Decimal',
+            'F,date_of_birth,,,      ,DateTime,YYYY-MM-DD',
+        ])
+        cid = interface.create_cid_from_string(cid_text)
+        self.assertEqual(['name', 'height', 'date_of_birth'], cid.field_names)
+        self.assertEqual(1, cid.field_index('height'))
+        self.assertEqual('173', cid.field_value_for('height', ['hugo', '173', '1963-02-05']))
+        self.assertEqual('height', cid.field_format_for('height').field_name)
+
     def _test_fails_on_broken_cid_from_text(self, cid_text, anticipated_error_message_pattern=None):
         assert cid_text is not None
         try:
@@ -269,6 +284,16 @@ class CidTest(unittest.TestCase):
             'F,some         ,,,      ,NoSuchType',
         ])
         self._test_fails_on_broken_cid_from_text(cid_text, '*cannot find class*')
+
+    def test_fails_on_broken_field_name(self):
+        cid_text = '\n'.join([
+            ',CID referring to a field with a type for which there is no class',
+            'D,Format,%s' % data.FORMAT_DELIMITED,
+            ' ,Name,,,Length,Type    ,Rule',
+            'F,?',
+        ])
+        self._test_fails_on_broken_cid_from_text(
+            cid_text, "*field name must begin with a lower-case letter but is: '?'")
 
     def test_fails_on_no_fields_at_all(self):
         cid_text = '\n'.join([
@@ -385,6 +410,18 @@ class CidTest(unittest.TestCase):
             'C,check_without_rule,IsUnique',
         ])
         self._test_fails_on_broken_cid_from_text(cid_text)
+
+    def test_fails_on_duplicate_check_declaration(self):
+        cid_text = '\n'.join([
+            ',CID with the same check declared twice',
+            'D,Format,%s' % data.FORMAT_DELIMITED,
+            'F,some',
+            'C,duplicate_check,IsUnique,some',
+            'C,duplicate_check,IsUnique,some',
+        ])
+        self._test_fails_on_broken_cid_from_text(
+            cid_text, "*check description must be used only once: 'duplicate_check' (see also: *: first declaration)")
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -361,7 +361,7 @@ class Cid(object):
         if existing_check is not None:
             raise errors.InterfaceError(
                 "check description must be used only once: %r" % check_description,
-                self._location, "initial declaration", existing_check.location)
+                self._location, "first declaration", existing_check.location)
         self._check_name_to_check_map[check_description] = check
         self._check_names.append(check_description)
         assert len(self.check_names) == len(self._check_name_to_check_map)
@@ -370,55 +370,32 @@ class Cid(object):
         """
         The column index of  the field named ``field_name`` starting with 0.
         """
-        assert field_name is not None
-        try:
-            result = self._field_name_to_index_map[field_name]
-        except KeyError:
-            raise errors.InterfaceError(
-                "unknown field name %r must be replaced by one of: %s"
-                % (field_name, _tools.human_readable_list(sorted(self.field_names))))
-        return result
+        assert field_name in self._field_name_to_index_map, \
+            "unknown field name %r must be replaced by one of: %s" \
+            % (field_name, _tools.human_readable_list(sorted(self.field_names)))
+
+        return self._field_name_to_index_map[field_name]
 
     def field_value_for(self, field_name, row):
         """
-        The value for field ``field_name`` in ``row``. This looks up the column of the field named
-        ``field_name`` and retrieves the data from the matching item in ``row``. If ``row`` does
-        not contain the expected amount of field value, raise a `errors.InterfaceError`.
+        The value for field ``field_name`` in ``row``. Broken parameters cause an `AssertionError`.
         """
-        assert field_name is not None
+        assert field_name in self._field_name_to_index_map, \
+            "unknown field name %r must be replaced by one of: %s" \
+            % (field_name, _tools.human_readable_list(sorted(self.field_names)))
         assert row is not None
-
         actual_row_count = len(row)
         expected_row_count = len(self.field_names)
-        if actual_row_count != expected_row_count:
-            self._location = errors.create_caller_location()
-            raise errors.InterfaceError(
-                "row must have %d items but has %d: %s"
-                % (expected_row_count, actual_row_count, row), self._location)
+        assert actual_row_count == expected_row_count, \
+            "row must have %d items but has %d: %s" % (expected_row_count, actual_row_count, row)
 
-        field_index = self.field_index(field_name)
-        # The following condition must be ``True`` because any deviations should have been detected
-        # already by comparing expected and actual row count.
-        assert field_index < len(row)
-
-        result = row[field_index]
-        return result
+        return row[self._field_name_to_index_map[field_name]]
 
     def field_format_for(self, field_name):
         """
-        The `fields.AbstractFieldFormat` for ``field_name``. If no such field has been defined,
-        raise a `KeyError`.
+        The `fields.AbstractFieldFormat` for ``field_name``. Unknown field names cause a `KeyError`.
         """
-        assert field_name is not None
         return self._field_name_to_format_map[field_name]
-
-    def field_format_at(self, field_index):
-        """
-        The `fields.AbstractFieldFormat` at ``field_index``. If no such field has been defined,
-        raise an `IndexError`.
-        """
-        assert field_index is not None
-        return self._field_formats[field_index]
 
     def check_for(self, check_name):
         """

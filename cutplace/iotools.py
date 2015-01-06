@@ -1,5 +1,5 @@
 """
-Various internal utility functions.
+Low level structured I/O for tabular data in various formats.
 """
 # Copyright (C) 2009-2013 Thomas Aglassinger
 #
@@ -319,8 +319,13 @@ def fixed_rows(fixed_source, encoding, field_name_and_lengths, line_delimiter='a
     assert line_delimiter in _VALID_FIXED_LINE_DELIMITERS, \
         'line_delimiter=%r but must be one of: %s' % (line_delimiter, _VALID_FIXED_LINE_DELIMITERS)
 
+    # Predefine variable for access in local function.
     location = errors.Location(fixed_source, has_column=True)
-    fixed_file = None  # Predefine variable for access in local function.
+    fixed_file = None
+    # HACK: list with at most 1 character to be unread after a line feed. We
+    # need to use a list so `_has_data_after_skipped_line_delimiter` can
+    # modify its contents.
+    unread_character_after_line_delimiter = [None]
 
     def _has_data_after_skipped_line_delimiter():
         """
@@ -332,6 +337,7 @@ def fixed_rows(fixed_source, encoding, field_name_and_lengths, line_delimiter='a
         """
         assert location is not None
         assert line_delimiter in _VALID_FIXED_LINE_DELIMITERS
+        assert unread_character_after_line_delimiter[0] is None
 
         result = True
         if line_delimiter is not None:
@@ -340,24 +346,25 @@ def fixed_rows(fixed_source, encoding, field_name_and_lengths, line_delimiter='a
             else:
                 assert line_delimiter in ('\n', '\r', 'any')
                 actual_line_delimiter = fixed_file.read(1)
-            if (line_delimiter == 'any') and (actual_line_delimiter != ''):
-                # Process the optional second character for 'any'.
-                if actual_line_delimiter not in '\n\r':
-                    raise errors.DataFormatError(
-                        'line delimiter is %r but must be one of: %s' %
-                        (actual_line_delimiter, _tools.human_readable_list(('\n', '\r', '\r\n'))), location)
-                if actual_line_delimiter == '\r':
-                    next_character = fixed_file.read(1)
-                    if next_character == '\n':
-                        actual_line_delimiter += next_character
-                    elif next_character == '':
-                        result = False
-                    else:
-                        # Discard the last character read because it is unrelated to line separators.
-                        fixed_file.seek(-1, os.SEEK_CUR)
             if actual_line_delimiter == '':
                 result = False
-            elif (line_delimiter != 'any') and (actual_line_delimiter != line_delimiter):
+            elif line_delimiter == 'any':
+                if actual_line_delimiter == '\r':
+                    # Process the optional '\n' for 'any'.
+                    anticipated_linefeed = fixed_file.read(1)
+                    if anticipated_linefeed == '\n':
+                        actual_line_delimiter += anticipated_linefeed
+                    elif anticipated_linefeed == '':
+                        result = False
+                    else:
+                        # Unread the previous character because it is unrelated to line delimiters.
+                        unread_character_after_line_delimiter[0] = anticipated_linefeed
+                if actual_line_delimiter not in _VALID_FIXED_ANY_LINE_DELIMITERS:
+                    valid_line_delimiters = _tools.human_readable_list(_VALID_FIXED_ANY_LINE_DELIMITERS)
+                    raise errors.DataFormatError(
+                        'line delimiter is %r but must be one of: %s' %
+                        (actual_line_delimiter, valid_line_delimiters), location)
+            elif actual_line_delimiter != line_delimiter:
                 raise errors.DataFormatError(
                     'line delimiter is %r but must be %r' % (actual_line_delimiter, line_delimiter), location)
         return result
@@ -375,7 +382,15 @@ def fixed_rows(fixed_source, encoding, field_name_and_lengths, line_delimiter='a
             field_index = 0
             row = []
             for field_name, field_length in field_name_and_lengths:
-                item = fixed_file.read(field_length)
+                if unread_character_after_line_delimiter[0] is None:
+                    item = fixed_file.read(field_length)
+                else:
+                    assert len(unread_character_after_line_delimiter) == 1
+                    item = unread_character_after_line_delimiter[0]
+                    if field_length >= 2:
+                        item += fixed_file.read(field_length - 1)
+                    unread_character_after_line_delimiter[0] = None
+                assert unread_character_after_line_delimiter[0] is None
                 if not is_opened:
                     # Ensure that the input is a text file, `io.StringIO` or something similar. Binary files,
                     # `io.BytesIO` and the like cannot be used because the return bytes instead of strings.
@@ -384,8 +399,14 @@ def fixed_rows(fixed_source, encoding, field_name_and_lengths, line_delimiter='a
                 item_length = len(item)
                 if item_length == 0:
                     if field_index > 0:
+                        names = [name for name, _ in field_name_and_lengths]
+                        lengths = [length for _, length in field_name_and_lengths]
+                        previous_field_index = field_index - 1
+                        characters_needed_count = sum(lengths[field_index:])
                         raise errors.DataFormatError(
-                            'input must contain data for field %s (and any subsequent ones)', location)
+                            'after field %r %d characters must follow for: %s'
+                            % (names[previous_field_index], characters_needed_count, names[field_index:]),
+                            location)
                     # End of input reached.
                     has_data = False
                 elif item_length == field_length:
@@ -394,7 +415,7 @@ def fixed_rows(fixed_source, encoding, field_name_and_lengths, line_delimiter='a
                     field_index += 1
                 else:
                     raise errors.DataFormatError(
-                        'cannot read field %s: need %d characters but found only %d: %r'
+                        'cannot read field %r: need %d characters but found only %d: %r'
                         % (field_name, field_length, item_length, item), location)
             if has_data and not _has_data_after_skipped_line_delimiter():
                 has_data = False

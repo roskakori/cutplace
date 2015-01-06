@@ -47,8 +47,6 @@ LINE_DELIMITER_TO_TEXT_MAP = {
     "\n": LF,
     "\r": CR,
     "\r\n": CRLF,
-    # TODO: Change default of line_delimiter to 'any'.
-    # Consider that this requires the key for "no line delimiter" to be e.g. 'none' instead of ``None``.
     None: 'none',
 }
 _TEXT_TO_LINE_DELIMITER_MAP = dict([(value, key) for key, value in LINE_DELIMITER_TO_TEXT_MAP.items()])
@@ -93,6 +91,7 @@ class DataFormat(object):
             self._location = location
             self._format = format_name
             self._header = 0
+            self._is_valid = False
             self._allowed_characters = None
             self._encoding = 'cp1252'
             if self.format == FORMAT_DELIMITED:
@@ -101,7 +100,7 @@ class DataFormat(object):
             if self.format in (FORMAT_DELIMITED, FORMAT_FIXED):
                 self._decimal_separator = ','
                 self._escape_character = '"'
-                self._line_delimiter = None
+                self._line_delimiter = ANY
                 self._quote_character = '"'
                 self._thousands_separator = ''
             elif self.format in (FORMAT_EXCEL, FORMAT_ODS):
@@ -140,6 +139,10 @@ class DataFormat(object):
         return self._item_delimiter
 
     @property
+    def is_valid(self):
+        return self._is_valid
+
+    @property
     def line_delimiter(self):
         return self._line_delimiter
 
@@ -168,6 +171,7 @@ class DataFormat(object):
         Set data format property ``name`` to ``value``. In case the property or
         value cannot be processed, raise `errors.InterfaceError`.
         """
+        assert not self.is_valid, 'after validate() has been called property %r cannot be set anymore' % name
         assert name is not None
         assert (value is not None) or name in (KEY_ALLOWED_CHARACTERS, KEY_LINE_DELIMITER)
 
@@ -381,6 +385,8 @@ class DataFormat(object):
         Validate that property values are consistent and set default values
         for properties that have not been set yet.
         """
+        assert not self._is_valid, 'validate() must be used only once on data format: %s' % self
+
         # TODO: Change errors messages to "A and B are both %s but must be different from each other".
         # TODO: Remember locations where properties have been set.
         # TODO: Add see_also_locations for contradicting properties.
@@ -397,6 +403,7 @@ class DataFormat(object):
             if self.thousands_separator == self.item_delimiter:
                 raise errors.InterfaceError('thousands separator and item delimiter must be different', self._location)
         self._location = None
+        self._is_valid = True
 
     def __str__(self):
         result = 'DataFormat(%s; ' % self.format

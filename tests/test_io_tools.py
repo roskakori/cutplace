@@ -1,5 +1,5 @@
 """
-Test for `_io_tools` module.
+Test for `iotools` module.
 """
 # Copyright (C) 2009-2013 Thomas Aglassinger
 #
@@ -114,24 +114,28 @@ class RowsTest(unittest.TestCase):
             self.assertEqual(len(row), len(next_row))
 
     @staticmethod
-    def _create_fixed_data_format_and_fields_for_name_and_height():
+    def _create_fixed_data_format_and_fields_for_name_and_height(line_delimiter='any', validate=True):
         """
         A tuple of ``(data_format, field_names_and_lengths)`` that can be
         passed to `iotools.fixed_rows()` and describes a fixed data format
         with 2 fields ``name``  and ``size``.
         """
         data_format = data.DataFormat(data.FORMAT_FIXED)
+        data_format.set_property(data.KEY_LINE_DELIMITER, line_delimiter)
+        if validate:
+            data_format.validate()
         field_names_and_lengths = (
             ('name', 4),
             ('size', 3),
         )
-        return (data_format, field_names_and_lengths)
+        return data_format, field_names_and_lengths
 
     def _test_can_read_fixed_rows_from_stringio(self, data_text, data_format=None):
-        default_data_format, field_names_and_lengths =\
+        assert (data_format is None) or data_format.is_valid
+
+        default_data_format, field_names_and_lengths = \
             RowsTest._create_fixed_data_format_and_fields_for_name_and_height()
         actual_data_format = default_data_format if data_format is None else data_format
-        actual_data_format.validate()
         with io.StringIO(data_text) as data_io:
             rows = list(iotools.fixed_rows(
                 data_io, actual_data_format.encoding, field_names_and_lengths, actual_data_format.line_delimiter))
@@ -142,30 +146,86 @@ class RowsTest(unittest.TestCase):
 
     def test_can_read_fixed_rows_with_any_line_delimiter(self):
         data_format, _ = RowsTest._create_fixed_data_format_and_fields_for_name_and_height()
-        data_format.set_property('line_delimiter', 'any')
         self._test_can_read_fixed_rows_from_stringio('hugo172\nsepp163\n', data_format)
+
+    def test_can_read_empty_fixed_rows(self):
+        data_format = data.DataFormat(data.FORMAT_FIXED)
+        data_format.validate()
+        with io.StringIO('') as data_io:
+            rows = list(iotools.fixed_rows(
+                data_io, data_format.encoding, (('dummy', 1),), data_format.line_delimiter))
+        self.assertEqual([], rows)
 
     def test_can_read_fixed_rows_with_crlf_line_delimiter_combinations(self):
         base_data_text = 'hugo172\nsepp163\n'
         for line_delimiter in ('\n', '\r', '\r\n'):
             line_delimiter_text = data.LINE_DELIMITER_TO_TEXT_MAP[line_delimiter]
-            data_format, _ = RowsTest._create_fixed_data_format_and_fields_for_name_and_height()
-            data_format.set_property('line_delimiter', line_delimiter_text)
+            data_format, _ = RowsTest._create_fixed_data_format_and_fields_for_name_and_height(line_delimiter_text)
             data_text = base_data_text.replace('\n', line_delimiter)
             self._test_can_read_fixed_rows_from_stringio(data_text, data_format)
 
     def test_can_read_fixed_rows_with_missing_terminating_line_delimiter(self):
         data_format, field_names_and_lengths = RowsTest._create_fixed_data_format_and_fields_for_name_and_height()
-        data_format.set_property('line_delimiter', 'any')
-        data_format.validate()
         with io.StringIO('hugo172\nsepp163') as data_io:
             rows = list(iotools.fixed_rows(
                 data_io, data_format.encoding, field_names_and_lengths, data_format.line_delimiter))
         self._assert_rows_contain_data(rows)
         self.assertEqual(2, len(rows))
 
+    def test_can_read_fixed_rows_with_mixed_line_delimiters(self):
+        data_format, field_names_and_lengths = RowsTest._create_fixed_data_format_and_fields_for_name_and_height()
+        with io.StringIO('john172\rmary163\nbill167\r\njane184\r\n') as data_io:
+            rows = list(iotools.fixed_rows(
+                data_io, data_format.encoding, field_names_and_lengths, data_format.line_delimiter))
+        self.assertEqual([['john', '172'], ['mary', '163'], ['bill', '167'], ['jane', '184']], rows)
+
+    def test_can_read_fixed_rows_with_mixed_line_delimiters_terminated_by_carriage_return(self):
+        data_format, field_names_and_lengths = RowsTest._create_fixed_data_format_and_fields_for_name_and_height()
+        with io.StringIO('john172\r\nmary163\r') as data_io:
+            rows = list(iotools.fixed_rows(
+                data_io, data_format.encoding, field_names_and_lengths, data_format.line_delimiter))
+        self.assertEqual([['john', '172'], ['mary', '163']], rows)
+
+    def _fails_on_fixed_rows_from_stringio(self, data_text, expected_error_pattern='*', data_format=None):
+        assert (data_format is None) or data_format.is_valid
+
+        default_data_format, field_names_and_lengths = \
+            RowsTest._create_fixed_data_format_and_fields_for_name_and_height()
+        actual_data_format = default_data_format if data_format is None else data_format
+        with io.StringIO(data_text) as data_io:
+            rows = iotools.fixed_rows(
+                data_io, actual_data_format.encoding, field_names_and_lengths, actual_data_format.line_delimiter)
+            try:
+                for _ in rows:
+                    pass
+                self.fail()
+            except errors.DataFormatError as anticipated_error:
+                dev_test.assert_fnmatches(self, str(anticipated_error), expected_error_pattern)
+
+    def test_fails_on_fixed_rows_with_broken_line_delimiter(self):
+        data_format, _ = RowsTest._create_fixed_data_format_and_fields_for_name_and_height('lf')
+        self._fails_on_fixed_rows_from_stringio(
+            'hugo172\tsepp163', r"*line delimiter is '\t' but must be '\n'", data_format)
+
+    def test_fails_on_fixed_rows_with_broken_any_line_delimiter(self):
+        self._fails_on_fixed_rows_from_stringio(
+            'hugo172\tsepp163', r"*line delimiter is '\t' but must be one of: '\n', '\r' or '\r\n'")
+
+    def test_fails_on_fixed_rows_with_incomplete_record(self):
+        data_format, _ = RowsTest._create_fixed_data_format_and_fields_for_name_and_height('lf')
+        self._fails_on_fixed_rows_from_stringio(
+            'x', "*cannot read field 'name': need 4 characters but found only 1: 'x'", data_format)
+
+    def test_fails_on_fixed_rows_with_missing_record(self):
+        data_format, _ = RowsTest._create_fixed_data_format_and_fields_for_name_and_height('lf')
+        self._fails_on_fixed_rows_from_stringio(
+            'john', "*after field 'name' 3 characters must follow for: ?'size'?", data_format)
+
     def test_can_read_fixed_rows_without_line_delimiter(self):
-        self._test_can_read_fixed_rows_from_stringio('hugo172sepp163')
+        data_format = data.DataFormat(data.FORMAT_FIXED)
+        data_format.set_property(data.KEY_LINE_DELIMITER, 'none')
+        data_format.validate()
+        self._test_can_read_fixed_rows_from_stringio('hugo172sepp163', data_format)
 
     def test_can_auto_read_excel_rows(self):
         excel_path = dev_test.path_to_test_data('valid_customers.xls')
