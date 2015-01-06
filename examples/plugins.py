@@ -40,7 +40,7 @@ class FullNameLengthIsInRangeCheck(checks.AbstractCheck):
         self._full_name_range = ranges.Range(rule)
         self.reset()
 
-    def check_row(self, row_map, location):
-        full_name = row_map["last_name"] + ", " + row_map["first_name"]
+    def check_row(self, field_name_to_value_map, location):
+        full_name = field_name_to_value_map["last_name"] + ", " + field_name_to_value_map["first_name"]
         full_name_length = len(full_name)
         self._full_name_range.validate("length of full name", full_name_length, location)

@@ -322,31 +322,36 @@ class Cid(object):
         assert field_type
         assert field_rule is not None
 
-    def add_check(self, items):
-        assert items is not None
+    def add_check(self, possibly_incomplete_items):
+        """
+        Add a check as declared in ``possibly_incomplete_items``, which
+        ideally is a list is composed of 3 elements:
 
-        item_count = len(items)
-        if item_count < 2:
-            raise errors.InterfaceError(
-                "check row (marked with %r) must contain at least 2 columns" % self._ID_CHECK, self._location)
-        check_description = items[0]
+        1. description ('customer_id_must_be_unique')
+        2. type (e.g. 'IsUnique'  mapping to `checks.IsUniqueCheck`)
+        3. rule (e.g. 'customer_id')
 
-        # HACK: skip blank cells between `description` and `type` when `description` has concatenated cells
-        check_type = None
-        rule_index = 2
-        for i in range(1, len(items)):
-            check_class_name = items[i] + "Check"
-            if check_class_name in self._check_name_to_class_map:
-                check_type = items[i]
-                rule_index = i + 1
-        if not check_type:
+        Missing items are interpreted as '', additional items are ignored.
+        """
+        assert possibly_incomplete_items is not None
+
+        items = list(possibly_incomplete_items)
+        # HACK: Ignore possible concatenated (empty) cells between description and type.
+        while (len(items) >= 2) and (items[1].strip() == ''):
+            del items[1]
+
+        check_description, check_type, check_rule = (items + 3 * [''])[:3]
+        self._location.advance_cell()
+        if check_description == '':
             raise errors.InterfaceError(
-                "check type should be one of %s but is %s"
-                % (self._check_name_to_class_map.keys(), items[1:-2]), self._location)
-        if item_count >= 3:
-            check_rule = items[rule_index]  # default 2
-        else:
-            check_rule = ""
+                'check description must be specified', self._location)
+        self._location.advance_cell()
+        check_class_name = check_type + "Check"
+        if check_class_name not in self._check_name_to_class_map:
+            raise errors.InterfaceError(
+                'check type is %r but must be one of: %s'
+                % (check_type, _tools.human_readable_list(sorted(self._check_name_to_class_map.keys()))),
+                self._location)
         _log.debug("create check: %s(%r, %r)", check_type, check_description, check_rule)
         check_class = self._create_check_class(check_type)
         check = check_class.__new__(check_class, check_description, check_rule, self._field_names, self._location)
@@ -402,7 +407,7 @@ class Cid(object):
     def field_format_for(self, field_name):
         """
         The `fields.AbstractFieldFormat` for ``field_name``. If no such field has been defined,
-        raise a ``KeyError`` .
+        raise a `KeyError`.
         """
         assert field_name is not None
         return self._field_name_to_format_map[field_name]
@@ -410,7 +415,7 @@ class Cid(object):
     def field_format_at(self, field_index):
         """
         The `fields.AbstractFieldFormat` at ``field_index``. If no such field has been defined,
-        raise an ``IndexError`` .
+        raise an `IndexError`.
         """
         assert field_index is not None
         return self._field_formats[field_index]

@@ -44,7 +44,6 @@ class CidTest(unittest.TestCase):
     def test_can_read_excel_and_create_data_format_delimited(self):
         cid_reader = interface.Cid()
         source_path = dev_test.path_to_test_cid("icd_customers.xls")
-        print(source_path)
         cid_reader.read(source_path, iotools.excel_rows(source_path))
 
         self.assertEqual(cid_reader._data_format.format, "delimited")
@@ -216,7 +215,7 @@ class CidTest(unittest.TestCase):
             self.fail('InterfaceError must be raised')
         except errors.InterfaceError as anticipated_error:
             if anticipated_error_message_pattern is not None:
-                anticipated_error_message = '%s' % anticipated_error
+                anticipated_error_message = str(anticipated_error)
                 if not fnmatch.fnmatch(anticipated_error_message, anticipated_error_message_pattern):
                     self.fail(
                         'anticipated error message must match %r but is %r'
@@ -261,15 +260,6 @@ class CidTest(unittest.TestCase):
             'F,some         ,,,      ,',
         ])
         self._test_fails_on_broken_cid_from_text(cid_text, '*field names must be specified before check*')
-
-    def test_fails_on_unknown_field_type(self):
-        cid_text = '\n'.join([
-            ',CID referring to a field with a type for which there is no class',
-            'D,Format,%s' % data.FORMAT_DELIMITED,
-            ' ,Name         ,,,Length,Type    ,Rule',
-            'F,some         ,,,      ,NoSuchType',
-        ])
-        self._test_fails_on_broken_cid_from_text(cid_text, '*cannot find class*')
 
     def test_fails_on_unknown_field_type(self):
         cid_text = '\n'.join([
@@ -358,6 +348,43 @@ class CidTest(unittest.TestCase):
         self._test_fails_on_broken_cid_from_text(
             cid_text, '*length of field * for fixed data format must be a specific number but is: 1:')
 
+    def test_fails_on_broken_mark_for_empty_field(self):
+        cid_text = '\n'.join([
+            ',CID with a field that can be empty but is not marked with X',
+            'D,Format,%s' % data.FORMAT_FIXED,
+            ' ,Name         ,,Empty?,Length,Type,Rule',
+            'F,some         ,,broken',
+        ])
+        self._test_fails_on_broken_cid_from_text(
+            cid_text, '*mark for empty field must be * or empty but is *')
+
+    def test_fails_on_check_without_description(self):
+        cid_text = '\n'.join([
+            ',CID with a check without a description',
+            'D,Format,%s' % data.FORMAT_DELIMITED,
+            'F,some',
+            'C',
+        ])
+        self._test_fails_on_broken_cid_from_text(cid_text, '*check description must be specified')
+
+    def test_fails_on_check_without_type(self):
+        cid_text = '\n'.join([
+            ',CID with a check without a type',
+            'D,Format,%s' % data.FORMAT_DELIMITED,
+            'F,some',
+            'C,check_without_type',
+        ])
+        self._test_fails_on_broken_cid_from_text(
+            cid_text, "*check type is '' but must be one of: *'DistinctCountCheck'*'IsUniqueCheck'*")
+
+    def test_fails_on_check_without_rule(self):
+        cid_text = '\n'.join([
+            ',CID with a check without a description',
+            'D,Format,%s' % data.FORMAT_DELIMITED,
+            'F,some',
+            'C,check_without_rule,IsUnique',
+        ])
+        self._test_fails_on_broken_cid_from_text(cid_text)
 
 if __name__ == '__main__':
     unittest.main()
