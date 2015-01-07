@@ -31,8 +31,11 @@ import time
 from cutplace import data
 from cutplace import ranges
 from cutplace import errors
+from cutplace import _compat
 from cutplace import _tools
 from cutplace._compat import python_2_unicode_compatible
+
+# TODO #61: Replace various %r by %s and apply _compat.text_repr().
 
 # Expected suffix for classes that describe filed formats.
 _FieldFormatClassSuffix = "FieldFormat"
@@ -134,8 +137,8 @@ class AbstractFieldFormat(object):
                 try:
                     valid_character_range.validate("character", ord(character))
                 except errors.RangeValueError as error:
-                    raise errors.FieldValueError("value for fields %r must contain only valid characters: %s"
-                                                 % (self.field_name, error))
+                    raise errors.FieldValueError(
+                        "value for fields '%s' must contain only valid characters: %s" % (self.field_name, error))
 
     def validate_empty(self, value):
         if not self.is_allowed_to_be_empty:
@@ -146,7 +149,8 @@ class AbstractFieldFormat(object):
         # Do we have some data at all?
         if self.length is not None and not (self.is_allowed_to_be_empty and value == ""):
             try:
-                self.length.validate("length of '%s' with value %r" % (self.field_name, value), len(value))
+                self.length.validate(
+                    "length of '%s' with value %s" % (self.field_name, _compat.text_repr(value)), len(value))
             except errors.RangeValueError as error:
                 raise errors.FieldValueError(str(error))
 
@@ -220,7 +224,8 @@ class ChoiceFieldFormat(AbstractFieldFormat):
                     previous_toky_text = previous_toky[1]
                 else:
                     previous_toky_text = None
-                raise errors.InterfaceError("choice value must precede a comma (,) but found: %r" % previous_toky_text)
+                raise errors.InterfaceError(
+                    "choice value must precede a comma (,) but found: %s" % _compat.text_repr(previous_toky_text))
             choice = _tools.token_text(toky)
             if not choice:
                 raise errors.InterfaceError(
@@ -230,7 +235,8 @@ class ChoiceFieldFormat(AbstractFieldFormat):
             if not _tools.is_eof_token(toky):
                 if not _tools.is_comma_token(toky):
                     raise errors.InterfaceError(
-                        "comma (,) must follow choice value %r but found: %r" % (choice, toky[1]))
+                        "comma (,) must follow choice value %s but found: %s"
+                        % (_compat.text_repr(choice), _compat.text_repr(toky[1])))
                 # Process next choice after comma.
                 toky = next(tokens)
                 if _tools.is_eof_token(toky):
@@ -243,7 +249,8 @@ class ChoiceFieldFormat(AbstractFieldFormat):
 
         if value not in self.choices:
             raise errors.FieldValueError(
-                "value is %r but must be one of: %s" % (value, _tools.human_readable_list(self.choices)))
+                "value is %s but must be one of: %s"
+                % (_compat.text_repr(value), _tools.human_readable_list(self.choices)))
         return value
 
     def as_sql(self, db):
@@ -287,8 +294,9 @@ class DecimalFieldFormat(AbstractFieldFormat):
             character_to_process = value[valueIndex]
             if character_to_process == self.decimalSeparator:
                 if found_decimal_separator:
-                    raise errors.FieldValueError("decimal field must contain only one decimal separator (%r): %r"
-                                                 % (self.decimalSeparator, value))
+                    raise errors.FieldValueError(
+                        "decimal field must contain only one decimal separator (%s): %s"
+                        % (_compat.text_repr(self.decimalSeparator), _compat.text_repr(value)))
                 translated_value += "."
                 found_decimal_separator = True
             elif self.thousandsSeparator and (character_to_process == self.thousandsSeparator):
@@ -536,22 +544,22 @@ def validated_field_name(supposed_field_name, location=None):
     describes a valid field name. Otherwise, raise a `InterfaceError` pointing to ``location``.
     """
     field_name = supposed_field_name.strip()
+    basic_requirements_text = 'field name must be a valid Python name consisting of ASCII letters, ' \
+                              'underscore (_) and digits'
     if field_name == '':
-        raise errors.InterfaceError(
-            "field name must be a valid Python name consisting of ASCII letters, "
-            "underscore (_) and digits but is empty", location)
+        raise errors.InterfaceError(basic_requirements_text + 'but is empty', location)
     if keyword.iskeyword(field_name):
-        raise errors.InterfaceError("field name must not be a Python keyword but is: %r" % field_name, location)
+        raise errors.InterfaceError("field name must not be a Python keyword but is: '%s'" % field_name, location)
     is_first_character = True
     for character in field_name:
         if is_first_character:
             if character not in _ASCII_LETTERS:
                 raise errors.InterfaceError(
-                    "field name must begin with a lower-case letter but is: %r" % field_name, location)
+                    "field name must begin with a lower-case letter but is: %s"
+                    % _compat.text_repr(field_name), location)
             is_first_character = False
         else:
             if character not in _ASCII_LETTERS_DIGITS_AND_UNDERSCORE:
                 raise errors.InterfaceError(
-                    "field name must be a valid Python name consisting of ASCII letters, "
-                    "underscore (%r) and digits but is: %r" % ("_", field_name), location)
+                    basic_requirements_text + 'but is: %s' % _compat.text_repr(field_name), location)
     return field_name

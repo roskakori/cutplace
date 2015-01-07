@@ -24,6 +24,8 @@ import logging
 import os
 import unittest
 
+import six
+
 from cutplace import _cutplace
 from tests import dev_test
 from tests import _ods
@@ -118,8 +120,12 @@ class CutplaceProcessTest(unittest.TestCase):
         self.assertEqual(0, exit_code)
 
     def test_fails_on_non_existent_data(self):
+        if six.PY2:
+            expected_error_class = EnvironmentError
+        else:
+            expected_error_class = IOError
         cid_path = dev_test.path_to_test_cid('customers.xls')
-        self.assertRaises(IOError, _cutplace.process, ['test_fails_on_non_existent_data', cid_path, 'no_such_data.csv'])
+        self.assertRaises(expected_error_class, _cutplace.process, ['test_fails_on_non_existent_data', cid_path, 'no_such_data.csv'])
 
     def test_fails_on_unknown_command_line_argument(self):
         self._test_process_exits_with(['--no-such-option'], 2)

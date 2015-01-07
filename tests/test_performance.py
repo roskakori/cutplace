@@ -21,15 +21,16 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import io
-import csv
 import logging
 import os.path
 import pstats
 import unittest
 
+import six
 
 from cutplace import interface
 from cutplace import validator
+from cutplace import _compat
 from cutplace import _cutplace
 from cutplace import _tools
 from tests import dev_test
@@ -43,15 +44,14 @@ except ImportError:
     _log.warning('cProfile is not available, using profile')
 
 
-def _build_lots_of_customers_csv(targetCsvPath, customerCount=1000):
+def _build_lots_of_customers_csv(target_csv_path, customer_count=1000):
     # TODO: Use a random seed to generate the same data every time.
-    assert targetCsvPath is not None
+    assert target_csv_path is not None
 
-    _log.info('write lots of customers to "%s"', targetCsvPath)
-    with io.open(targetCsvPath, "w", newline='', encoding='cp1252') as targetCsvFile:
-        # TODO #61: Python 2: use portable CSV writer.
-        csv_writer = csv.writer(targetCsvFile)
-        for customerId in range(customerCount):
+    _log.info('write lots of customers to "%s"', target_csv_path)
+    with io.open(target_csv_path, "w", newline='', encoding='cp1252') as target_csv_file:
+        csv_writer = _compat.csv_writer(target_csv_file)
+        for customerId in range(customer_count):
             csv_writer.writerow(dev_test.create_test_customer_row(customerId))
 
 
@@ -88,7 +88,9 @@ class PerformanceTest(unittest.TestCase):
             target_profile_path)
         with io.open(target_report_path, "w", encoding='utf-8') as targetReportFile:
             stats = pstats.Stats(target_profile_path, stream=targetReportFile)
-            stats.sort_stats("cumulative").print_stats("cutplace", 20)
+            # HACK: With Python 2, avoid TypeError: must be unicode, not str
+            if not six.PY2:
+                stats.sort_stats("cumulative").print_stats("cutplace", 20)
 
 
 if __name__ == '__main__':  # pragma: no cover

@@ -22,8 +22,9 @@ from __future__ import unicode_literals
 
 import copy
 import os
-import six
 import traceback
+
+import six
 
 from cutplace._compat import python_2_unicode_compatible
 
@@ -79,7 +80,7 @@ class Location(object):
         <io> (1;1)
         """
         assert file_path
-        if isinstance(file_path, str):
+        if isinstance(file_path, six.string_types):
             self.file_path = file_path
         else:
             try:

@@ -27,6 +27,8 @@ import io
 import token
 import tokenize
 
+from cutplace import _compat
+
 
 # Mapping for value of --log to logging level.
 LOG_LEVEL_NAME_TO_LEVEL_MAP = {
@@ -81,25 +83,26 @@ def validated_python_name(name, value):
     return result
 
 
-def human_readable_list(items):
+def human_readable_list(items, final_separator='or'):
     """
     All values in `items` in a human readable form. This is meant to be used in error messages, where
     dumping "%r" to the user does not cut it.
     """
     assert items is not None
+    assert final_separator is not None
     item_count = len(items)
     if item_count == 0:
-        result = ""
+        result = ''
     elif item_count == 1:
-        result = "%r" % items[0]
+        result = _compat.text_repr(items[0])
     else:
-        result = ""
+        result = ''
         for item_index in range(item_count):
             if item_index == item_count - 1:
-                result += " or "
+                result += ' ' + final_separator + ' '
             elif item_index > 0:
-                result += ", "
-            result += "%r" % items[item_index]
+                result += ', '
+            result += _compat.text_repr(items[item_index])
         assert result
     assert result is not None
     return result
@@ -110,7 +113,7 @@ def tokenize_without_space(text):
     ``text`` split into token with any white space tokens removed.
     """
     assert text is not None
-    for toky in tokenize.generate_tokens(io.StringIO(text).readline):
+    for toky in tokenize.generate_tokens(_compat.token_io_readline(text)):
         toky_type = toky[0]
         toky_text = toky[1]
         if ((toky_type != token.INDENT) and toky_text.strip()) or (toky_type == token.ENDMARKER):

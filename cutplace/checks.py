@@ -21,11 +21,11 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import copy
-import io
 import tokenize
 
 from cutplace import fields
 from cutplace import errors
+from cutplace import _compat
 from cutplace import _tools
 from cutplace._compat import python_2_unicode_compatible
 
@@ -161,7 +161,7 @@ class IsUniqueCheck(AbstractCheck):
         self.reset()
 
         # Extract field names to check from rule.
-        rule_read_line = io.StringIO(rule).readline
+        rule_read_line = _compat.token_io_readline(rule)
         toky = tokenize.generate_tokens(rule_read_line)
         after_comma = True
         next_token = next(toky)
@@ -219,7 +219,7 @@ class DistinctCountCheck(AbstractCheck):
     def __init__(self, description, rule, available_field_names, location=None):
         super(DistinctCountCheck, self).__init__(description, rule, available_field_names, location)
 
-        rule_read_line = io.StringIO(rule).readline
+        rule_read_line = _compat.token_io_readline(rule)
         tokens = tokenize.generate_tokens(rule_read_line)
         first_token = next(tokens)
 

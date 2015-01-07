@@ -28,6 +28,8 @@ import sys
 from datetime import timedelta, datetime
 from random import randrange
 
+import six
+
 _log = logging.getLogger("cutplace.tests")
 
 # Most popular names in the USA according to U.S. Census Bureau, Population Division,
@@ -139,7 +141,7 @@ def _random_datetime(start_text="1900-01-01 00:00:00", end_text="2009-03-15 23:5
 
 def random_datetime(time_format="%Y-%m-%d %H:%M:%S"):
     sometimes = _random_datetime()
-    return sometimes.strftime(time_format)
+    return six.text_type(sometimes.strftime(time_format))
 
 
 def random_first_name(is_male=True):
@@ -229,18 +231,14 @@ def path_to_test_plugins():
 
 
 def create_test_customer_row(customer_id):
-    branch_id = random.choice(["38000", "38053", "38111"])
-    is_male = random.choice([True, False])
-    first_name = random_first_name(is_male)
+    branch_id = random.choice(['38000', '38053', '38111'])
+    gender = random.choice(['female', 'male'])
+    first_name = random_first_name(gender == 'male')
     surname = random_surname()
-    if random.randint(0, 100) == 50:
+    if random.randint(0, 100) == 0:
         gender = "unknown"
-    elif is_male:
-        gender = "male"
-    else:
-        gender = "female"
     date_of_birth = random_datetime("%d.%m.%Y")
-    return [branch_id, customer_id, first_name, surname, gender, date_of_birth]
+    return [branch_id, six.text_type(customer_id), first_name, surname, gender, date_of_birth]
 
 
 def assert_fnmatches(test_case, actual_value, expected_pattern):

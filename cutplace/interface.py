@@ -32,6 +32,7 @@ from cutplace import fields
 from cutplace import errors
 from cutplace import checks
 from cutplace import iotools
+from cutplace import _compat
 from cutplace import _tools
 from cutplace._compat import python_2_unicode_compatible
 
@@ -241,8 +242,8 @@ class Cid(object):
             field_is_allowed_to_be_empty = True
         else:
             raise errors.InterfaceError(
-                "mark for empty field must be %r or empty but is %r" % (self._EMPTY_INDICATOR,
-                field_is_allowed_to_be_empty_text), self._location)
+                "mark for empty field must be %s or empty but is %s"
+                % (self._EMPTY_INDICATOR, field_is_allowed_to_be_empty_text), self._location)
 
         # Obtain length.
         self._location.advance_cell()
@@ -348,9 +349,10 @@ class Cid(object):
         self._location.advance_cell()
         check_class_name = check_type + "Check"
         if check_class_name not in self._check_name_to_class_map:
+            list_of_available_check_types = _tools.human_readable_list(sorted(self._check_name_to_class_map.keys()))
             raise errors.InterfaceError(
-                'check type is %r but must be one of: %s'
-                % (check_type, _tools.human_readable_list(sorted(self._check_name_to_class_map.keys()))),
+                "check type is '%s' but must be one of: %s"
+                % (check_type, list_of_available_check_types),
                 self._location)
         _log.debug("create check: %s(%r, %r)", check_type, check_description, check_rule)
         check_class = self._create_check_class(check_type)
@@ -360,7 +362,7 @@ class Cid(object):
         existing_check = self._check_name_to_check_map.get(check_description)
         if existing_check is not None:
             raise errors.InterfaceError(
-                "check description must be used only once: %r" % check_description,
+                "check description must be used only once: %s" % _compat.text_repr(check_description),
                 self._location, "first declaration", existing_check.location)
         self._check_name_to_check_map[check_description] = check
         self._check_names.append(check_description)
@@ -371,7 +373,7 @@ class Cid(object):
         The column index of  the field named ``field_name`` starting with 0.
         """
         assert field_name in self._field_name_to_index_map, \
-            "unknown field name %r must be replaced by one of: %s" \
+            "unknown field name '%s' must be replaced by one of: %s" \
             % (field_name, _tools.human_readable_list(sorted(self.field_names)))
 
         return self._field_name_to_index_map[field_name]
@@ -381,7 +383,7 @@ class Cid(object):
         The value for field ``field_name`` in ``row``. Broken parameters cause an `AssertionError`.
         """
         assert field_name in self._field_name_to_index_map, \
-            "unknown field name %r must be replaced by one of: %s" \
+            "unknown field name '%s' must be replaced by one of: %s" \
             % (field_name, _tools.human_readable_list(sorted(self.field_names)))
         assert row is not None
         actual_row_count = len(row)

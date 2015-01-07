@@ -24,6 +24,7 @@ import unittest
 
 from cutplace import errors
 from cutplace import ranges
+from tests import dev_test
 
 
 class RangeTest(unittest.TestCase):
@@ -119,8 +120,9 @@ class RangeTest(unittest.TestCase):
             ranges.Range("?")
             self.fail("test must fail with InterfaceError")
         except errors.InterfaceError as error:
-            self.assertEqual(str(error), "range must be specified using integer numbers, text, "
-                                         "symbols and ellipsis (...) but found: '?' [token type: 53]")
+            dev_test.assert_fnmatches(
+                self, str(error),
+                "range must be specified using integer numbers, text, symbols and ellipsis (...) but found: '?'*")
         try:
             ranges.Range("1.23")
             self.fail("test must fail with InterfaceError")

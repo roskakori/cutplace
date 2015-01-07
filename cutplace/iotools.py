@@ -26,6 +26,7 @@ from xml.etree import ElementTree
 
 from cutplace import data
 from cutplace import errors
+from cutplace import _compat
 from cutplace import _tools
 
 # Valid line delimiters for  `fixed_rows()`.
@@ -137,6 +138,7 @@ if six.PY2:  # pragma: no cover
     #
     # Note: _UTF8Recoder and _UnicodeReader are derived from <https://docs.python.org/2/library/csv.html#examples>.
     import codecs
+    # TODO #61: Make `UnicodeReader` a drop in for Python 3's `csv.reader` and move it to `_compat`.
     # TODO: Check if the iterators below can be simplified using `six.Iterator` which already has `next()`.
 
     class _UTF8Recoder(object):
@@ -155,17 +157,20 @@ if six.PY2:  # pragma: no cover
 
     class _UnicodeReader(object):
         """
-        A CSV reader which will iterate over lines in the CSV file 'f',
+        A CSV reader which will iterate over lines in the CSV file 'csv_file',
         which is encoded in the given encoding.
         """
 
         def __init__(self, csv_file, dialect=csv.excel, encoding='utf-8', **keywords):
             csv_file = _UTF8Recoder(csv_file, encoding)
             self.reader = csv.reader(csv_file, dialect=dialect, **keywords)
+            self.line_num = -1
 
         def next(self):
+            self.line_num += 1
             row = self.reader.next()
-            return [six.text_type(item, 'utf-8') for item in row]
+            result = [six.text_type(item, 'utf-8') for item in row]
+            return result
 
         def __iter__(self):
             return self
@@ -287,10 +292,12 @@ def ods_rows(source_ods_path, sheet=1):
                 repeated_count = int(repeated_text)
                 if repeated_count < 1:
                     raise errors.DataFormatError(
-                        'table:number-columns-repeated is %r but must be at least 1' % repeated_text, location)
+                        'table:number-columns-repeated is %s but must be at least 1'
+                        % _compat.text_repr(repeated_text), location)
             except ValueError:
                 raise errors.DataFormatError(
-                    'table:number-columns-repeated is %r but must be an integer' % repeated_text, location)
+                    'table:number-columns-repeated is %s but must be an integer' % _compat.text_repr(repeated_text),
+                    location)
             text_p = table_cell.find('text:p', namespaces=_OOO_NAMESPACES)
             if text_p is None:
                 cell_value = ''
@@ -317,7 +324,7 @@ def fixed_rows(fixed_source, encoding, field_name_and_lengths, line_delimiter='a
         assert name is not None
         assert length >= 1, 'length for %s must be at least 1 but is %s' % (name, length)
     assert line_delimiter in _VALID_FIXED_LINE_DELIMITERS, \
-        'line_delimiter=%r but must be one of: %s' % (line_delimiter, _VALID_FIXED_LINE_DELIMITERS)
+        'line_delimiter=%s but must be one of: %s' % (_compat.text_repr(line_delimiter), _VALID_FIXED_LINE_DELIMITERS)
 
     # Predefine variable for access in local function.
     location = errors.Location(fixed_source, has_column=True)
@@ -362,11 +369,12 @@ def fixed_rows(fixed_source, encoding, field_name_and_lengths, line_delimiter='a
                 if actual_line_delimiter not in _VALID_FIXED_ANY_LINE_DELIMITERS:
                     valid_line_delimiters = _tools.human_readable_list(_VALID_FIXED_ANY_LINE_DELIMITERS)
                     raise errors.DataFormatError(
-                        'line delimiter is %r but must be one of: %s' %
-                        (actual_line_delimiter, valid_line_delimiters), location)
+                        'line delimiter is %s but must be one of: %s' %
+                        (_compat.text_repr(actual_line_delimiter), valid_line_delimiters), location)
             elif actual_line_delimiter != line_delimiter:
                 raise errors.DataFormatError(
-                    'line delimiter is %r but must be %r' % (actual_line_delimiter, line_delimiter), location)
+                    'line delimiter is %s but must be %s'
+                    % (_compat.text_repr(actual_line_delimiter), _compat.text_repr(line_delimiter)), location)
         return result
 
     if isinstance(fixed_source, six.string_types):
@@ -394,6 +402,7 @@ def fixed_rows(fixed_source, encoding, field_name_and_lengths, line_delimiter='a
                 if not is_opened:
                     # Ensure that the input is a text file, `io.StringIO` or something similar. Binary files,
                     # `io.BytesIO` and the like cannot be used because the return bytes instead of strings.
+                    # NOTE: We do not need to use _compat.text_repr(item) because type `unicode` does not fail here.
                     assert isinstance(item, six.text_type), \
                         '%s: fixed_source must yield strings but got type %s, value %r' % (location, type(item), item)
                 item_length = len(item)
@@ -403,9 +412,10 @@ def fixed_rows(fixed_source, encoding, field_name_and_lengths, line_delimiter='a
                         lengths = [length for _, length in field_name_and_lengths]
                         previous_field_index = field_index - 1
                         characters_needed_count = sum(lengths[field_index:])
+                        list_of_missing_field_names = _tools.human_readable_list(names[field_index:], 'and')
                         raise errors.DataFormatError(
-                            'after field %r %d characters must follow for: %s'
-                            % (names[previous_field_index], characters_needed_count, names[field_index:]),
+                            "after field '%s' %d characters must follow for: %s"
+                            % (names[previous_field_index], characters_needed_count, list_of_missing_field_names),
                             location)
                     # End of input reached.
                     has_data = False
@@ -415,8 +425,8 @@ def fixed_rows(fixed_source, encoding, field_name_and_lengths, line_delimiter='a
                     field_index += 1
                 else:
                     raise errors.DataFormatError(
-                        'cannot read field %r: need %d characters but found only %d: %r'
-                        % (field_name, field_length, item_length, item), location)
+                        "cannot read field '%s': need %d characters but found only %d: %s"
+                        % (field_name, field_length, item_length, _compat.text_repr(item)), location)
             if has_data and not _has_data_after_skipped_line_delimiter():
                 has_data = False
             if len(row) > 0:

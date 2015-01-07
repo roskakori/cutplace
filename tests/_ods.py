@@ -22,11 +22,11 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import argparse
-import csv
 import logging
 import io
 import sys
 
+from cutplace import _compat
 from cutplace import _tools
 from cutplace import iotools
 
@@ -43,9 +43,9 @@ def toCsv(odsFilePath, csvTargetPath, dialect="excel", sheet=1):
     assert sheet is not None
     assert sheet >= 1
 
-    with io.open(csvTargetPath, 'w', encoding='utf-8') as csvTargetFile:
-        csvWriter = csv.writer(csvTargetFile, dialect)
-        csvWriter.writerows(iotools.ods_rows(odsFilePath, sheet))
+    with io.open(csvTargetPath, 'w', newline='', encoding='utf-8') as csvTargetFile:
+        csv_writer = _compat.csv_writer(csvTargetFile, dialect)
+        csv_writer.writerows(iotools.ods_rows(odsFilePath, sheet))
 
 
 def _writeRstRow(rstTargetFile, columnLengths, items):

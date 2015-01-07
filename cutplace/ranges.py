@@ -27,6 +27,7 @@ import token
 import tokenize
 
 from cutplace import errors
+from cutplace import _compat
 from cutplace import _tools
 from cutplace._compat import python_2_unicode_compatible
 
@@ -92,7 +93,8 @@ class Range(object):
 
                                 long_value = int(next_value, base)
                             except ValueError:
-                                raise errors.InterfaceError("number must be an integer but is: %r" % next_value)
+                                raise errors.InterfaceError(
+                                    "number must be an integer but is: %s" % _compat.text_repr(next_value))
                             if after_hyphen:
                                 long_value *= - 1
                                 after_hyphen = False
@@ -101,12 +103,14 @@ class Range(object):
                                 long_value = errors.NAME_TO_ASCII_CODE_MAP[next_value.lower()]
                             except KeyError:
                                 valid_symbols = _tools.human_readable_list(sorted(errors.NAME_TO_ASCII_CODE_MAP.keys()))
-                                raise errors.InterfaceError("symbolic name %r must be one of: %s"
-                                                            % (next_value, valid_symbols))
+                                raise errors.InterfaceError(
+                                    "symbolic name %s must be one of: %s"
+                                    % (_compat.text_repr(next_value), valid_symbols))
                         elif next_type == token.STRING:
                             if len(next_value) != 3:
-                                raise errors.InterfaceError("text for range must contain a single character "
-                                                            "but is: %r" % next_value)
+                                raise errors.InterfaceError(
+                                    "text for range must contain a single character but is: %s"
+                                    % _compat.text_repr(next_value))
                             left_quote = next_value[0]
                             right_quote = next_value[2]
                             assert left_quote in "\"\'", "leftQuote=%r" % left_quote
@@ -116,21 +120,26 @@ class Range(object):
                             if upper is None:
                                 upper = long_value
                             else:
-                                raise errors.InterfaceError("range must have at most lower and upper limit "
-                                                            "but found another number: %r" % next_value)
+                                raise errors.InterfaceError(
+                                    "range must have at most lower and upper limit but found another number: %s"
+                                    % _compat.text_repr(next_value))
                         elif lower is None:
                             lower = long_value
                         else:
-                            raise errors.InterfaceError("number must be followed by ellipsis (...) but found: %r" % next_value)
+                            raise errors.InterfaceError(
+                                "number must be followed by ellipsis (...) but found: %s"
+                                % _compat.text_repr(next_value))
                     elif after_hyphen:
-                        raise errors.InterfaceError("hyphen (-) must be followed by number but found: %r" % next_value)
+                        raise errors.InterfaceError(
+                            "hyphen (-) must be followed by number but found: %s" % _compat.text_repr(next_value))
                     elif (next_type == token.OP) and (next_value == "-"):
                         after_hyphen = True
                     elif next_value in (ELLIPSIS, ':'):
                         ellipsis_found = True
                     else:
                         message = "range must be specified using integer numbers, text, " \
-                                  "symbols and ellipsis (...) but found: %r [token type: %r]" % (next_value, next_type)
+                                  "symbols and ellipsis (...) but found: %s [token type: %d]" \
+                                  % (_compat.text_repr(next_value), next_type)
                         raise errors.InterfaceError(message)
                     next_token = next(tokens)
 
@@ -154,8 +163,8 @@ class Range(object):
                 elif ellipsis_found:
                     # Handle "x..." and "x...y".
                     if (upper is not None) and (lower > upper):
-                        raise errors.InterfaceError("lower range %d must be greater or equal "
-                                                    "to upper range %d" % (lower, upper))
+                        raise errors.InterfaceError(
+                            "lower range %d must be greater or equal than upper range %d" % (lower, upper))
                     result = (lower, upper)
                 else:
                     # Handle "x".
@@ -164,8 +173,9 @@ class Range(object):
                     for item in self._items:
                         if self._items_overlap(item, result):
                             # TODO: use _repr_item() or something to display item in error message.
-                            raise errors.InterfaceError("range items must not overlap: %r and %r"
-                                                        % (self._repr_item(item), self._repr_item(result)))
+                            raise errors.InterfaceError(
+                                "range items must not overlap: %r and %r"
+                                % (self._repr_item(item), self._repr_item(result)))
                     self._items.append(result)
                 if _tools.is_eof_token(next_token):
                     end_reached = True

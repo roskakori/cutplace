@@ -219,7 +219,7 @@ class RowsTest(unittest.TestCase):
     def test_fails_on_fixed_rows_with_missing_record(self):
         data_format, _ = RowsTest._create_fixed_data_format_and_fields_for_name_and_height('lf')
         self._fails_on_fixed_rows_from_stringio(
-            'john', "*after field 'name' 3 characters must follow for: ?'size'?", data_format)
+            'john', "*after field 'name' 3 characters must follow for: 'size'", data_format)
 
     def test_can_read_fixed_rows_without_line_delimiter(self):
         data_format = data.DataFormat(data.FORMAT_FIXED)
