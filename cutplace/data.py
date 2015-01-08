@@ -27,6 +27,7 @@ import tokenize
 
 from cutplace import errors
 from cutplace import ranges
+from cutplace import _compat
 from cutplace import _tools
 from cutplace._compat import python_2_unicode_compatible
 
@@ -95,13 +96,13 @@ class DataFormat(object):
             self._allowed_characters = None
             self._encoding = 'cp1252'
             if self.format == FORMAT_DELIMITED:
+                self._escape_character = '"'
                 self._item_delimiter = ','
+                self._quote_character = '"'
                 self._skip_initial_space = False
             if self.format in (FORMAT_DELIMITED, FORMAT_FIXED):
                 self._decimal_separator = ','
-                self._escape_character = '"'
                 self._line_delimiter = ANY
-                self._quote_character = '"'
                 self._thousands_separator = ''
             elif self.format in (FORMAT_EXCEL, FORMAT_ODS):
                 self._sheet = 1
@@ -215,19 +216,13 @@ class DataFormat(object):
                     % (value, _tools.human_readable_list(self._VALID_LINE_DELIMITER_TEXTS)), self._location)
         elif name == KEY_QUOTE_CHARACTER:
             self._quote_character = self._validated_choice(KEY_QUOTE_CHARACTER, value, _VALID_QUOTE_CHARACTERS)
+        elif name == KEY_SHEET:
+            self._sheet = self._validated_int_at_least_0(name, value)
+        elif name == KEY_SKIP_INITIAL_SPACE:
+            self._skip_initial_space = self._validated_bool(name, value)
         elif name == KEY_THOUSANDS_SEPARATOR:
             self._thousands_separator = self._validated_choice(
                 KEY_DECIMAL_SEPARATOR, value, _VALID_THOUSANDS_SEPARATORS)
-        elif self.format == FORMAT_DELIMITED:
-            if name == KEY_SKIP_INITIAL_SPACE:
-                self._skip_initial_space = self._validated_bool(name, value)
-            else:
-                self.__dict__[property_attribute_name] = value
-        elif self.format in (FORMAT_EXCEL, FORMAT_ODS):
-            assert name == KEY_SHEET, 'name=%r' % name
-            self._sheet = self._validated_int_at_least_0(name, value)
-        elif self.format == FORMAT_FIXED:
-            self.__dict__[property_attribute_name] = value
         else:
             assert False, 'name=%r' % name
 
@@ -387,21 +382,27 @@ class DataFormat(object):
         """
         assert not self._is_valid, 'validate() must be used only once on data format: %s' % self
 
-        # TODO: Change errors messages to "A and B are both %s but must be different from each other".
         # TODO: Remember locations where properties have been set.
         # TODO: Add see_also_locations for contradicting properties.
+        def check_distinct(name1, name2):
+            assert name1 is not None
+            assert name2 is not None
+            assert name1 < name2, 'names must be sorted for consistent error message: %r, %r' % (name1, name2)
+            value1 = self.__dict__['_' + name1]
+            value2 = self.__dict__['_' + name2]
+            if value1 == value2:
+                raise errors.InterfaceError(
+                    "'%s' and '%s' are both %s but must be different from each other"
+                    % (name1, name2, _compat.text_repr(value1)))
+
         if self.format in (FORMAT_DELIMITED, FORMAT_FIXED):
-            if self.decimal_separator == self.thousands_separator:
-                raise errors.InterfaceError('decimal separator and thousands separator must be different', self._location)
+            check_distinct(KEY_DECIMAL_SEPARATOR, KEY_THOUSANDS_SEPARATOR)
         if self.format == FORMAT_DELIMITED:
-            if self.escape_character == self.item_delimiter:
-                raise errors.InterfaceError('escape character and item delimiter must be different', self._location)
-            if self.line_delimiter == self.item_delimiter:
-                raise errors.InterfaceError('line delimiter and item delimiter must be different', self._location)
-            if self.quote_character == self.item_delimiter:
-                raise errors.InterfaceError('quote character and item delimiter must be different', self._location)
-            if self.thousands_separator == self.item_delimiter:
-                raise errors.InterfaceError('thousands separator and item delimiter must be different', self._location)
+            if self.line_delimiter is not None:
+                check_distinct(KEY_ESCAPE_CHARACTER, KEY_LINE_DELIMITER)
+            check_distinct(KEY_ITEM_DELIMITER, KEY_LINE_DELIMITER)
+            check_distinct(KEY_ITEM_DELIMITER, KEY_QUOTE_CHARACTER)
+            check_distinct(KEY_LINE_DELIMITER, KEY_QUOTE_CHARACTER)
         self._location = None
         self._is_valid = True
 
