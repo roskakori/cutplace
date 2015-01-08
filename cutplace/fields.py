@@ -258,13 +258,13 @@ class ChoiceFieldFormat(AbstractFieldFormat):
             column_def, _ = IntegerFieldFormat(self._field_name, self._is_allowed_to_be_empty,
                                                self._length.description, self._rule, self._data_format,
                                                self._empty_value).as_sql(db)
-            constraint = "CONSTRAINT chk_" + self._field_name + " CHECK( " + self._field_name + " IN [" + \
+            constraint = "constraint chk_" + self._field_name + " check( " + self._field_name + " in [" + \
                          ",".join(map(str, self.choices)) + "] )"
         else:
             max_length = max(self.choices, key=len)
-            column_def = self._field_name + " VARCHAR(" + str(len(max_length)) + ")"
-            column_def += " NOT NULL" if not self._is_allowed_to_be_empty else ""
-            constraint = "CONSTRAINT chk_" + self._field_name + " CHECK( " + self._field_name + " IN ['" + \
+            column_def = self._field_name + " varchar(" + str(len(max_length)) + ")"
+            column_def += " not null" if not self._is_allowed_to_be_empty else ""
+            constraint = "constraint chk_" + self._field_name + " check( " + self._field_name + " in ['" + \
                          "','".join(map(str, self.choices)) + "'] )"
         return [column_def, constraint]
 
@@ -322,6 +322,10 @@ class IntegerFieldFormat(AbstractFieldFormat):
     """
     _DEFAULT_RANGE = '%d...%d' % (-2 ** 31, 2 ** 31 - 1)
 
+    MAX_BIGINT = 2 ** 63 - 1
+    MAX_INT = 2 ** 31 - 1
+    MAX_SMALLINT = 2 ** 15 - 1
+
     def __init__(self, field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value=None):
         super(IntegerFieldFormat, self).__init__(
             field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value)
@@ -374,29 +378,29 @@ class IntegerFieldFormat(AbstractFieldFormat):
     def as_sql(self, db):
         range_limit = self.rangeRule.upper_limit
 
-        if range_limit < 2 ** 15:
-            column_def = self._field_name + " SMALLINT"
-        elif range_limit < 2 ** 31:
-            column_def = self._field_name + " INTEGER"
+        if range_limit <= self.MAX_SMALLINT:
+            column_def = self._field_name + " smallint"
+        elif range_limit <= self.MAX_INT:
+            column_def = self._field_name + " integer"
         else:
-            if db in (MSSQL, DB2) and range_limit < 2 ** 63:
-                column_def = self._field_name + " BIGINT"
+            if db in (MSSQL, DB2) and range_limit <= self.MAX_BIGINT:
+                column_def = self._field_name + " bigint"
             else:
                 column_def, _ = DecimalFieldFormat(self._field_name, self._is_allowed_to_be_empty,
                                                    self._length.description, self._rule, self._data_format,
                                                    self._empty_value).as_sql(db)
 
         if not self.is_allowed_to_be_empty:
-            column_def += " NOT NULL"
+            column_def += " not null"
 
         constraint = ""
         for i in range(len(self.rangeRule.items)):
             if i == 0:
-                constraint = "CONSTRAINT chk_" + self._field_name + " CHECK( "
-            constraint += "( " + self._field_name + " BETWEEN " + str(self.rangeRule.items[i][0]) + " AND " + \
+                constraint = "constraint chk_" + self._field_name + " check( "
+            constraint += "( " + self._field_name + " between " + str(self.rangeRule.items[i][0]) + " and " + \
                           str(self.rangeRule.items[i][1]) + " )"
             if i < len(self.rangeRule.items) - 1:
-                constraint += " OR "
+                constraint += " or "
             else:
                 constraint += " )"
 
@@ -436,14 +440,14 @@ class DateTimeFieldFormat(AbstractFieldFormat):
 
     def as_sql(self, db):
         if "hh" in self.human_readable_format and "YY" in self.human_readable_format:
-            column_def = self._field_name + " DATETIME"
+            column_def = self._field_name + " datetime"
         elif "hh" in self.human_readable_format:
-            column_def = self._field_name + " TIME"
+            column_def = self._field_name + " time"
         else:
-            column_def = self._field_name + " DATE"
+            column_def = self._field_name + " date"
 
         if not self.is_allowed_to_be_empty:
-            column_def += " NOT NULL"
+            column_def += " not null"
 
         return [column_def, ""]
 
