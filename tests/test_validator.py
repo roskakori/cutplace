@@ -129,3 +129,32 @@ class ValidatorTest(unittest.TestCase):
         with io.StringIO('"x\\""\n') as data_ending_with_escape_character:
             reader = validator.Reader(cid, data_ending_with_escape_character)
             reader.validate()
+
+    def test_can_yield_errors(self):
+        cid_text = '\n'.join([
+            'd,format,delimited',
+            'd,encoding,ascii',
+            'f,some_number,,,,Integer'
+        ])
+        cid = interface.create_cid_from_string(cid_text)
+        with io.StringIO('1\nabc\n3') as partially_broken_data:
+            reader = validator.Reader(cid, partially_broken_data)
+            rows = list(reader.rows('yield'))
+        self.assertEqual(3, len(rows), 'expected 3 rows but got: %s' % rows)
+        self.assertEqual(['1'], rows[0])
+        self.assertEqual(errors.FieldValueError, type(rows[1]), 'rows=%s' % rows)
+        self.assertEqual(['3'], rows[2])
+
+    def test_can_continue_after_errors(self):
+        cid_text = '\n'.join([
+            'd,format,delimited',
+            'd,encoding,ascii',
+            'f,some_number,,,,Integer'
+        ])
+        cid = interface.create_cid_from_string(cid_text)
+        with io.StringIO('1\nabc\n3') as partially_broken_data:
+            reader = validator.Reader(cid, partially_broken_data)
+            rows = list(reader.rows('continue'))
+        self.assertEqual(2, len(rows), 'expected 3 rows but got: %s' % rows)
+        self.assertEqual(['1'], rows[0])
+        self.assertEqual(['3'], rows[1])
