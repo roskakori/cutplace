@@ -133,67 +133,6 @@ def _raise_delimited_data_format_error(delimited_path, reader, error):
         location.advance_line(line_number)
     raise errors.DataFormatError('cannot parse delimited file: %s' % error, location)
 
-if six.PY2:  # pragma: no cover
-    # Read CSV using Python 2.6+.
-    #
-    # Note: _UTF8Recoder and _UnicodeReader are derived from <https://docs.python.org/2/library/csv.html#examples>.
-    import codecs
-    # TODO #61: Make `UnicodeReader` a drop in for Python 3's `csv.reader` and move it to `_compat`.
-    # TODO: Check if the iterators below can be simplified using `six.Iterator` which already has `next()`.
-
-    class _UTF8Recoder(object):
-        """
-        Iterator that reads an encoded stream and reencodes the input to UTF-8
-        """
-
-        def __init__(self, f, encoding):
-            self.reader = codecs.getreader(encoding)(f)
-
-        def __iter__(self):
-            return self
-
-        def next(self):
-            return self.reader.next().encode('utf-8')
-
-    class _UnicodeReader(object):
-        """
-        A CSV reader which will iterate over lines in the CSV file 'csv_file',
-        which is encoded in the given encoding.
-        """
-
-        def __init__(self, csv_file, dialect=csv.excel, encoding='utf-8', **keywords):
-            csv_file = _UTF8Recoder(csv_file, encoding)
-            self.reader = csv.reader(csv_file, dialect=dialect, **keywords)
-            self.line_num = -1
-
-        def next(self):
-            self.line_num += 1
-            row = self.reader.next()
-            result = [six.text_type(item, 'utf-8') for item in row]
-            return result
-
-        def __iter__(self):
-            return self
-
-    def _key_to_str_value_map(key_to_value_map):
-        """
-        Similar to ``key_to_value_map`` but with values of type `unicode`
-        converted to `str` because in Python 2 `csv.reader` can only process
-        byte strings for formatting parameters, e.g. delimiter=b';' instead of
-        delimiter=u';'. This quickly becomes an annoyance to the caller, in
-        particular with `from __future__ import unicode_literals` enabled.
-        """
-        return dict((key, value if not isinstance(value, six.text_type) else str(value))
-                    for key, value in key_to_value_map.items())
-
-    def _delimited_reader(delimited_file, encoding, **keywords):
-        """
-        Similar to `csv.reader` but with support for unicode.
-        """
-        str_keywords = _key_to_str_value_map(keywords)
-        return _UnicodeReader(delimited_file, encoding=encoding, **str_keywords)
-
-
 def delimited_rows(delimited_source, data_format):
     """
     Rows in ``delimited_source`` with using ``data_format``. In case
@@ -228,7 +167,7 @@ def delimited_rows(delimited_source, data_format):
     }
     try:
         if six.PY2:
-            delimited_reader = _delimited_reader(delimited_file, data_format.encoding, **keywords)
+            delimited_reader = _compat.delimited_reader(delimited_file, data_format.encoding, **keywords)
         else:
             delimited_reader = csv.reader(delimited_file, **keywords)
         try:
