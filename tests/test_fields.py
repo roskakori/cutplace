@@ -215,7 +215,7 @@ class IntegerFieldFormatTest(unittest.TestCase):
         self.assertEqual(constraint, "CONSTRAINT chk_x CHECK( ( x BETWEEN 1 AND " + str(10 ** 6) + " ) )")
 
     def test_can_output_sql_integer_with_range(self):
-        field_format = fields.IntegerFieldFormat("x", True, "1:6", "", _ANY_FORMAT)
+        field_format = fields.IntegerFieldFormat("x", True, "1:", "", _ANY_FORMAT)
         column_def, constraint = field_format.as_sql(fields.MSSQL)
         self.assertEqual(column_def, "x INTEGER")
         self.assertEqual(constraint, "CONSTRAINT chk_x CHECK( ( x BETWEEN -2147483648 AND 2147483647 ) )")
@@ -224,7 +224,7 @@ class IntegerFieldFormatTest(unittest.TestCase):
         field_format = fields.IntegerFieldFormat("x", True, "1:10", "", _ANY_FORMAT)
         column_def, constraint = field_format.as_sql(fields.MSSQL)
         self.assertEqual(column_def, "x BIGINT")
-        self.assertEqual(constraint, "CONSTRAINT chk_x CHECK( ( x BETWEEN -2147483648 AND 2147483647 ) )")
+        self.assertEqual(constraint, "CONSTRAINT chk_x CHECK( ( x BETWEEN -999999999 AND 9999999999 ) )")
 
     def test_can_output_sql_bigint_with_rule(self):
         field_format = fields.IntegerFieldFormat("x", True, None, "1:" + str(10 ** 10), _ANY_FORMAT)
