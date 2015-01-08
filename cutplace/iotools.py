@@ -133,6 +133,7 @@ def _raise_delimited_data_format_error(delimited_path, reader, error):
         location.advance_line(line_number)
     raise errors.DataFormatError('cannot parse delimited file: %s' % error, location)
 
+
 def delimited_rows(delimited_source, data_format):
     """
     Rows in ``delimited_source`` with using ``data_format``. In case
@@ -150,10 +151,7 @@ def delimited_rows(delimited_source, data_format):
 
     if isinstance(delimited_source, six.string_types):
         is_opened = True
-        if six.PY2:
-            delimited_file = io.open(delimited_source, 'rb')
-        else:
-            delimited_file = io.open(delimited_source, 'r', newline='', encoding=data_format.encoding)
+        delimited_file = io.open(delimited_source, 'r', newline='', encoding=data_format.encoding)
     else:
         is_opened = False
         delimited_file = delimited_source
@@ -166,10 +164,7 @@ def delimited_rows(delimited_source, data_format):
         'strict': True,
     }
     try:
-        if six.PY2:
-            delimited_reader = _compat.delimited_reader(delimited_file, data_format.encoding, **keywords)
-        else:
-            delimited_reader = csv.reader(delimited_file, **keywords)
+        delimited_reader = _compat.csv_reader(delimited_file, **keywords)
         try:
             for row in delimited_reader:
                 yield row

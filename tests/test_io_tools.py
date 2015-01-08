@@ -89,6 +89,13 @@ class RowsTest(unittest.TestCase):
             self.assertTrue('ODS must contain at least' in error_message,
                     'error_message=%r' % error_message)
 
+    def test_can_read_delimited_non_ascii(self):
+        data_format = data.DataFormat(data.FORMAT_DELIMITED)
+        data_format.validate()
+        with io.StringIO('eggs\nsp\u00c4m') as data_stream:
+            actual_rows = list(iotools.delimited_rows(data_stream, data_format))
+        self.assertEqual([['eggs'], ['sp\u00c4m']], actual_rows)
+
     def test_fails_on_delimited_with_unterminated_quote(self):
         cid_path = dev_test.path_to_test_cid('customers.ods')
         customer_cid = interface.Cid(cid_path)

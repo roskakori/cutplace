@@ -52,8 +52,8 @@ def token_io_readline(text):
 
 
 if six.PY2:
-    # Read CSV using Python 2.6+.
-    import codecs
+    # Read and write CSV using Python 2.6+.
+    import io
 
     def _key_to_str_value_map(key_to_value_map):
         """
@@ -93,12 +93,12 @@ if six.PY2:
         def writerow(self, row):
             row_as_list = list(row)
             try:
-                row_to_write = [item.encode('utf-8') for item in row_as_list]
+                row_to_write = [item.encode('utf-8') if item is not None else '' for item in row_as_list]
                 self._csv_writer.writerow(row_to_write)
             except TypeError as error:
                 raise TypeError('%s: %s' % (error, row_as_list))
             data = self._queue.getvalue()
-            data = data.decode("utf-8")
+            data = data.decode('utf-8')
             self._target_stream.write(data)
             # Clear the BytesIO before writing the next row.
             self._queue.seek(0)
@@ -108,57 +108,63 @@ if six.PY2:
             for row in rows:
                 self.writerow(row)
 
-    # TODO: Check if the iterators below can be simplified using `six.Iterator` which already has `next()`.
-
-    class _UTF8Recoder(object):
+    class _Utf8Recoder(object):
         """
-        Iterator that reads an encoded stream and reencodes the input to UTF-8
+        Iterator that reads a text stream and reencodes the input to UTF-8.
         """
 
-        def __init__(self, f, encoding):
-            self.reader = codecs.getreader(encoding)(f)
+        def __init__(self, text_stream):
+            self._text_stream = text_stream
 
         def __iter__(self):
             return self
 
         def next(self):
-            return self.reader.next().encode('utf-8')
+            return self._text_stream.next().encode('utf-8')
 
-    class _UnicodeReader(object):
+    class _UnicodeCsvReader(object):
         """
         A CSV reader which will iterate over lines in the CSV file 'csv_file',
         which is encoded in the given encoding.
         """
 
-        def __init__(self, csv_file, dialect=csv.excel, encoding='utf-8', **keywords):
-            csv_file = _UTF8Recoder(csv_file, encoding)
-            self.reader = csv.reader(csv_file, dialect=dialect, **keywords)
+        def __init__(self, csv_file, dialect=csv.excel, **keywords):
+            csv_file = _Utf8Recoder(csv_file)
+            str_keywords = _key_to_str_value_map(keywords)
+            self.reader = csv.reader(csv_file, dialect=dialect, **str_keywords)
             self.line_num = -1
 
         def next(self):
             self.line_num += 1
             row = self.reader.next()
-            result = [six.text_type(item, 'utf-8') for item in row]
+            result = [item.decode('utf-8') for item in row]
             return result
 
         def __iter__(self):
             return self
 
-    def delimited_reader(delimited_file, encoding, **keywords):
-        """
-        Similar to `csv.reader` but with support for unicode.
-        """
-        # TOOD: Provide a drop in replacement for `csv.reader()` that does not require ``encoding``.
-        str_keywords = _key_to_str_value_map(keywords)
-        return _UnicodeReader(delimited_file, encoding=encoding, **str_keywords)
+
+def csv_reader(source_text_stream, dialect=csv.excel, **keywords):
+    """
+    Same as Python 3's `csv.reader` but also works with Python 2.6+.
+    """
+    assert source_text_stream is not None
+
+    if six.PY2:
+        result = _UnicodeCsvReader(source_text_stream, dialect=dialect, **keywords)
+    else:
+        result = csv.reader(source_text_stream, dialect=dialect, **keywords)
+    return result
 
 
-def csv_writer(target, dialect=csv.excel, **keywords):
+def csv_writer(target_text_stream, dialect=csv.excel, **keywords):
     """
     Same as Python 3's `csv.writer` but also works with Python 2.6+.
     """
+    assert target_text_stream is not None
+
     if six.PY2:
-        result = _UnicodeCsvWriter(target, dialect=dialect, **keywords)
+        result = _UnicodeCsvWriter(target_text_stream, dialect=dialect, **keywords)
     else:
-        result = csv.writer(target, dialect=dialect, **keywords)
+        result = csv.writer(target_text_stream, dialect=dialect, **keywords)
     return result
