@@ -200,18 +200,18 @@ def create_caller_location(modules_to_ignore=None, has_column=False, has_cell=Fa
     """
     `Location` referring to the calling Python source code.
     """
-    actual_modules_to_ignore = ["tools"]
+    actual_modules_to_ignore = ["errors"]
     if modules_to_ignore:
         actual_modules_to_ignore.extend(modules_to_ignore)
     source_path = None
     source_line = 0
     for trace in traceback.extract_stack():
         ignore_trace = False
-        if modules_to_ignore:
-            for moduleToIgnore in actual_modules_to_ignore:
+        if actual_modules_to_ignore:
+            for module_to_ignore in actual_modules_to_ignore:
                 # TODO: Minor optimization: end loop once ``ignore_trace`` is ``True``.
                 traced_module_name = os.path.basename(trace[0])
-                if traced_module_name == (moduleToIgnore + ".py"):
+                if traced_module_name == (module_to_ignore + ".py"):
                     ignore_trace = True
             if not ignore_trace:
                 source_path = trace[0]
