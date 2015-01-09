@@ -89,7 +89,7 @@ class DataFormat(object):
             raise errors.InterfaceError(
                 'format is %s but must be on of: %s' % (format_name, _VALID_FORMATS), location)
         else:
-            self._location = location
+            self._location = location if location is not None else errors.create_caller_location(['data'])
             self._format = format_name
             self._header = 0
             self._is_valid = False
