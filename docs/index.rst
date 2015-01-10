@@ -46,7 +46,17 @@ Contents
 .. toctree::
    :maxdepth: 2
 
-   License <license>
+   self
+   installation
+   tutorial
+   writing-an-icd
+   command-line-usage
+   api
+   support
+   development
+   changes
+   license
+
    Module Reference <_rst/modules>
 
 

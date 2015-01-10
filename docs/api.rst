@@ -49,182 +49,20 @@ The class
 represents an CID. In case you have an CID stored in a file and want to read
 it, use:
 
->>> import os
 >>> import os.path
 >>> from cutplace import interface
 >>>
 >>> # Compute the path of a test file in a system independent manner,
 >>> # assuming that the current folder is "docs".
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>>
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(os.path.abspath(icdPath))
+>>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> icd = interface.Cid(cid_path)
 >>> icd.fieldNames
-[u'branch_id', u'customer_id', u'first_name', u'surname', u'gender', u'date_of_birth']
+['branch_id', 'customer_id', 'first_name', 'surname', 'gender', 'date_of_birth']
 
 This is the easiest way to describe an interface. The resulting document is
 human readable even for non coders and quite simple to edit and maintain. It
 also keeps declaration and validation in separate files.
 
-
-it, use:
-
->>> import os
->>> import os.path
->>> from cutplace import interface
->>>
->>> # Compute the path of a test file in a system independent manner,
->>> # assuming that the current folder is "docs".
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>>
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(os.path.abspath(icdPath))
->>> icd.fieldNames
-[u'branch_id', u'customer_id', u'first_name', u'surname', u'gender', u'date_of_birth']
-
-This is the easiest way to describe an interface. The resulting document is
-human readable even for non coders and quite simple to edit and maintain. It
-also keeps declaration and validation in separate files.
-
-
-it, use:
-
->>> import os
->>> import os.path
->>> from cutplace import interface
->>>
->>> # Compute the path of a test file in a system independent manner,
->>> # assuming that the current folder is "docs".
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>>
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(os.path.abspath(icdPath))
->>> icd.fieldNames
-[u'branch_id', u'customer_id', u'first_name', u'surname', u'gender', u'date_of_birth']
-
-This is the easiest way to describe an interface. The resulting document is
-human readable even for non coders and quite simple to edit and maintain. It
-also keeps declaration and validation in separate files.
-
-
-it, use:
-
->>> import os
->>> import os.path
->>> from cutplace import interface
->>>
->>> # Compute the path of a test file in a system independent manner,
->>> # assuming that the current folder is "docs".
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>>
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(os.path.abspath(icdPath))
->>> icd.fieldNames
-[u'branch_id', u'customer_id', u'first_name', u'surname', u'gender', u'date_of_birth']
-
-This is the easiest way to describe an interface. The resulting document is
-human readable even for non coders and quite simple to edit and maintain. It
-also keeps declaration and validation in separate files.
-
-
-it, use:
-
->>> import os
->>> import os.path
->>> from cutplace import interface
->>>
->>> # Compute the path of a test file in a system independent manner,
->>> # assuming that the current folder is "docs".
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>>
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(os.path.abspath(icdPath))
->>> icd.fieldNames
-[u'branch_id', u'customer_id', u'first_name', u'surname', u'gender', u'date_of_birth']
-
-This is the easiest way to describe an interface. The resulting document is
-human readable even for non coders and quite simple to edit and maintain. It
-also keeps declaration and validation in separate files.
-
-
-it, use:
-
->>> import os
->>> import os.path
->>> from cutplace import interface
->>>
->>> # Compute the path of a test file in a system independent manner,
->>> # assuming that the current folder is "docs".
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>>
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(os.path.abspath(icdPath))
->>> icd.fieldNames
-[u'branch_id', u'customer_id', u'first_name', u'surname', u'gender', u'date_of_birth']
-
-This is the easiest way to describe an interface. The resulting document is
-human readable even for non coders and quite simple to edit and maintain. It
-also keeps declaration and validation in separate files.
-
-
-it, use:
-
->>> import os
->>> import os.path
->>> from cutplace import interface
->>>
->>> # Compute the path of a test file in a system independent manner,
->>> # assuming that the current folder is "docs".
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>>
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(os.path.abspath(icdPath))
->>> icd.fieldNames
-[u'branch_id', u'customer_id', u'first_name', u'surname', u'gender', u'date_of_birth']
-
-This is the easiest way to describe an interface. The resulting document is
-human readable even for non coders and quite simple to edit and maintain. It
-also keeps declaration and validation in separate files.
-
-
-it, use:
-
->>> import os
->>> import os.path
->>> from cutplace import interface
->>>
->>> # Compute the path of a test file in a system independent manner,
->>> # assuming that the current folder is "docs".
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>>
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(os.path.abspath(icdPath))
->>> icd.fieldNames
-[u'branch_id', u'customer_id', u'first_name', u'surname', u'gender', u'date_of_birth']
-
-This is the easiest way to describe an interface. The resulting document is
-human readable even for non coders and quite simple to edit and maintain. It
-also keeps declaration and validation in separate files.
-
-
-it, use:
-
->>> import os
->>> import os.path
->>> from cutplace import interface
->>>
->>> # Compute the path of a test file in a system independent manner,
->>> # assuming that the current folder is "docs".
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>>
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(os.path.abspath(icdPath))
->>> icd.fieldNames
-[u'branch_id', u'customer_id', u'first_name', u'surname', u'gender', u'date_of_birth']
-
-This is the easiest way to describe an interface. The resulting document is
-human readable even for non coders and quite simple to edit and maintain. It
-also keeps declaration and validation in separate files.
 
 Validating data
 ---------------
@@ -256,7 +94,7 @@ look at it:
 ...   pass
 Traceback (most recent call last):
     ...
-FieldValueError: broken_customers.csv (R4C1): field u'branch_id' must match format: value u'12345' must match regular expression: u'38\\d\\d\\d'
+FieldValueError: broken_customers.csv (R4C1): field 'branch_id' must match format: value '12345' must match regular expression: '38\\d\\d\\d'
 
 Apparently the first broken data item causes the reading to stop with an
 ``Exception``. In many cases this is what you want.
@@ -284,9 +122,9 @@ Here is an example the prints any data related errors detected during validation
 ...             rowOrError.reraise()
 ...     else:
 ...         pass # We could also do something useful with the data in ``row`` here.
-broken_customers.csv (R4C1): field u'branch_id' must match format: value u'12345' must match regular expression: u'38\\d\\d\\d'
-broken_customers.csv (R5C2): field u'customer_id' must match format: value must be an integer number: u'XX'
-broken_customers.csv (R6C6): field u'date_of_birth' must match format: date must match format DD.MM.YYYY (%d.%m.%Y) but is: u'30.02.1994' (day is out of range for month)
+broken_customers.csv (R4C1): field 'branch_id' must match format: value '12345' must match regular expression: '38\\d\\d\\d'
+broken_customers.csv (R5C2): field 'customer_id' must match format: value must be an integer number: 'XX'
+broken_customers.csv (R6C6): field 'date_of_birth' must match format: date must match format DD.MM.YYYY (%d.%m.%Y) but is: '30.02.1994' (day is out of range for month)
 
 Note that it is possible for the reader to throw other exceptions, for example
 of type ``IOError`` in case the file cannot be read at all or
@@ -342,11 +180,11 @@ validation code:
 >>> import os.path
 >>> from cutplace import interface
 >>> # Change this to use your own files.
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> # Define the interface.
 >>> icd = interface.InterfaceControlDocument()
->>> icd.read(icdPath)
+>>> icd.read(cid_path)
 >>> # Validate the data.
 >>> for row in interface.validatedRows(icd, dataPath):
 ...   pass # We could also do something useful with the data in
@@ -357,11 +195,11 @@ validation code:
 >>> import os.path
 >>> from cutplace import interface
 >>> # Change this to use your own files.
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> # Define the interface.
 >>> icd = interface.InterfaceControlDocument()
->>> icd.read(icdPath)
+>>> icd.read(cid_path)
 >>> # Validate the data.
 >>> for row in interface.validatedRows(icd, dataPath):
 ...   pass # We could also do something useful with the data in
@@ -372,11 +210,11 @@ validation code:
 >>> import os.path
 >>> from cutplace import interface
 >>> # Change this to use your own files.
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> # Define the interface.
 >>> icd = interface.InterfaceControlDocument()
->>> icd.read(icdPath)
+>>> icd.read(cid_path)
 >>> # Validate the data.
 >>> for row in interface.validatedRows(icd, dataPath):
 ...   pass # We could also do something useful with the data in
@@ -387,11 +225,11 @@ validation code:
 >>> import os.path
 >>> from cutplace import interface
 >>> # Change this to use your own files.
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> # Define the interface.
 >>> icd = interface.InterfaceControlDocument()
->>> icd.read(icdPath)
+>>> icd.read(cid_path)
 >>> # Validate the data.
 >>> for row in interface.validatedRows(icd, dataPath):
 ...   pass # We could also do something useful with the data in
@@ -402,11 +240,11 @@ validation code:
 >>> import os.path
 >>> from cutplace import interface
 >>> # Change this to use your own files.
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> # Define the interface.
 >>> icd = interface.InterfaceControlDocument()
->>> icd.read(icdPath)
+>>> icd.read(cid_path)
 >>> # Validate the data.
 >>> for row in interface.validatedRows(icd, dataPath):
 ...   pass # We could also do something useful with the data in
@@ -417,11 +255,11 @@ validation code:
 >>> import os.path
 >>> from cutplace import interface
 >>> # Change this to use your own files.
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> # Define the interface.
 >>> icd = interface.InterfaceControlDocument()
->>> icd.read(icdPath)
+>>> icd.read(cid_path)
 >>> # Validate the data.
 >>> for row in interface.validatedRows(icd, dataPath):
 ...   pass # We could also do something useful with the data in
@@ -432,11 +270,11 @@ validation code:
 >>> import os.path
 >>> from cutplace import interface
 >>> # Change this to use your own files.
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> # Define the interface.
 >>> icd = interface.InterfaceControlDocument()
->>> icd.read(icdPath)
+>>> icd.read(cid_path)
 >>> # Validate the data.
 >>> for row in interface.validatedRows(icd, dataPath):
 ...   pass # We could also do something useful with the data in
@@ -447,11 +285,11 @@ validation code:
 >>> import os.path
 >>> from cutplace import interface
 >>> # Change this to use your own files.
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> # Define the interface.
 >>> icd = interface.InterfaceControlDocument()
->>> icd.read(icdPath)
+>>> icd.read(cid_path)
 >>> # Validate the data.
 >>> for row in interface.validatedRows(icd, dataPath):
 ...   pass # We could also do something useful with the data in
@@ -462,11 +300,11 @@ validation code:
 >>> import os.path
 >>> from cutplace import interface
 >>> # Change this to use your own files.
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> # Define the interface.
 >>> icd = interface.InterfaceControlDocument()
->>> icd.read(icdPath)
+>>> icd.read(cid_path)
 >>> # Validate the data.
 >>> for row in interface.validatedRows(icd, dataPath):
 ...   pass # We could also do something useful with the data in
@@ -477,11 +315,11 @@ validation code:
 >>> import os.path
 >>> from cutplace import interface
 >>> # Change this to use your own files.
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> # Define the interface.
 >>> icd = interface.InterfaceControlDocument()
->>> icd.read(icdPath)
+>>> icd.read(cid_path)
 >>> # Validate the data.
 >>> for row in interface.validatedRows(icd, dataPath):
 ...   pass # We could also do something useful with the data in
@@ -492,11 +330,11 @@ validation code:
 >>> import os.path
 >>> from cutplace import interface
 >>> # Change this to use your own files.
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> # Define the interface.
 >>> icd = interface.InterfaceControlDocument()
->>> icd.read(icdPath)
+>>> icd.read(cid_path)
 >>> # Validate the data.
 >>> for row in interface.validatedRows(icd, dataPath):
 ...   pass # We could also do something useful with the data in
@@ -507,11 +345,11 @@ validation code:
 >>> import os.path
 >>> from cutplace import interface
 >>> # Change this to use your own files.
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> # Define the interface.
 >>> icd = interface.InterfaceControlDocument()
->>> icd.read(icdPath)
+>>> icd.read(cid_path)
 >>> # Validate the data.
 >>> for row in interface.validatedRows(icd, dataPath):
 ...   pass # We could also do something useful with the data in
@@ -522,11 +360,11 @@ validation code:
 >>> import os.path
 >>> from cutplace import interface
 >>> # Change this to use your own files.
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> # Define the interface.
 >>> icd = interface.InterfaceControlDocument()
->>> icd.read(icdPath)
+>>> icd.read(cid_path)
 >>> # Validate the data.
 >>> for row in interface.validatedRows(icd, dataPath):
 ...   pass # We could also do something useful with the data in ``row`` here.
@@ -550,14 +388,14 @@ object such as a file or a ``StringIO``. For example::
 Now you can create a writer and write a valid row to it::
 
   >>> writer = interface.Writer(icd, out)
-  >>> writer.writeRow([u'38000', u'234', u'John', u'Doe', u'male', u'08.03.1957'])
+  >>> writer.writeRow(['38000', '234', 'John', 'Doe', 'male', '08.03.1957'])
 
 Attempting to write broken data results in an ``Exception`` derived from
 ``CutplaceError``::
 
-  >>> writer.writeRow([u'38000', u'not a number', u'Jane', u'Miller', u'female', u'04.10.1946']) #doctest: +IGNORE_EXCEPTION_DETAIL
+  >>> writer.writeRow(['38000', 'not a number', 'Jane', 'Miller', 'female', '04.10.1946']) #doctest: +IGNORE_EXCEPTION_DETAIL
   Traceback (most recent call last):
-  FieldValueError: <io> (R1C2): field 'customer_id' must match format: value must be an integer number: u'not a number'
+  FieldValueError: <io> (R1C2): field 'customer_id' must match format: value must be an integer number: 'not a number'
 
 Note that after a ``CutplaceError`` you can continue writing. For any other
 ``Exception`` such as ``IOError`` it is recommended to stop writing and
@@ -942,9 +780,9 @@ Validating with listeners
 
 Once the CID is set up, you can validate data using ``validate()``:
 
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>> icd = interface.InterfaceControlDocument()
->>> icd.read(icdPath)
+>>> icd.read(cid_path)
 >>>
 >>> validCsvPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> icd.validate(validCsvPath)
@@ -983,12 +821,12 @@ such a listener and attach it to an CID:
 Let's see what happens if we validate broken data again:
 
 >>> icd.validate(brokenCsvPath)
-[u'12345', u'92', u'Bill', u'Carter', u'male', u'05.04.1953']
-error: broken_customers.csv (R4C1): field u'branch_id' must match format: value u'12345' must match regular expression: u'38\\d\\d\\d'
-[u'38111', u'XX', u'Sue', u'Brown', u'female', u'08.02.1962']
-error: broken_customers.csv (R5C2): field u'customer_id' must match format: value must be an integer number: u'XX'
-[u'38088', u'83', u'Rose', u'Baker', u'female', u'30.02.1994']
-error: broken_customers.csv (R6C6): field u'date_of_birth' must match format: date must match format DD.MM.YYYY (%d.%m.%Y) but is: u'30.02.1994' (day is out of range for month)
+['12345', '92', 'Bill', 'Carter', 'male', '05.04.1953']
+error: broken_customers.csv (R4C1): field 'branch_id' must match format: value '12345' must match regular expression: '38\\d\\d\\d'
+['38111', 'XX', 'Sue', 'Brown', 'female', '08.02.1962']
+error: broken_customers.csv (R5C2): field 'customer_id' must match format: value must be an integer number: 'XX'
+['38088', '83', 'Rose', 'Baker', 'female', '30.02.1994']
+error: broken_customers.csv (R6C6): field 'date_of_birth' must match format: date must match format DD.MM.YYYY (%d.%m.%Y) but is: '30.02.1994' (day is out of range for month)
 
 When you are done, remove the listener::
 
@@ -998,8 +836,8 @@ When you are done, remove the listener::
 Writing field formats
 ---------------------
 
-Cutplace already ships with several field formats found in the `fields
-<api/cutplace.fields-module.html>`_ module that should cover most needs. If
+Cutplace already ships with several field formats found in
+:py:mod:`cutplace.fields` module that should cover most needs. If
 however you have some very special requirements, you can write your own
 formats.
 
