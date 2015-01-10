@@ -44,26 +44,13 @@ In case the CID is in good shape, no error messages appear and the exit code is
 0.
 
 
-CSV CIDs containing non ASCII characters
-========================================
-
-**TODO**: Is --cid-encoding still around for 0.8?
-
-If the CID is provided in CSV format and contains non ASCII characters such as
-Umlauts or Kanji, you have to specify the encoding using ``--cid-encoding``::
-
-  cutplace --cid-encoding cp1525 cid_customers.csv
-
-You can avoid this by storing CIDs in ODS or Excel format, which include
-information about the encoding used inside the file already.
-
-
 Validate that a data file conforms to an CID
 ============================================
 
 To validate that a data file conforms to an CID, pass the path of the CID and
 the data file. For example using the same CID as in the previous section to
-validate a data file containing customers stored in `cid_customers.ods`, run::
+validate a data file containing customers stored in ``cid_customers.ods``,
+run::
 
   cutplace cid_customers.ods customers_data.csv
 

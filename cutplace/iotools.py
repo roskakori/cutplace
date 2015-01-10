@@ -376,7 +376,7 @@ def auto_rows(source):
     """
     Determine basic data format of `source` based on heuristics and return its contents.
     If source is a string, it is considered a path to a file, otherwise assume it is a
-    filelike object providing a ``read()`` method.
+    text stream providing a ``read()`` method.
     """
     result = None
     if isinstance(source, six.string_types):
@@ -390,6 +390,8 @@ def auto_rows(source):
         raise NotImplementedError('ODS from io.BytesIO')
     if result is None:
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
+        # TODO: Use chardet to figure out an encoding.
+        delimited_format.set_property(data.KEY_ENCODING, 'utf-8')
         # TODO: Determine delimiter by counting common delimiters with the first 4096 bytes and choosing the maximum one.
         delimited_format.set_property(data.KEY_ITEM_DELIMITER, ',')
         delimited_format.validate()
