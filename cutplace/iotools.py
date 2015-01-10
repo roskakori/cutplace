@@ -244,13 +244,14 @@ def ods_rows(source_ods_path, sheet=1):
 
 
 def fixed_rows(fixed_source, encoding, field_name_and_lengths, line_delimiter='any'):
-    """
-    Rows found in file `fixed_source` using `encoding`. The name and (fixed)
-    length of the fields for each row are specified as a list of tuples
-    `(name, length)`. Each row can end with a line feed unless
-    `line_delimiter=None`. Valid values are: `'\n'`, `'\r'` and `'\r\n'`, in
-    which case other values result in a `errors.DataFormatError`.
-    Additionally `'any'` accepts any of the previous values.
+    r"""
+    Rows found in file ``fixed_source`` using ``encoding``. The name and
+    (fixed) length of the fields for each row are specified as a list of
+    tuples ``(name, length)``. Each row can end with a line feed unless
+    ``line_delimiter`` equals ``None``. Valid values are: ``'\n'``, ``'\r'``
+    and ``'\r\n'``, in which case other values result in a
+    `errors.DataFormatError`. Additionally ``'any'`` accepts any of the
+    previous values.
     """
     assert fixed_source is not None
     assert encoding is not None

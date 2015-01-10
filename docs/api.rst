@@ -41,12 +41,12 @@ the Python library documentation.
 Basic usage
 ===========
 
-Reading an ICD
+Reading an CID
 --------------
 
 The class
 `interface.InterfaceControlDocument <api/cutplace.interface.InterfaceControlDocument-class.html>`_
-represents an ICD. In case you have an ICD stored in a file and want to read
+represents an CID. In case you have an CID stored in a file and want to read
 it, use:
 
 >>> import os
@@ -299,7 +299,7 @@ The ``errors`` parameter can also take the values ``"strict"`` (which is the
 default and raises a ``CutplaceError`` on encountering the first error as
 described above) and ``"ignore"``, which silently ignores any error and moves
 on with the next row. The latter can be useful during prototyping a new
-application when ICD's and data are in a constant state of flux. In production
+application when CID's and data are in a constant state of flux. In production
 code ``errors="ignore"`` mainly represents a very efficient way to shoot
 yourself into the foot.
 
@@ -309,7 +309,7 @@ Processing data
 As a first step, we should figure out where in each row we can find the first
 name and the surname. We need to do this only once so this happens outside of
 the processing loop. The names used to find the indices must match the names
-used in the ICD.
+used in the CID.
 
 
 >>> firstNameIndex = icd.getFieldNameIndex("first_name")
@@ -540,7 +540,7 @@ parameter ``errors="yield"`` as described earlier.
 Writting data
 -------------
 
-To validate written data, use ``interface.Writer``. A ``Writer`` needs an ICD
+To validate written data, use ``interface.Writer``. A ``Writer`` needs an CID
 tovalidate against and an output to write to. The output can be any filelike
 object such as a file or a ``StringIO``. For example::
 
@@ -578,7 +578,7 @@ raise a ``CheckError``.
 Advanced usage
 ==============
 
-In the previous section, you learned how to read an ICD and use it to validate
+In the previous section, you learned how to read an CID and use it to validate
 data using a few simple API calls. You also learned how to handle errors
 detected in the data.
 
@@ -597,12 +597,12 @@ or just want to know what else cutplace offers in case you might need it one
 day, the following sections describe the lower level hooks of cutplace API.
 They are more powerful and flexible, but also more difficult to use.
 
-Building an ICD in the code
+Building an CID in the code
 ---------------------------
 
-In some cases it might be preferable to include the ICD in the code, for
+In some cases it might be preferable to include the CID in the code, for
 instance for trivial interfaces that are only used internally. Here is an
-example of a simple ICD for CSV data with 3 fields:
+example of a simple CID for CSV data with 3 fields:
 
 First, import the necessary modules:
 
@@ -610,13 +610,13 @@ First, import the necessary modules:
 >>> from cutplace import fields
 >>> from cutplace import interface
 
-Next create an empty ICD:
+Next create an empty CID:
 
 >>> icd = interface.InterfaceControlDocument()
 
-As the ICD will not be read from an input file, error messages would not be
+As the CID will not be read from an input file, error messages would not be
 able to refer to any file in case of errors. To have at least some reference,
-we need to tell the ICD that it is declared from source code:
+we need to tell the CID that it is declared from source code:
 
 >>> icd.setLocationToSourceCode()
 
@@ -638,7 +638,7 @@ happened.
 >>>
 >>> # Make sure that the
 instance for trivial interfaces that are only used internally. Here is an
-example of a simple ICD for CSV data with 3 fields:
+example of a simple CID for CSV data with 3 fields:
 
 First, import the necessary modules:
 
@@ -646,13 +646,13 @@ First, import the necessary modules:
 >>> from cutplace import fields
 >>> from cutplace import interface
 
-Next create an empty ICD:
+Next create an empty CID:
 
 >>> icd = interface.InterfaceControlDocument()
 
-As the ICD will not be read from an input file, error messages would not be
+As the CID will not be read from an input file, error messages would not be
 able to refer to any file in case of errors. To have at least some reference,
-we need to tell the ICD that it is declared from source code:
+we need to tell the CID that it is declared from source code:
 
 >>> icd.setLocationToSourceCode()
 
@@ -674,7 +674,7 @@ happened.
 >>>
 >>> # Make sure that the
 instance for trivial interfaces that are only used internally. Here is an
-example of a simple ICD for CSV data with 3 fields:
+example of a simple CID for CSV data with 3 fields:
 
 First, import the necessary modules:
 
@@ -682,13 +682,13 @@ First, import the necessary modules:
 >>> from cutplace import fields
 >>> from cutplace import interface
 
-Next create an empty ICD:
+Next create an empty CID:
 
 >>> icd = interface.InterfaceControlDocument()
 
-As the ICD will not be read from an input file, error messages would not be
+As the CID will not be read from an input file, error messages would not be
 able to refer to any file in case of errors. To have at least some reference,
-we need to tell the ICD that it is declared from source code:
+we need to tell the CID that it is declared from source code:
 
 >>> icd.setLocationToSourceCode()
 
@@ -710,7 +710,7 @@ happened.
 >>>
 >>> # Make sure that the
 instance for trivial interfaces that are only used internally. Here is an
-example of a simple ICD for CSV data with 3 fields:
+example of a simple CID for CSV data with 3 fields:
 
 First, import the necessary modules:
 
@@ -718,13 +718,13 @@ First, import the necessary modules:
 >>> from cutplace import fields
 >>> from cutplace import interface
 
-Next create an empty ICD:
+Next create an empty CID:
 
 >>> icd = interface.InterfaceControlDocument()
 
-As the ICD will not be read from an input file, error messages would not be
+As the CID will not be read from an input file, error messages would not be
 able to refer to any file in case of errors. To have at least some reference,
-we need to tell the ICD that it is declared from source code:
+we need to tell the CID that it is declared from source code:
 
 >>> icd.setLocationToSourceCode()
 
@@ -746,7 +746,7 @@ happened.
 >>>
 >>> # Make sure that the
 instance for trivial interfaces that are only used internally. Here is an
-example of a simple ICD for CSV data with 3 fields:
+example of a simple CID for CSV data with 3 fields:
 
 First, import the necessary modules:
 
@@ -754,13 +754,13 @@ First, import the necessary modules:
 >>> from cutplace import fields
 >>> from cutplace import interface
 
-Next create an empty ICD:
+Next create an empty CID:
 
 >>> icd = interface.InterfaceControlDocument()
 
-As the ICD will not be read from an input file, error messages would not be
+As the CID will not be read from an input file, error messages would not be
 able to refer to any file in case of errors. To have at least some reference,
-we need to tell the ICD that it is declared from source code:
+we need to tell the CID that it is declared from source code:
 
 >>> icd.setLocationToSourceCode()
 
@@ -782,7 +782,7 @@ happened.
 >>>
 >>> # Make sure that the
 instance for trivial interfaces that are only used internally. Here is an
-example of a simple ICD for CSV data with 3 fields:
+example of a simple CID for CSV data with 3 fields:
 
 First, import the necessary modules:
 
@@ -790,13 +790,13 @@ First, import the necessary modules:
 >>> from cutplace import fields
 >>> from cutplace import interface
 
-Next create an empty ICD:
+Next create an empty CID:
 
 >>> icd = interface.InterfaceControlDocument()
 
-As the ICD will not be read from an input file, error messages would not be
+As the CID will not be read from an input file, error messages would not be
 able to refer to any file in case of errors. To have at least some reference,
-we need to tell the ICD that it is declared from source code:
+we need to tell the CID that it is declared from source code:
 
 >>> icd.setLocationToSourceCode()
 
@@ -818,7 +818,7 @@ happened.
 >>>
 >>> # Make sure that the
 instance for trivial interfaces that are only used internally. Here is an
-example of a simple ICD for CSV data with 3 fields:
+example of a simple CID for CSV data with 3 fields:
 
 First, import the necessary modules:
 
@@ -826,13 +826,13 @@ First, import the necessary modules:
 >>> from cutplace import fields
 >>> from cutplace import interface
 
-Next create an empty ICD:
+Next create an empty CID:
 
 >>> icd = interface.InterfaceControlDocument()
 
-As the ICD will not be read from an input file, error messages would not be
+As the CID will not be read from an input file, error messages would not be
 able to refer to any file in case of errors. To have at least some reference,
-we need to tell the ICD that it is declared from source code:
+we need to tell the CID that it is declared from source code:
 
 >>> icd.setLocationToSourceCode()
 
@@ -854,7 +854,7 @@ happened.
 >>>
 >>> # Make sure that the
 instance for trivial interfaces that are only used internally. Here is an
-example of a simple ICD for CSV data with 3 fields:
+example of a simple CID for CSV data with 3 fields:
 
 First, import the necessary modules:
 
@@ -862,13 +862,13 @@ First, import the necessary modules:
 >>> from cutplace import fields
 >>> from cutplace import interface
 
-Next create an empty ICD:
+Next create an empty CID:
 
 >>> icd = interface.InterfaceControlDocument()
 
-As the ICD will not be read from an input file, error messages would not be
+As the CID will not be read from an input file, error messages would not be
 able to refer to any file in case of errors. To have at least some reference,
-we need to tell the ICD that it is declared from source code:
+we need to tell the CID that it is declared from source code:
 
 >>> icd.setLocationToSourceCode()
 
@@ -890,7 +890,7 @@ happened.
 >>>
 >>> # Make sure that the
 instance for trivial interfaces that are only used internally. Here is an
-example of a simple ICD for CSV data with 3 fields:
+example of a simple CID for CSV data with 3 fields:
 
 First, import the necessary modules:
 
@@ -898,13 +898,13 @@ First, import the necessary modules:
 >>> from cutplace import fields
 >>> from cutplace import interface
 
-Next create an empty ICD:
+Next create an empty CID:
 
 >>> icd = interface.InterfaceControlDocument()
 
-As the ICD will not be read from an input file, error messages would not be
+As the CID will not be read from an input file, error messages would not be
 able to refer to any file in case of errors. To have at least some reference,
-we need to tell the ICD that it is declared from source code:
+we need to tell the CID that it is declared from source code:
 
 >>> icd.setLocationToSourceCode()
 
@@ -940,7 +940,7 @@ If any of this methods cannot handle the parameters you passed, they raise a
 Validating with listeners
 -------------------------
 
-Once the ICD is set up, you can validate data using ``validate()``:
+Once the CID is set up, you can validate data using ``validate()``:
 
 >>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>> icd = interface.InterfaceControlDocument()
@@ -975,7 +975,7 @@ documentation of
 `BaseValidationListener <api/cutplace.interface.BaseValidationListener-class.html>`_
 
 To actually get some information about validation errors, you have to create
-such a listener and attach it to an ICD:
+such a listener and attach it to an CID:
 
 >>> errorPrintingValidationListener = ErrorPrintingValidationListener()
 >>> icd.addValidationListener(errorPrintingValidationListener)
@@ -1124,7 +1124,7 @@ Checks have to implement certain methods described in `checks.AbstractCheck
 <api/cutplace.checks.AbstractCheck-class.html>`_. For each check, cutplace
 performs the following actions:
 
-#. When reading the ICD, call the check's ``__init__()``.
+#. When reading the CID, call the check's ``__init__()``.
 #. When starting to read a set of data, call the checks's ``reset()``.
 #. For each row of data, call the checks's ``checkRow()``.
 #. When done with a set of data, call the checks's ``checkAtEnd()``.
@@ -1148,7 +1148,7 @@ To implements this check, start by inheriting from `checks.AbstractCheck
 ...     """Check that total length of customer name is within the specified range."""
 
 Next, implement a constructor to which cutplace can pass the values
-found in the ICD. For example, for our check the ICD would contain:
+found in the CID. For example, for our check the CID would contain:
 
 +-+-------------------------------------------+------------------------+-----+
 + +Description                                +Type                    +Rule +
@@ -1166,8 +1166,8 @@ parameters:
   should do. Each check can define its own syntax for the rule. In case of
   ``FullNameLengthIsInRange`` the rule describes a `ranges.Range <api/cutplace.ranges.Range-class.html>`_.
 * ``availableFieldNames=["branch_id", "customer_id", "first_name","last_name",
-  "gender", "date_of_birth"]`` (as defined in the ICD and using the same order)
-* ``location`` being the ``tools.Location`` in the ICD where the check was defined.
+  "gender", "date_of_birth"]`` (as defined in the CID and using the same order)
+* ``location`` being the ``tools.Location`` in the CID where the check was defined.
 
 The constructor basically has to do 3 things:
 
@@ -1188,7 +1188,7 @@ The constructor basically has to do 3 things:
 ...         self._fullNameRange = ranges.Range(rule)
 ...         self.reset()
 
-Once cutplace is done reading the ICD, it moves on to data. For each set of
+Once cutplace is done reading the CID, it moves on to data. For each set of
 data it calls the checks `reset()
 <api/cutplace.checks.AbstractCheck-class.html#reset>`_ method. For our simple
 check, no actions are needed so we are good already because ``AbstractCheck``
@@ -1264,7 +1264,7 @@ Using your own checks and field format
 --------------------------------------
 
 Now that you know how to write your own field format, it would be nice to
-actually utilize it in an ICD. For this purpose, cutplace lets you import
+actually utilize it in an CID. For this purpose, cutplace lets you import
 plugins that can define their own fields.
 
 Plugins are standard Python modules that define classes based on
@@ -1274,7 +1274,7 @@ module named ``myplugins.py`` in it with the following contents:
 
 .. literalinclude:: ../examples/plugins.py
 
-The ICD can now refer to ``ColorFieldFormat`` as ``Color`` (without
+The CID can now refer to ``ColorFieldFormat`` as ``Color`` (without
 ``FieldFormat``) and to ``FullNameLengthIsInRangeCheck`` as
 ``FullNameLengthIsInRange`` (without ``Check``). For example:
 
@@ -1300,10 +1300,9 @@ The ICD can now refer to ``ColorFieldFormat`` as ``Color`` (without
 +F+color            +green  +      +      +Color+    +
 +-+-----------------+-------+------+------+-----+----+
 
-See: :download:`icd_colors.csv <../examples/icd_colors.csv>`
-or :download:`icd_colors.ods <../examples/icd_colors.ods>`
+See: :download:`cid_colors.ods <../examples/cid_colors.ods>`
 
-Here is a data file where all but one row conforms to the ICD:
+Here is a data file where all but one row conforms to the CID:
 
 .. literalinclude:: ../examples/colors.csv
 
@@ -1313,11 +1312,11 @@ To tell cutplace where the plugins folder is located, use the command line
 option ``--plugins``. Assuming that your ``myplugins.py`` is stored in
 ``~/cutplace_plugins`` you can run::
 
-  cutplace --plugins ~/cutplace_plugins icd_colors.ods colors.csv
+  cutplace --plugins ~/cutplace_plugins cid_colors.ods colors.csv
 
 The output is::
 
-  ERROR:cutplace:field error: colors.csv (R5C2): field u'color' must match format: color name is u'yellow' but must be one of: red, green, blue
+  ERROR:cutplace:field error: colors.csv (R5C2): field 'color' must match format: color name is 'yellow' but must be one of: red, green, blue
   colors.csv: rejected 1 of 5 rows. 0 final checks failed.
 
 If you are unsure which plugins exactly cutplace imports, use ``--log=info``.

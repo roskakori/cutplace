@@ -5,35 +5,48 @@ Revision history
 This chapter describes improvements compared to earlier versions of cutplace.
 
 
-Version 0.8.0, 2014-12-xx
+Version 0.8.0, 2015-01-xx
 =========================
 
 Reworked the whole code base to fix some long standing bug and migrate it to
 Python 3.2+ while retaining support for Python 2.6+. A big thank you goes to
-Patrick Heuberger, Patrick XXX and Jakob Neuberger for doing this as a school project
+Patrick Heuberger, Patrick **TODO** and Jakob Neuberger for doing this as a school project
 for HTL Wiener Neustadt.
 
-* The distribution now uses the wheel format instead of egg. A source distribution
+* Cutplace interface definitions are now abbreviated as CID, replacing the
+  acronym ICD (interface control document). Nevertheless the file format stayed
+  the same so existing data descriptions can be used as is.
+
+* The distribution now uses the wheel format (**TODO**: Link) instead of egg. A source distribution
   is still available as ZIP.
 
-Due the cleanup a some functionality was removed as it seems a good idea to have
-at some time but in my experience was never used:
+Due the cleanup some functionality was removed as it seems a good idea to have
+at some time but in my experience was never used. If you deem any of these
+features critical, feel free to submit a pull request or to open a ticket and
+request a reimplementation.
 
 * The ``cutplace`` command line options ``--accept`` and ``--reject`` are gone
   and all output options related to it. If you still need a filter to
   build a file the preserves all valid rows and removes rejected ones, a few
   line of Python code can do the trick.
 
+* The command line option ``--listencodings`` is gone. **TODO**: Link to a list of encodings.
+
+* The command line option ``--web`` (and all related options) to launch a small
+  web server with a validation form is gone. ***TODO***: Link to GUI client.
+
 * The tool ``cutsniff`` to build a draft CID is gone as it only takes a few
   minutes to build a draft anyway. Furthermore, the plain CSV results always needed
   quite some work to get a more presentable format concerning layout and colors.
 
-The API has been reworked too and is much cleaner and more pythonic now. The
-project structure conforms to the guidelines collected by TODO. The basic project
-structure and build process are provided by ``pyscaffold`` (TODO: Link).
+
+The API has been reworked too and is cleaner and more pythonic now. The project
+structure conforms to the guidelines collected by TODO. The basic project
+structure and build process are provided by ``pyscaffold`` (**TODO**: Link).
 
 * All essential functions can be accessed after a simple ``import cutplace``. The
   various sub modules are needed only for special requirements.
+  **TODO**: actually make this happen and add a proper ``__all__``.
 
 * All errors raised by ``cutplace`` are now collected in ``cutplace.errors``.
 
@@ -45,7 +58,7 @@ Version 0.7.1, 2012-05-20
   of a number one past the actual number of columns (issue #42).
 
 * Changed ``Pattern`` field format to allow shell patterns instead of only
-   simple DOS patterns (issue #37).
+  simple DOS patterns (issue #37).
 
 * Improved ``cutsniff``:
 

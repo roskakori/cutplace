@@ -31,9 +31,13 @@ from cutplace import _compat
 from cutplace import _tools
 from cutplace._compat import python_2_unicode_compatible
 
+#: Value for property ``line_delimiter`` to indicate any possible delimiter.
 ANY = "any"
+#: Value for property ``line_delimiter`` to indicate carriage return (Mac OS Classic).
 CR = "cr"
+#: Value for property ``line_delimiter`` to line feed (Unix).
 LF = "lf"
+#: Value for property ``line_delimiter`` to indicate carriage return + line feed (Windows).
 CRLF = "crlf"
 
 #: A mapping for internal line delimiters (e.g. '\n') to the textual
@@ -54,15 +58,13 @@ _TEXT_TO_LINE_DELIMITER_MAP = dict([(value, key) for key, value in LINE_DELIMITE
 assert len(LINE_DELIMITER_TO_TEXT_MAP) == len(_TEXT_TO_LINE_DELIMITER_MAP), \
     'values in LINE_DELIMITER_TO_TEXT_MAP must be unique'
 
-_VALID_QUOTE_CHARACTERS = ["\"", "\'"]
-_VALID_ESCAPE_CHARACTERS = ["\"", "\\"]
-_VALID_DECIMAL_SEPARATORS = [".", ","]
-_VALID_THOUSANDS_SEPARATORS = [",", ".", ""]
-_VALID_FORMATS = ['delimited', 'excel', 'fixed', 'ods']
-
+#: Format name for delimited data.
 FORMAT_DELIMITED = "delimited"
+#: Format name for Excel data.
 FORMAT_EXCEL = "excel"
+#: Format name for fixed formatted data (PRN).
 FORMAT_FIXED = "fixed"
+#: Format name for Open Document spreadsheets (ODS).
 FORMAT_ODS = "ods"
 
 KEY_ALLOWED_CHARACTERS = "allowed_characters"
@@ -76,6 +78,12 @@ KEY_SHEET = "sheet"
 KEY_SKIP_INITIAL_SPACE = "skip_initial_space"
 KEY_DECIMAL_SEPARATOR = "decimal_separator"
 KEY_THOUSANDS_SEPARATOR = "thousands_separator"
+
+_VALID_QUOTE_CHARACTERS = ["\"", "\'"]
+_VALID_ESCAPE_CHARACTERS = ["\"", "\\"]
+_VALID_DECIMAL_SEPARATORS = [".", ","]
+_VALID_THOUSANDS_SEPARATORS = [",", ".", ""]
+_VALID_FORMATS = [FORMAT_DELIMITED, FORMAT_EXCEL, FORMAT_FIXED, FORMAT_ODS]
 
 
 @python_2_unicode_compatible
@@ -141,6 +149,11 @@ class DataFormat(object):
 
     @property
     def is_valid(self):
+        """
+        ``True`` if :py:meth:`~DataFormat.validate` has been called and succeeded.
+
+        :rtype: bool
+        """
         return self._is_valid
 
     @property
@@ -168,9 +181,19 @@ class DataFormat(object):
         return self._thousands_separator
 
     def set_property(self, name, value):
-        """
-        Set data format property ``name`` to ``value``. In case the property or
-        value cannot be processed, raise `errors.InterfaceError`.
+        r"""
+        Set data format property ``name`` to ``value`` possibly translating ``value`` from
+        a human readable representation to an internal one.
+
+        :param str name: any of the ``KEY_*`` constants
+        :param value: the value to set the property to as it would show up in a CID. \
+            In some cases, the value will be translated to an internal representation. \
+            For example ``set_property(KEY_LINE_DELIMITER, 'lf')`` results in \
+            :py:attr:`cutplace.data.line_delimiter` being ``'\n'``.
+        :type value: str or None
+
+        :raises cutplace.errors.InterfaceError: if ``name`` is not a valid property name for this data format
+        :raises cutplace.errors.InterfaceError: if ``value`` is invalid for the specified property
         """
         assert not self.is_valid, 'after validate() has been called property %r cannot be set anymore' % name
         assert name is not None
@@ -377,8 +400,7 @@ class DataFormat(object):
 
     def validate(self):
         """
-        Validate that property values are consistent and set default values
-        for properties that have not been set yet.
+        Validate that property values are consistent.
         """
         assert not self._is_valid, 'validate() must be used only once on data format: %s' % self
 

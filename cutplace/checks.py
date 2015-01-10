@@ -37,12 +37,16 @@ class AbstractCheck(object):
     descendants, the other methods do nothing and can be left untouched.
     """
     def __init__(self, description, rule, available_field_names, location_of_definition=None):
-        """
-        Create a check with the human readable ``description``, a ``rule`` in a check dependent
-        syntax which can act on the fields listed in ``available_field_names`` (in the same order as
-        defined in the ICD) and the optional ``location_of_definition`` in the CID. If no
-        ``location_of_definition`` is provided, `errors.create_caller_location(['checks'])` is
-        used.
+        r"""
+        Create a check.
+
+        :param str description: human readable description of the check
+        :param str rule: the check conditions to validate
+        :param available_field_names: the names of the fields available for the check (typically referring \
+            to :py:attr:`cutplace.interface.Cid.field_names`)
+        :param location_of_definition: location in the CID where the check was declared to be (used by error \
+            messages); if ``None``, use `.errors.create_caller_location(['checks'])`
+        :type location_of_definition: py:class:`~.errors.Location` or None
         """
         assert description
         assert rule is not None
@@ -67,28 +71,29 @@ class AbstractCheck(object):
         Reset all internal resources needed by the check to keep track of the check conditions.
         By default do nothing.
 
-        It is recommended that the `__init__()` of any child classes calls this method.
+        It is recommended that the py:meth:`.__init__` of any child classes calls this method.
 
-        This is called by `interface.InterfaceControlDocument.validate()` when starting to
-        validate the data.
+        This is called by py:meth:`cutplace.validator.Reader.validate` when starting to validate the data.
         """
         pass
 
     def check_row(self, field_name_to_value_map, location):
-        """
-        Check row and in case it is invalid raise `errors.CheckError`. By default do nothing.
+        r"""
+        Check row and in case it is invalid raise :py:exc:`errors.CheckError`. By default do
+        nothing.
 
-        ``field_name_to_value_map`` maps all field names to their respective value for the
-         current row, ``location`` is the `errors.Location` where the row started in the input.
+        :param str field_name_to_value_map: map of all field names to their respective value for the current row
+        :param cutplace.errors.Location location: location where the row started in the input.
+        :raises cutplace.errors.CheckError: if the ``row`` does not conform
         """
         pass
 
     def check_at_end(self, location):
         """
-        Check at at end of document when all rows have been read and in case something is wrong
-        raise `errors.CheckError`. By default do nothing.
+        Check global conditions at at end of document when all rows have been read. By default do nothing.
 
-        ``location`` is the `errors.Location` of the last row in the input.
+        :param errors.Location location: location of the last row in the input
+        :raises cutplace.errors.CheckError: if the input does not conform
         """
         pass
 
@@ -104,30 +109,39 @@ class AbstractCheck(object):
     @property
     def description(self):
         """
-        A short description of the check as specified in the ICD, for example "id must be unique".
+        A human readable description of the check as specified in the CID, for example
+        ``'id must be unique'``.
+
+        :rtype: str
         """
         return self._description
 
     @property
     def rule(self):
         """
-        A rule string describing what the check actually should do; its syntax depends on the actual
+        A rule as specified in the CID describing the check conditions; its syntax depends on the actual
         check.
+
+        :rtype: str
         """
         return self._rule
 
     @property
     def location(self):
         """
-        The `errors.Location` where the check was defined.
+        Location in the CID or source code where the check was defined.
+
+        :rtype: errors.Location
         """
         return self._location
 
     @property
     def location_of_rule(self):
         """
-        The `errors.Location` of the rule column. This is particular useful when raising a
-        `errors.InterfaceError` for a broken rule during `__init__()`.
+        The location of the rule column in the CID. This is particular useful when raising a
+        :py:exc:`errors.InterfaceError` for a broken rule during :py:meth:`__init__`.
+
+        :rtype: errors.Location
         """
         return self._location
 
@@ -144,7 +158,10 @@ class AbstractCheck(object):
 
     def as_sql(self):
         """
-        The check as SQL constraint. The default implementation is an empty string.
+        Source code to represent the check as SQL constraint. The default implementation is an empty
+        string.
+
+        :rtype: str
         """
         return ''
 
