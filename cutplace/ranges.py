@@ -53,7 +53,10 @@ class Range(object):
         assert default is None or default.strip(), "default=%r" % default
 
         if text is not None:
-            text = text.replace('...', ELLIPSIS)
+            if '.' * 4 in text and not (text[-1].isdigit() or text[-2].isdigit()):
+                text = text.replace('....', ELLIPSIS)
+            else:
+                text = text.replace('...', ELLIPSIS)
         # Find out if a `text` has been specified and if not, use optional `default` instead.
         has_text = (text is not None) and text.strip()
         if not has_text and default is not None:
@@ -86,12 +89,13 @@ class Range(object):
                         if next_type == token.NUMBER:
                             try:
                                 if next_value[:2].lower() == "0x":
-                                    next_value = next_value[2:]
-                                    base = 16
+                                    long_value = float.fromhex(next_value)
                                 else:
-                                    base = 10
+                                    long_value = float(next_value)
 
-                                long_value = int(next_value, base)
+                                if long_value == int(long_value):
+                                    long_value = int(long_value)
+
                             except ValueError:
                                 raise errors.InterfaceError(
                                     "number must be an integer but is: %s" % _compat.text_repr(next_value))

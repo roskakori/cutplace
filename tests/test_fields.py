@@ -156,6 +156,14 @@ class DecimalFieldFormatTest(unittest.TestCase):
     def test_broken_decimal_syntax(self):
         self.assertRaises(errors.InterfaceError, fields.DecimalFieldFormat, "x", False, None, "eggs", _ANY_FORMAT)
 
+    def test_field_validates_decimal_rule(self):
+        field_format = fields.DecimalFieldFormat("x", False, None, "1...10.1", _ANY_FORMAT)
+        self.assertEqual(field_format.rangeRule.lower_limit,1)
+        self.assertEqual(field_format.rangeRule.upper_limit,10.1)
+        self.assertEqual(field_format.validated("5"), 5)
+        self.assertEqual(field_format.validated("5.5"), 5.5)
+        self.assertRaises(errors.FieldValueError, field_format.validated, "10.5")
+
 
 class IntegerFieldFormatTest(unittest.TestCase):
     """
