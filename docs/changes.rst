@@ -8,14 +8,27 @@ This chapter describes improvements compared to earlier versions of cutplace.
 Version 0.8.0, 2015-01-11
 =========================
 
-Reworked the whole code base to fix some long standing bug and migrate it to
-Python 3.2+ while retaining support for Python 2.6+. A big thank you goes to
-Patrick Heuberger, Jakob Neuberger and Patrick Prohaska for doing this as a
-school project for `HTL Wiener Neustadt <http://www.htlwrn.ac.at/>`_.
+This version is a major rework of the whole code base in order to to fix some
+long standing bug and migrate it to Python 3.2+ while retaining support for
+Python 2.6+. A big thank you goes to Patrick Heuberger, Jakob Neuberger and
+Patrick Prohaska for doing this as a school project for
+`HTL Wiener Neustadt <http://www.htlwrn.ac.at/>`_.
 
 In summary, the changes are:
 
-* The documentation is now available from
+* A few long standing bugs have finally been fixed, in particular:
+
+  * Fixed that command line client gets stuck on CID in ODS format
+    with syntax error
+    (`issue #46 <https://github.com/roskakori/cutplace/issues/46>`_)
+
+  * Fixed that delimited format fails when last char of field is escaped
+    (`issue #49 <https://github.com/roskakori/cutplace/issues/49>`_)
+
+  * Fixed ImportError: No module named xlrd
+    (`issue #50 <https://github.com/roskakori/cutplace/issues/50>`_)
+
+* The documentation is now available at
   <http://cutplace.readthedocs.org/en/latest/>.
 
 * Cutplace interface definitions are now abbreviated as CID, replacing the
@@ -25,43 +38,51 @@ In summary, the changes are:
 * The distribution now uses the `wheel format <https://pypi.python.org/pypi/wheel>`_
   instead of egg. A source distribution is still available as ZIP.
 
-Certain functionality was removed that seemed a good idea to have at some
-time but in my experience was never used. If you deem any of these features
-critical, feel free to submit a pull request or to open an
+Rarely used functionality that seemed a good idea to have at some time has
+been removed. If you deem of these features critical, feel free to submit a
+pull request or to open an
 `issue <https://github.com/roskakori/cutplace/issues>`_ and
-request a reimplementation.
+request a reimplementation:
 
-* The ``cutplace`` command line options ``--accept`` and ``--reject`` are gone
-  and all output options related to it. If you still need a filter to
-  build a file that preserves all valid rows and removes rejected ones, a few
-  line of Python code can do the trick. **TODO** Code snipplet
+* The :command:`cutplace` command line options :option:`--accept` and
+  :option:`--reject` are gone and all output options related to it. If you
+  still need a filter to build a file that preserves all valid rows and
+  removes rejected ones, a few line of Python code can do the trick::
 
-* The command line option ``--listencodings`` is gone. Instead refere to the
+    from cutplace import Cid, Reader
+    cid = Cid('.../some_cid.ods')
+    reader = Reader(cid, '.../some_data.csv')
+    for row in reader.rows(on_error='continue'):
+        # Do something with ``row``.
+        pass
+
+* The command line option :option:`--listencodings` is gone. Instead refer to
+  the
   `standard encodings <https://docs.python.org/3/library/codecs.html#standard-encodings>`_
   listed in the Python documentation.
 
-* The command line option ``--cid-encoding``. If you need non ASCII characters,
-  use ODS format or CSV with UTF-8.
+* The command line option :option:`--cid-encoding` is gone. If you need non
+  ASCII characters, use ODS format or CSV with UTF-8.
 
-* The command line option ``--web`` (and all related options) to launch a small
-  web server with a validation form is gone. Eventually there is going to be a
-  GUI client, refer to `issue #77 <https://github.com/roskakori/cutplace/issues/77>`_.
+* The command line option :option:`--web` (and all related options) to launch
+  a small web server with a validation form is gone. Eventually there is
+  going to be a GUI client, refer to
+  `issue #77 <https://github.com/roskakori/cutplace/issues/77>`_.
 
-* The tool ``cutsniff`` to build a draft CID is gone as it only takes a few
+* The tool :command:`cutsniff` to build a draft CID is gone as it only takes a few
   minutes to build a draft anyway. Furthermore, the plain CSV results always needed
   quite some work to get a more presentable format concerning layout and colors.
 
-The API has been reworked too and is cleaner and more pythonic now. The project
-structure applies most of the
+The API (see :ref:`modindex`) has been reworked too and is cleaner and more
+pythonic now. The project structure applies most of the
 `Simple Rules For Building Great Python Packages <http://axialcorps.com/2013/08/29/5-simple-rules-for-building-great-python-packages/>`_.
 The basic project structure and build process are provided by
 `pyscaffold <https://github.com/Aaronontheweb/scaffold-py>`_.
 
 * All essential functions can be accessed after a simple ``import cutplace``. The
   various sub modules are needed only for special requirements.
-  **TODO**: actually make this happen and add a proper ``__all__``.
 
-* All errors raised by ``cutplace`` are now collected in :py:mod:`cutplace.errors`.
+* All errors raised by ``cutplace`` are collected in :py:mod:`cutplace.errors`.
 
 
 Version 0.7.1, 2012-05-20
@@ -73,7 +94,7 @@ Version 0.7.1, 2012-05-20
 * Changed ``Pattern`` field format to allow shell patterns instead of only
   simple DOS patterns (issue #37).
 
-* Improved ``cutsniff``:
+* Improved :command:`cutsniff`:
 
   * Added sniffing of numeric fields (#48).
   * Added first none empty field value as example.
@@ -112,8 +133,8 @@ Version 0.7.0, 2012-01-09
 
 * Cleaned up API:
 
-  * cutplace and cutsniff have a similar ``main()`` that returns an
-    integer exit code without actually calling ``sys.exit()``.
+  * :command:`cutplace` and :command:`cutsniff` have a similar ``main()`` that
+    returns an integer exit code without actually calling ``sys.exit()``.
 
 * Cleaned up formatting to conform to PEP8 style.
 
@@ -132,7 +153,7 @@ Version 0.6.8, 2011-07-26
 Version 0.6.7, 2011-05-24
 =========================
 
-* Added option ``--names`` to :ref:`cutsniff` to specify field names as comma
+* Added option ``--names`` to :command:`cutsniff` to specify field names as comma
   separated list of names. Without this option, the names found in the last
   row specified by ``--head`` are used. Without this option, fields names will
   have generated values the user manually will have to change in order to get
@@ -146,7 +167,7 @@ Version 0.6.6, 2011-05-18
 Version 0.6.5, 2011-05-17
 =========================
 
-* Added command line option ``--header`` to :ref:`cutsniff` to exclude header
+* Added command line option ``--header`` to :command:`cutsniff` to exclude header
   rows from analysis.
 
 * Fixed build error in case module coverage was not installed by making
@@ -155,7 +176,7 @@ Version 0.6.5, 2011-05-17
 Version 0.6.4, 2011-03-19
 =========================
 
-* Added :ref:`cutsniff`, a tool to create an ICD by analyzing an existing data
+* Added :command:`cutsniff`, a tool to create an ICD by analyzing an existing data
   file.
 
 * #21: Fixed automatic detection of Excel format when reading ICDs using the

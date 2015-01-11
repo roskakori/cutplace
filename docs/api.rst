@@ -15,6 +15,14 @@ This chapter describes how to perform a basic validation of a simple CSV file
 containing data about some customers. It also explains how to extend
 cutplace's fields formats and checks.
 
+.. warning::
+
+  Due the major rework of the API with version 0.8.0 this chapter is currently
+  outdated and several code examples will not work. Possibly the online
+  version at http://cutplace.readthedocs.org/en/latest/api.html is already
+  fixed.
+
+
 Set up logging
 ==============
 

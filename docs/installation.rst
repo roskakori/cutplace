@@ -20,7 +20,8 @@ actual version number may vary)::
   Python3.4.2
 
 Additionally you the ``pip`` package installer. Newer versions of Python
-already include it. Otherwise it is available form **TODO**.
+already include it. Otherwise it is available from
+https://pypi.python.org/pypi/pip/.
 
 Download and Installation
 =========================

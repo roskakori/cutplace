@@ -9,6 +9,13 @@ how to build it and how to contribute to the project.
 If you are just interested to use cutplace's library classes and functions,
 refer to the chapter about the :doc:`api`.
 
+.. warning::
+
+  Due the major rework of the API with version 0.8.0 this chapter is currently
+  outdated and several code examples will not work. Possibly the online
+  version at http://cutplace.readthedocs.org/en/latest/api.html is already
+  fixed.
+
 
 Obtaining additional tools and Python packages
 ==============================================
