@@ -5,6 +5,14 @@ Revision history
 This chapter describes improvements compared to earlier versions of cutplace.
 
 
+Version 0.8.1, 2015-01-11
+=========================
+* Fixed ranges for `Integer` fields with a length of one digit, which caused
+  a :py:exc:`ValueError`.
+* Added Python 2 support to universal wheel for distribution.
+
+
+
 Version 0.8.0, 2015-01-11
 =========================
 
