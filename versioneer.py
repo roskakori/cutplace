@@ -680,8 +680,7 @@ def get_versions(default={}, verbose=False):
     return {'version': version_version, 'full': version_full}
 
 """
-# FIXME: Once proper git tags are established, change "0.8.0" to "unknown".
-DEFAULT = {"version": "0.8.0", "full": "0.8.0"}
+DEFAULT = {"version": "unknown", "full": "unknown"}
 
 def versions_from_file(filename):
     versions = {}
