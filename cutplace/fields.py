@@ -374,35 +374,36 @@ class IntegerFieldFormat(AbstractFieldFormat):
         # The default range is 32 bit. If the user wants a bigger range, he has to specify it.
         # Python's long scales to any range as long there is enough memory available to represent
         # it.
-        if (length_text is None or length_text == '') and (rule is None or rule == ''):
-            self.rangeRule = ranges.Range(self._DEFAULT_RANGE)
-        else:
-            default_range = ranges.Range(self._DEFAULT_RANGE)
-            length_range = ranges.Range(length_text)
-            upper_length = length_range.upper_limit
-
-            if upper_length is None:
-                range_lower_length = default_range.lower_limit
-                range_upper_length = default_range.upper_limit
-            else:
-                range_lower_length = '-' + ('9' * (int(upper_length) - 1))
-                range_upper_length = '9' * int(upper_length)
-
-            if (length_text is None or length_text == '') and (rule is not None and rule != ''):
-                self.rangeRule = ranges.Range(rule)
-            elif (length_text is not None and length_text != '') and (rule is None or rule == ''):
-                self.rangeRule = ranges.Range(
-                    '%s...%s' % (range_lower_length, range_upper_length))
-            else:
-                length_range = ranges.Range('%s...%s' % (range_lower_length, range_upper_length))
-                rule_range = ranges.Range(rule)
-
-                if length_range.upper_limit is not None and rule_range.upper_limit is not None and length_range.upper_limit < rule_range.upper_limit:
-                    raise errors.FieldValueError('length upper limit must be greater than the rule upper limit')
-                if length_range.lower_limit is not None and rule_range.lower_limit is not None and length_range.lower_limit > rule_range.lower_limit:
-                    raise errors.FieldValueError('rule lower limit must be less than the length lower limit')
-
-                self.rangeRule = rule_range
+        self.rangeRule = ranges.Range(rule, IntegerFieldFormat._DEFAULT_RANGE)
+        # if (length_text is None or length_text == '') and (rule is None or rule == ''):
+        #     self.rangeRule = ranges.Range(self._DEFAULT_RANGE)
+        # else:
+        #     default_range = ranges.Range(self._DEFAULT_RANGE)
+        #     length_range = ranges.Range(length_text)
+        #     upper_length = length_range.upper_limit
+        #
+        #     if upper_length is None:
+        #         range_lower_length = default_range.lower_limit
+        #         range_upper_length = default_range.upper_limit
+        #     else:
+        #         range_lower_length = '-' + ('9' * (int(upper_length) - 1))
+        #         range_upper_length = '9' * int(upper_length)
+        #
+        #     if (length_text is None or length_text == '') and (rule is not None and rule != ''):
+        #         self.rangeRule = ranges.Range(rule)
+        #     elif (length_text is not None and length_text != '') and (rule is None or rule == ''):
+        #         self.rangeRule = ranges.Range(
+        #             '%s...%s' % (range_lower_length, range_upper_length))
+        #     else:
+        #         length_range = ranges.Range('%s...%s' % (range_lower_length, range_upper_length))
+        #         rule_range = ranges.Range(rule)
+        #
+        #         if length_range.upper_limit is not None and rule_range.upper_limit is not None and length_range.upper_limit < rule_range.upper_limit:
+        #             raise errors.FieldValueError('length upper limit must be greater than the rule upper limit')
+        #         if length_range.lower_limit is not None and rule_range.lower_limit is not None and length_range.lower_limit > rule_range.lower_limit:
+        #             raise errors.FieldValueError('rule lower limit must be less than the length lower limit')
+        #
+        #         self.rangeRule = rule_range
 
     def validated_value(self, value):
         assert value
