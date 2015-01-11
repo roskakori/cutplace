@@ -94,15 +94,16 @@ class Range(object):
                         if next_type == token.NUMBER:
                             try:
                                 if next_value[:2].lower() == "0x":
-                                    next_value = next_value[2:]
-                                    base = 16
+                                    long_value = float.fromhex(next_value)
                                 else:
-                                    base = 10
+                                    long_value = float(next_value)
 
-                                long_value = int(next_value, base)
+                                if int(long_value) == long_value:
+                                    long_value = int(long_value)
+
                             except ValueError:
                                 raise errors.InterfaceError(
-                                    "number must be an integer but is: %s" % _compat.text_repr(next_value))
+                                    "number must be an integer or float but is: %s" % _compat.text_repr(next_value))
                             if after_hyphen:
                                 long_value *= - 1
                                 after_hyphen = False
