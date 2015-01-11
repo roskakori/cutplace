@@ -26,6 +26,8 @@ import io
 import token
 import tokenize
 
+import six
+
 from cutplace import errors
 from cutplace import _compat
 from cutplace import _tools
@@ -53,6 +55,9 @@ class Range(object):
         assert default is None or default.strip(), "default=%r" % default
 
         if text is not None:
+            if six.PY2:
+                # HACK: In Python 2.6, ``tokenize.generate_tokens()`` produces a token for leading white space.
+                text = text.strip()
             text = text.replace('...', ELLIPSIS)
         # Find out if a `text` has been specified and if not, use optional `default` instead.
         has_text = (text is not None) and text.strip()

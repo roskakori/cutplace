@@ -19,9 +19,11 @@ import csv
 import datetime
 import io
 import os
+import re
 import six
 import xlrd
 import zipfile
+from contextlib import closing
 from xml.etree import ElementTree
 
 from cutplace import data
@@ -65,6 +67,18 @@ _OOO_NAMESPACES = {
     'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
 }
 _NUMBER_COLUMNS_REPEATED = '{' + _OOO_NAMESPACES['table'] + '}number-columns-repeated'
+
+if six.PY2:
+    # HACK: Prepare ``ElementTree`` for namespaced find operations.
+    # See also: <http://effbot.org/zone/element-namespaces.htm>.
+    try:
+        register_namespace = ElementTree.register_namespace
+    except AttributeError:
+        def register_namespace(prefix, uri):
+            ElementTree._namespace_map[uri] = prefix
+
+    for short_name, url in _OOO_NAMESPACES.items():
+        register_namespace(short_name, url)
 
 
 def _excel_cell_value(cell, datemode):
@@ -175,6 +189,17 @@ def delimited_rows(delimited_source, data_format):
             delimited_file.close()
 
 
+def _findall(element, xpath, namespaces):
+    if six.PY2:
+        resolved_xpath = xpath
+        for short_name, url in namespaces.items():
+            resolved_xpath = re.sub(r'\b' + short_name + ':', '{' + url + '}', resolved_xpath)
+        result = element.findall(resolved_xpath)
+    else:
+        result = element.findall(xpath, namespaces)
+    return result
+
+
 def ods_rows(source_ods_path, sheet=1):
     """
     Rows stored in ODS document ``source_ods_path`` in ``sheet``.
@@ -189,7 +214,8 @@ def ods_rows(source_ods_path, sheet=1):
 
         location = errors.Location(source_ods_path)
         try:
-            with zipfile.ZipFile(source_ods_path, "r") as zip_archive:
+            # HACK: Use ``closing()`` because of Python 2.6.
+            with closing(zipfile.ZipFile(source_ods_path, "r")) as zip_archive:
                 try:
                     xml_data = zip_archive.read("content.xml")
                 except Exception as error:
@@ -209,7 +235,7 @@ def ods_rows(source_ods_path, sheet=1):
 
     content_root = ods_content_root()
     table_elements = list(
-        content_root.findall('office:body/office:spreadsheet/table:table', namespaces=_OOO_NAMESPACES))
+        _findall(content_root, 'office:body/office:spreadsheet/table:table', namespaces=_OOO_NAMESPACES))
     table_count = len(table_elements)
     if table_count < sheet:
         error_message = 'ODS must contain at least %d sheet(s) instead of just %d' % (sheet, table_count)
@@ -218,9 +244,9 @@ def ods_rows(source_ods_path, sheet=1):
     location = errors.Location(source_ods_path, has_cell=True, has_sheet=True)
     for _ in range(sheet - 1):
         location.advance_sheet()
-    for table_row in table_element.findall('table:table-row', namespaces=_OOO_NAMESPACES):
+    for table_row in _findall(table_element, 'table:table-row', namespaces=_OOO_NAMESPACES):
         row = []
-        for table_cell in table_row.findall('table:table-cell', namespaces=_OOO_NAMESPACES):
+        for table_cell in _findall(table_row, 'table:table-cell', namespaces=_OOO_NAMESPACES):
             repeated_text = table_cell.attrib.get(_NUMBER_COLUMNS_REPEATED, '1')
             try:
                 repeated_count = int(repeated_text)
@@ -232,7 +258,10 @@ def ods_rows(source_ods_path, sheet=1):
                 raise errors.DataFormatError(
                     'table:number-columns-repeated is %s but must be an integer' % _compat.text_repr(repeated_text),
                     location)
-            text_p = table_cell.find('text:p', namespaces=_OOO_NAMESPACES)
+            if six.PY2:
+                text_p = table_cell.find('{%s}p' % _OOO_NAMESPACES['text'])
+            else:
+                text_p = table_cell.find('text:p', namespaces=_OOO_NAMESPACES)
             if text_p is None:
                 cell_value = ''
             else:
