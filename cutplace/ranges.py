@@ -192,14 +192,23 @@ class Range(object):
             self._lower_limit = None
             self._upper_limit = None
 
-            for item in self._items:
-                if item[0] is not None:
-                    if self._lower_limit is None or item[0] < self._lower_limit:
-                        self._lower_limit = item[0]
+            is_first_item = True
 
-                if item[1] is not None:
-                    if self._upper_limit is None or item[1] > self._upper_limit:
-                        self._upper_limit = item[1]
+            for lower_item, upper_item in self._items:
+                if is_first_item:
+                    self._lower_limit = lower_item
+                    self._upper_limit = upper_item
+                    is_first_item = False
+
+                if lower_item is None:
+                    self._lower_limit = None
+                elif (self._lower_limit is not None) and (lower_item < self._lower_limit):
+                    self._lower_limit = lower_item
+
+                if upper_item is None:
+                    self._upper_limit = None
+                elif (self._upper_limit is not None) and (upper_item > self._upper_limit):
+                    self._upper_limit = upper_item
 
     @property
     def description(self):

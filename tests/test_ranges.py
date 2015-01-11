@@ -83,7 +83,7 @@ class RangeTest(unittest.TestCase):
         self.assertEquals(ranges.Range("5...9").lower_limit, 5)
         self.assertEquals(ranges.Range("0...").lower_limit, 0)
         self.assertEquals(ranges.Range("...0").lower_limit, None)
-        self.assertEquals(ranges.Range("...1, 3...").lower_limit, 3)
+        self.assertEquals(ranges.Range("...1, 3...").lower_limit, None)
         self.assertEquals(ranges.Range("5...9").lower_limit, 5)
         self.assertEquals(ranges.Range("1...2, 5...9").lower_limit, 1)
 
@@ -91,7 +91,7 @@ class RangeTest(unittest.TestCase):
         self.assertEquals(ranges.Range("1...2").upper_limit, 2)
         self.assertEquals(ranges.Range("0...").upper_limit, None)
         self.assertEquals(ranges.Range("...0").upper_limit, 0)
-        self.assertEquals(ranges.Range("...1, 3...").upper_limit, 1)
+        self.assertEquals(ranges.Range("...1, 3...").upper_limit, None)
         self.assertEquals(ranges.Range("1...2, 5...9").upper_limit, 9)
 
     def test_broken_overlapping_multi_range(self):
