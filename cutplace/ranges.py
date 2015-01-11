@@ -42,7 +42,7 @@ class Range(object):
     A range that can be used to validate that a value is within it.
     """
 
-    def __init__(self, text, default=None):
+    def __init__(self, description, default=None):
         """
         Setup a range as specified by ``text``.
 
@@ -54,32 +54,32 @@ class Range(object):
         """
         assert default is None or (default.strip() != ''), "default=%r" % default
 
-        if text is not None:
+        if description is not None:
             if six.PY2:
                 # HACK: In Python 2.6, ``tokenize.generate_tokens()`` produces a token for leading white space.
-                text = text.strip()
-            if '.' * 4 in text and not (text[-1].isdigit() or text[-2].isdigit()):
-                text = text.replace('....', ELLIPSIS)
+                description = description.strip()
+            if '.' * 4 in description and not (description[-1].isdigit() or description[-2].isdigit()):
+                description = description.replace('....', ELLIPSIS)
             else:
-                text = text.replace('...', ELLIPSIS)
+                description = description.replace('...', ELLIPSIS)
         # Find out if a `text` has been specified and if not, use optional `default` instead.
-        has_text = (text is not None) and text.strip()
-        if not has_text and default is not None:
-            text = default
-            has_text = True
+        has_description = (description is not None) and (description.strip() != '')
+        if not has_description and default is not None:
+            description = default
+            has_description = True
 
-        if not has_text:
+        if not has_description:
             # Use empty ranges.
             self._description = None
             self._items = None
             self._lower_limit = None
             self._upper_limit = None
         else:
-            self._description = text
+            self._description = description
             self._items = []
 
             # TODO: Consolidate code with `DelimitedDataFormat._validatedCharacter()`.
-            tokens = tokenize.generate_tokens(io.StringIO(text).readline)
+            tokens = tokenize.generate_tokens(io.StringIO(description).readline)
             end_reached = False
             while not end_reached:
                 lower = None
