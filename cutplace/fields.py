@@ -303,6 +303,7 @@ class DecimalFieldFormat(AbstractFieldFormat):
                 range_upper_length = '9' * int(upper_length)
                 if upper_length != int(upper_length):
                     precision = upper_length - int(upper_length)
+                    precision = int(str(precision)[2:])
                     range_lower_length += self.decimalSeparator + '9' * precision
                     range_upper_length += self.decimalSeparator + '9' * precision
 
