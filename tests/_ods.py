@@ -28,7 +28,7 @@ import sys
 
 from cutplace import _compat
 from cutplace import _tools
-from cutplace import iotools
+from cutplace import rowio
 
 _log = logging.getLogger("cutplace.ods")
 
@@ -45,7 +45,7 @@ def toCsv(odsFilePath, csvTargetPath, dialect="excel", sheet=1):
 
     with io.open(csvTargetPath, 'w', newline='', encoding='utf-8') as csvTargetFile:
         csv_writer = _compat.csv_writer(csvTargetFile, dialect)
-        csv_writer.writerows(iotools.ods_rows(odsFilePath, sheet))
+        csv_writer.writerows(rowio.ods_rows(odsFilePath, sheet))
 
 
 def _writeRstRow(rstTargetFile, columnLengths, items):
@@ -89,7 +89,7 @@ def toRst(odsFilePath, rstTargetPath, firstRowIsHeading=True, sheet=1):
     assert rstTargetPath is not None
     assert sheet >= 1
 
-    rows = list(iotools.ods_rows(odsFilePath, sheet))
+    rows = list(rowio.ods_rows(odsFilePath, sheet))
 
     # Find out the length of each column.
     lengths = []

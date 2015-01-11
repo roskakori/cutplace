@@ -13,6 +13,9 @@
     <property name="reports.dir" location="${site.dir}/reports" />
     <property name="slocdata.dir" location="${basedir}/slocdata" />
 
+    <!-- Property to access environment variables. -->
+    <property environment="env" />
+
     <macrodef name="pyst">
         <!-- Macro to run a setup.py command. -->
         <attribute name="command" />
@@ -20,6 +23,20 @@
             <exec executable="python" failonerror="true">
                 <arg value="setup.py" />
                 <arg value="@{command}" />
+            </exec>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="convertods">
+        <!-- Macro to convert an ODS file to CSV . -->
+        <attribute name="basename" />
+        <attribute name="format" />
+        <sequential>
+            <exec executable="python" failonerror="true">
+                <env key="PYTHONPATH" path="${basedir}/cutplace:${env.PYTHONPATH}" />
+                <arg file="tests/_ods.py" />
+                <arg file="@{basename}.ods" />
+                <arg file="@{basename}.csv" />
             </exec>
         </sequential>
     </macrodef>
@@ -125,7 +142,18 @@
             </fileset>
 		</copy>
 	</target>
+
     <target description="build documentation" name="docs" depends="sitebase">
+        <!-- TODO: Remove obsolete CSV copies
+        <convertods basename="examples/customers" format="csv" />
+        <convertods basename="examples/icd_colors" format="csv" />
+        <convertods basename="examples/icd_customers" format="csv" />
+        <convertods basename="examples/icd_customers_field_names_only" format="csv" />
+        <convertods basename="examples/icd_customers_with_empty_fields" format="csv" />
+        <convertods basename="examples/icd_customers_with_examples" format="csv" />
+        <convertods basename="examples/icd_customers_with_lengths" format="csv" />
+        <convertods basename="examples/icd_customers_with_types_and_rules" format="csv" />
+        -->
         <pyst command="docs" />
     </target>
 

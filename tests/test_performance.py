@@ -29,9 +29,9 @@ import unittest
 import six
 
 from cutplace import interface
-from cutplace import validator
+from cutplace import validio
 from cutplace import _compat
-from cutplace import _cutplace
+from cutplace import applications
 from cutplace import _tools
 from tests import dev_test
 
@@ -63,12 +63,12 @@ def _build_and_validate_many_customers():
 
     # Validate the data using the API, so in case of errors we get specific information.
     customers_cid = interface.Cid(icd_ods_path)
-    reader = validator.Reader(customers_cid, many_customers_csv_path)
+    reader = validio.Reader(customers_cid, many_customers_csv_path)
     reader.validate()
 
     # Validate the data using the command line application in order to use
     # the whole tool chain from an end user's point of view.
-    exit_code = _cutplace.main(["test_performance.py", icd_ods_path, many_customers_csv_path])
+    exit_code = applications.main(["test_performance.py", icd_ods_path, many_customers_csv_path])
     if exit_code != 0:
         raise ValueError("exit code of performance test must be 0 but is %d" % exit_code)
 

@@ -258,13 +258,13 @@ class ChoiceFieldFormat(AbstractFieldFormat):
             column_def, _ = IntegerFieldFormat(self._field_name, self._is_allowed_to_be_empty,
                                                self._length.description, self._rule, self._data_format,
                                                self._empty_value).as_sql(db)
-            constraint = "constraint chk_" + self._field_name + " check( " + self._field_name + " in [" + \
+            constraint = "CONSTRAINT chk_" + self._field_name + " CHECK( " + self._field_name + " IN [" + \
                          ",".join(map(str, self.choices)) + "] )"
         else:
             max_length = max(self.choices, key=len)
-            column_def = self._field_name + " varchar(" + str(len(max_length)) + ")"
-            column_def += " not null" if not self._is_allowed_to_be_empty else ""
-            constraint = "constraint chk_" + self._field_name + " check( " + self._field_name + " in ['" + \
+            column_def = self._field_name + " VARCHAR(" + str(len(max_length)) + ")"
+            column_def += " NOT NULL" if not self._is_allowed_to_be_empty else ""
+            constraint = "CONSTRAINT chk_" + self._field_name + " CHECK( " + self._field_name + " IN ['" + \
                          "','".join(map(str, self.choices)) + "'] )"
         return [column_def, constraint]
 
@@ -361,47 +361,15 @@ class IntegerFieldFormat(AbstractFieldFormat):
     """
     Field format accepting numeric integer values with fractional part.
     """
-    _DEFAULT_RANGE = '%d...%d' % (-2 ** 31, 2 ** 31 - 1)
-
-    MAX_BIGINT = 2 ** 63 - 1
-    MAX_INT = 2 ** 31 - 1
-    MAX_SMALLINT = 2 ** 15 - 1
+    _DEFAULT_RANGE = "%d:%d" % (-2 ** 31, 2 ** 31 - 1)
 
     def __init__(self, field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value=None):
-        super(IntegerFieldFormat, self).__init__(
-            field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value)
+        super(IntegerFieldFormat, self).__init__(field_name, is_allowed_to_be_empty, length_text, rule, data_format,
+                                                 empty_value)
         # The default range is 32 bit. If the user wants a bigger range, he has to specify it.
         # Python's long scales to any range as long there is enough memory available to represent
         # it.
-        if (length_text is None or length_text == '') and (rule is None or rule == ''):
-            self.rangeRule = ranges.Range(IntegerFieldFormat._DEFAULT_RANGE)
-        else:
-            default_range = ranges.Range(self._DEFAULT_RANGE)
-            length_range = ranges.Range(length_text)
-            upper_length = length_range.upper_limit
-
-            if upper_length is None:
-                range_lower_length = default_range.lower_limit
-                range_upper_length = default_range.upper_limit
-            else:
-                range_lower_length = '-' + ('9' * (upper_length - 1))
-                range_upper_length = '9' * upper_length
-
-            if (length_text is None or length_text == '') and (rule is not None and rule != ''):
-                self.rangeRule = ranges.Range(rule)
-            elif (length_text is not None and length_text != '') and (rule is None or rule == ''):
-                self.rangeRule = ranges.Range(
-                    '%s...%s' % (range_lower_length, range_upper_length))
-            else:
-                length_range = ranges.Range('%s...%s' % (range_lower_length, range_upper_length))
-                rule_range = ranges.Range(rule)
-
-                if length_range.upper_limit is not None and rule_range.upper_limit is not None and length_range.upper_limit < rule_range.upper_limit:
-                    raise errors.FieldValueError('length upper limit must be greater than the rule upper limit')
-                if length_range.lower_limit is not None and rule_range.lower_limit is not None and length_range.lower_limit > rule_range.lower_limit:
-                    raise errors.FieldValueError('rule lower limit must be less than the length lower limit')
-
-                self.rangeRule = rule_range
+        self.rangeRule = ranges.Range(rule, IntegerFieldFormat._DEFAULT_RANGE)
 
     def validated_value(self, value):
         assert value
@@ -417,31 +385,34 @@ class IntegerFieldFormat(AbstractFieldFormat):
         return long_value
 
     def as_sql(self, db):
-        range_limit = self.rangeRule.upper_limit
-
-        if range_limit <= self.MAX_SMALLINT:
-            column_def = self._field_name + " smallint"
-        elif range_limit <= self.MAX_INT:
-            column_def = self._field_name + " integer"
+        if (self._rule == '') and (self._length.description is not None):
+            range_limit = 10 ** max([item[1] for item in self._length.items])  # get the highest integer of the range
         else:
-            if db in (MSSQL, DB2) and range_limit <= self.MAX_BIGINT:
-                column_def = self._field_name + " bigint"
+            range_limit = max([rule[1] for rule in self.rangeRule.items])  # get the highest integer of the range
+
+        if range_limit < 2 ** 15 - 1:
+            column_def = self._field_name + " SMALLINT"
+        elif range_limit < 2 ** 31 - 1:
+            column_def = self._field_name + " INTEGER"
+        else:
+            if db in (MSSQL, DB2) and range_limit < 2 ** 63 - 1:
+                column_def = self._field_name + " BIGINT"
             else:
                 column_def, _ = DecimalFieldFormat(self._field_name, self._is_allowed_to_be_empty,
                                                    self._length.description, self._rule, self._data_format,
                                                    self._empty_value).as_sql(db)
 
         if not self.is_allowed_to_be_empty:
-            column_def += " not null"
+            column_def += " NOT NULL"
 
         constraint = ""
         for i in range(len(self.rangeRule.items)):
             if i == 0:
-                constraint = "constraint chk_" + self._field_name + " check( "
-            constraint += "( " + self._field_name + " between " + str(self.rangeRule.items[i][0]) + " and " + \
+                constraint = "CONSTRAINT chk_" + self._field_name + " CHECK( "
+            constraint += "( " + self._field_name + " BETWEEN " + str(self.rangeRule.items[i][0]) + " AND " + \
                           str(self.rangeRule.items[i][1]) + " )"
             if i < len(self.rangeRule.items) - 1:
-                constraint += " or "
+                constraint += " OR "
             else:
                 constraint += " )"
 
@@ -481,14 +452,14 @@ class DateTimeFieldFormat(AbstractFieldFormat):
 
     def as_sql(self, db):
         if "hh" in self.human_readable_format and "YY" in self.human_readable_format:
-            column_def = self._field_name + " datetime"
+            column_def = self._field_name + " DATETIME"
         elif "hh" in self.human_readable_format:
-            column_def = self._field_name + " time"
+            column_def = self._field_name + " TIME"
         else:
-            column_def = self._field_name + " date"
+            column_def = self._field_name + " DATE"
 
         if not self.is_allowed_to_be_empty:
-            column_def += " not null"
+            column_def += " NOT NULL"
 
         return [column_def, ""]
 

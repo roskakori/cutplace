@@ -15,6 +15,14 @@ This chapter describes how to perform a basic validation of a simple CSV file
 containing data about some customers. It also explains how to extend
 cutplace's fields formats and checks.
 
+.. warning::
+
+  Due the major rework of the API with version 0.8.0 this chapter is currently
+  outdated and several code examples will not work. Possibly the online
+  version at http://cutplace.readthedocs.org/en/latest/api.html is already
+  fixed.
+
+
 Set up logging
 ==============
 
@@ -41,190 +49,28 @@ the Python library documentation.
 Basic usage
 ===========
 
-Reading an ICD
+Reading an CID
 --------------
 
 The class
 `interface.InterfaceControlDocument <api/cutplace.interface.InterfaceControlDocument-class.html>`_
-represents an ICD. In case you have an ICD stored in a file and want to read
+represents an CID. In case you have an CID stored in a file and want to read
 it, use:
 
->>> import os
 >>> import os.path
 >>> from cutplace import interface
 >>>
 >>> # Compute the path of a test file in a system independent manner,
 >>> # assuming that the current folder is "docs".
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>>
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(os.path.abspath(icdPath))
+>>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> icd = interface.Cid(cid_path)
 >>> icd.fieldNames
-[u'branch_id', u'customer_id', u'first_name', u'surname', u'gender', u'date_of_birth']
+['branch_id', 'customer_id', 'first_name', 'surname', 'gender', 'date_of_birth']
 
 This is the easiest way to describe an interface. The resulting document is
 human readable even for non coders and quite simple to edit and maintain. It
 also keeps declaration and validation in separate files.
 
-
-it, use:
-
->>> import os
->>> import os.path
->>> from cutplace import interface
->>>
->>> # Compute the path of a test file in a system independent manner,
->>> # assuming that the current folder is "docs".
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>>
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(os.path.abspath(icdPath))
->>> icd.fieldNames
-[u'branch_id', u'customer_id', u'first_name', u'surname', u'gender', u'date_of_birth']
-
-This is the easiest way to describe an interface. The resulting document is
-human readable even for non coders and quite simple to edit and maintain. It
-also keeps declaration and validation in separate files.
-
-
-it, use:
-
->>> import os
->>> import os.path
->>> from cutplace import interface
->>>
->>> # Compute the path of a test file in a system independent manner,
->>> # assuming that the current folder is "docs".
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>>
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(os.path.abspath(icdPath))
->>> icd.fieldNames
-[u'branch_id', u'customer_id', u'first_name', u'surname', u'gender', u'date_of_birth']
-
-This is the easiest way to describe an interface. The resulting document is
-human readable even for non coders and quite simple to edit and maintain. It
-also keeps declaration and validation in separate files.
-
-
-it, use:
-
->>> import os
->>> import os.path
->>> from cutplace import interface
->>>
->>> # Compute the path of a test file in a system independent manner,
->>> # assuming that the current folder is "docs".
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>>
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(os.path.abspath(icdPath))
->>> icd.fieldNames
-[u'branch_id', u'customer_id', u'first_name', u'surname', u'gender', u'date_of_birth']
-
-This is the easiest way to describe an interface. The resulting document is
-human readable even for non coders and quite simple to edit and maintain. It
-also keeps declaration and validation in separate files.
-
-
-it, use:
-
->>> import os
->>> import os.path
->>> from cutplace import interface
->>>
->>> # Compute the path of a test file in a system independent manner,
->>> # assuming that the current folder is "docs".
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>>
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(os.path.abspath(icdPath))
->>> icd.fieldNames
-[u'branch_id', u'customer_id', u'first_name', u'surname', u'gender', u'date_of_birth']
-
-This is the easiest way to describe an interface. The resulting document is
-human readable even for non coders and quite simple to edit and maintain. It
-also keeps declaration and validation in separate files.
-
-
-it, use:
-
->>> import os
->>> import os.path
->>> from cutplace import interface
->>>
->>> # Compute the path of a test file in a system independent manner,
->>> # assuming that the current folder is "docs".
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>>
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(os.path.abspath(icdPath))
->>> icd.fieldNames
-[u'branch_id', u'customer_id', u'first_name', u'surname', u'gender', u'date_of_birth']
-
-This is the easiest way to describe an interface. The resulting document is
-human readable even for non coders and quite simple to edit and maintain. It
-also keeps declaration and validation in separate files.
-
-
-it, use:
-
->>> import os
->>> import os.path
->>> from cutplace import interface
->>>
->>> # Compute the path of a test file in a system independent manner,
->>> # assuming that the current folder is "docs".
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>>
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(os.path.abspath(icdPath))
->>> icd.fieldNames
-[u'branch_id', u'customer_id', u'first_name', u'surname', u'gender', u'date_of_birth']
-
-This is the easiest way to describe an interface. The resulting document is
-human readable even for non coders and quite simple to edit and maintain. It
-also keeps declaration and validation in separate files.
-
-
-it, use:
-
->>> import os
->>> import os.path
->>> from cutplace import interface
->>>
->>> # Compute the path of a test file in a system independent manner,
->>> # assuming that the current folder is "docs".
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>>
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(os.path.abspath(icdPath))
->>> icd.fieldNames
-[u'branch_id', u'customer_id', u'first_name', u'surname', u'gender', u'date_of_birth']
-
-This is the easiest way to describe an interface. The resulting document is
-human readable even for non coders and quite simple to edit and maintain. It
-also keeps declaration and validation in separate files.
-
-
-it, use:
-
->>> import os
->>> import os.path
->>> from cutplace import interface
->>>
->>> # Compute the path of a test file in a system independent manner,
->>> # assuming that the current folder is "docs".
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>>
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(os.path.abspath(icdPath))
->>> icd.fieldNames
-[u'branch_id', u'customer_id', u'first_name', u'surname', u'gender', u'date_of_birth']
-
-This is the easiest way to describe an interface. The resulting document is
-human readable even for non coders and quite simple to edit and maintain. It
-also keeps declaration and validation in separate files.
 
 Validating data
 ---------------
@@ -256,7 +102,7 @@ look at it:
 ...   pass
 Traceback (most recent call last):
     ...
-FieldValueError: broken_customers.csv (R4C1): field u'branch_id' must match format: value u'12345' must match regular expression: u'38\\d\\d\\d'
+FieldValueError: broken_customers.csv (R4C1): field 'branch_id' must match format: value '12345' must match regular expression: '38\\d\\d\\d'
 
 Apparently the first broken data item causes the reading to stop with an
 ``Exception``. In many cases this is what you want.
@@ -284,9 +130,9 @@ Here is an example the prints any data related errors detected during validation
 ...             rowOrError.reraise()
 ...     else:
 ...         pass # We could also do something useful with the data in ``row`` here.
-broken_customers.csv (R4C1): field u'branch_id' must match format: value u'12345' must match regular expression: u'38\\d\\d\\d'
-broken_customers.csv (R5C2): field u'customer_id' must match format: value must be an integer number: u'XX'
-broken_customers.csv (R6C6): field u'date_of_birth' must match format: date must match format DD.MM.YYYY (%d.%m.%Y) but is: u'30.02.1994' (day is out of range for month)
+broken_customers.csv (R4C1): field 'branch_id' must match format: value '12345' must match regular expression: '38\\d\\d\\d'
+broken_customers.csv (R5C2): field 'customer_id' must match format: value must be an integer number: 'XX'
+broken_customers.csv (R6C6): field 'date_of_birth' must match format: date must match format DD.MM.YYYY (%d.%m.%Y) but is: '30.02.1994' (day is out of range for month)
 
 Note that it is possible for the reader to throw other exceptions, for example
 of type ``IOError`` in case the file cannot be read at all or
@@ -299,7 +145,7 @@ The ``errors`` parameter can also take the values ``"strict"`` (which is the
 default and raises a ``CutplaceError`` on encountering the first error as
 described above) and ``"ignore"``, which silently ignores any error and moves
 on with the next row. The latter can be useful during prototyping a new
-application when ICD's and data are in a constant state of flux. In production
+application when CID's and data are in a constant state of flux. In production
 code ``errors="ignore"`` mainly represents a very efficient way to shoot
 yourself into the foot.
 
@@ -309,7 +155,7 @@ Processing data
 As a first step, we should figure out where in each row we can find the first
 name and the surname. We need to do this only once so this happens outside of
 the processing loop. The names used to find the indices must match the names
-used in the ICD.
+used in the CID.
 
 
 >>> firstNameIndex = icd.getFieldNameIndex("first_name")
@@ -342,11 +188,11 @@ validation code:
 >>> import os.path
 >>> from cutplace import interface
 >>> # Change this to use your own files.
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> # Define the interface.
 >>> icd = interface.InterfaceControlDocument()
->>> icd.read(icdPath)
+>>> icd.read(cid_path)
 >>> # Validate the data.
 >>> for row in interface.validatedRows(icd, dataPath):
 ...   pass # We could also do something useful with the data in
@@ -357,11 +203,11 @@ validation code:
 >>> import os.path
 >>> from cutplace import interface
 >>> # Change this to use your own files.
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> # Define the interface.
 >>> icd = interface.InterfaceControlDocument()
->>> icd.read(icdPath)
+>>> icd.read(cid_path)
 >>> # Validate the data.
 >>> for row in interface.validatedRows(icd, dataPath):
 ...   pass # We could also do something useful with the data in
@@ -372,11 +218,11 @@ validation code:
 >>> import os.path
 >>> from cutplace import interface
 >>> # Change this to use your own files.
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> # Define the interface.
 >>> icd = interface.InterfaceControlDocument()
->>> icd.read(icdPath)
+>>> icd.read(cid_path)
 >>> # Validate the data.
 >>> for row in interface.validatedRows(icd, dataPath):
 ...   pass # We could also do something useful with the data in
@@ -387,11 +233,11 @@ validation code:
 >>> import os.path
 >>> from cutplace import interface
 >>> # Change this to use your own files.
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> # Define the interface.
 >>> icd = interface.InterfaceControlDocument()
->>> icd.read(icdPath)
+>>> icd.read(cid_path)
 >>> # Validate the data.
 >>> for row in interface.validatedRows(icd, dataPath):
 ...   pass # We could also do something useful with the data in
@@ -402,11 +248,11 @@ validation code:
 >>> import os.path
 >>> from cutplace import interface
 >>> # Change this to use your own files.
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> # Define the interface.
 >>> icd = interface.InterfaceControlDocument()
->>> icd.read(icdPath)
+>>> icd.read(cid_path)
 >>> # Validate the data.
 >>> for row in interface.validatedRows(icd, dataPath):
 ...   pass # We could also do something useful with the data in
@@ -417,11 +263,11 @@ validation code:
 >>> import os.path
 >>> from cutplace import interface
 >>> # Change this to use your own files.
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> # Define the interface.
 >>> icd = interface.InterfaceControlDocument()
->>> icd.read(icdPath)
+>>> icd.read(cid_path)
 >>> # Validate the data.
 >>> for row in interface.validatedRows(icd, dataPath):
 ...   pass # We could also do something useful with the data in
@@ -432,11 +278,11 @@ validation code:
 >>> import os.path
 >>> from cutplace import interface
 >>> # Change this to use your own files.
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> # Define the interface.
 >>> icd = interface.InterfaceControlDocument()
->>> icd.read(icdPath)
+>>> icd.read(cid_path)
 >>> # Validate the data.
 >>> for row in interface.validatedRows(icd, dataPath):
 ...   pass # We could also do something useful with the data in
@@ -447,11 +293,11 @@ validation code:
 >>> import os.path
 >>> from cutplace import interface
 >>> # Change this to use your own files.
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> # Define the interface.
 >>> icd = interface.InterfaceControlDocument()
->>> icd.read(icdPath)
+>>> icd.read(cid_path)
 >>> # Validate the data.
 >>> for row in interface.validatedRows(icd, dataPath):
 ...   pass # We could also do something useful with the data in
@@ -462,11 +308,11 @@ validation code:
 >>> import os.path
 >>> from cutplace import interface
 >>> # Change this to use your own files.
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> # Define the interface.
 >>> icd = interface.InterfaceControlDocument()
->>> icd.read(icdPath)
+>>> icd.read(cid_path)
 >>> # Validate the data.
 >>> for row in interface.validatedRows(icd, dataPath):
 ...   pass # We could also do something useful with the data in
@@ -477,11 +323,11 @@ validation code:
 >>> import os.path
 >>> from cutplace import interface
 >>> # Change this to use your own files.
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> # Define the interface.
 >>> icd = interface.InterfaceControlDocument()
->>> icd.read(icdPath)
+>>> icd.read(cid_path)
 >>> # Validate the data.
 >>> for row in interface.validatedRows(icd, dataPath):
 ...   pass # We could also do something useful with the data in
@@ -492,11 +338,11 @@ validation code:
 >>> import os.path
 >>> from cutplace import interface
 >>> # Change this to use your own files.
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> # Define the interface.
 >>> icd = interface.InterfaceControlDocument()
->>> icd.read(icdPath)
+>>> icd.read(cid_path)
 >>> # Validate the data.
 >>> for row in interface.validatedRows(icd, dataPath):
 ...   pass # We could also do something useful with the data in
@@ -507,11 +353,11 @@ validation code:
 >>> import os.path
 >>> from cutplace import interface
 >>> # Change this to use your own files.
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> # Define the interface.
 >>> icd = interface.InterfaceControlDocument()
->>> icd.read(icdPath)
+>>> icd.read(cid_path)
 >>> # Validate the data.
 >>> for row in interface.validatedRows(icd, dataPath):
 ...   pass # We could also do something useful with the data in
@@ -522,11 +368,11 @@ validation code:
 >>> import os.path
 >>> from cutplace import interface
 >>> # Change this to use your own files.
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> # Define the interface.
 >>> icd = interface.InterfaceControlDocument()
->>> icd.read(icdPath)
+>>> icd.read(cid_path)
 >>> # Validate the data.
 >>> for row in interface.validatedRows(icd, dataPath):
 ...   pass # We could also do something useful with the data in ``row`` here.
@@ -540,7 +386,7 @@ parameter ``errors="yield"`` as described earlier.
 Writting data
 -------------
 
-To validate written data, use ``interface.Writer``. A ``Writer`` needs an ICD
+To validate written data, use ``interface.Writer``. A ``Writer`` needs an CID
 tovalidate against and an output to write to. The output can be any filelike
 object such as a file or a ``StringIO``. For example::
 
@@ -550,14 +396,14 @@ object such as a file or a ``StringIO``. For example::
 Now you can create a writer and write a valid row to it::
 
   >>> writer = interface.Writer(icd, out)
-  >>> writer.writeRow([u'38000', u'234', u'John', u'Doe', u'male', u'08.03.1957'])
+  >>> writer.writeRow(['38000', '234', 'John', 'Doe', 'male', '08.03.1957'])
 
 Attempting to write broken data results in an ``Exception`` derived from
 ``CutplaceError``::
 
-  >>> writer.writeRow([u'38000', u'not a number', u'Jane', u'Miller', u'female', u'04.10.1946']) #doctest: +IGNORE_EXCEPTION_DETAIL
+  >>> writer.writeRow(['38000', 'not a number', 'Jane', 'Miller', 'female', '04.10.1946']) #doctest: +IGNORE_EXCEPTION_DETAIL
   Traceback (most recent call last):
-  FieldValueError: <io> (R1C2): field 'customer_id' must match format: value must be an integer number: u'not a number'
+  FieldValueError: <io> (R1C2): field 'customer_id' must match format: value must be an integer number: 'not a number'
 
 Note that after a ``CutplaceError`` you can continue writing. For any other
 ``Exception`` such as ``IOError`` it is recommended to stop writing and
@@ -578,7 +424,7 @@ raise a ``CheckError``.
 Advanced usage
 ==============
 
-In the previous section, you learned how to read an ICD and use it to validate
+In the previous section, you learned how to read an CID and use it to validate
 data using a few simple API calls. You also learned how to handle errors
 detected in the data.
 
@@ -597,12 +443,12 @@ or just want to know what else cutplace offers in case you might need it one
 day, the following sections describe the lower level hooks of cutplace API.
 They are more powerful and flexible, but also more difficult to use.
 
-Building an ICD in the code
+Building an CID in the code
 ---------------------------
 
-In some cases it might be preferable to include the ICD in the code, for
+In some cases it might be preferable to include the CID in the code, for
 instance for trivial interfaces that are only used internally. Here is an
-example of a simple ICD for CSV data with 3 fields:
+example of a simple CID for CSV data with 3 fields:
 
 First, import the necessary modules:
 
@@ -610,13 +456,13 @@ First, import the necessary modules:
 >>> from cutplace import fields
 >>> from cutplace import interface
 
-Next create an empty ICD:
+Next create an empty CID:
 
 >>> icd = interface.InterfaceControlDocument()
 
-As the ICD will not be read from an input file, error messages would not be
+As the CID will not be read from an input file, error messages would not be
 able to refer to any file in case of errors. To have at least some reference,
-we need to tell the ICD that it is declared from source code:
+we need to tell the CID that it is declared from source code:
 
 >>> icd.setLocationToSourceCode()
 
@@ -638,7 +484,7 @@ happened.
 >>>
 >>> # Make sure that the
 instance for trivial interfaces that are only used internally. Here is an
-example of a simple ICD for CSV data with 3 fields:
+example of a simple CID for CSV data with 3 fields:
 
 First, import the necessary modules:
 
@@ -646,13 +492,13 @@ First, import the necessary modules:
 >>> from cutplace import fields
 >>> from cutplace import interface
 
-Next create an empty ICD:
+Next create an empty CID:
 
 >>> icd = interface.InterfaceControlDocument()
 
-As the ICD will not be read from an input file, error messages would not be
+As the CID will not be read from an input file, error messages would not be
 able to refer to any file in case of errors. To have at least some reference,
-we need to tell the ICD that it is declared from source code:
+we need to tell the CID that it is declared from source code:
 
 >>> icd.setLocationToSourceCode()
 
@@ -674,7 +520,7 @@ happened.
 >>>
 >>> # Make sure that the
 instance for trivial interfaces that are only used internally. Here is an
-example of a simple ICD for CSV data with 3 fields:
+example of a simple CID for CSV data with 3 fields:
 
 First, import the necessary modules:
 
@@ -682,13 +528,13 @@ First, import the necessary modules:
 >>> from cutplace import fields
 >>> from cutplace import interface
 
-Next create an empty ICD:
+Next create an empty CID:
 
 >>> icd = interface.InterfaceControlDocument()
 
-As the ICD will not be read from an input file, error messages would not be
+As the CID will not be read from an input file, error messages would not be
 able to refer to any file in case of errors. To have at least some reference,
-we need to tell the ICD that it is declared from source code:
+we need to tell the CID that it is declared from source code:
 
 >>> icd.setLocationToSourceCode()
 
@@ -710,7 +556,7 @@ happened.
 >>>
 >>> # Make sure that the
 instance for trivial interfaces that are only used internally. Here is an
-example of a simple ICD for CSV data with 3 fields:
+example of a simple CID for CSV data with 3 fields:
 
 First, import the necessary modules:
 
@@ -718,13 +564,13 @@ First, import the necessary modules:
 >>> from cutplace import fields
 >>> from cutplace import interface
 
-Next create an empty ICD:
+Next create an empty CID:
 
 >>> icd = interface.InterfaceControlDocument()
 
-As the ICD will not be read from an input file, error messages would not be
+As the CID will not be read from an input file, error messages would not be
 able to refer to any file in case of errors. To have at least some reference,
-we need to tell the ICD that it is declared from source code:
+we need to tell the CID that it is declared from source code:
 
 >>> icd.setLocationToSourceCode()
 
@@ -746,7 +592,7 @@ happened.
 >>>
 >>> # Make sure that the
 instance for trivial interfaces that are only used internally. Here is an
-example of a simple ICD for CSV data with 3 fields:
+example of a simple CID for CSV data with 3 fields:
 
 First, import the necessary modules:
 
@@ -754,13 +600,13 @@ First, import the necessary modules:
 >>> from cutplace import fields
 >>> from cutplace import interface
 
-Next create an empty ICD:
+Next create an empty CID:
 
 >>> icd = interface.InterfaceControlDocument()
 
-As the ICD will not be read from an input file, error messages would not be
+As the CID will not be read from an input file, error messages would not be
 able to refer to any file in case of errors. To have at least some reference,
-we need to tell the ICD that it is declared from source code:
+we need to tell the CID that it is declared from source code:
 
 >>> icd.setLocationToSourceCode()
 
@@ -782,7 +628,7 @@ happened.
 >>>
 >>> # Make sure that the
 instance for trivial interfaces that are only used internally. Here is an
-example of a simple ICD for CSV data with 3 fields:
+example of a simple CID for CSV data with 3 fields:
 
 First, import the necessary modules:
 
@@ -790,13 +636,13 @@ First, import the necessary modules:
 >>> from cutplace import fields
 >>> from cutplace import interface
 
-Next create an empty ICD:
+Next create an empty CID:
 
 >>> icd = interface.InterfaceControlDocument()
 
-As the ICD will not be read from an input file, error messages would not be
+As the CID will not be read from an input file, error messages would not be
 able to refer to any file in case of errors. To have at least some reference,
-we need to tell the ICD that it is declared from source code:
+we need to tell the CID that it is declared from source code:
 
 >>> icd.setLocationToSourceCode()
 
@@ -818,7 +664,7 @@ happened.
 >>>
 >>> # Make sure that the
 instance for trivial interfaces that are only used internally. Here is an
-example of a simple ICD for CSV data with 3 fields:
+example of a simple CID for CSV data with 3 fields:
 
 First, import the necessary modules:
 
@@ -826,13 +672,13 @@ First, import the necessary modules:
 >>> from cutplace import fields
 >>> from cutplace import interface
 
-Next create an empty ICD:
+Next create an empty CID:
 
 >>> icd = interface.InterfaceControlDocument()
 
-As the ICD will not be read from an input file, error messages would not be
+As the CID will not be read from an input file, error messages would not be
 able to refer to any file in case of errors. To have at least some reference,
-we need to tell the ICD that it is declared from source code:
+we need to tell the CID that it is declared from source code:
 
 >>> icd.setLocationToSourceCode()
 
@@ -854,7 +700,7 @@ happened.
 >>>
 >>> # Make sure that the
 instance for trivial interfaces that are only used internally. Here is an
-example of a simple ICD for CSV data with 3 fields:
+example of a simple CID for CSV data with 3 fields:
 
 First, import the necessary modules:
 
@@ -862,13 +708,13 @@ First, import the necessary modules:
 >>> from cutplace import fields
 >>> from cutplace import interface
 
-Next create an empty ICD:
+Next create an empty CID:
 
 >>> icd = interface.InterfaceControlDocument()
 
-As the ICD will not be read from an input file, error messages would not be
+As the CID will not be read from an input file, error messages would not be
 able to refer to any file in case of errors. To have at least some reference,
-we need to tell the ICD that it is declared from source code:
+we need to tell the CID that it is declared from source code:
 
 >>> icd.setLocationToSourceCode()
 
@@ -890,7 +736,7 @@ happened.
 >>>
 >>> # Make sure that the
 instance for trivial interfaces that are only used internally. Here is an
-example of a simple ICD for CSV data with 3 fields:
+example of a simple CID for CSV data with 3 fields:
 
 First, import the necessary modules:
 
@@ -898,13 +744,13 @@ First, import the necessary modules:
 >>> from cutplace import fields
 >>> from cutplace import interface
 
-Next create an empty ICD:
+Next create an empty CID:
 
 >>> icd = interface.InterfaceControlDocument()
 
-As the ICD will not be read from an input file, error messages would not be
+As the CID will not be read from an input file, error messages would not be
 able to refer to any file in case of errors. To have at least some reference,
-we need to tell the ICD that it is declared from source code:
+we need to tell the CID that it is declared from source code:
 
 >>> icd.setLocationToSourceCode()
 
@@ -940,11 +786,11 @@ If any of this methods cannot handle the parameters you passed, they raise a
 Validating with listeners
 -------------------------
 
-Once the ICD is set up, you can validate data using ``validate()``:
+Once the CID is set up, you can validate data using ``validate()``:
 
->>> icdPath = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
+>>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
 >>> icd = interface.InterfaceControlDocument()
->>> icd.read(icdPath)
+>>> icd.read(cid_path)
 >>>
 >>> validCsvPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
 >>> icd.validate(validCsvPath)
@@ -975,7 +821,7 @@ documentation of
 `BaseValidationListener <api/cutplace.interface.BaseValidationListener-class.html>`_
 
 To actually get some information about validation errors, you have to create
-such a listener and attach it to an ICD:
+such a listener and attach it to an CID:
 
 >>> errorPrintingValidationListener = ErrorPrintingValidationListener()
 >>> icd.addValidationListener(errorPrintingValidationListener)
@@ -983,12 +829,12 @@ such a listener and attach it to an ICD:
 Let's see what happens if we validate broken data again:
 
 >>> icd.validate(brokenCsvPath)
-[u'12345', u'92', u'Bill', u'Carter', u'male', u'05.04.1953']
-error: broken_customers.csv (R4C1): field u'branch_id' must match format: value u'12345' must match regular expression: u'38\\d\\d\\d'
-[u'38111', u'XX', u'Sue', u'Brown', u'female', u'08.02.1962']
-error: broken_customers.csv (R5C2): field u'customer_id' must match format: value must be an integer number: u'XX'
-[u'38088', u'83', u'Rose', u'Baker', u'female', u'30.02.1994']
-error: broken_customers.csv (R6C6): field u'date_of_birth' must match format: date must match format DD.MM.YYYY (%d.%m.%Y) but is: u'30.02.1994' (day is out of range for month)
+['12345', '92', 'Bill', 'Carter', 'male', '05.04.1953']
+error: broken_customers.csv (R4C1): field 'branch_id' must match format: value '12345' must match regular expression: '38\\d\\d\\d'
+['38111', 'XX', 'Sue', 'Brown', 'female', '08.02.1962']
+error: broken_customers.csv (R5C2): field 'customer_id' must match format: value must be an integer number: 'XX'
+['38088', '83', 'Rose', 'Baker', 'female', '30.02.1994']
+error: broken_customers.csv (R6C6): field 'date_of_birth' must match format: date must match format DD.MM.YYYY (%d.%m.%Y) but is: '30.02.1994' (day is out of range for month)
 
 When you are done, remove the listener::
 
@@ -998,8 +844,8 @@ When you are done, remove the listener::
 Writing field formats
 ---------------------
 
-Cutplace already ships with several field formats found in the `fields
-<api/cutplace.fields-module.html>`_ module that should cover most needs. If
+Cutplace already ships with several field formats found in
+:py:mod:`cutplace.fields` module that should cover most needs. If
 however you have some very special requirements, you can write your own
 formats.
 
@@ -1124,7 +970,7 @@ Checks have to implement certain methods described in `checks.AbstractCheck
 <api/cutplace.checks.AbstractCheck-class.html>`_. For each check, cutplace
 performs the following actions:
 
-#. When reading the ICD, call the check's ``__init__()``.
+#. When reading the CID, call the check's ``__init__()``.
 #. When starting to read a set of data, call the checks's ``reset()``.
 #. For each row of data, call the checks's ``checkRow()``.
 #. When done with a set of data, call the checks's ``checkAtEnd()``.
@@ -1148,7 +994,7 @@ To implements this check, start by inheriting from `checks.AbstractCheck
 ...     """Check that total length of customer name is within the specified range."""
 
 Next, implement a constructor to which cutplace can pass the values
-found in the ICD. For example, for our check the ICD would contain:
+found in the CID. For example, for our check the CID would contain:
 
 +-+-------------------------------------------+------------------------+-----+
 + +Description                                +Type                    +Rule +
@@ -1166,8 +1012,8 @@ parameters:
   should do. Each check can define its own syntax for the rule. In case of
   ``FullNameLengthIsInRange`` the rule describes a `ranges.Range <api/cutplace.ranges.Range-class.html>`_.
 * ``availableFieldNames=["branch_id", "customer_id", "first_name","last_name",
-  "gender", "date_of_birth"]`` (as defined in the ICD and using the same order)
-* ``location`` being the ``tools.Location`` in the ICD where the check was defined.
+  "gender", "date_of_birth"]`` (as defined in the CID and using the same order)
+* ``location`` being the ``tools.Location`` in the CID where the check was defined.
 
 The constructor basically has to do 3 things:
 
@@ -1188,7 +1034,7 @@ The constructor basically has to do 3 things:
 ...         self._fullNameRange = ranges.Range(rule)
 ...         self.reset()
 
-Once cutplace is done reading the ICD, it moves on to data. For each set of
+Once cutplace is done reading the CID, it moves on to data. For each set of
 data it calls the checks `reset()
 <api/cutplace.checks.AbstractCheck-class.html#reset>`_ method. For our simple
 check, no actions are needed so we are good already because ``AbstractCheck``
@@ -1264,7 +1110,7 @@ Using your own checks and field format
 --------------------------------------
 
 Now that you know how to write your own field format, it would be nice to
-actually utilize it in an ICD. For this purpose, cutplace lets you import
+actually utilize it in an CID. For this purpose, cutplace lets you import
 plugins that can define their own fields.
 
 Plugins are standard Python modules that define classes based on
@@ -1274,7 +1120,7 @@ module named ``myplugins.py`` in it with the following contents:
 
 .. literalinclude:: ../examples/plugins.py
 
-The ICD can now refer to ``ColorFieldFormat`` as ``Color`` (without
+The CID can now refer to ``ColorFieldFormat`` as ``Color`` (without
 ``FieldFormat``) and to ``FullNameLengthIsInRangeCheck`` as
 ``FullNameLengthIsInRange`` (without ``Check``). For example:
 
@@ -1300,10 +1146,9 @@ The ICD can now refer to ``ColorFieldFormat`` as ``Color`` (without
 +F+color            +green  +      +      +Color+    +
 +-+-----------------+-------+------+------+-----+----+
 
-See: :download:`icd_colors.csv <../examples/icd_colors.csv>`
-or :download:`icd_colors.ods <../examples/icd_colors.ods>`
+See: :download:`cid_colors.ods <../examples/cid_colors.ods>`
 
-Here is a data file where all but one row conforms to the ICD:
+Here is a data file where all but one row conforms to the CID:
 
 .. literalinclude:: ../examples/colors.csv
 
@@ -1313,11 +1158,11 @@ To tell cutplace where the plugins folder is located, use the command line
 option ``--plugins``. Assuming that your ``myplugins.py`` is stored in
 ``~/cutplace_plugins`` you can run::
 
-  cutplace --plugins ~/cutplace_plugins icd_colors.ods colors.csv
+  cutplace --plugins ~/cutplace_plugins cid_colors.ods colors.csv
 
 The output is::
 
-  ERROR:cutplace:field error: colors.csv (R5C2): field u'color' must match format: color name is u'yellow' but must be one of: red, green, blue
+  ERROR:cutplace:field error: colors.csv (R5C2): field 'color' must match format: color name is 'yellow' but must be one of: red, green, blue
   colors.csv: rejected 1 of 5 rows. 0 final checks failed.
 
 If you are unsure which plugins exactly cutplace imports, use ``--log=info``.

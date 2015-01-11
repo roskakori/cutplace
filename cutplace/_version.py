@@ -165,7 +165,8 @@ def git_versions_from_vcs(tag_prefix, root, verbose=False):
     return {"version": tag, "full": full}
 
 
-def get_versions(default={"version": "unknown", "full": ""}, verbose=False):
+# FIXME: Once proper git tags are established, use default={"version": "unknown", "full": "unknown"}
+def get_versions(default={"version": "0.8.0", "full": "0.8.0"}, verbose=False):
     # I am in _version.py, which lives at ROOT/VERSIONFILE_SOURCE. If we have
     # __file__, we can work backwards from there to the root. Some
     # py2exe/bbfreeze/non-CPython implementations don't do __file__, in which

@@ -135,7 +135,7 @@ html_logo = "_static/cutplace_logo_64x64.png"
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-html_favicon = "cutplace_logo_32x32.ico"
+html_favicon = "_static/cutplace_logo_32x32.ico"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -232,10 +232,15 @@ python_version = '.'.join(map(str, sys.version_info[0:2]))
 intersphinx_mapping = {
     'sphinx': ('http://sphinx.pocoo.org', None),
     'python': ('http://docs.python.org/' + python_version, None),
-    'matplotlib': ('http://matplotlib.sourceforge.net', None),
-    'numpy': ('http://docs.scipy.org/doc/numpy', None),
-    'sklearn': ('http://scikit-learn.org/stable', None),
-    'pandas': ('http://pandas.pydata.org/pandas-docs/stable', None),
-    'scipy': ('http://docs.scipy.org/doc/scipy/reference/', None),
 }
 
+# -- Enable API documentation of ``__init__()`` methods --------------------------
+
+# See <http://stackoverflow.com/questions/5599254/>.
+def _autodoc_skip_member(app, what, name, obj, skip, options):
+    if name == '__init__':
+        return False
+    return skip
+
+def setup(app):
+    app.connect('autodoc-skip-member', _autodoc_skip_member)

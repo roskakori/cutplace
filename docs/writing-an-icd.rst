@@ -2,15 +2,15 @@
 Writing an Interface Control Document
 =====================================
 
-This chapter describes all aspects of writing an ICD and can be used as
+This chapter describes all aspects of writing a CID and can be used as
 reference. In case you are looking for a gentle introduction, see the
 :ref:`tutorial`.
 
 
-Parts of an ICD
+Parts of an CID
 ===============
 
-ICD's for cutplace focus on the data specific parts. They describe tabular data
+CID's for cutplace focus on the data specific parts. They describe tabular data
 split in rows. Each row consists of fields. The number of fields per row must
 be the same for all rows (except for optional header rows). The meaning of a
 field at a certain column must be the same for each row. For example, once you
@@ -285,7 +285,7 @@ Time          DateTime      hh:mm:ss
 
 .. warning::
   Excel cannot represent integer numbers exactly, so you better use
-  *Decimal* instead of *Integer* in the ICD. In case you do use *Integer*
+  *Decimal* instead of *Integer* in the CID. In case you do use *Integer*
   be prepared for weird validation error and rounding issues.
 
 .. index:: pair: data format; fixed
@@ -348,7 +348,7 @@ This section describes the different field formats.
 Overview
 --------
 
-The field format section of the ICD contains rows with the following columns:
+The field format section of the CID contains rows with the following columns:
 
 #. The letter "F" to indicate that the remaining columns describe a field
    format.
@@ -579,7 +579,7 @@ Checks
 Checks are rules that cannot be expressed easily with the rules available for
 data formats and field formats. In general checks validate conditions that can
 be only be met by looking at several fields in a row or the whole document. In
-the ICD, a row describing the check requires the following columns:
+the CID, a row describing the check requires the following columns:
 
 #. A human readable description of the check that will be used in the error
    message in case the check fails. Most of the time this will be a short
@@ -661,7 +661,7 @@ C   customer must be unique  IsUnique  branch_id, customer_id
 Comments
 ========
 
-Comments can show up in the ICD at any line or column cutplace does not parse.
+Comments can show up in the CID at any line or column cutplace does not parse.
 In particular this constitutes:
 
 * Lines that have an empty first column. Remember that a D means details about
@@ -679,7 +679,7 @@ In particular this constitutes:
 Ranges
 ======
 
-At several locations in the ICD you can specify ranges. For example as value
+At several locations in the CID you can specify ranges. For example as value
 for the "Allowed characters" property of a data format or as length of a field
 format. Example ranges shows a couple of examples for ranges and explains their
 meaning.

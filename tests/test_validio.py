@@ -25,8 +25,8 @@ import unittest
 
 from cutplace import interface
 from cutplace import errors
-from cutplace import validator
-from cutplace import iotools
+from cutplace import validio
+from cutplace import rowio
 from tests import dev_test
 
 
@@ -40,74 +40,74 @@ class ValidatorTest(unittest.TestCase):
     def test_can_open_and_validate_csv_source_file(self):
         cid_reader = interface.Cid()
         source_path = dev_test.path_to_test_cid("icd_customers.xls")
-        cid_reader.read(source_path, iotools.excel_rows(source_path))
+        cid_reader.read(source_path, rowio.excel_rows(source_path))
 
-        reader = validator.Reader(cid_reader, dev_test.path_to_test_data("valid_customers.csv"))
+        reader = validio.Reader(cid_reader, dev_test.path_to_test_data("valid_customers.csv"))
         reader.validate()
 
     def test_can_open_and_validate_excel_source_file(self):
         cid_reader = interface.Cid()
         source_path = dev_test.path_to_test_cid("icd_customers_excel.xls")
-        cid_reader.read(source_path, iotools.excel_rows(source_path))
+        cid_reader.read(source_path, rowio.excel_rows(source_path))
 
-        reader = validator.Reader(cid_reader, dev_test.path_to_test_data("valid_customers.xls"))
+        reader = validio.Reader(cid_reader, dev_test.path_to_test_data("valid_customers.xls"))
         reader.validate()
 
     def test_can_open_and_validate_ods_source_file(self):
         cid_reader = interface.Cid()
         source_path = dev_test.path_to_test_cid("icd_customers_ods.xls")
-        cid_reader.read(source_path, iotools.excel_rows(source_path))
+        cid_reader.read(source_path, rowio.excel_rows(source_path))
 
-        reader = validator.Reader(cid_reader, dev_test.path_to_test_data("valid_customers.ods"))
+        reader = validio.Reader(cid_reader, dev_test.path_to_test_data("valid_customers.ods"))
         reader.validate()
 
     def test_can_open_and_validate_fixed_source_file(self):
         cid_reader = interface.Cid()
         source_path = dev_test.path_to_test_cid("customers_fixed.xls")
-        cid_reader.read(source_path, iotools.excel_rows(source_path))
+        cid_reader.read(source_path, rowio.excel_rows(source_path))
 
-        reader = validator.Reader(cid_reader, dev_test.path_to_test_data("valid_customers_fixed.txt"))
+        reader = validio.Reader(cid_reader, dev_test.path_to_test_data("valid_customers_fixed.txt"))
         reader.validate()
 
     def test_fails_on_invalid_csv_source_file(self):
         cid_reader = interface.Cid()
         source_path = dev_test.path_to_test_cid("icd_customers.xls")
-        cid_reader.read(source_path, iotools.excel_rows(source_path))
+        cid_reader.read(source_path, rowio.excel_rows(source_path))
 
-        reader = validator.Reader(cid_reader, dev_test.path_to_test_data("broken_customers.csv"))
+        reader = validio.Reader(cid_reader, dev_test.path_to_test_data("broken_customers.csv"))
         self.assertRaises(errors.FieldValueError, reader.validate)
 
     def test_fails_on_csv_source_file_with_fewer_elements_than_expected(self):
         cid_reader = interface.Cid()
         source_path = dev_test.path_to_test_cid("icd_customers.xls")
-        cid_reader.read(source_path, iotools.excel_rows(source_path))
+        cid_reader.read(source_path, rowio.excel_rows(source_path))
 
-        reader = validator.Reader(cid_reader, dev_test.path_to_test_data("broken_customers_fewer_elements.csv"))
+        reader = validio.Reader(cid_reader, dev_test.path_to_test_data("broken_customers_fewer_elements.csv"))
         self.assertRaises(errors.DataError, reader.validate)
 
     def test_fails_on_csv_source_file_with_more_elements_than_expected(self):
         cid_reader = interface.Cid()
         source_path = dev_test.path_to_test_cid("icd_customers.xls")
-        cid_reader.read(source_path, iotools.excel_rows(source_path))
+        cid_reader.read(source_path, rowio.excel_rows(source_path))
 
-        reader = validator.Reader(cid_reader, dev_test.path_to_test_data("broken_customers_more_elements.csv"))
+        reader = validio.Reader(cid_reader, dev_test.path_to_test_data("broken_customers_more_elements.csv"))
         self.assertRaises(errors.DataError, reader.validate)
 
     def test_fails_on_invalid_csv_source_file_with_duplicates(self):
         cid_reader = interface.Cid()
         source_path = dev_test.path_to_test_cid("icd_customers.xls")
-        cid_reader.read(source_path, iotools.excel_rows(source_path))
+        cid_reader.read(source_path, rowio.excel_rows(source_path))
 
-        reader = validator.Reader(cid_reader, dev_test.path_to_test_data("broken_customers_with_duplicates.csv"))
+        reader = validio.Reader(cid_reader, dev_test.path_to_test_data("broken_customers_with_duplicates.csv"))
         self.assertRaises(errors.CheckError, reader.validate)
 
     def test_fails_on_invalid_csv_source_file_with_not_observed_count_expression(self):
         cid_reader = interface.Cid()
         source_path = dev_test.path_to_test_cid("icd_customers.xls")
         # FIXME: either test `validator` or move to `test_tools`.
-        cid_reader.read(source_path, iotools.excel_rows(source_path))
+        cid_reader.read(source_path, rowio.excel_rows(source_path))
 
-        reader = validator.Reader(cid_reader, dev_test.path_to_test_data("broken_customers_with_too_many_branches.csv"))
+        reader = validio.Reader(cid_reader, dev_test.path_to_test_data("broken_customers_with_too_many_branches.csv"))
         self.assertRaises(errors.CheckError, reader.validate)
 
     def test_can_process_escape_character(self):
@@ -124,10 +124,10 @@ class ValidatorTest(unittest.TestCase):
         ])
         cid = interface.create_cid_from_string(cid_text)
         with io.StringIO('"\\"x"\n') as data_starting_with_escape_character:
-            reader = validator.Reader(cid, data_starting_with_escape_character)
+            reader = validio.Reader(cid, data_starting_with_escape_character)
             reader.validate()
         with io.StringIO('"x\\""\n') as data_ending_with_escape_character:
-            reader = validator.Reader(cid, data_ending_with_escape_character)
+            reader = validio.Reader(cid, data_ending_with_escape_character)
             reader.validate()
 
     def test_can_yield_errors(self):
@@ -138,7 +138,7 @@ class ValidatorTest(unittest.TestCase):
         ])
         cid = interface.create_cid_from_string(cid_text)
         with io.StringIO('1\nabc\n3') as partially_broken_data:
-            reader = validator.Reader(cid, partially_broken_data)
+            reader = validio.Reader(cid, partially_broken_data)
             rows = list(reader.rows('yield'))
         self.assertEqual(3, len(rows), 'expected 3 rows but got: %s' % rows)
         self.assertEqual(['1'], rows[0])
@@ -153,7 +153,7 @@ class ValidatorTest(unittest.TestCase):
         ])
         cid = interface.create_cid_from_string(cid_text)
         with io.StringIO('1\nabc\n3') as partially_broken_data:
-            reader = validator.Reader(cid, partially_broken_data)
+            reader = validio.Reader(cid, partially_broken_data)
             rows = list(reader.rows('continue'))
         self.assertEqual(2, len(rows), 'expected 3 rows but got: %s' % rows)
         self.assertEqual(['1'], rows[0])

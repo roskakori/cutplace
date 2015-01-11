@@ -24,6 +24,7 @@ import io
 import unittest
 
 from cutplace import errors
+from tests import dev_test
 
 
 class ErrorsTest(unittest.TestCase):
@@ -82,6 +83,11 @@ class ErrorsTest(unittest.TestCase):
         self.assertEqual(base_error.cause, "cause")
         self.assertEqual(base_error.__str__(), 'eggs.ods (Sheet1!R1C1): It`s a test (see also: eggs.ods (Sheet1!R1C1):'
                                                ' see also message)')
+
+    def test_can_create_caller_location(self):
+        location = errors.create_caller_location()
+        dev_test.assert_fnmatches(self, str(location), 'test_errors.py ([1-9]*)')
+
 
 if __name__ == '__main__':
     unittest.main()

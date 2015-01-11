@@ -26,6 +26,8 @@ import io
 import token
 import tokenize
 
+import six
+
 from cutplace import errors
 from cutplace import _compat
 from cutplace import _tools
@@ -53,6 +55,9 @@ class Range(object):
         assert default is None or default.strip(), "default=%r" % default
 
         if text is not None:
+            if six.PY2:
+                # HACK: In Python 2.6, ``tokenize.generate_tokens()`` produces a token for leading white space.
+                text = text.strip()
             if '.' * 4 in text and not (text[-1].isdigit() or text[-2].isdigit()):
                 text = text.replace('....', ELLIPSIS)
             else:
@@ -89,13 +94,12 @@ class Range(object):
                         if next_type == token.NUMBER:
                             try:
                                 if next_value[:2].lower() == "0x":
-                                    long_value = float.fromhex(next_value)
+                                    next_value = next_value[2:]
+                                    base = 16
                                 else:
-                                    long_value = float(next_value)
+                                    base = 10
 
-                                if long_value == int(long_value):
-                                    long_value = int(long_value)
-
+                                long_value = int(next_value, base)
                             except ValueError:
                                 raise errors.InterfaceError(
                                     "number must be an integer but is: %s" % _compat.text_repr(next_value))

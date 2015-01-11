@@ -6,14 +6,14 @@ Tutorial
 
 This chapter gives a gentle introduction and overview to cutplace. It
 introduces a simple set of example data and shows how to write a simple
-interface control document (ICD) for it which can be used to validate
-the data. Starting from there, the ICD gets refined and improved to
+cutplace interface definition (CID) for it which can be used to validate
+the data. Starting from there, the CID gets refined and improved to
 allow more rigorous validations which detect increasingly subtle errors
 in the data.
 
 You can find the files for the examples in the ``examples`` folder of
 the cutplace source distribution. For your convenience they are also
-provided as links at the bottom of each data or ICD file.
+provided as links at the bottom of each data or CID file.
 
 A simple set of customer data
 =============================
@@ -95,8 +95,7 @@ Without much further ado, here's how you can tell these facts to cutplace:
 +F+date_of_birth      +   +
 +-+-------------------+---+
 
-See: :download:`icd_customers_field_names_only.csv <../examples/icd_customers_field_names_only.csv>`
-or :download:`icd_customers_field_names_only.ods <../examples/icd_customers_field_names_only.ods>`
+See: :download:`cid_customers_field_names_only.ods <../examples/cid_customers_field_names_only.ods>`
 
 Let's take a closer look at this.
 
@@ -125,7 +124,7 @@ So far we only describe the name of the field, for example
   A field name must contain only ASCII letters, numbers and underscore
   (_). So blanks, foreign characters such as umlauts and
   punctuation marks are not allowed and will result in an error message
-  when cutplace attempts to read the ICD.
+  when cutplace attempts to read the CID.
 
   Some examples for valid field names:
 
@@ -148,7 +147,7 @@ So far we only describe the name of the field, for example
 Using comments
 ==============
 
-As already pointed out, if a row in the ICD starts with an empty column,
+As already pointed out, if a row in the CID starts with an empty column,
 cutplace skips it without processing in any way. Actually, this would
 mean the same for cutplace:
 
@@ -172,7 +171,7 @@ mean the same for cutplace:
 
 But it's a lot harder to read for you, isn't it?
 
-How and where to store the ICD
+How and where to store the CID
 ==============================
 
 So how do you store this information? Cutplace is quite flexible here.
@@ -185,20 +184,20 @@ with blanks or commas are embedded between double quotes (").
 Concerning the location on your disk, cutplace does not impose any
 requirements on you
 
-.. TODO: Recommendations how to name the ICD files.
+.. TODO: Recommendations how to name the CID files.
 
-For this tutorial, we assume both the data and ICD files are stored in
+For this tutorial, we assume both the data and CID files are stored in
 the same folder which and that your current console terminal session already
 changed to this folder (using for example the command ``cd``).
 
 Running cutplace for the first time
 ===================================
 
-Now that we have both a data file and an ICD file, we can finally take a look
+Now that we have both a data file and an CID file, we can finally take a look
 at how cutplace actually works.
 
 Open a terminal and change into the folder where where the example data
-and ICD files are located::
+and CID files are located::
 
   cd .../where/ever/examples
 
@@ -208,8 +207,7 @@ Next let's try if cutplace has been installed properly::
 
 This should result in an output similar to::
 
-  cutplace.py 0.x.x (2010-xx-xx, rxxx)
-  Python 2.5.5, Mac OS 10.5.8 (i386)
+  cutplace.py 0.8.x (2015-xx-xx, rxxx)
 
 The actual version numbers may vary. If your version of cutplace is older then
 |release|, consider upgrading to avoid compatibility issues with this
@@ -221,9 +219,9 @@ If instead this results in an error message, refer to the chapter on
 In case everything worked out so far, let's finally do what we came here
 for: validate that our data conform to the interface we just described::
 
-  cutplace icd_customers_1.ods customers_1.csv
+  cutplace cid_customers_1.ods customers_1.csv
 
-This assumes you used Calc to create the ICD. Users of Excel should
+This assumes you used Calc to create the CID. Users of Excel should
 replace the "``.ods``" with "``.xls``", users of text editors with
 "``.csv``" respectively.
 
@@ -232,12 +230,12 @@ Summary so far
 
 Let's recap what we learned so far:
 
-* You can use cutplace to validate that data conform to an ICD.
+* You can use cutplace to validate that data conform to an CID.
 
-* The ICD is a file you can create with Calc, Excel or your favorite
+* The CID is a file you can create with Calc, Excel or your favorite
   text editor.
 
-* As a minimum, the ICD has to specify the data format and the name of
+* As a minimum, the CID has to specify the data format and the name of
   the fields.
 
 * Rows describing the data format have to start with "``D``".
@@ -273,8 +271,7 @@ letting you add an examples for a field right after the name:
 +F+date_of_birth       +**27.02.1946**+
 +-+--------------------+--------------+
 
-See: :download:`icd_customers_with_examples.csv <../examples/icd_customers_with_examples.csv>`
-or :download:`icd_customers_with_examples.ods <../examples/icd_customers_with_examples.ods>`
+See: :download:`cid_customers_with_examples.ods <../examples/cid_customers_with_examples.ods>`
 
 Finding an example usually does not require much imagination. In this
 case we just took the values from the first customer and changed the
@@ -325,9 +322,9 @@ See: :download:`customers_without_date_of_birth.csv <../examples/customers_witho
 Two customers do not have a date of birth: Kenneth Tucker in row 4 and
 Ester Newman in row 10.
 
-Now try to validate these data with the same ICD we used before::
+Now try to validate these data with the same CID we used before::
 
-  cutplace icd_customers_1.ods customers_without_date_of_birth.csv
+  cutplace cid_customers_1.ods customers_without_date_of_birth.csv
 
 This time the output contains the following lines::
 
@@ -344,7 +341,7 @@ The essential part here is::
 
   field 'date_of_birth' must match format: value must not be empty
 
-When you describe a field to cutplace in the ICD, it assumes that the
+When you describe a field to cutplace in the CID, it assumes that the
 data always provide a value for this field. Apparently this is not the
 case with the data provided, so cutplace complains about it.
 
@@ -374,12 +371,11 @@ where fields that can be empty are marked with an ``X``:
 +F+date_of_birth       +27.02.1946+**X**     +
 +-+--------------------+----------+----------+
 
-See: :download:`icd_customers_with_empty_fields.csv <../examples/icd_customers_with_empty_fields.csv>`
-or :download:`icd_customers_with_empty_fields.ods <../examples/icd_customers_with_empty_fields.ods>`
+See: :download:`cid_customers_with_empty_fields.ods <../examples/cid_customers_with_empty_fields.ods>`
 
-Now lets try again with the new ICD::
+Now lets try again with the new CID::
 
-  cutplace icd_customers_with_empty_fields.ods customers_without_date_of_birth.csv
+  cutplace cid_customers_with_empty_fields.ods customers_without_date_of_birth.csv
 
 This time, no error messages show up and all the data are accepted.
 
@@ -410,8 +406,7 @@ Fortunately, cutplace allows to describe length limits for fields:
 +F+date_of_birth       +27.02.1946+X     +**10**    +
 +-+--------------------+----------+------+----------+
 
-See: :download:`icd_customers_with_lengths.csv <../examples/icd_customers_with_lengths.csv>`
-or :download:`icd_customers_with_lengths.ods <../examples/icd_customers_with_lengths.ods>`
+See: :download:`cid_customers_with_lengths.ods <../examples/cid_customers_with_lengths.ods>`
 
 Let's take a closer look at these examples, especially at the meaning of
 the colon (:) in some of the description of the lengths.
@@ -447,9 +442,9 @@ Either the lower or upper limit can be omitted (like ``2:`` or ``:60``).
 In case you cannot decide yet on a reasonable limit on a certain field,
 just leave its entry in the *Length* column empty.
 
-Now lets try again with the new ICD::
+Now lets try again with the new CID::
 
-  cutplace icd_customers_with_lengths.ods customers_without_date_of_birth.csv
+  cutplace cid_customers_with_lengths.ods customers_without_date_of_birth.csv
 
 As expected, all the data are accepted again.
 
@@ -485,8 +480,7 @@ cutplace:
 +F+date_of_birth       +27.02.1946+X     +10    +**DateTime**+**DD.MM.YYYY**  +
 +-+--------------------+----------+------+------+------------+----------------+
 
-See: :download:`icd_customers_with_types_and_rules.csv <../examples/icd_customers_with_types_and_rules.csv>`
-or :download:`icd_customers_with_types_and_rules.ods <../examples/icd_customers_with_types_and_rules.ods>`
+See: :download:`cid_customers_with_types_and_rules.ods <../examples/cid_customers_with_types_and_rules.ods>`
 
 The column *Type* can contain one of several available types. The column
 *Rule* can hold a text that gives further details about the *Type*.
@@ -551,8 +545,7 @@ looks in practice:
 +C+distinct branches must be within limit+DistinctCount+branch_id <= 3        +
 +-+--------------------------------------+-------------+----------------------+
 
-See: :download:`icd_customers.csv <../examples/icd_customers.csv>`
-or :download:`icd_customers.ods <../examples/icd_customers.ods>`
+See: :download:`cid_customers.ods <../examples/cid_customers.ods>`
 
 As you can see, checks require a "C" in the first column.
 
@@ -573,90 +566,10 @@ the rule can look solely depends on the type of the check.
     A check to validate that a field value or a combination of field
     values is unique in each row compared with all other rows.
 
-.. index:: cutsniff
-
-.. _cutsniff:
-
-Sniffing drafts from data
-=========================
-
-Creating ICDs from scratch by looking at a file and deducing the basic data
-format and field properties from it is a rather cumbersome task. That's
-where ``cutsniff`` comes in: it takes a look at a data file, and creates an
-ICD for it.
-
-The resulting ICD can be used for validation immediately, though it is
-recommeneded that you rework it to some extend. Nevertheless within seconds
-you get an ICD that can immediately be used and possibly improved later on.
-
-As example, consider our data file ``examples/customers.csv``. To make
-``cutsniff`` create an ICD for it, run::
-
-  cutsniff icd_customers_sniffed.csv examples/customers.csv
-
-The resulting ``icd_customers_sniffed.csv`` looks like this::
-
-  Interface: <Name>
-
-  d,format,delimited
-  d,item delimiter,","
-  d,line delimiter,lf
-  d,escape character,""""
-  d,quote character,""""
-  d,encoding,ascii
-
-  ,Field,Example,Empty?,Length,Type,Rule
-  f,column_a,,,5,Text,
-  f,column_b,,,2,Text,
-  f,column_c,,,4,Text,
-  f,column_d,,,3:7,Text,
-  f,column_e,,,4:6,Text,
-  f,column_f,,,10,Text,
-
-You can already use this to validate the data::
-
-  cutplace icd_customers_sniffed.csv examples/customers.csv
-
-Nevertheless most sniffed ICDs will need manual tweaking before you can
-apply them for other files. In particular, you should:
-
-* Replace the heading ``Interface: <Name>`` by something more meaningful
-  so that you can quickly grasp the intent of the data the interface
-  describes.
-* Change the field names to something more meaningful than ``column_*`` in
-  order to understand the meaning of it.
-* Change the expected length of fields in order to validate other data
-  files that might contain longer or shorter values.
-* Save the ICD as ODS or Excel and make it easier to read by utilizing
-  colors and formatting
-
-In case the data file starts with a heading, you can exclude it from the
-analysis using ``--head``.
-
-If CSV or PRN data files use an ecoding other than ASCII, you can specify
-it using ``--data-encoding``.
-
-For example::
-
-  cutplace --head 1 --data-encoding iso-8859-15 icd_customers_sniffed.csv examples/valid_customers_with_header_iso-8859-15.csv
-
-In case ``--head`` is specified, ``cutsniff`` uses the last header row to
-derive field names by applying a couple of heuristics to turn them into
-valid Python variable names.
-
-If you prefer to set the field names already during sniffing instead of
-manually adjusting them afterwards, you can use ``--names`` to specify a
-comma separated list of names. For example::
-
-  cutplace --head 1 --names "branchId,customerId,firstName,surName,gender,dateOfBirth" ...
-
-To get an overview of all command line options available, run::
-
-  cutsniff --help
 
 Conclusion
 ==========
 
 You are now familiar with the basic concepts behind cutplace and should
 be able to use this for writing reasonably complete and sophisticated
-ICDs.
+CIDs.

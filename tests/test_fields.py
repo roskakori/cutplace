@@ -108,21 +108,21 @@ class DateTimeFieldFormatTest(unittest.TestCase):
 
     def test_can_output_sql_date(self):
         field_format = fields.DateTimeFieldFormat("x", True, None, "YYYY-MM-DD", _ANY_FORMAT)
-        self.assertEqual(field_format.as_sql(fields.MSSQL)[0], "x date")
+        self.assertEqual(field_format.as_sql(fields.MSSQL)[0], "x DATE")
 
     def test_can_output_sql_time(self):
         field_format = fields.DateTimeFieldFormat("x", True, None, "hh:mm:ss", _ANY_FORMAT)
-        self.assertEqual(field_format.as_sql(fields.MSSQL)[0], "x time")
+        self.assertEqual(field_format.as_sql(fields.MSSQL)[0], "x TIME")
 
     def test_can_output_sql_datetime(self):
         field_format = fields.DateTimeFieldFormat("x", True, None, "YYYY:MM:DD hh:mm:ss", _ANY_FORMAT)
-        self.assertEqual(field_format.as_sql(fields.MSSQL)[0], "x datetime")
+        self.assertEqual(field_format.as_sql(fields.MSSQL)[0], "x DATETIME")
         field_format = fields.DateTimeFieldFormat("x", True, None, "YY:MM:DD hh:mm:ss", _ANY_FORMAT)
-        self.assertEqual(field_format.as_sql(fields.MSSQL)[0], "x datetime")
+        self.assertEqual(field_format.as_sql(fields.MSSQL)[0], "x DATETIME")
 
     def test_can_output_sql_datetime_not_null(self):
         field_format = fields.DateTimeFieldFormat("x", False, None, "YYYY:MM:DD hh:mm:ss", _ANY_FORMAT)
-        self.assertEqual(field_format.as_sql(fields.MSSQL)[0], "x datetime not null")
+        self.assertEqual(field_format.as_sql(fields.MSSQL)[0], "x DATETIME NOT NULL")
 
 
 class DecimalFieldFormatTest(unittest.TestCase):
@@ -206,39 +206,39 @@ class IntegerFieldFormatTest(unittest.TestCase):
         field_format = fields.IntegerFieldFormat("x", True, None, "", _ANY_FORMAT)
         column_def, constraint = field_format.as_sql(fields.MSSQL)
         # FIXME: self.assertEqual(column_def, "x INTEGER")
-        self.assertEqual(constraint, "constraint chk_x check( ( x between -2147483648 and 2147483647 ) )")
+        self.assertEqual(constraint, "CONSTRAINT chk_x CHECK( ( x BETWEEN -2147483648 AND 2147483647 ) )")
 
     def test_can_output_sql_smallint_with_rule(self):
         field_format = fields.IntegerFieldFormat("x", True, None, "1:10", _ANY_FORMAT)
-        self.assertEqual(field_format.as_sql(fields.MSSQL)[0], "x smallint")
+        self.assertEqual(field_format.as_sql(fields.MSSQL)[0], "x SMALLINT")
 
     def test_can_output_sql_smallint_with_range(self):
         field_format = fields.IntegerFieldFormat("x", True, "1:3", "", _ANY_FORMAT)
-        self.assertEqual(field_format.as_sql(fields.MSSQL)[0], "x smallint")
+        self.assertEqual(field_format.as_sql(fields.MSSQL)[0], "x SMALLINT")
 
     def test_can_output_sql_integer_with_rule(self):
         field_format = fields.IntegerFieldFormat("x", True, None, "1:" + str(10 ** 6), _ANY_FORMAT)
         column_def, constraint = field_format.as_sql(fields.MSSQL)
-        self.assertEqual(column_def, "x integer")
-        self.assertEqual(constraint, "constraint chk_x check( ( x between 1 and " + str(10 ** 6) + " ) )")
+        self.assertEqual(column_def, "x INTEGER")
+        self.assertEqual(constraint, "CONSTRAINT chk_x CHECK( ( x BETWEEN 1 AND " + str(10 ** 6) + " ) )")
 
     def test_can_output_sql_integer_with_range(self):
-        field_format = fields.IntegerFieldFormat("x", True, "1:", "", _ANY_FORMAT)
+        field_format = fields.IntegerFieldFormat("x", True, "1:6", "", _ANY_FORMAT)
         column_def, constraint = field_format.as_sql(fields.MSSQL)
-        self.assertEqual(column_def, "x integer")
-        self.assertEqual(constraint, "constraint chk_x check( ( x between -2147483648 and 2147483647 ) )")
+        self.assertEqual(column_def, "x INTEGER")
+        self.assertEqual(constraint, "CONSTRAINT chk_x CHECK( ( x BETWEEN -2147483648 AND 2147483647 ) )")
 
     def test_can_output_sql_bigint_with_range(self):
         field_format = fields.IntegerFieldFormat("x", True, "1:10", "", _ANY_FORMAT)
         column_def, constraint = field_format.as_sql(fields.MSSQL)
-        self.assertEqual(column_def, "x bigint")
-        self.assertEqual(constraint, "constraint chk_x check( ( x between -999999999 and 9999999999 ) )")
+        self.assertEqual(column_def, "x BIGINT")
+        self.assertEqual(constraint, "CONSTRAINT chk_x CHECK( ( x BETWEEN -2147483648 AND 2147483647 ) )")
 
     def test_can_output_sql_bigint_with_rule(self):
         field_format = fields.IntegerFieldFormat("x", True, None, "1:" + str(10 ** 10), _ANY_FORMAT)
         column_def, constraint = field_format.as_sql(fields.MSSQL)
-        self.assertEqual(column_def, "x bigint")
-        self.assertEqual(constraint, "constraint chk_x check( ( x between 1 and " + str(10 ** 10) + " ) )")
+        self.assertEqual(column_def, "x BIGINT")
+        self.assertEqual(constraint, "CONSTRAINT chk_x CHECK( ( x BETWEEN 1 AND " + str(10 ** 10) + " ) )")
 
 
 class RegExFieldFormatTest(unittest.TestCase):
@@ -307,26 +307,26 @@ class ChoiceFieldFormatTest(unittest.TestCase):
     def test_can_output_sql_varchar(self):
         field_format = fields.ChoiceFieldFormat("color", True, None, "red,grEEn, blue ", _ANY_FORMAT)
         column_def, constraint = field_format.as_sql(fields.MSSQL)
-        self.assertEqual(column_def, "color varchar(5)")
-        self.assertEqual(constraint, "constraint chk_color check( color in ['red','grEEn','blue'] )")
+        self.assertEqual(column_def, "color VARCHAR(5)")
+        self.assertEqual(constraint, "CONSTRAINT chk_color CHECK( color IN ['red','grEEn','blue'] )")
 
     def test_can_output_sql_smallint(self):
         field_format = fields.ChoiceFieldFormat("color", True, None, "1,2, 3 ", _ANY_FORMAT)
         column_def, constraint = field_format.as_sql(fields.MSSQL)
-        self.assertEqual(column_def, "color smallint")
-        self.assertEqual(constraint, "constraint chk_color check( color in [1,2,3] )")
+        self.assertEqual(column_def, "color SMALLINT")
+        self.assertEqual(constraint, "CONSTRAINT chk_color CHECK( color IN [1,2,3] )")
 
     def test_can_output_sql_integer(self):
         field_format = fields.ChoiceFieldFormat("color", True, None, "1000000,2, 3 ", _ANY_FORMAT)
         column_def, constraint = field_format.as_sql(fields.MSSQL)
-        self.assertEqual(column_def, "color integer")
-        self.assertEqual(constraint, "constraint chk_color check( color in [1000000,2,3] )")
+        self.assertEqual(column_def, "color INTEGER")
+        self.assertEqual(constraint, "CONSTRAINT chk_color CHECK( color IN [1000000,2,3] )")
 
     def test_can_output_sql_bigint(self):
         field_format = fields.ChoiceFieldFormat("color", True, None, "10000000000,2, 3 ", _ANY_FORMAT)
         column_def, constraint = field_format.as_sql(fields.MSSQL)
-        self.assertEqual(column_def, "color bigint")
-        self.assertEqual(constraint, "constraint chk_color check( color in [10000000000,2,3] )")
+        self.assertEqual(column_def, "color BIGINT")
+        self.assertEqual(constraint, "CONSTRAINT chk_color CHECK( color IN [10000000000,2,3] )")
 
 
 class PatternFieldFormatTest(unittest.TestCase):

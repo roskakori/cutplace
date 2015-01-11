@@ -26,7 +26,7 @@ import unittest
 
 import six
 
-from cutplace import _cutplace
+from cutplace import applications
 from tests import dev_test
 from tests import _ods
 
@@ -37,7 +37,7 @@ _log = logging.getLogger("cutplace")
 class CutplaceAppTest(unittest.TestCase):
     def setUp(self):
         customers_cid_path = dev_test.path_to_test_cid('customers.ods')
-        self._cutplace_app = _cutplace.CutplaceApp()
+        self._cutplace_app = applications.CutplaceApp()
         self._cutplace_app.set_cid_from_path(customers_cid_path)
         self._valid_customers_csv_path = dev_test.path_to_test_data('valid_customers.csv')
         self._broken_customers_non_csv_path = dev_test.path_to_test_data('valid_customers.ods')
@@ -67,7 +67,7 @@ class CutplaceProcessTest(unittest.TestCase):
     """
     def _test_process_exits_with(self, arguments, expected_exit_code):
         try:
-            _cutplace.process(['test_cutplace.py'] + arguments)
+            applications.process(['test_applications.py'] + arguments)
             self.fail('SystemExit expected')
         except SystemExit as expected_error:
             self.assertEqual(expected_exit_code, expected_error.code)
@@ -81,7 +81,7 @@ class CutplaceProcessTest(unittest.TestCase):
 
     def _test_can_read_cid(self, suffix):
         cid_path = dev_test.path_to_test_cid('customers.' + suffix)
-        exit_code = _cutplace.process(['test_can_read_valid_' + suffix + '_cid', cid_path])
+        exit_code = applications.process(['test_can_read_valid_' + suffix + '_cid', cid_path])
         self.assertEqual(0, exit_code)
 
     def test_can_read_csv_cid(self):
@@ -98,24 +98,24 @@ class CutplaceProcessTest(unittest.TestCase):
         self._test_can_read_cid('xls')
 
     def test_fails_on_non_existent_cid(self):
-        self.assertRaises(IOError, _cutplace.process, ['test_fails_on_non_existent_cid', 'no_such_cid.xls'])
+        self.assertRaises(IOError, applications.process, ['test_fails_on_non_existent_cid', 'no_such_cid.xls'])
 
     def test_can_validate_proper_csv(self):
         cid_path = dev_test.path_to_test_cid('customers.xls')
         csv_path = dev_test.path_to_test_data('valid_customers.csv')
-        exit_code = _cutplace.process(['test_can_validate_proper_csv', cid_path, csv_path])
+        exit_code = applications.process(['test_can_validate_proper_csv', cid_path, csv_path])
         self.assertEqual(0, exit_code)
 
     def test_can_read_cid_with_plugins(self):
         cid_path = dev_test.path_to_test_cid('customers_with_plugins.ods')
-        exit_code = _cutplace.process(['test_can_read_cid_with_plugins', '--plugins', dev_test.path_to_test_plugins(),
+        exit_code = applications.process(['test_can_read_cid_with_plugins', '--plugins', dev_test.path_to_test_plugins(),
             cid_path])
         self.assertEqual(0, exit_code)
 
     def test_can_validate_proper_csv_with_plugins(self):
         cid_path = dev_test.path_to_test_cid('customers_with_plugins.ods')
         csv_path = dev_test.path_to_test_data('valid_customers.csv')
-        exit_code = _cutplace.process(['test_can_validate_proper_csv_with_plugins', '--plugins',
+        exit_code = applications.process(['test_can_validate_proper_csv_with_plugins', '--plugins',
             dev_test.path_to_test_plugins(), cid_path, csv_path])
         self.assertEqual(0, exit_code)
 
@@ -125,7 +125,7 @@ class CutplaceProcessTest(unittest.TestCase):
         else:
             expected_error_class = IOError
         cid_path = dev_test.path_to_test_cid('customers.xls')
-        self.assertRaises(expected_error_class, _cutplace.process, ['test_fails_on_non_existent_data', cid_path, 'no_such_data.csv'])
+        self.assertRaises(expected_error_class, applications.process, ['test_fails_on_non_existent_data', cid_path, 'no_such_data.csv'])
 
     def test_fails_on_unknown_command_line_argument(self):
         self._test_process_exits_with(['--no-such-option'], 2)
@@ -153,19 +153,19 @@ class CutplaceProcessTest(unittest.TestCase):
     #                     'icd '%s' (or '*.csv') for data file '%s' must be created' % (icdPath, dataPath))
     #
     #         # Now validate the data.
-    #         exitCode = _cutplace.main(['test_cutplace.py', icdPath, dataPath])
+    #         exitCode = _cutplace.main(['test_applications.py', icdPath, dataPath])
     #         self.assertEqual(exitCode, 0)
     #
     # def testValidFixedTxt(self):
     #     icdPath = dev_test.path_to_test_cid('customers_fixed.ods')
     #     dataPath = dev_test.path_to_test_data('valid_customers_fixed.txt')
-    #     exitCode = _cutplace.main(['test_cutplace.py', icdPath, dataPath])
+    #     exitCode = _cutplace.main(['test_applications.py', icdPath, dataPath])
     #     self.assertEqual(exitCode, 0)
     #
     # def testValidNativeExcelFormats(self):
     #     icdPath = dev_test.path_to_test_cid('native_excel_formats.ods')
     #     dataPath = dev_test.path_to_test_data('valid_native_excel_formats.xls')
-    #     exitCode = _cutplace.main(['test_cutplace.py', icdPath, dataPath])
+    #     exitCode = _cutplace.main(['test_applications.py', icdPath, dataPath])
     #     self.assertEqual(exitCode, 0)
 
 
@@ -175,28 +175,28 @@ class CutplaceMainTest(unittest.TestCase):
     """
     def test_can_read_cid(self):
         cid_path = dev_test.path_to_test_cid('customers.ods')
-        self.assertEqual(0, _cutplace.main(['test', cid_path]))
+        self.assertEqual(0, applications.main(['test', cid_path]))
 
     def test_can_validate_proper_data(self):
         cid_path = dev_test.path_to_test_cid('customers.ods')
         data_path = dev_test.path_to_test_data('valid_customers.csv')
-        self.assertEqual(0, _cutplace.main(['test', cid_path, data_path]))
+        self.assertEqual(0, applications.main(['test', cid_path, data_path]))
 
     def test_can_deal_with_broken_data(self):
         cid_path = dev_test.path_to_test_cid('customers.ods')
         data_path = dev_test.path_to_test_data('broken_customers.csv')
-        self.assertEqual(1, _cutplace.main(['test', cid_path, data_path]))
+        self.assertEqual(1, applications.main(['test', cid_path, data_path]))
 
     def test_can_deal_with_broken_cid(self):
         broken_cid_path = dev_test.path_to_test_cid('broken_syntax_error.ods')
-        self.assertEqual(1, _cutplace.main(['test', broken_cid_path]))
+        self.assertEqual(1, applications.main(['test', broken_cid_path]))
 
     def test_can_deal_with_non_existent_cid(self):
-        self.assertEqual(3, _cutplace.main(['test', 'no_such_file.xxx']))
+        self.assertEqual(3, applications.main(['test', 'no_such_file.xxx']))
 
     def _test_fails_with_system_exit(self, expected_code, argv):
         try:
-            _cutplace.main(argv)
+            applications.main(argv)
             self.fail()
         except SystemExit as anticipated_error:
             self.assertEqual(expected_code, anticipated_error.code)

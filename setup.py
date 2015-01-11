@@ -13,9 +13,33 @@ Developer cheat sheet
 Run locally from console::
 
   $ export PYTHONPATH=`pwd`:`pwd`/cutplace:`pwd`/tests
-  $ python -m cutplace._cutplace --version
-"""
+  $ python -m cutplace.applications --version
 
+Test that the distribution archive can be installed and run in a fresh
+terminal session::
+
+  $ virtualenv-3.4 /tmp/cpt
+  $ source /tmp/cpt/bin/activate
+  $ pip install ~/workspace/cutplace/dist/cutplace-0.8.0.zip
+  $ cutplace --version
+  $ cd
+  $ rm -rf /tmp/cpt
+  $ ^D
+"""
+# Copyright (C) 2009-2015 Thomas Aglassinger
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or (at your
+# option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License
+# for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
 import sys
 import inspect
@@ -52,10 +76,9 @@ CLASSIFIERS = [
     "Operating System :: OS Independent",
     'Programming Language :: Python',
     "Programming Language :: Python :: 2",
-    # TODO #61: "Programming Language :: Python :: 2.6",
+    "Programming Language :: Python :: 2.6",
     "Programming Language :: Python :: 2.7",
     "Programming Language :: Python :: 3",
-    # TODO #56: "Programming Language :: Python :: 3.2",
     "Programming Language :: Python :: 3.3",
     "Programming Language :: Python :: 3.4",
     "Topic :: Documentation",
@@ -64,7 +87,7 @@ CLASSIFIERS = [
 ]
 
 CONSOLE_SCRIPTS = [
-    'cutplace = cutplace._cutplace:main_for_script'
+    'cutplace = cutplace.applications:main_for_script'
 ]
 
 # Versioneer configuration

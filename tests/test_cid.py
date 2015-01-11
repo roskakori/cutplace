@@ -30,7 +30,7 @@ from cutplace import data
 from cutplace import errors
 from cutplace import fields
 from cutplace import ranges
-from cutplace import iotools
+from cutplace import rowio
 from tests import dev_test
 
 
@@ -44,7 +44,7 @@ class CidTest(unittest.TestCase):
     def test_can_read_excel_and_create_data_format_delimited(self):
         cid_reader = interface.Cid()
         source_path = dev_test.path_to_test_cid("icd_customers.xls")
-        cid_reader.read(source_path, iotools.excel_rows(source_path))
+        cid_reader.read(source_path, rowio.excel_rows(source_path))
 
         self.assertEqual(cid_reader._data_format.format, "delimited")
         self.assertEqual(cid_reader._data_format.header, 1)
@@ -95,7 +95,7 @@ class CidTest(unittest.TestCase):
     def test_can_read_fields_from_excel(self):
         cid_reader = interface.Cid()
         source_path = dev_test.path_to_test_cid("icd_customers.xls")
-        cid_reader.read(source_path, iotools.excel_rows(source_path))
+        cid_reader.read(source_path, rowio.excel_rows(source_path))
         self.assertEqual(cid_reader.field_names[0], 'branch_id')
         self.assertEqual(cid_reader.field_formats[0].length.items, ranges.Range('5').items)
         self.assertTrue(isinstance(cid_reader.field_formats[0], fields.TextFieldFormat))
@@ -135,7 +135,7 @@ class CidTest(unittest.TestCase):
     def test_can_handle_all_field_formats_from_excel(self):
         cid_reader = interface.Cid()
         source_path = dev_test.path_to_test_cid("alltypes.xls")
-        cid_reader.read(source_path, iotools.excel_rows(source_path))
+        cid_reader.read(source_path, rowio.excel_rows(source_path))
         self.assertTrue(isinstance(cid_reader.field_formats[0], fields.IntegerFieldFormat))
         self.assertTrue(isinstance(cid_reader.field_formats[1], fields.TextFieldFormat))
         self.assertTrue(isinstance(cid_reader.field_formats[2], fields.ChoiceFieldFormat))
@@ -177,14 +177,14 @@ class CidTest(unittest.TestCase):
     def test_can_read_delimited_rows(self):
         # TODO: either get rid of the CID and move it to test_iotools or use validate.Reader and move it to test_validate.
         delimited_cid = interface.Cid(dev_test.path_to_test_cid("icd_customers.xls"))
-        delimited_rows = iotools.delimited_rows(dev_test.path_to_test_data("valid_customers.csv"), delimited_cid._data_format)
+        delimited_rows = rowio.delimited_rows(dev_test.path_to_test_data("valid_customers.csv"), delimited_cid._data_format)
         first_row = next(delimited_rows)
         self.assertEqual(first_row, ['38000', '23', 'John', 'Doe', 'male', '08.03.1957'])
 
     def test_can_handle_checks_from_excel(self):
         cid_reader = interface.Cid()
         source_path = dev_test.path_to_test_cid("customers.xls")
-        cid_reader.read(source_path, iotools.excel_rows(source_path))
+        cid_reader.read(source_path, rowio.excel_rows(source_path))
         self.assertTrue(isinstance(cid_reader.check_for(cid_reader.check_names[0]), checks.IsUniqueCheck))
         self.assertTrue(isinstance(cid_reader.check_for(cid_reader.check_names[1]), checks.DistinctCountCheck))
 

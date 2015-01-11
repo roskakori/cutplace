@@ -31,7 +31,7 @@ from cutplace import data
 from cutplace import fields
 from cutplace import errors
 from cutplace import checks
-from cutplace import iotools
+from cutplace import rowio
 from cutplace import _compat
 from cutplace import _tools
 from cutplace._compat import python_2_unicode_compatible
@@ -61,7 +61,7 @@ class Cid(object):
         self._check_name_to_class_map = self._create_name_to_class_map(checks.AbstractCheck)
         self._field_format_name_to_class_map = self._create_name_to_class_map(fields.AbstractFieldFormat)
         if cid_path is not None:
-            self.read(cid_path, iotools.auto_rows(cid_path))
+            self.read(cid_path, rowio.auto_rows(cid_path))
 
     def __str__(self):
         result = 'Cid('
