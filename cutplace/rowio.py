@@ -1,5 +1,6 @@
 """
-Low level structured I/O for tabular data in various formats.
+Input and output of data rows in various formats validating only the basic
+format but not any :py:mod:`cutplace.fields` or :py:mod:`cutplace.checks`.
 """
 # Copyright (C) 2009-2013 Thomas Aglassinger
 #

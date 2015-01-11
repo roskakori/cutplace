@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """
-Cutplace - Validate flat data according to an interface control document.
+Front end for command line application. This takes care of parsing the
+command line options, calling appropriate the low level function, reporting
+any errors and setting a proper exit code.
 """
 # Copyright (C) 2009-2013 Thomas Aglassinger
 #
@@ -27,8 +29,8 @@ import sys
 
 from cutplace import interface
 from cutplace import errors
-from cutplace import validator
-from cutplace import iotools
+from cutplace import validio
+from cutplace import rowio
 from cutplace import _tools
 # TODO #77: from cutplace import _web
 
@@ -131,7 +133,7 @@ class CutplaceApp(object):
         # TODO: if self.options is not None:
         #          new_cid.logTrace = self.options.isLogTrace
         _log.info('read CID from "%s"', cid_path)
-        cid_rows = iotools.auto_rows(cid_path)  # TODO: Pass self.cid_encoding.
+        cid_rows = rowio.auto_rows(cid_path)  # TODO: Pass self.cid_encoding.
         new_cid.read(cid_path, cid_rows)
         self.cid = new_cid
         self.cid_path = cid_path
@@ -144,7 +146,7 @@ class CutplaceApp(object):
         assert self.cid is not None
 
         _log.info('validate "%s"', data_path)
-        reader = validator.Reader(self.cid, data_path)
+        reader = validio.Reader(self.cid, data_path)
         try:
             reader.validate()
             _log.info('  accepted %d rows', reader.accepted_rows_count)
@@ -197,7 +199,7 @@ def main(argv=None):
     * 1 - validation failed and rejected data must be fixed
     * 2 - arguments passed in ``argv`` must be fixed
     * 3 - a proper environment for the program to run must be provided (files must exist,
-      access rights must be provided, ...)
+    access rights must be provided, ...)
     * 4 - something unexpected happened and the program code must be fixed
     """
     if argv is None:  # pragma: no cover

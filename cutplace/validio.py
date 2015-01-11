@@ -1,5 +1,5 @@
 """
-Validated processing of data files.
+Validated input and output of tabular data in various formats.
 """
 # Copyright (C) 2009-2013 Thomas Aglassinger
 #
@@ -25,7 +25,7 @@ from six.moves import zip_longest
 from cutplace import data
 from cutplace import errors
 from cutplace import interface
-from cutplace import iotools
+from cutplace import rowio
 
 
 def _create_field_map(field_names, field_values):
@@ -47,15 +47,15 @@ class Reader(object):
     def _raw_rows(self):
         data_format = self._cid.data_format
         if data_format.format == data.FORMAT_EXCEL:
-            return iotools.excel_rows(self._source_path, data_format.sheet)
+            return rowio.excel_rows(self._source_path, data_format.sheet)
         elif data_format.format == data.FORMAT_DELIMITED:
-            return iotools.delimited_rows(self._source_path, data_format)
+            return rowio.delimited_rows(self._source_path, data_format)
         elif data_format.format == data.FORMAT_FIXED:
-            return iotools.fixed_rows(
+            return rowio.fixed_rows(
                 self._source_path, data_format.encoding, interface.field_names_and_lengths(self._cid),
                 data_format.line_delimiter)
         elif data_format.format == data.FORMAT_ODS:
-            return iotools.ods_rows(self._source_path, data_format.sheet)
+            return rowio.ods_rows(self._source_path, data_format.sheet)
 
     @property
     def source_path(self):
