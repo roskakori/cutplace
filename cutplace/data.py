@@ -93,12 +93,12 @@ class DataFormat(object):
     """
 
     def __init__(self, format_name, location=None):
-        if format_name not in _VALID_FORMATS:
+        if format_name not in (_VALID_FORMATS + ['csv']):
             raise errors.InterfaceError(
                 'format is %s but must be on of: %s' % (format_name, _VALID_FORMATS), location)
         else:
             self._location = location
-            self._format = format_name
+            self._format = format_name if format_name != 'csv' else FORMAT_DELIMITED
             self._header = 0
             self._is_valid = False
             self._allowed_characters = None

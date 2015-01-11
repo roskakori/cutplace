@@ -40,10 +40,13 @@ class DataFormatTest(unittest.TestCase):
             data_format = data.DataFormat(format_name)
             self.assertTrue(data_format)
             self.assertTrue(data_format.__str__())
-        # self.assertRaises(data.InterfaceError, data.createDataFormat, "no-such-data-format")
 
-    def test_fails_on_invalid_data_format(self):
-        self.assertRaises(errors.InterfaceError, data.DataFormat, 'csv')
+    def test_fails_on_unknown_data_format(self):
+        self.assertRaises(errors.InterfaceError, data.DataFormat, 'no_such_format')
+
+    def test_can_map_csv_to_delimited_format(self):
+        csv_format = data.DataFormat('csv')
+        self.assertEqual(data.FORMAT_DELIMITED, csv_format.format)
 
     def test_can_set_delimited_properties(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
