@@ -5,8 +5,19 @@ Revision history
 This chapter describes improvements compared to earlier versions of cutplace.
 
 
+Version 0.8.2, 2015-01-xx
+=========================
+
+* Cleaned up :option:`--help`:
+
+  * Removed description of obsolete option :option:`--cid-encoding`.
+  * Cleaned up option groups with only one option.
+  * Cleaned up sequence of options which is now sorted alphabetically.
+
+
 Version 0.8.1, 2015-01-11
 =========================
+
 * Fixed ranges for `Integer` fields with a length of one digit, which caused
   a :py:exc:`ValueError`.
 * Added Python 2 support to universal wheel for distribution.

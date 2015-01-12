@@ -65,26 +65,17 @@ class CutplaceApp(object):
         version = '%(prog)s ' + __version__
 
         parser = argparse.ArgumentParser(description=description)
-        parser.add_argument('--version', action='version', version=version)
         # TODO #77: Activate option --gui.
         # parser.add_argument(
-        #    '-g', '--gui', action='store_true', dest='is_gui',
+        #    '--gui', '--g', action='store_true', dest='is_gui',
         #    help='provide a graphical user interface to set CID-FILE and DATA-FILE')
-        # TODO: Merge with main group.
-        validation_group = parser.add_argument_group(
-            'Validation options', 'Specify how to validate data and how to report the results')
-        # FIXME: Remove option --cid-encoding.
-        validation_group.add_argument(
-            '-e', '--cid-encoding', metavar='ENCODING', dest='cid_encoding', default=DEFAULT_CID_ENCODING,
-            help='character encoding to use when reading the CID (default: %s)' % DEFAULT_CID_ENCODING)
-        validation_group.add_argument(
-            '-P', '--plugins', metavar='FOLDER', dest='plugins_folder',
-            help='folder to scan for plugins (default: no plugins)')
-        # TODO: Merge with main group.
-        loggingGroup = parser.add_argument_group('Logging options', 'Modify the logging output')
-        loggingGroup.add_argument(
+        parser.add_argument(
             '--log', metavar='LEVEL', choices=sorted(_tools.LOG_LEVEL_NAME_TO_LEVEL_MAP.keys()), dest='log_level',
             default=DEFAULT_LOG_LEVEL, help='set log level to LEVEL (default: %s)' % DEFAULT_LOG_LEVEL)
+        parser.add_argument(
+            '--plugins', '-P', metavar='FOLDER', dest='plugins_folder',
+            help='folder to scan for plugins (default: no plugins)')
+        parser.add_argument('--version', action='version', version=version)
         parser.add_argument(
             'cid_path', metavar='CID-FILE', help='file containing a cutplace interface definition (CID)')
         parser.add_argument(
@@ -170,11 +161,12 @@ def main(argv=None):
     ``logging.basicConfig()``.
 
     The result can be:
+
     * 0 - everything worked out fine
     * 1 - validation failed and rejected data must be fixed
     * 2 - arguments passed in ``argv`` must be fixed
     * 3 - a proper environment for the program to run must be provided (files must exist,
-    access rights must be provided, ...)
+      access rights must be provided, ...)
     * 4 - something unexpected happened and the program code must be fixed
     """
     if argv is None:  # pragma: no cover
