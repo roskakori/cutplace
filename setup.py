@@ -83,7 +83,6 @@ JUNIT_XML = True
 CLASSIFIERS = [
     "Development Status :: 4 - Beta",
     "Environment :: Console",
-    "Environment :: Web Environment",
     "Intended Audience :: Developers",
     "Intended Audience :: Financial and Insurance Industry",
     "Intended Audience :: Information Technology",

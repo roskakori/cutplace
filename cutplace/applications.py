@@ -32,8 +32,6 @@ from cutplace import errors
 from cutplace import validio
 from cutplace import rowio
 from cutplace import _tools
-# TODO #77: from cutplace import _web
-
 from cutplace import __version__
 
 DEFAULT_CID_ENCODING = 'utf-8'
@@ -52,10 +50,9 @@ class CutplaceApp(object):
         self.cid = None
         self.cid_encoding = DEFAULT_CID_ENCODING
         self.cid_path = None
-        self.is_split = False
+        self.is_gui = False
         self.data_paths = None
         self.last_validation_was_ok = False
-        self.is_web_server = False  # TODO #77: Remove.
         self.all_validations_were_ok = True
 
     def set_options(self, argv):
@@ -69,28 +66,25 @@ class CutplaceApp(object):
 
         parser = argparse.ArgumentParser(description=description)
         parser.add_argument('--version', action='version', version=version)
-        # TODO #77: parser.set_defaults(isLogTrace=False, isOpenBrowser=False, port=_web.DEFAULT_PORT)
+        # TODO #77: Activate option --gui.
+        # parser.add_argument(
+        #    '-g', '--gui', action='store_true', dest='is_gui',
+        #    help='provide a graphical user interface to set CID-FILE and DATA-FILE')
+        # TODO: Merge with main group.
         validation_group = parser.add_argument_group(
             'Validation options', 'Specify how to validate data and how to report the results')
+        # FIXME: Remove option --cid-encoding.
         validation_group.add_argument(
             '-e', '--cid-encoding', metavar='ENCODING', dest='cid_encoding', default=DEFAULT_CID_ENCODING,
             help='character encoding to use when reading the CID (default: %s)' % DEFAULT_CID_ENCODING)
         validation_group.add_argument(
             '-P', '--plugins', metavar='FOLDER', dest='plugins_folder',
             help='folder to scan for plugins (default: no plugins)')
-        # TODO: validationGroup.add_option('-s', '--split', action='store_true', dest='isSplit',
-        #               help='split data in a CSV file containing the accepted rows and a raw text file '
-        #               + 'containing rejected rows with both using UTF-8 as character encoding')
-        # TODO #77: webGroup = optparse.OptionGroup(parser, 'Web options', 'Provide a  GUI for validation using a simple web server')
-        # TODO #77: webGroup.add_option('-w', '--web', action='store_true', dest='isWebServer', help='launch web server')
-        # TODO #77: webGroup.add_option('-p', '--port', metavar='PORT', type='int', dest='port', help='port for web server (default: %default)')
-        # TODO #77: webGroup.add_option('-b', '--browse', action='store_true', dest='isOpenBrowser', help='open validation page in browser')
-        # TODO #77: parser.add_option_group(webGroup)
+        # TODO: Merge with main group.
         loggingGroup = parser.add_argument_group('Logging options', 'Modify the logging output')
         loggingGroup.add_argument(
             '--log', metavar='LEVEL', choices=sorted(_tools.LOG_LEVEL_NAME_TO_LEVEL_MAP.keys()), dest='log_level',
             default=DEFAULT_LOG_LEVEL, help='set log level to LEVEL (default: %s)' % DEFAULT_LOG_LEVEL)
-        # TODO: loggingGroup.add_argument('-t', '--trace', action='store_true', dest='isLogTrace', help='include Python stack in error messages related to data')
         parser.add_argument(
             'cid_path', metavar='CID-FILE', help='file containing a cutplace interface definition (CID)')
         parser.add_argument(
@@ -99,28 +93,11 @@ class CutplaceApp(object):
 
         self._log.setLevel(_tools.LOG_LEVEL_NAME_TO_LEVEL_MAP[args.log_level])
         self.cid_encoding = args.cid_encoding
-        # FIXME #77 etc: Remove dummy values below.
-        self.isLogTrace = False
-        # TODO #77: self.isOpenBrowser = False
-        self.is_web_server = False  # TODO #77: Remove.
-        # TODO #77: self.port = 0
-        self.is_split = False
-        # TODO: self.isLogTrace = self.options.isLogTrace
-        # TODO: self.isOpenBrowser = self.options.isOpenBrowser
-        # TODO #77: self.isWebServer = self.options.isWebServer
-        # TODO #77: self.port = self.options.port
-        # TODO: self.isSplit = self.options.isSplit
+        self.is_gui = args.is_gui
 
         if args.plugins_folder is not None:
             interface.import_plugins(args.plugins_folder)
 
-        if not self.is_web_server:
-            if args.cid_path is None:
-                parser.error('CID-FILE must be specified')
-            try:
-                self.set_cid_from_path(args.cid_path)
-            except (EnvironmentError, OSError) as error:
-                raise IOError('cannot read CID file "%s": %s' % (args.cid_path, error))
         if args.data_paths is not None:
             self.data_paths = args.data_paths
 
@@ -130,10 +107,8 @@ class CutplaceApp(object):
     def set_cid_from_path(self, cid_path):
         assert cid_path is not None
         new_cid = interface.Cid()
-        # TODO: if self.options is not None:
-        #          new_cid.logTrace = self.options.isLogTrace
         _log.info('read CID from "%s"', cid_path)
-        cid_rows = rowio.auto_rows(cid_path)  # TODO: Pass self.cid_encoding.
+        cid_rows = rowio.auto_rows(cid_path)
         new_cid.read(cid_path, cid_rows)
         self.cid = new_cid
         self.cid_path = cid_path
@@ -173,8 +148,8 @@ def process(argv=None):
     result = 0
     cutplace_app = CutplaceApp()
     cutplace_app.set_options(argv)
-    if cutplace_app.is_web_server:
-        # TODO #77: _web.main(cutPlace.port, cutPlace.isOpenBrowser)
+    if cutplace_app.is_gui:
+        # TODO #77: Open graphical user interface.
         pass
     elif cutplace_app.data_paths:
         for data_path in cutplace_app.data_paths:
