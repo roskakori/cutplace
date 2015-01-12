@@ -25,6 +25,22 @@ terminal session::
   $ cd
   $ rm -rf /tmp/cpt
   $ ^D
+
+Create the installer archive::
+
+  $ python setup.py sdist --formats=zip
+  $ python setup.py bdist_wheel
+
+Tag a release::
+
+  $ git tag -a -m "Tagged version 0.8.x." v0.8.x
+  $ git push --tags
+
+Upload release to PyPI::
+
+  $ ant flake8 test docs
+  $ python setup.py sdist --formats=zip upload
+  $ python setup.py bdist_wheel upload
 """
 # Copyright (C) 2009-2015 Thomas Aglassinger
 #
