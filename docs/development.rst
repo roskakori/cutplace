@@ -9,62 +9,15 @@ how to build it and how to contribute to the project.
 If you are just interested to use cutplace's library classes and functions,
 refer to the chapter about the :doc:`api`.
 
-.. warning::
-
-  Due the major rework of the API with version 0.8.0 this chapter is currently
-  outdated and several code examples will not work. Possibly the online
-  version at http://cutplace.readthedocs.org/en/latest/api.html is already
-  fixed.
-
 
 Obtaining additional tools and Python packages
 ==============================================
 
 To build the source code, you need a few additional tools and Python packages.
 
-First there are a couple of Python packages:
+To install the Python packages, simply run::
 
-* coverage
-* epydoc
-* nose
-* pep8
-* profiler
-* sphinx
-
-The easiest way to install them is running::
-
-  $ easy_install coverage epydoc nose pep8 profiler sphinx
-
-If you are using Ubuntu, you should instead use ``apt-get``::
-
-  $ sudo apt-get install python-setuptools
-  $ sudo apt-get install python-profiler
-  $ sudo easy_install coverage epydoc nose pep8 sphinx
-
-.. index:: epydoc
-
-Sadly, epydoc 3.0.1 does not work with docutils 0.6, so in case you are using
-a reasonably modern Python version, it will fail with::
-
-  'Text' object has no attribute 'data'
-
-In order to fix this, open ``epydoc/markup/restructuredtext.py``, locate
-``_SummaryExtractor.visit_paragraph()`` and change the lines below marked
-with ``# FIXED`` comments::
-
-  for child in node:
-     if isinstance(child, docutils.nodes.Text):
-         # FIXED: m = self._SUMMARY_RE.match(child.data)
-         text = child.astext()
-         m = self._SUMMARY_RE.match(text)
-         if m:
-             summary_pieces.append(docutils.nodes.Text(m.group(1)))
-             # FIXED: other = child.data[m.end():]
-             other = text[m.end():]
-             if other and not other.isspace():
-                 self.other_docs = True
-             break
-     summary_pieces.append(child)
+  $ pip install -r requirements-dev.txt
 
 Once these packages are installed, you should be able to build the
 distribution archive using::
@@ -108,76 +61,51 @@ Obtaining and building the source code
 ======================================
 
 The source code for cutplace is available via a Git repository from
-<https://github.com/roskakori/cutplace>.
+https://github.com/roskakori/cutplace.
 
 The source code consists of:
 
-* ``build.xml`` is the project file for the build tool `ant
+* :file:`build.xml` is the project file for the build tool `ant
   <http://ant.apache.org/>`_
 
-* ``cutplace/*.py`` are the Python modules for cutplace
+* :file:`cutplace/*.py` are the Python modules for cutplace
 
-* ``cutplace/dev_*.py`` are Python modules useful only during
-  development
+* :file:`tests/test_*.py` are test cases for unittest
 
-* ``cutplace/test_*.py`` are test cases for unittest
+* :file:`tests/data/*` are test data used by the unittests; some of them
+  are :file:`*.ods` or :file:`*.xls` spread sheet you can edit using
+  `OpenOffice.org <http://www.openoffice.org/>`_'s calc
 
-* ``docs/*`` is the reStructuredText for the web site and user guide
+* :file:`docs/*` is the reStructuredText for the web site and user guide
 
-* ``examples/*`` contains the example date used in the :doc:`tutorial` and
+* file:`examples/*` contains the example date used in the :doc:`tutorial` and
   code examples on how to use the cutplace Python module in you own code.
 
-* ``tests/*`` contains test data; use for example `OpenOffice.org
-  <http://www.openoffice.org/>`_'s calc to edit the ``*.ods`` and ``*.csv``
-  files
-
-* ``tests/input/*`` are test data used by the unittest tests in
-  ``cutplace/test_*.py``
-
-* ``.project`` and ``.pydevproject`` are for use with `Eclipse
-  <http://www.eclipse.org/>`_ and `PyDev <http://pydev.sourceforge.net/>`_.
-
-If Eclipse and PyDev are your developer environment of choice, you can check
-out the repository directly from Eclipse using
-:menuselection:`File --> Import...` and select
-:menuselection:`Git --> Projects from Git`.
-
-If you prefer the command line, you need a Git client. Visit
-<http://help.github.com/> to learn how to browse or fork the source code.
+To obtain the source code from the repository you need a Git client. Visit
+http://help.github.com/ to learn how to browse or fork the source code.
 
 Once you have your local copy of the source code, use ant to build and test
 cutplace.
 
 To just build a binary distribution, run::
 
-  $ ant bdist_egg
-
-The output should look something like this::
-
-  running bdist_egg
-  running egg_info
-  writing requirements to cutplace.egg-info/requires.txt
-  writing cutplace.egg-info/PKG-INFO
-  ...
+  $ ant bdist_wheel
 
 To run all test cases::
 
   $ ant test
 
-To build the user guide, developer reports and web site::
-
-  $ ant site
-
 To remove files generated during the build process::
 
   $ ant clean
+
 
 Contributing source code
 ========================
 
 In case you fixed any bugs or added improvements to cutplace, feel free to
 contribute your changes by forking the repository and issuing a pull request
-as described at <http://help.github.com/fork-a-repo/>.
+as described at http://help.github.com/fork-a-repo/.
 
 Developer notes
 ===============
@@ -189,11 +117,11 @@ Install a developer build
 
 To install the current work copy as a developer build, use::
 
-  $ sudo python setup.py develop
+  $ python setup.py develop
 
 Once the related version is published, you can install it using::
 
-  $ sudo easy_install --upgrade cutplace
+  $ pip install --upgrade cutplace
 
 This ensures that the current version found on PyPI is installed even if
 a locally installed developer build has the same version.
@@ -204,13 +132,13 @@ Add a release tag
 When publishing a new release, a tag should be added to the repository. This
 can be done using the following template::
 
-  $ git tag -a -m "Tagged version 0.x.x." 0.x.x
+  $ git tag -a -m "Tagged version 0.8.x." v0.8.x
   $ git push --tags
 
-Simply replace ``0.x.x`` with the current version number.
+Simply replace ``0.8.x`` with the current version number.
 
 
-.. index:: ant
+.. index:: jenkins
 
 .. _jenkins:
 
@@ -256,7 +184,7 @@ Next, create a build using the following steps:
 
   * Build:
 
-    #. Invoke ant: targets: ``test site sdist bdist_egg``
+    #. Invoke ant: targets: ``test site sdist bdist_wheel``
 
   * Post-build actions:
 

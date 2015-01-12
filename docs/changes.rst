@@ -14,6 +14,8 @@ Version 0.8.2, 2015-01-xx
   * Cleaned up option groups with only one option.
   * Cleaned up sequence of options which is now sorted alphabetically.
 
+* Cleaned up notes on :doc:`development` to reflect changes of 0.8.0.
+
 
 Version 0.8.1, 2015-01-11
 =========================
@@ -48,7 +50,7 @@ In summary, the changes are:
     (`issue #50 <https://github.com/roskakori/cutplace/issues/50>`_)
 
 * The documentation is now available at
-  <http://cutplace.readthedocs.org/en/latest/>.
+  http://cutplace.readthedocs.org/en/latest/.
 
 * Cutplace interface definitions are now abbreviated as CID, replacing the
   acronym ICD (interface control document). Nevertheless the file format remains
