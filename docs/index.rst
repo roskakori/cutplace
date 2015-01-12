@@ -26,8 +26,8 @@ intrinsics of each package.
 * Visit the `project site <https://github.com/roskakori/cutplace>`_.
 
 * Take a look at the
-  `roadmap <https://github.com/roskakori/cutplace/issues/milestones>`_ to
-  find out what the future has in store.
+  `roadmap <https://github.com/roskakori/cutplace/milestones>`_ to find
+  out what the future has in store.
 
 * Read the :doc:`application programmer interface tutorial <api>` to learn
   how to integrate cutplace based validations in your own application. For a
