@@ -83,12 +83,12 @@ class CutplaceApp(object):
         args = parser.parse_args(argv[1:])
 
         self._log.setLevel(_tools.LOG_LEVEL_NAME_TO_LEVEL_MAP[args.log_level])
-        self.cid_encoding = args.cid_encoding
-        self.is_gui = args.is_gui
+        # TODO #77: self.is_gui = args.is_gui
 
         if args.plugins_folder is not None:
             interface.import_plugins(args.plugins_folder)
-
+        if args.cid_path is not None:
+            self.set_cid_from_path(args.cid_path)
         if args.data_paths is not None:
             self.data_paths = args.data_paths
 
