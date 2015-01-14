@@ -29,4 +29,6 @@ Additionally, `cutplace` provides an easy to use API to read and write
 tabular data files using a common interface without having to deal with
 the intrinsic of data format specific modules.
 
-For more information, visit <http://roskakori.github.com/cutplace/>.
+For more information, read the documentation at
+http://cutplace.readthedocs.org/ or visit the project at
+http://roskakori.github.com/cutplace/.
