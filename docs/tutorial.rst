@@ -193,7 +193,7 @@ changed to this folder (using for example the command ``cd``).
 Running cutplace for the first time
 ===================================
 
-Now that we have both a data file and an CID file, we can finally take a look
+Now that we have both a data file and a CID file, we can finally take a look
 at how cutplace actually works.
 
 Open a terminal and change into the folder where where the example data
@@ -230,7 +230,7 @@ Summary so far
 
 Let's recap what we learned so far:
 
-* You can use cutplace to validate that data conform to an CID.
+* You can use cutplace to validate that data conform to a CID.
 
 * The CID is a file you can create with Calc, Excel or your favorite
   text editor.
@@ -390,54 +390,55 @@ error message that makes it easy to backtrack where the broken data came from.
 
 Fortunately, cutplace allows to describe length limits for fields:
 
-+-+--------------------+----------+------+----------+
-+ +Name                +Example   +Empty?+**Length**+
-+-+--------------------+----------+------+----------+
-+F+branch_id           +38000     +      +**5**     +
-+-+--------------------+----------+------+----------+
-+F+customer_id         +16        +      +**2:**    +
-+-+--------------------+----------+------+----------+
-+F+first_name          +Jane      +      +**:60**   +
-+-+--------------------+----------+------+----------+
-+F+surname             +Doe       +      +**:60**   +
-+-+--------------------+----------+------+----------+
-+F+gender              +female    +      +**4:6**   +
-+-+--------------------+----------+------+----------+
-+F+date_of_birth       +27.02.1946+X     +**10**    +
-+-+--------------------+----------+------+----------+
++-+--------------------+----------+------+------------+
++ +Name                +Example   +Empty?+**Length**  +
++-+--------------------+----------+------+------------+
++F+branch_id           +38000     +      +**5**       +
++-+--------------------+----------+------+------------+
++F+customer_id         +16        +      +**2...**    +
++-+--------------------+----------+------+------------+
++F+first_name          +Jane      +      +**...60**   +
++-+--------------------+----------+------+------------+
++F+surname             +Doe       +      +**...60**   +
++-+--------------------+----------+------+------------+
++F+gender              +female    +      +**4...6**   +
++-+--------------------+----------+------+------------+
++F+date_of_birth       +27.02.1946+X     +**10**      +
++-+--------------------+----------+------+------------+
 
 See: :download:`cid_customers_with_lengths.ods <../examples/cid_customers_with_lengths.ods>`
 
 Let's take a closer look at these examples, especially at the meaning of
-the colon (:) in some of the description of the lengths.
+the ellipsis (...) in some of the description of the lengths.
 
 * The ``branch_id`` always has to have exactly 5 characters, so its
   length is ``5``.
 
 * Let's assume same the ``customer_id`` has to have at least 2 characters
   because one of them is a checksum in order to catch (most) mistyped
-  numbers. In this case, the length is ``2:``.
+  numbers. In this case, the length is ``2...``.
 
 * The ``first_name`` and ``surname`` can take at most 60 characters, maybe
   because someone said so way back in the 70s when COBOL ruled the world.
-  To express this as length, use ``:60``.
+  To express this as length, use ``...60``.
 
 * The ``gender`` can be ``male`` or ``female``, so its length is between
-  4 and 6, which reads as ``4:6``.
+  4 and 6, which reads as ``4...6``.
 
 * And finally, ``date_of_birth`` always takes exactly 10 characters
   because apparently we require it to use leading zeros. This is
   similar to ``brach_id``, which also used an exact length.
 
   Wait a second, didn't we state before that the ``date_of_birth`` can be
-  empty? Shouldn't we use ``0:10`` then? Actually no, because this would
+  empty? Shouldn't we use ``0...10`` then? Actually no, because this would
   also accept dates with a length of 1, 2, 3 and so on until 9. The
   possibility that ``date_of_birth`` can have a length of 0 is already
   taken care of by the ``X`` in the *Empty?* column.
 
 To summarize: lengths are either exact values (like ``5``) or ranges
-with an lower and upper limit separated by a colon (like ``4:6``).
-Either the lower or upper limit can be omitted (like ``2:`` or ``:60``).
+with an lower and upper limit separated by a colon (like ``4...6``).
+Either the lower or upper limit can be omitted (like ``2...`` or
+``...60``).
 
 In case you cannot decide yet on a reasonable limit on a certain field,
 just leave its entry in the *Length* column empty.
@@ -469,7 +470,7 @@ cutplace:
 +-+--------------------+----------+------+------+------------+----------------+
 +F+branch_id           +38000     +      +5     +            +                +
 +-+--------------------+----------+------+------+------------+----------------+
-+F+customer_id         +16        +      +2:    +**Integer** +**10:65535**    +
++F+customer_id         +16        +      +2:    +**Integer** +**10...65535**  +
 +-+--------------------+----------+------+------+------------+----------------+
 +F+first_name          +Jane      +      +:60   +            +                +
 +-+--------------------+----------+------+------+------------+----------------+
@@ -492,8 +493,8 @@ The column *Type* can contain one of several available types. The column
 
 In case of ``customer_id``, the type is ``Integer``. In this case, the
 rule can specify a valid range. The syntax for the range is the same
-we've been using already for the *Length* column. So ``10:65535`` means
-"between 10 and 65535".
+we've been using already for the *Length* column. So ``10...65535``
+means "between 10 and 65535".
 
 For ``gender``, the type is ``Choice`` which means that every value in
 this field must be in a list of possible choices specified with the

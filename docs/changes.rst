@@ -8,6 +8,10 @@ This chapter describes improvements compared to earlier versions of cutplace.
 Version 0.8.2, 2015-01-xx
 =========================
 
+* Changed syntax for ranges to prefer ellipsis (``...``) to colon (``:``)
+  because it expresses the intended meaning more clearly. The colon is still
+  supported so existing CID can remain the same, but the documentation and examples use
+
 * Cleaned up :option:`--help`:
 
   * Removed description of obsolete option :option:`--cid-encoding`.

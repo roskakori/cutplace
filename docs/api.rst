@@ -9,65 +9,64 @@ Overview
 
 Additionally to the command line tool ``cutplace`` all functions are available
 as Python API. For a complete reference about all public classes and functions,
-visit <http://roskakori.github.com/cutplace/api/>.
+refer to the :ref:`modindex`.
 
 This chapter describes how to perform a basic validation of a simple CSV file
 containing data about some customers. It also explains how to extend
-cutplace's fields formats and checks.
+cutplace's fields formats and checks and implement your own.
 
 .. warning::
 
-  Due the major rework of the API with version 0.8.0 this chapter is currently
-  outdated and several code examples will not work. Possibly the online
-  version at http://cutplace.readthedocs.org/en/latest/api.html is already
-  fixed.
+  Due the major rework of the API with version 0.8.0 some sections in this
+  chapter are currently outdated and code examples might not work. Possibly
+  the online version at http://cutplace.readthedocs.org/en/latest/api.html
+  is already fixed.
 
 
 Set up logging
 ==============
 
-Cutplace uses Python's standard logging module. This provides a familiar and
-powerful way to watch what cutplace is doing. However, it also requires to
-setup the logging properly in order to gain most from it.
+Cutplace uses Python's standard :py:mod:`logging` module. This provides a
+familiar and powerful way to watch what cutplace is doing. However, it also
+requires to setup the logging properly in order to gain most from it.
 
 For a quick start, set up your application's log messages to go to the console
-and show only information, warning and errors, but no debug messages:
+and show only information, warning and errors, but no debug messages::
 
->>> import logging
->>> logging.basicConfig(level=logging.INFO)
+    >>> import logging
+    >>> logging.basicConfig(level=logging.INFO)
 
 Next trim cutplace's logging to show only warnings and errors as you might not
 be particularly interested in whatever it is cutplace does during a
-validation:
+validation::
 
->>> logging.getLogger("cutplace").setLevel(logging.WARNING)
+    >>> logging.getLogger("cutplace").setLevel(logging.WARNING)
 
 This should be enough to get you going. To learn more about logging, take a
 look at `logging chapter <http://docs.python.org/library/logging.html>`_ of
 the Python library documentation.
 
+
 Basic usage
 ===========
 
-Reading an CID
---------------
+Reading a CID
+-------------
 
-The class
-`interface.InterfaceControlDocument <api/cutplace.interface.InterfaceControlDocument-class.html>`_
-represents an CID. In case you have an CID stored in a file and want to read
-it, use:
+The class :py:mod:`cutplace.Cid` represents a CID. In case you have a CID
+stored in a file and want to read it, use::
 
->>> import os.path
->>> from cutplace import interface
->>>
->>> # Compute the path of a test file in a system independent manner,
->>> # assuming that the current folder is "docs".
->>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>> icd = interface.Cid(cid_path)
->>> icd.fieldNames
-['branch_id', 'customer_id', 'first_name', 'surname', 'gender', 'date_of_birth']
+    >>> import os.path
+    >>> from cutplace import Cid
+    >>>
+    >>> # Compute the path of a test file in a system independent manner,
+    >>> # assuming that the current folder is "docs".
+    >>> cid_path = os.path.join(os.pardir, "tests", "input", "cids", "customers.csv")
+    >>> cid = interface.Cid(cid_path)
+    >>> cid.field_names
+    ['branch_id', 'customer_id', 'first_name', 'surname', 'gender', 'date_of_birth']
 
-This is the easiest way to describe an interface. The resulting document is
+This is the easiest way to describe an interface. The input document is
 human readable even for non coders and quite simple to edit and maintain. It
 also keeps declaration and validation in separate files.
 
@@ -75,79 +74,78 @@ also keeps declaration and validation in separate files.
 Validating data
 ---------------
 
-.. WARNING::
-  The functions described in this section might still change slightly
-  in later versions and consequently require you to update your own code.
-
 Now that we know how our data are supposed to look, we can validate and optionally
-process them using
-`interface.validatedRows() <file:///Users/agi/workspace/cutplace/build/site/api/cutplace.interface-module.html#validatedRows>`_.
-This is a simple generator function that returns all data rows. If you are
-familiar with Python's ``csv.reader()``, you already know how to use it.
+process them using a :py:mod:`cutplace.Reader`, which provides a simple
+generator function :py:func:`cutplace.Reader.rows` that returns all data rows.
+If you are familiar with Python's :py:func:`csv.reader`, you already know how to
+use it.
 
-Here is a trivial example that reads all rows from a valid CSV file:
+Here is a trivial example that reads all rows from a valid CSV file::
 
->>> validCsvPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
->>> for row in interface.validatedRows(icd, validCsvPath):
-...   pass # We could also do something useful with the data in ``row`` here.
+    >>> import cutplace.Reader
+    >>> valida_data_path = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
+    >>> for row in cutplace.Reader(cid, valida_data_path).rows():
+    ...   pass  # We could also do something useful with the data in ``row`` here.
 
 In this case we only validate the data, but we could easily extend the loop
-body to process them in any meaningful such a inserting them in a database.
+body to process them in any meaningful way such as inserting them in a
+database.
 
 Now what happens if the data do not conform with the interface? Let's take a
-look at it:
+look at it::
 
->>> brokenCsvPath = os.path.join(os.pardir, "tests", "input", "broken_customers.csv")
->>> for row in interface.validatedRows(icd, brokenCsvPath):
-...   pass
-Traceback (most recent call last):
-    ...
-FieldValueError: broken_customers.csv (R4C1): field 'branch_id' must match format: value '12345' must match regular expression: '38\\d\\d\\d'
+    >>> broken_data_path = os.path.join(os.pardir, "tests", "input", "broken_customers.csv")
+    >>> for row in interface.validatedRows(cid, broken_data_path):
+    ...   pass
+    Traceback (most recent call last):
+        ...
+    FieldValueError: broken_customers.csv (R4C1): field 'branch_id' must match format: value '12345' must match regular expression: '38\\d\\d\\d'
 
 Apparently the first broken data item causes the reading to stop with an
-``Exception``. In many cases this is what you want.
+:py:exc:`Exception`. In many cases this is what you want.
 
 Sometimes however the requirements for an application will state that all
 valid data should be processed and invalid data should be put aside for
 further examination, for example by writing them to a log file. This is
-easy to do by setting the optional parameter ``errors="yield"``. With this
-enabled, the generator always returns a value even for broken rows. The difference
-however is that broken rows do not result in a list of values but in a result
-of type ``CutplaceError``. It is up to you to detect this and process the different kinds
-of results properly.
+easy to do by setting the optional parameter ``on_error='yield'``. With
+this enabled, the generator always returns a value even for broken rows. The
+difference however is that broken rows do not result in a list of values
+but in a result of type :py:exc:`cutplace.DataError`. It is up to you to
+detect this and process the different kinds of results properly.
 
-Here is an example the prints any data related errors detected during validation:
+Here is an example that prints any data related errors detected during
+validation::
 
->>> from cutplace import tools
->>> brokenCsvPath = os.path.join(os.pardir, "tests", "input", "broken_customers.csv")
->>> for rowOrError in interface.validatedRows(icd, brokenCsvPath, errors="yield"):
-...     if isinstance(rowOrError, tools.ErrorInfo):
-...         if isinstance(rowOrError.error, tools.CutplaceError):
-...             # Print data related error details and move on.
-...             print rowOrError.error
-...         else:
-...             # Let other, more severe errors terminate the validation.
-...             rowOrError.reraise()
-...     else:
-...         pass # We could also do something useful with the data in ``row`` here.
-broken_customers.csv (R4C1): field 'branch_id' must match format: value '12345' must match regular expression: '38\\d\\d\\d'
-broken_customers.csv (R5C2): field 'customer_id' must match format: value must be an integer number: 'XX'
-broken_customers.csv (R6C6): field 'date_of_birth' must match format: date must match format DD.MM.YYYY (%d.%m.%Y) but is: '30.02.1994' (day is out of range for month)
+    >>> broken_data_path = os.path.join(os.pardir, "tests", "input", "broken_customers.csv")
+    >>> reader = cutplace.Reader(cid, broken_data_path)
+    >>> for row_or_error in reader.rows(on_error="yield"):
+    ...     if isinstance(row_or_error, tools.ErrorInfo):
+    ...         if isinstance(row_or_error.error, tools.CutplaceError):
+    ...             # Print data related error details and move on.
+    ...             print row_or_error.error
+    ...         else:
+    ...             # Let other, more severe errors terminate the validation.
+    ...             raise row_or_error
+    ...     else:
+    ...         pass # We could also do something useful with the data in ``row`` here.
+    broken_customers.csv (R4C1): field 'branch_id' must match format: value '12345' must match regular expression: '38\\d\\d\\d'
+    broken_customers.csv (R5C2): field 'customer_id' must match format: value must be an integer number: 'XX'
+    broken_customers.csv (R6C6): field 'date_of_birth' must match format: date must match format DD.MM.YYYY (%d.%m.%Y) but is: '30.02.1994' (day is out of range for month)
 
 Note that it is possible for the reader to throw other exceptions, for example
-of type ``IOError`` in case the file cannot be read at all or
-``CutplaceUnicodeError`` (which does not inherit from ``CutplaceError``) in
-case the encoding does not match. You should not continue after such errors as
+:py:exc:`IOError` in case the file cannot be read at all or :py:exc:`UnicodeError`
+in case the encoding does not match. You should not continue after such errors as
 they indicate a problem not related to the data but either in the specification
 or environment.
 
-The ``errors`` parameter can also take the values ``"strict"`` (which is the
-default and raises a ``CutplaceError`` on encountering the first error as
-described above) and ``"ignore"``, which silently ignores any error and moves
-on with the next row. The latter can be useful during prototyping a new
-application when CID's and data are in a constant state of flux. In production
-code ``errors="ignore"`` mainly represents a very efficient way to shoot
-yourself into the foot.
+The ``on_error`` parameter can also take the values ``'raise'`` (which is the
+default and raises a :py:exc:`cutplace.CutplaceError` on encountering the
+first error as described above) and ``'continue'``, which silently ignores
+any error and moves on with the next row. The latter can be useful during
+prototyping a new application when CID's and data are in a constant state of
+flux. In production code ``on_error='continue'`` mainly represents a very
+efficient way to shoot yourself into the foot.
+
 
 Processing data
 ---------------
@@ -155,276 +153,100 @@ Processing data
 As a first step, we should figure out where in each row we can find the first
 name and the surname. We need to do this only once so this happens outside of
 the processing loop. The names used to find the indices must match the names
-used in the CID.
+used in the CID::
 
+    >>> first_name_index = cid.field_index('first_name')
+    >>> surname_index =  cid.field_index('surname')
 
->>> firstNameIndex = icd.getFieldNameIndex("first_name")
->>> surnameIndex =  icd.getFieldNameIndex("surname")
+Now we can read the data just like before. Instead of a simple ``pass`` loop
+we obtain the first name from ``row`` and check if it starts with ``'J'``. If
+so, we compute the full name and print it::
 
-Now we can read the data just like before. Instead of a simple ``pass`` loop we
-obtain the first name from ``row`` and check if it starts with "J". If so, we
-compute the full name and print it:
+    >>> for row in Reader(cid, valid_data_path).rows():
+    ...   first_name = row[first_name_index]
+    ...   if first_name.startswith('J'):
+    ...      surname = row[surname_index]
+    ...      full_name = surname + ", " + first_name
+    ...      print(full_name)
+    Doe, John
+    Miller, Jane
 
->>> for row in interface.validatedRows(icd, validCsvPath):
-...   firstName = row[firstNameIndex]
-...   if firstName.startswith("J"):
-...      surname = row[surnameIndex]
-...      fullName = surname + ", " + firstName
-...      print fullName
-Doe, John
-Miller, Jane
-
-Of course nothing prevents you from doing more glamourous things here like
+Of course nothing prevents you from doing more glamorous things here like
 inserting the data into a database or rendering them to a dynamic web page.
+
 
 Putting it all together
 -----------------------
 
 To recapitulate and summarize the previous sections here is a little code
 fragment containing a complete example you can use as base for your own
-validation code:
+validation code::
 
->>> # Validate a test CSV file.
->>> import os.path
->>> from cutplace import interface
->>> # Change this to use your own files.
->>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
->>> # Define the interface.
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(cid_path)
->>> # Validate the data.
->>> for row in interface.validatedRows(icd, dataPath):
-...   pass # We could also do something useful with the data in
-fragment containing a complete example you can use as base for your own
-validation code:
-
->>> # Validate a test CSV file.
->>> import os.path
->>> from cutplace import interface
->>> # Change this to use your own files.
->>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
->>> # Define the interface.
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(cid_path)
->>> # Validate the data.
->>> for row in interface.validatedRows(icd, dataPath):
-...   pass # We could also do something useful with the data in
-fragment containing a complete example you can use as base for your own
-validation code:
-
->>> # Validate a test CSV file.
->>> import os.path
->>> from cutplace import interface
->>> # Change this to use your own files.
->>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
->>> # Define the interface.
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(cid_path)
->>> # Validate the data.
->>> for row in interface.validatedRows(icd, dataPath):
-...   pass # We could also do something useful with the data in
-fragment containing a complete example you can use as base for your own
-validation code:
-
->>> # Validate a test CSV file.
->>> import os.path
->>> from cutplace import interface
->>> # Change this to use your own files.
->>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
->>> # Define the interface.
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(cid_path)
->>> # Validate the data.
->>> for row in interface.validatedRows(icd, dataPath):
-...   pass # We could also do something useful with the data in
-fragment containing a complete example you can use as base for your own
-validation code:
-
->>> # Validate a test CSV file.
->>> import os.path
->>> from cutplace import interface
->>> # Change this to use your own files.
->>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
->>> # Define the interface.
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(cid_path)
->>> # Validate the data.
->>> for row in interface.validatedRows(icd, dataPath):
-...   pass # We could also do something useful with the data in
-fragment containing a complete example you can use as base for your own
-validation code:
-
->>> # Validate a test CSV file.
->>> import os.path
->>> from cutplace import interface
->>> # Change this to use your own files.
->>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
->>> # Define the interface.
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(cid_path)
->>> # Validate the data.
->>> for row in interface.validatedRows(icd, dataPath):
-...   pass # We could also do something useful with the data in
-fragment containing a complete example you can use as base for your own
-validation code:
-
->>> # Validate a test CSV file.
->>> import os.path
->>> from cutplace import interface
->>> # Change this to use your own files.
->>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
->>> # Define the interface.
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(cid_path)
->>> # Validate the data.
->>> for row in interface.validatedRows(icd, dataPath):
-...   pass # We could also do something useful with the data in
-fragment containing a complete example you can use as base for your own
-validation code:
-
->>> # Validate a test CSV file.
->>> import os.path
->>> from cutplace import interface
->>> # Change this to use your own files.
->>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
->>> # Define the interface.
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(cid_path)
->>> # Validate the data.
->>> for row in interface.validatedRows(icd, dataPath):
-...   pass # We could also do something useful with the data in
-fragment containing a complete example you can use as base for your own
-validation code:
-
->>> # Validate a test CSV file.
->>> import os.path
->>> from cutplace import interface
->>> # Change this to use your own files.
->>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
->>> # Define the interface.
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(cid_path)
->>> # Validate the data.
->>> for row in interface.validatedRows(icd, dataPath):
-...   pass # We could also do something useful with the data in
-fragment containing a complete example you can use as base for your own
-validation code:
-
->>> # Validate a test CSV file.
->>> import os.path
->>> from cutplace import interface
->>> # Change this to use your own files.
->>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
->>> # Define the interface.
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(cid_path)
->>> # Validate the data.
->>> for row in interface.validatedRows(icd, dataPath):
-...   pass # We could also do something useful with the data in
-fragment containing a complete example you can use as base for your own
-validation code:
-
->>> # Validate a test CSV file.
->>> import os.path
->>> from cutplace import interface
->>> # Change this to use your own files.
->>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
->>> # Define the interface.
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(cid_path)
->>> # Validate the data.
->>> for row in interface.validatedRows(icd, dataPath):
-...   pass # We could also do something useful with the data in
-fragment containing a complete example you can use as base for your own
-validation code:
-
->>> # Validate a test CSV file.
->>> import os.path
->>> from cutplace import interface
->>> # Change this to use your own files.
->>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
->>> # Define the interface.
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(cid_path)
->>> # Validate the data.
->>> for row in interface.validatedRows(icd, dataPath):
-...   pass # We could also do something useful with the data in
-fragment containing a complete example you can use as base for your own
-validation code:
-
->>> # Validate a test CSV file.
->>> import os.path
->>> from cutplace import interface
->>> # Change this to use your own files.
->>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>> dataPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
->>> # Define the interface.
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(cid_path)
->>> # Validate the data.
->>> for row in interface.validatedRows(icd, dataPath):
-...   pass # We could also do something useful with the data in ``row`` here.
+    >>> # Validate a test CSV file.
+    >>> import os.path
+    >>> from cutplace import Cid, Reader
+    >>> # Change this to use your own files.
+    >>> cid_path = os.path.join(os.pardir, "tests", "input", "cids", "customers.csv")
+    >>> data_path = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
+    >>> # Define the interface.
+    >>> cid = Cid(cid_path)
+    >>> # Validate the data.
+    >>> for row in Reader(cid, data_path).rows():
+    ...   pass # We could also do something useful with the data in ``row`` here.
 
 In case you want to process the data, simply replace the ``pass`` inside the
 loop by whatever needs to be done.
 
 In case you want to continue even if a row was rejected, use the optional
-parameter ``errors="yield"`` as described earlier.
+parameter ``on_error="yield"`` as described earlier.
 
-Writting data
--------------
 
-To validate written data, use ``interface.Writer``. A ``Writer`` needs an CID
-tovalidate against and an output to write to. The output can be any filelike
-object such as a file or a ``StringIO``. For example::
+.. #84: Add validated writing.
 
-  >>> import StringIO
-  >>> out = StringIO.StringIO()
+    Writting data
+    -------------
 
-Now you can create a writer and write a valid row to it::
+    To validate written data, use ``interface.Writer``. A ``Writer`` needs a CID
+    tovalidate against and an output to write to. The output can be any filelike
+    object such as a file or a ``StringIO``. For example::
 
-  >>> writer = interface.Writer(icd, out)
-  >>> writer.writeRow(['38000', '234', 'John', 'Doe', 'male', '08.03.1957'])
+      >>> import StringIO
+      >>> out = StringIO.StringIO()
 
-Attempting to write broken data results in an ``Exception`` derived from
-``CutplaceError``::
+    Now you can create a writer and write a valid row to it::
 
-  >>> writer.writeRow(['38000', 'not a number', 'Jane', 'Miller', 'female', '04.10.1946']) #doctest: +IGNORE_EXCEPTION_DETAIL
-  Traceback (most recent call last):
-  FieldValueError: <io> (R1C2): field 'customer_id' must match format: value must be an integer number: 'not a number'
+      >>> writer = interface.Writer(cid, out)
+      >>> writer.writeRow(['38000', '234', 'John', 'Doe', 'male', '08.03.1957'])
 
-Note that after a ``CutplaceError`` you can continue writing. For any other
-``Exception`` such as ``IOError`` it is recommended to stop writing and
-consider it an unrecoverable situation.
+    Attempting to write broken data results in an ``Exception`` derived from
+    ``CutplaceError``::
 
-Once done, close both the writer and the output::
+      >>> writer.writeRow(['38000', 'not a number', 'Jane', 'Miller', 'female', '04.10.1946']) #doctest: +IGNORE_EXCEPTION_DETAIL
+      Traceback (most recent call last):
+      FieldValueError: <io> (R1C2): field 'customer_id' must match format: value must be an integer number: 'not a number'
 
-  >>> writer.close()
-  >>> out.close()
+    Note that after a ``CutplaceError`` you can continue writing. For any other
+    ``Exception`` such as ``IOError`` it is recommended to stop writing and
+    consider it an unrecoverable situation.
 
-As ``interface.Writer`` implements the context management protocoll, you can
-also use the ``with`` statement to automatically ``close()`` it when done.
+    Once done, close both the writer and the output::
 
-Note that ``Writer.close()`` performs cutplace checks and consequently can
-raise a ``CheckError``.
+      >>> writer.close()
+      >>> out.close()
+
+    As ``interface.Writer`` implements the context management protocoll, you can
+    also use the ``with`` statement to automatically ``close()`` it when done.
+
+    Note that ``Writer.close()`` performs cutplace checks and consequently can
+    raise a ``CheckError``.
 
 
 Advanced usage
 ==============
 
-In the previous section, you learned how to read an CID and use it to validate
+.. warning:: This section is out of date and needs to be reworked.
+
+In the previous section, you learned how to read a CID and use it to validate
 data using a few simple API calls. You also learned how to handle errors
 detected in the data.
 
@@ -443,403 +265,63 @@ or just want to know what else cutplace offers in case you might need it one
 day, the following sections describe the lower level hooks of cutplace API.
 They are more powerful and flexible, but also more difficult to use.
 
-Building an CID in the code
----------------------------
+
+Building a CID in the code
+--------------------------
 
 In some cases it might be preferable to include the CID in the code, for
 instance for trivial interfaces that are only used internally. Here is an
 example of a simple CID for CSV data with 3 fields:
 
-First, import the necessary modules:
+First, import the necessary modules::
 
->>> from cutplace import data
->>> from cutplace import fields
->>> from cutplace import interface
+    >>> from cutplace import data
+    >>> from cutplace import fields
+    >>> from cutplace import interface
 
-Next create an empty CID:
+Next create an empty CID::
 
->>> icd = interface.InterfaceControlDocument()
+    >>> cid = Cid()
 
 As the CID will not be read from an input file, error messages would not be
 able to refer to any file in case of errors. To have at least some reference,
-we need to tell the CID that it is declared from source code:
+we need to tell the CID that it is declared from source code::
 
->>> icd.setLocationToSourceCode()
+    >>> cid.set_location_to_caller()
 
 That way, error messages will refer you to the Python module where this call
 happened.
 
->>> # Use CSV as data format. This is the same as having a spreadsheet
->>> # with the cells:
->>> #
->>> # | F | Format         | CSV |
->>> # | F | Item separator | ;   |
->>> icd.addDataFormat([data.KEY_FORMAT, data.FORMAT_CSV])
->>> icd.addDataFormat([data.KEY_ITEM_DELIMITER, ";"])
->>>
->>> # Add a couple of fields.
->>> icd.addFieldFormat(["id", "", "", "1:5", "Integer"])
->>> icd.addFieldFormat(["name"])
->>> icd.addFieldFormat(["dateOfBirth", "", "X", "", "DateTime", "YYYY-MM-DD"])
->>>
->>> # Make sure that the
-instance for trivial interfaces that are only used internally. Here is an
-example of a simple CID for CSV data with 3 fields:
-
-First, import the necessary modules:
-
->>> from cutplace import data
->>> from cutplace import fields
->>> from cutplace import interface
-
-Next create an empty CID:
-
->>> icd = interface.InterfaceControlDocument()
-
-As the CID will not be read from an input file, error messages would not be
-able to refer to any file in case of errors. To have at least some reference,
-we need to tell the CID that it is declared from source code:
-
->>> icd.setLocationToSourceCode()
-
-That way, error messages will refer you to the Python module where this call
-happened.
-
->>> # Use CSV as data format. This is the same as having a spreadsheet
->>> # with the cells:
->>> #
->>> # | F | Format         | CSV |
->>> # | F | Item separator | ;   |
->>> icd.addDataFormat([data.KEY_FORMAT, data.FORMAT_CSV])
->>> icd.addDataFormat([data.KEY_ITEM_DELIMITER, ";"])
->>>
->>> # Add a couple of fields.
->>> icd.addFieldFormat(["id", "", "", "1:5", "Integer"])
->>> icd.addFieldFormat(["name"])
->>> icd.addFieldFormat(["dateOfBirth", "", "X", "", "DateTime", "YYYY-MM-DD"])
->>>
->>> # Make sure that the
-instance for trivial interfaces that are only used internally. Here is an
-example of a simple CID for CSV data with 3 fields:
-
-First, import the necessary modules:
-
->>> from cutplace import data
->>> from cutplace import fields
->>> from cutplace import interface
-
-Next create an empty CID:
-
->>> icd = interface.InterfaceControlDocument()
-
-As the CID will not be read from an input file, error messages would not be
-able to refer to any file in case of errors. To have at least some reference,
-we need to tell the CID that it is declared from source code:
-
->>> icd.setLocationToSourceCode()
-
-That way, error messages will refer you to the Python module where this call
-happened.
-
->>> # Use CSV as data format. This is the same as having a spreadsheet
->>> # with the cells:
->>> #
->>> # | F | Format         | CSV |
->>> # | F | Item separator | ;   |
->>> icd.addDataFormat([data.KEY_FORMAT, data.FORMAT_CSV])
->>> icd.addDataFormat([data.KEY_ITEM_DELIMITER, ";"])
->>>
->>> # Add a couple of fields.
->>> icd.addFieldFormat(["id", "", "", "1:5", "Integer"])
->>> icd.addFieldFormat(["name"])
->>> icd.addFieldFormat(["dateOfBirth", "", "X", "", "DateTime", "YYYY-MM-DD"])
->>>
->>> # Make sure that the
-instance for trivial interfaces that are only used internally. Here is an
-example of a simple CID for CSV data with 3 fields:
-
-First, import the necessary modules:
-
->>> from cutplace import data
->>> from cutplace import fields
->>> from cutplace import interface
-
-Next create an empty CID:
-
->>> icd = interface.InterfaceControlDocument()
-
-As the CID will not be read from an input file, error messages would not be
-able to refer to any file in case of errors. To have at least some reference,
-we need to tell the CID that it is declared from source code:
-
->>> icd.setLocationToSourceCode()
-
-That way, error messages will refer you to the Python module where this call
-happened.
-
->>> # Use CSV as data format. This is the same as having a spreadsheet
->>> # with the cells:
->>> #
->>> # | F | Format         | CSV |
->>> # | F | Item separator | ;   |
->>> icd.addDataFormat([data.KEY_FORMAT, data.FORMAT_CSV])
->>> icd.addDataFormat([data.KEY_ITEM_DELIMITER, ";"])
->>>
->>> # Add a couple of fields.
->>> icd.addFieldFormat(["id", "", "", "1:5", "Integer"])
->>> icd.addFieldFormat(["name"])
->>> icd.addFieldFormat(["dateOfBirth", "", "X", "", "DateTime", "YYYY-MM-DD"])
->>>
->>> # Make sure that the
-instance for trivial interfaces that are only used internally. Here is an
-example of a simple CID for CSV data with 3 fields:
-
-First, import the necessary modules:
-
->>> from cutplace import data
->>> from cutplace import fields
->>> from cutplace import interface
-
-Next create an empty CID:
-
->>> icd = interface.InterfaceControlDocument()
-
-As the CID will not be read from an input file, error messages would not be
-able to refer to any file in case of errors. To have at least some reference,
-we need to tell the CID that it is declared from source code:
-
->>> icd.setLocationToSourceCode()
-
-That way, error messages will refer you to the Python module where this call
-happened.
-
->>> # Use CSV as data format. This is the same as having a spreadsheet
->>> # with the cells:
->>> #
->>> # | F | Format         | CSV |
->>> # | F | Item separator | ;   |
->>> icd.addDataFormat([data.KEY_FORMAT, data.FORMAT_CSV])
->>> icd.addDataFormat([data.KEY_ITEM_DELIMITER, ";"])
->>>
->>> # Add a couple of fields.
->>> icd.addFieldFormat(["id", "", "", "1:5", "Integer"])
->>> icd.addFieldFormat(["name"])
->>> icd.addFieldFormat(["dateOfBirth", "", "X", "", "DateTime", "YYYY-MM-DD"])
->>>
->>> # Make sure that the
-instance for trivial interfaces that are only used internally. Here is an
-example of a simple CID for CSV data with 3 fields:
-
-First, import the necessary modules:
-
->>> from cutplace import data
->>> from cutplace import fields
->>> from cutplace import interface
-
-Next create an empty CID:
-
->>> icd = interface.InterfaceControlDocument()
-
-As the CID will not be read from an input file, error messages would not be
-able to refer to any file in case of errors. To have at least some reference,
-we need to tell the CID that it is declared from source code:
-
->>> icd.setLocationToSourceCode()
-
-That way, error messages will refer you to the Python module where this call
-happened.
-
->>> # Use CSV as data format. This is the same as having a spreadsheet
->>> # with the cells:
->>> #
->>> # | F | Format         | CSV |
->>> # | F | Item separator | ;   |
->>> icd.addDataFormat([data.KEY_FORMAT, data.FORMAT_CSV])
->>> icd.addDataFormat([data.KEY_ITEM_DELIMITER, ";"])
->>>
->>> # Add a couple of fields.
->>> icd.addFieldFormat(["id", "", "", "1:5", "Integer"])
->>> icd.addFieldFormat(["name"])
->>> icd.addFieldFormat(["dateOfBirth", "", "X", "", "DateTime", "YYYY-MM-DD"])
->>>
->>> # Make sure that the
-instance for trivial interfaces that are only used internally. Here is an
-example of a simple CID for CSV data with 3 fields:
-
-First, import the necessary modules:
-
->>> from cutplace import data
->>> from cutplace import fields
->>> from cutplace import interface
-
-Next create an empty CID:
-
->>> icd = interface.InterfaceControlDocument()
-
-As the CID will not be read from an input file, error messages would not be
-able to refer to any file in case of errors. To have at least some reference,
-we need to tell the CID that it is declared from source code:
-
->>> icd.setLocationToSourceCode()
-
-That way, error messages will refer you to the Python module where this call
-happened.
-
->>> # Use CSV as data format. This is the same as having a spreadsheet
->>> # with the cells:
->>> #
->>> # | F | Format         | CSV |
->>> # | F | Item separator | ;   |
->>> icd.addDataFormat([data.KEY_FORMAT, data.FORMAT_CSV])
->>> icd.addDataFormat([data.KEY_ITEM_DELIMITER, ";"])
->>>
->>> # Add a couple of fields.
->>> icd.addFieldFormat(["id", "", "", "1:5", "Integer"])
->>> icd.addFieldFormat(["name"])
->>> icd.addFieldFormat(["dateOfBirth", "", "X", "", "DateTime", "YYYY-MM-DD"])
->>>
->>> # Make sure that the
-instance for trivial interfaces that are only used internally. Here is an
-example of a simple CID for CSV data with 3 fields:
-
-First, import the necessary modules:
-
->>> from cutplace import data
->>> from cutplace import fields
->>> from cutplace import interface
-
-Next create an empty CID:
-
->>> icd = interface.InterfaceControlDocument()
-
-As the CID will not be read from an input file, error messages would not be
-able to refer to any file in case of errors. To have at least some reference,
-we need to tell the CID that it is declared from source code:
-
->>> icd.setLocationToSourceCode()
-
-That way, error messages will refer you to the Python module where this call
-happened.
-
->>> # Use CSV as data format. This is the same as having a spreadsheet
->>> # with the cells:
->>> #
->>> # | F | Format         | CSV |
->>> # | F | Item separator | ;   |
->>> icd.addDataFormat([data.KEY_FORMAT, data.FORMAT_CSV])
->>> icd.addDataFormat([data.KEY_ITEM_DELIMITER, ";"])
->>>
->>> # Add a couple of fields.
->>> icd.addFieldFormat(["id", "", "", "1:5", "Integer"])
->>> icd.addFieldFormat(["name"])
->>> icd.addFieldFormat(["dateOfBirth", "", "X", "", "DateTime", "YYYY-MM-DD"])
->>>
->>> # Make sure that the
-instance for trivial interfaces that are only used internally. Here is an
-example of a simple CID for CSV data with 3 fields:
-
-First, import the necessary modules:
-
->>> from cutplace import data
->>> from cutplace import fields
->>> from cutplace import interface
-
-Next create an empty CID:
-
->>> icd = interface.InterfaceControlDocument()
-
-As the CID will not be read from an input file, error messages would not be
-able to refer to any file in case of errors. To have at least some reference,
-we need to tell the CID that it is declared from source code:
-
->>> icd.setLocationToSourceCode()
-
-That way, error messages will refer you to the Python module where this call
-happened.
-
->>> # Use CSV as data format. This is the same as having a spreadsheet
->>> # with the cells:
->>> #
->>> # | F | Format         | CSV |
->>> # | F | Item separator | ;   |
->>> icd.addDataFormat([data.KEY_FORMAT, data.FORMAT_CSV])
->>> icd.addDataFormat([data.KEY_ITEM_DELIMITER, ";"])
->>>
->>> # Add a couple of fields.
->>> icd.addFieldFormat(["id", "", "", "1:5", "Integer"])
->>> icd.addFieldFormat(["name"])
->>> icd.addFieldFormat(["dateOfBirth", "", "X", "", "DateTime", "YYYY-MM-DD"])
->>>
->>> # Make sure that the `id` field contains only unique values.
->>> icd.addCheck(["id_must_be_unique", "IsUnique", "id"])
-
->>> icd.fieldNames
-['id', 'name', 'dateOfBirth']
+Next we can add rows as read from a CID file using
+:py:meth:`cutplace.Cid.add_data_format()`,
+:py:meth:`cutplace.Cid.add_field_format()` and
+:py:meth:`cutplace.Cid.add_check()`::
+
+    >>> # Use CSV as data format. This is the same as having a spreadsheet
+    >>> # with the cells:
+    >>> #
+    >>> # | F | Format         | CSV |
+    >>> # | F | Item separator | ;   |
+    >>> cid.add_data_format([data.KEY_FORMAT, data.FORMAT_CSV])
+    >>> cid.add_data_format([data.KEY_ITEM_DELIMITER, ";"])
+    >>>
+    >>> # Add a couple of fields.
+    >>> cid.add_field_format(["id", "", "", "1...5", "Integer"])
+    >>> cid.add_field_format(["name"])
+    >>> cid.add_field_format(["date_of_birth", "", "X", "", "DateTime", "YYYY-MM-DD"])
+    >>>
+    >>> # Make sure that the ``id`` field contains only unique values.
+    >>> cid.add_check(["id_must_be_unique", "IsUnique", "id"])
+    >>> cid.fieldNames
+    ['id', 'name', 'date_of_birth']
 
 If any of this methods cannot handle the parameters you passed, they raise a
-``CutplaceError`` with a message describing what went wrong. For example::
+:py:exc:`cutplace.CutplaceError` with a message describing what went wrong.
+For example::
 
-  >>> icd.addCheck([]) #doctest: +IGNORE_EXCEPTION_DETAIL
-  Traceback (most recent call last):
-  InterfaceError: <source> (R1C2): check row (marked with 'c') must contain at least 2 columns
-
-Validating with listeners
--------------------------
-
-Once the CID is set up, you can validate data using ``validate()``:
-
->>> cid_path = os.path.join(os.pardir, "tests", "input", "icds", "customers.csv")
->>> icd = interface.InterfaceControlDocument()
->>> icd.read(cid_path)
->>>
->>> validCsvPath = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
->>> icd.validate(validCsvPath)
-
-So what happens if the data contain errors? Let's give it a try:
-
->>> brokenCsvPath = os.path.join(os.pardir, "tests", "input", "broken_customers.csv")
->>> icd.validate(brokenCsvPath)
-
-Again, the validation runs through without any ``Exception`` or other
-indication that something is wrong.
-
-The reason for that is that cutplace should be able to continue in case a data
-row is rejected. Raising an ``Exception`` would defeat that. So instead, it
-informs interested listeners about validation events. To act on events, define
-a class inheriting from ``BaseValidationListener`` and overwrite the methods
-for the events you are interested in:
-
->>> class ErrorPrintingValidationListener(interface.BaseValidationListener):
-...     def rejectedRow(self, row, error):
-...         print "%r" % row
-...         print "error: %s" % error
-
-This is a very simple listener which is only interested about rejected rows. In
-case this happens, it simply prints the row and the error that was detected in it.
-To learn about other events this listener can receive, take a look at the API
-documentation of
-`BaseValidationListener <api/cutplace.interface.BaseValidationListener-class.html>`_
-
-To actually get some information about validation errors, you have to create
-such a listener and attach it to an CID:
-
->>> errorPrintingValidationListener = ErrorPrintingValidationListener()
->>> icd.addValidationListener(errorPrintingValidationListener)
-
-Let's see what happens if we validate broken data again:
-
->>> icd.validate(brokenCsvPath)
-['12345', '92', 'Bill', 'Carter', 'male', '05.04.1953']
-error: broken_customers.csv (R4C1): field 'branch_id' must match format: value '12345' must match regular expression: '38\\d\\d\\d'
-['38111', 'XX', 'Sue', 'Brown', 'female', '08.02.1962']
-error: broken_customers.csv (R5C2): field 'customer_id' must match format: value must be an integer number: 'XX'
-['38088', '83', 'Rose', 'Baker', 'female', '30.02.1994']
-error: broken_customers.csv (R6C6): field 'date_of_birth' must match format: date must match format DD.MM.YYYY (%d.%m.%Y) but is: '30.02.1994' (day is out of range for month)
-
-When you are done, remove the listener::
-
->>> icd.removeValidationListener(errorPrintingValidationListener)
-
+    >>> cid.add_check([]) #doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+    InterfaceError: <source> (R1C2): check row (marked with 'c') must contain at least 2 columns
 
 Writing field formats
 ---------------------
@@ -849,79 +331,78 @@ Cutplace already ships with several field formats found in
 however you have some very special requirements, you can write your own
 formats.
 
-Simply inherit from ``AbstractFieldFormat`` and optionally provide a
-constructor to parse the ``rule`` parameter. Next, implement
-``validatedValue(self, value)`` that validates that the text in ``value``
-conforms to ``rule``. If not, raise an ``FieldValueError`` with a descriptive
-error message.
+Simply inherit from :py:class:`cutplace.fields.AbstractFieldFormat` and
+optionally provide a constructor to parse the ``rule`` parameter. Next,
+implement :py:meth:`~cutplace.fields.AbstractFieldFormat.validated_value()`
+which validates that the text in ``value`` conforms to ``rule``. If not,
+raise a :py:exc:`FieldValueError` with a descriptive error message.
 
 Here is a very simple example of a field format that accepts values of "red",
-"green" and "blue".
+"green" and "blue"::
 
->>> class ColorFieldFormat(fields.AbstractFieldFormat):
-...     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
-...         super(ColorFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue="")
-...
-...     def validatedValue(self, value):
-...         # Validate that ``value`` is a color and return it.
-...         assert value
-...         if value not in ["red", "green", "blue"]:
-...             raise fields.FieldValueError("color value is %r but must be one of: red, green, blue" % value)
-...         return value
+    >>> class ColorFieldFormat(fields.AbstractFieldFormat):
+    ...     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
+    ...         super(ColorFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue="")
+    ...
+    ...     def validated_value(self, value):
+    ...         # Validate that ``value`` is a color and return it.
+    ...         assert value
+    ...         if value not in ["red", "green", "blue"]:
+    ...             raise fields.FieldValueError("color value is %r but must be one of: red, green, blue" % value)
+    ...         return value
 
 The ``value`` parameter is a Unicode string. Cutplace ensures that
-``validatedValue()`` will never be called with an empty ``value`` parameter,
-hence the ``assert value`` - it will cause an ``AssertionError`` if ``value``
-is ``""`` or ``None`` because that would mean cutplace is broken.
+:py:meth:`~cutplace.fields.AbstractFieldFormat.validated_value()` will never
+be called with an empty ``value`` parameter, hence the ``assert value`` - it
+will cause an :py:exc:`AssertionError` if ``value`` is ``''`` or ``None``
+because that would mean that the caller is broken.
 
->>> colorField = ColorFieldFormat("roofColor", False, "", "", icd.dataFormat)
->>> colorField.validated("red")
-'red'
+    >>> color_field = ColorFieldFormat('roof_color', False, '', '', cid.data_format)
+    >>> color_field.validated('red')
+    'red'
 
-Of course you could have achieved similar results using `fields.ChoiceFieldFormat
-<api/fields.ChoiceFieldFormat-class.html>`_. However, a custom field format can
-do more. In particular, ``validatedValue()`` does not have to return a string.
-It can return any Python type and even ``None``. The result will be used in the
-``row`` array cutplace sends to any `BaseValidationListener.acceptedRow()
-<api/cutplace.interface.BaseValidationListener-class.html#acceptedRow>`_.
+Of course you could have achieved similar results using
+:py:class:`cutplace.ChoiceFieldFormat`. However, a custom field format can
+do more. In particular, ``validated_value()`` does not have to return a string.
+It can return any Python type and even ``None``.
 
-Here's a more advanced ``ColorFieldFormat`` that returns the color as a
-tuple of RGB items:
+Here's a more advanced :py:class`ColorFieldFormat` that returns the color as
+a tuple of RGB values between 0 and 1::
 
->>> class ColorFieldFormat(fields.AbstractFieldFormat):
-...     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
-...         super(ColorFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue="")
-...
-...     def validatedValue(self, colorName):
-...         # Validate that ``colorName`` is a color and return its RGB representation.
-...         assert colorName
-...         if colorName == "red":
-...             result = (1.0, 0.0, 0.0)
-...         elif colorName == "green":
-...             result = (0.0, 1.0, 0.0)
-...         elif colorName == "blue":
-...             result = (0.0, 1.0, 0.0)
-...         else:
-...             raise fields.FieldValueError("color name is %r but must be one of: red, green, blue" % colorName)
-...         return result
+    >>> class ColorFieldFormat(fields.AbstractFieldFormat):
+    ...     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
+    ...         super(ColorFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue="")
+    ...
+    ...     def validated_value(self, color_name):
+    ...         # Validate that ``color_name`` is a color and return its RGB representation.
+    ...         assert color_name
+    ...         if color_name == "red":
+    ...             result = (1.0, 0.0, 0.0)
+    ...         elif color_name == "green":
+    ...             result = (0.0, 1.0, 0.0)
+    ...         elif color_name == "blue":
+    ...             result = (0.0, 1.0, 0.0)
+    ...         else:
+    ...             raise fields.FieldValueError('color name is %r but must be one of: red, green, blue' % color_name)
+    ...         return result
 
-For a simple test, let's see this field format in action:
+For a simple test, let's see this field format in action::
 
->>> colorField = ColorFieldFormat("roofColor", False, "", "", icd.dataFormat)
->>> colorField.validated("red")
-(1.0, 0.0, 0.0)
->>> colorField.validated("yellow")
-Traceback (most recent call last):
-...
-FieldValueError: color name is 'yellow' but must be one of: red, green, blue
+    >>> color_field = ColorFieldFormat("roof_color", False, "", "", cid.dataFormat)
+    >>> color_field.validated("red")
+    (1.0, 0.0, 0.0)
+    >>> color_field.validated("yellow")
+    Traceback (most recent call last):
+    ...
+    FieldValueError: color name is 'yellow' but must be one of: red, green, blue
 
-Before you learned that ``validatedValue()`` never gets called with an empty
+Before you learned that ``validated_value()`` never gets called with an empty
 value. So what happens if you declare a color field that allows empty values,
 for instance:
 
->>> # Sets ``isAllowedToBeEmpty`` to ``True`` to accept empty values.
->>> colorField = ColorFieldFormat("roofColor", True, "", "", icd.dataFormat)
->>> colorField.validated("")
+>>> # Sets ``is_allowed_to_be_empty`` to ``True`` to accept empty values.
+>>> color_field = ColorFieldFormat('roof_color', True, '', '', cid.dataFormat)
+>>> color_field.validated('')
 ''
 >>> # Not quiet a color tuple...
 
@@ -939,25 +420,25 @@ slightly modified version:
 ...         super(ColorFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat,
 ...                 emptyValue=(0.0, 0.0, 0.0)) # Use black as "empty" color.
 ...
-...     def validatedValue(self, colorName):
+...     def validated_value(self, color_name):
 ...         # (Exactly same as before)
-...         assert colorName
-...         if colorName == "red":
+...         assert color_name
+...         if color_name == 'red':
 ...             result = (1.0, 0.0, 0.0)
-...         elif colorName == "green":
+...         elif color_name == 'green':
 ...             result = (0.0, 1.0, 0.0)
-...         elif colorName == "blue":
+...         elif color_name == 'blue':
 ...             result = (0.0, 1.0, 0.0)
 ...         else:
-...             raise fields.FieldValueError("color name is %r but must be one of: red, green, blue" % colorName)
+...             raise fields.FieldValueError('color name is %r but must be one of: red, green, blue' % color_name)
 ...         return result
 
 Let's give it a try:
 
->>> colorField = ColorFieldFormat("roofColor", True, "", "", icd.dataFormat)
->>> colorField.validated("red")
+>>> color_field = ColorFieldFormat('roof_color', True, '', '', cid.dataFormat)
+>>> color_field.validated('red')
 (1.0, 0.0, 0.0)
->>> colorField.validated("")
+>>> color_field.validated('')
 (0.0, 0.0, 0.0)
 
 Writing checks
@@ -982,7 +463,7 @@ formats already ensure that ``first_name`` and ``last_name`` are at most
 60 characters each. However, assuming the full name is derived using the
 expression::
 
-    last_name + ", " + first_name
+    last_name + ', ' + first_name
 
 this could lead to full names with up to 122 characters.
 
@@ -996,21 +477,21 @@ To implements this check, start by inheriting from `checks.AbstractCheck
 Next, implement a constructor to which cutplace can pass the values
 found in the CID. For example, for our check the CID would contain:
 
-+-+-------------------------------------------+------------------------+-----+
-+ +Description                                +Type                    +Rule +
-+=+===========================================+========================+=====+
-+C+full name must have at most 100 characters +FullNameLengthIsInRange +:100 +
-+-+-------------------------------------------+------------------------+-----+
++-+-------------------------------------------+------------------------+-------+
++ +Description                                +Type                    +Rule   +
++=+===========================================+========================+=======+
++C+full name must have at most 100 characters +FullNameLengthIsInRange +...100 +
++-+-------------------------------------------+------------------------+-------+
 
 When cutplace encounters this line, it will create a new check by calling
 ``checks.FullNameLengthIsInRangeCheck.__init__()``, passing the following
 parameters:
 
-* ``description="customer must be unique"``, which is just a human readable
+* ``description='customer must be unique'``, which is just a human readable
   description of the check to refer to it in error messages
-* ``rule=":100"``, which describes what exactly the check
+* ``rule='...100"``, which describes what exactly the check
   should do. Each check can define its own syntax for the rule. In case of
-  ``FullNameLengthIsInRange`` the rule describes a `ranges.Range <api/cutplace.ranges.Range-class.html>`_.
+  ``FullNameLengthIsInRange`` the rule describes a :py:class:`cutplace.Range`.
 * ``availableFieldNames=["branch_id", "customer_id", "first_name","last_name",
   "gender", "date_of_birth"]`` (as defined in the CID and using the same order)
 * ``location`` being the ``tools.Location`` in the CID where the check was defined.
@@ -1110,7 +591,7 @@ Using your own checks and field format
 --------------------------------------
 
 Now that you know how to write your own field format, it would be nice to
-actually utilize it in an CID. For this purpose, cutplace lets you import
+actually utilize it in a CID. For this purpose, cutplace lets you import
 plugins that can define their own fields.
 
 Plugins are standard Python modules that define classes based on

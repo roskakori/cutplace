@@ -33,7 +33,7 @@ Validate a CID
 ==============
 
 To validate that a CID is syntactically and semantically correct, simply run
-cutplace with the path of the CID as only option. For example, an CID stored in
+cutplace with the path of the CID as only option. For example, a CID stored in
 ODS format and named ``cid_customers.ods`` can be validated by running::
 
   cutplace cid_customers.ods
@@ -44,10 +44,10 @@ In case the CID is in good shape, no error messages appear and the exit code is
 0.
 
 
-Validate that a data file conforms to an CID
+Validate that a data file conforms to a CID
 ============================================
 
-To validate that a data file conforms to an CID, pass the path of the CID and
+To validate that a data file conforms to a CID, pass the path of the CID and
 the data file. For example using the same CID as in the previous section to
 validate a data file containing customers stored in ``cid_customers.ods``,
 run::

@@ -7,8 +7,8 @@ reference. In case you are looking for a gentle introduction, see the
 :ref:`tutorial`.
 
 
-Parts of an CID
-===============
+Parts of a CID
+==============
 
 CID's for cutplace focus on the data specific parts. They describe tabular data
 split in rows. Each row consists of fields. The number of fields per row must
@@ -209,7 +209,7 @@ F   Line delimiter      Any
 F   Item delimiter      ,
 F   Quote character     "
 F   Escape character    "
-F   Allowed characters  0:
+F   Allowed characters  0...
 ==  ==================  =====
 
 Many of these values will be fine for all practical purpose.  Most frequently
@@ -304,7 +304,7 @@ Example for fixed data format
 F   Format              Fixed
 F   Encoding            ISO-8859-15
 F   Line delimiter      LF
-F   Allowed characters  0:
+F   Allowed characters  0...
 ==  ==================  ===========
 
 .. index:: pair: data format; ODS
@@ -368,9 +368,9 @@ The field format section of the CID contains rows with the following columns:
 
 #. The optional length of the field in characters.  For separated formats, this is
    optional and takes the form ``lower_limit:upper_limit``.  For example,
-   ``10:20`` means that values in this field must contains at least 10
+   ``10...20`` means that values in this field must contains at least 10
    characters and at most 20. It is also possible to specify only a lower or
-   upper limit, for example ``10:`` means at least 10 characters ans ``:20``
+   upper limit, for example ``10...`` means at least 10 characters ans ``...20``
    means at least 20 characters.  Furthermore the length can be a single number
    with any colon (:), meaning that the length must match this number exactly.
    For fixed formats, this column takes a number that specifies the exact length
@@ -393,8 +393,8 @@ Simple examples for various field formats
 ==  =============  ==========  ======  ==========  ========  ==========
 ..  Name           Example     Empty   Length      Type      Rule
 ==  =============  ==========  ======  ==========  ========  ==========
-F   customer_id    123456                          Integer   1:999999
-F   surname        Miller              1:60        Text
+F   customer_id    123456                          Integer   1...999999
+F   surname        Miller              1...60      Text
 F   date_of_birth  1969-11-03  X                   DateTime  YYYY-MM-DD
 ==  =============  ==========  ======  ==========  ========  ==========
 
@@ -411,7 +411,7 @@ Examples for Text fields
 ==  =======  =======  =====  ======  ====  ====
 ..  Name     Example  Empty  Length  Type  Rule
 ==  =======  =======  =====  ======  ====  ====
-F   surname  Miller          1:60    Text
+F   surname  Miller          1...60  Text
 ==  =======  =======  =====  ======  ====  ====
 
 .. index:: double: field format; Integer
@@ -424,13 +424,13 @@ fractional part.
 
 Examples for Integer fields
 
-==  ======  =======  =====  ======  =======  =======
+==  ======  =======  =====  ======  =======  =========
 ..  Name    Example  Empty  Length  Type     Rule
-==  ======  =======  =====  ======  =======  =======
-F   height  3798                    Integer  0:8848
-F   weight  72              0:      Integer  0:
-F   id      1337            5       Integer  1:99999
-==  ======  =======  =====  ======  =======  =======
+==  ======  =======  =====  ======  =======  =========
+F   height  3798                    Integer  0...8848
+F   weight  72              0...    Integer  0...
+F   id      1337            5       Integer  1...99999
+==  ======  =======  =====  ======  =======  =========
 
 .. index:: double: field format; Decimal
 
@@ -547,7 +547,7 @@ Examples for Pattern fields
 ==  ============  =====  ======  =======  ============
 ..  Name          Empty  Length  Type     Rule
 ==  ============  =====  ======  =======  ============
-F   dos_filename         1:12    Pattern  ?*.*
+F   dos_filename         1...12  Pattern  ?*.*
 F   branch_id                    Pattern  B???-????-?*
 ==  ============  =====  ======  =======  ============
 
@@ -686,47 +686,47 @@ meaning.
 
 Example ranges.
 
-================  =======================================================================================================================================
-Example           Description
-================  =======================================================================================================================================
-``5:20``          Between 5 and 20
-``6:``            At least 6
-``:7``            At most 7. Sample accepted values are -5, 0, 4 or 7.  Sample rejected values would be 8, 17, or 723.
-``8``             Exactly 8, which is the only accepted value. Anything else is rejected.
-``2, 4, 6, 8``    One of the values specified, meaning 2, 4, 6 or 8.  Anything else is rejected, including 3, 5 and 7.
-``20:30, 40:50``  Everything between 20 and 30 or between 40 and 50. Sample accepted values are 20, 27, 43 and 50. Sample rejected values are 19, 31, 55.
-================  =======================================================================================================================================
+====================  =======================================================================================================================================
+Example               Description
+====================  =======================================================================================================================================
+``5...20``            Between 5 and 20
+``6...``              At least 6
+``...7``              At most 7. Sample accepted values are -5, 0, 4 or 7.  Sample rejected values would be 8, 17, or 723.
+``8``                 Exactly 8, which is the only accepted value. Anything else is rejected.
+``2, 4, 6, 8``        One of the values specified, meaning 2, 4, 6 or 8.  Anything else is rejected, including 3, 5 and 7.
+``20...30, 40...50``  Everything between 20 and 30 or between 40 and 50. Sample accepted values are 20, 27, 43 and 50. Sample rejected values are 19, 31, 55.
+====================  =======================================================================================================================================
 
-Essentially ranges are one or more values (separated by a comma (,)) that are
-either numeric constant or a lower and upper limit separated by a colon (:).
-You can omit the lower or upper limit, in which case cutplace will use a
-sensible default depending on the context. For instance, a length of ``:20``
-will use 0 as lower limit, whereas a field format of type ``Integer`` with a
-rule of ``:20`` will use the largest negative number possible on your computer
-(which depends on the amount of memory available).
+Essentially ranges are one or more values (separated by a comma (``,``)) that
+are either numeric constant or a lower and upper limit separated by an
+ellipsis (``...``). You can omit the lower or upper limit, in which case
+cutplace will use a sensible default depending on the context. For instance, a
+length of ``...20`` will use 0 as lower limit, whereas a field format of type
+``Integer`` with a rule of ``...20`` will use the smallest number possible 32
+integer number which is -2147483648.
 
 It is possible to use hexadecimal notation by starting the number with ``0x``,
 for instance:
 
-================  ================
-Example           Same as
-================  ================
-``0x0f``          ``15``
-``0x10``          ``16``
-``0xabcd``        ``43981``
-``10:0x10``       ``10:16``
-``:-0xDeadBeef``  ``:-3735928559``
-================  ================
+==================  ================
+Example             Same as
+==================  ================
+``0x0f``            ``15``
+``0x10``            ``16``
+``0xabcd``          ``43981``
+``10...0x10``       ``10...16``
+``...-0xDeadBeef``  ``...-3735928559``
+==================  ================
 
 You can also use single letters to specify range values, which are treated
-same as the numeric ASCII or Unicode value:
+the same as the numeric ASCII or Unicode value:
 
-====================  ================
-Example               Same as
-====================  ================
-``"A":"Z"``           ``65:90``
-``"A":"Z", "a":"z"``  ``65:90, 97:122``
-====================  ================
+========================  =====================
+Example                   Same as
+========================  =====================
+``"A"..."Z"``             ``65...90``
+``"A"..."Z", "a"..."z"``  ``65...90, 97...122``
+========================  =====================
 
 For unprintable letters and Unicode characters you can use Python escape
 sequences:
@@ -753,6 +753,10 @@ Symbolic name  Escaped text  Number
 ``Tab``        ``"\t"``      9
 ``Vt``         ``"\v"``      11
 =============  ============  ======
+
+For reasons of backward compatibility with version 0.7 and earlier, you can also use
+a colon (``:``) in place of the ellipsis (``...``). Additionally you can use the single
+character representation of ellipsis (``"\u2026"``) in place of three dots.
 
 .. rubric:: Footnotes
 
