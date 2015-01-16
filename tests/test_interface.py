@@ -22,6 +22,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import fnmatch
+import os.path
 import unittest
 
 from cutplace import checks
@@ -40,6 +41,11 @@ class CidTest(unittest.TestCase):
     Tests for cid module
     """
     _TEST_ENCODING = "cp1252"
+
+    def test_can_create_empty_cid(self):
+        cid = interface.Cid()
+        cid_name = os.path.splitext(os.path.basename(cid._location.file_path))[0]
+        self.assertEqual('test_interface', cid_name)
 
     def test_can_read_excel_and_create_data_format_delimited(self):
         cid_reader = interface.Cid()

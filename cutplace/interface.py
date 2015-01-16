@@ -48,6 +48,13 @@ class Cid(object):
     _VALID_IDS = [_ID_CHECK, _ID_DATA_FORMAT, _ID_FIELD_RULE]
 
     def __init__(self, cid_path=None):
+        """
+        Initialize a new CID with :py:attr:`location` pointing to ``cid_path``
+        or in case it is ``None`` to the caller location as provided by
+        :py:func:`cutplace.errors.create_caller_location`.
+
+        :param cid_path: the path to a CID or ``None``
+        """
         self._cid_path = cid_path
         self._data_format = None
         self._field_names = []
@@ -62,6 +69,8 @@ class Cid(object):
         self._field_format_name_to_class_map = self._create_name_to_class_map(fields.AbstractFieldFormat)
         if cid_path is not None:
             self.read(cid_path, rowio.auto_rows(cid_path))
+        else:
+            self.set_location_to_caller()
 
     def __str__(self):
         result = 'Cid('
@@ -72,6 +81,17 @@ class Cid(object):
                 for field_format in self.field_formats
             ])
         return result
+
+    def set_location_to_caller(self):
+        """
+        Set the internal :py:attr:`_location` to the caller function. This is
+        useful for CID's that are created programmatically to provide at
+        least some reference where possible errors in the CID originated from.
+
+        It can be called repeatedly, for instance before each
+        :py:meth:`add_check()` and :py:meth:`add_field_format()`.
+        """
+        self._location = errors.create_caller_location(['interface'])
 
     @property
     def data_format(self):
@@ -329,7 +349,7 @@ class Cid(object):
         ideally is a list is composed of 3 elements:
 
         1. description ('customer_id_must_be_unique')
-        2. type (e.g. 'IsUnique'  mapping to `checks.IsUniqueCheck`)
+        2. type (e.g. 'IsUnique'  mapping to :py:class:`cutplace.checks.IsUniqueCheck`)
         3. rule (e.g. 'customer_id')
 
         Missing items are interpreted as '', additional items are ignored.
