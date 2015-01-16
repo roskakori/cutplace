@@ -4,9 +4,7 @@
 # The behavior of the script is controlled by environment variabled defined
 # in the .travis.yml in the top level folder of the project.
 #
-# This script is taken from Scikit-Learn (http://scikit-learn.org/)
-#
-# THIS SCRIPT IS SUPPOSED TO BE AN EXAMPLE. MODIFY IT ACCORDING TO YOUR NEEDS!
+# This script is based on Scikit-Learn (http://scikit-learn.org/)
 
 set -e
 
@@ -34,6 +32,9 @@ if [[ "$DISTRIB" == "conda" ]]; then
 elif [[ "$DISTRIB" == "ubuntu" ]]; then
     # Use standard ubuntu packages in their default version
     sudo apt-get install -qq python-pip
+    
+    # Ensure that we have reasonably modern setuptools.
+    pip install setuptools>=6.0
 fi
 
 if [[ "$COVERAGE" == "true" ]]; then
