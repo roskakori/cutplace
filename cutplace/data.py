@@ -217,16 +217,16 @@ class DataFormat(object):
         if property_attribute_name not in self.__dict__:
             valid_property_names = _tools.human_readable_list(list(self.__dict__.keys()))
             raise errors.InterfaceError(
-                'data format property %r for format %s is %r but must be one of %s'
-                % (name, self.format, value, valid_property_names), location)
+                'data format property %s for format %s is %s but must be one of %s'
+                % (_compat.text_repr(name), self.format, _compat.text_repr(value), valid_property_names), location)
 
         if name == KEY_ENCODING:
             try:
                 codecs.lookup(value)
             except LookupError:
                 raise errors.InterfaceError(
-                    'value for data format property %r is %r but must be a valid encoding'
-                    % (KEY_ENCODING, self.encoding), location)
+                    'value for data format property %s is %s but must be a valid encoding'
+                    % (_compat.text_repr(KEY_ENCODING), _compat.text_repr(self.encoding)), location)
             self._encoding = value
         elif name == KEY_HEADER:
             self._header = DataFormat._validated_int_at_least_0(name, value, location)
@@ -235,8 +235,8 @@ class DataFormat(object):
                 self._allowed_characters = ranges.Range(value)
             except errors.InterfaceError as error:
                 raise errors.InterfaceError(
-                    'value for property %r must be a valid range: %s'
-                    % (KEY_ALLOWED_CHARACTERS, error), location)
+                    'value for data format property %s must be a valid range: %s'
+                    % (_compat.text_repr(KEY_ALLOWED_CHARACTERS), error), location)
         elif name == KEY_DECIMAL_SEPARATOR:
             self._decimal_separator = DataFormat._validated_choice(
                 KEY_DECIMAL_SEPARATOR, value, _VALID_DECIMAL_SEPARATORS, location)
@@ -250,8 +250,9 @@ class DataFormat(object):
                 self._line_delimiter = _TEXT_TO_LINE_DELIMITER_MAP[value]
             except KeyError:
                 raise errors.InterfaceError(
-                    'line delimiter %r must be changed to one of: %s'
-                    % (value, _tools.human_readable_list(self._VALID_LINE_DELIMITER_TEXTS)), location)
+                    'line delimiter %s must be changed to one of: %s'
+                    % (_compat.text_repr(value), _tools.human_readable_list(self._VALID_LINE_DELIMITER_TEXTS)),
+                    location)
         elif name == KEY_QUOTE_CHARACTER:
             self._quote_character = DataFormat._validated_choice(
                 KEY_QUOTE_CHARACTER, value, _VALID_QUOTE_CHARACTERS, location)
@@ -279,8 +280,8 @@ class DataFormat(object):
         result = value if not ignore_case else value.lower()
         if result not in choices:
             raise errors.InterfaceError(
-                'data format property %r is %r but must be one of: %s'
-                % (key, value, _tools.human_readable_list(choices)), location)
+                'data format property %s is %s but must be one of: %s'
+                % (_compat.text_repr(key), _compat.text_repr(value), _tools.human_readable_list(choices)), location)
         return result
 
     @staticmethod
@@ -299,10 +300,11 @@ class DataFormat(object):
             result = int(value)
         except ValueError:
             raise errors.InterfaceError(
-                'data format property %r is %r but must be a number' % (key, value), location)
+                'data format property %s is %s but must be a number'
+                % (_compat.text_repr(key), _compat.text_repr(value)), location)
         if result < 0:
             raise errors.InterfaceError(
-                'data format property %r is %d but must be at least 0' % (key, result), location)
+                'data format property %s is %d but must be at least 0' % (_compat.text_repr(key), result), location)
         return result
 
     @staticmethod
@@ -327,7 +329,7 @@ class DataFormat(object):
             next_token = next(tokens)
             if _tools.is_eof_token(next_token):
                 raise errors.InterfaceError(
-                    "value for data format property %r must be specified" % key, location)
+                    "value for data format property %s must be specified" % _compat.text_repr(key), location)
             next_type = next_token[0]
             next_value = next_token[1]
             if next_type == token.NUMBER:
@@ -340,21 +342,21 @@ class DataFormat(object):
                     long_value = int(next_value, base)
                 except ValueError:
                     raise errors.InterfaceError(
-                        'numeric value for data format property %r must be an integer but is: %r'
-                        % (key, value), location)
+                        'numeric value for data format property %s must be an integer but is: %s'
+                        % (_compat.text_repr(key), _compat.text_repr(value)), location)
             elif next_type == token.NAME:
                 try:
                     long_value = errors.NAME_TO_ASCII_CODE_MAP[next_value.lower()]
                 except KeyError:
                     valid_symbols = _tools.human_readable_list(sorted(errors.NAME_TO_ASCII_CODE_MAP.keys()))
                     raise errors.InterfaceError(
-                        'symbolic name %r for data format property %r must be one of: %s'
-                        % (value, key, valid_symbols), location)
+                        'symbolic name %s for data format property %s must be one of: %s'
+                        % (_compat.text_repr(value), _compat.text_repr(key), valid_symbols), location)
             elif next_type == token.STRING:
                 if len(next_value) != 3:
                     raise errors.InterfaceError(
-                        'text for data format property %r must be a single character but is: %r'
-                        % (key, value), location)
+                        'text for data format property %s must be a single character but is: %s'
+                        % (_compat.text_repr(key), _compat.text_repr(value)), location)
                 left_quote = next_value[0]
                 right_quote = next_value[2]
                 assert left_quote in "\"\'", "leftQuote=%r" % left_quote
@@ -362,14 +364,14 @@ class DataFormat(object):
                 long_value = ord(next_value[1])
             else:
                 raise errors.InterfaceError(
-                    'value for data format property %r must a number, a single character or a symbolic name but is: %r'
-                    % (key, value), location)
+                    'value for data format property %s must a number, a single character or a symbolic name but is: %s'
+                    % (_compat.text_repr(key), _compat.text_repr(value)), location)
             # Ensure there are no further tokens.
             next_token = next(tokens)
             if not _tools.is_eof_token(next_token):
                 raise errors.InterfaceError(
-                    'value for data format property %r must describe a single character but is: %r'
-                    % (key, value), location)
+                    'value for data format property %s must describe a single character but is: %s'
+                    % (_compat.text_repr(key), _compat.text_repr(value)), location)
             assert long_value is not None
             assert long_value >= 0
             result = chr(long_value)

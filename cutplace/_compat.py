@@ -33,10 +33,9 @@ def text_repr(text):
     Similar to `repr()` but ensures that even under Python 2 there is not
     'u' prefix for unicode strings.
     """
-    assert (text is None) or isinstance(text, six.string_types)
-
     result = repr(text)
-    if six.PY2 and result.startswith('u'):
+    if six.PY2 and isinstance(text, six.text_type):
+        assert result.startswith('u'), 'result=%r' % result
         result = result[1:]
     return result
 
