@@ -67,6 +67,7 @@ class Location(object):
 
         Common examples:
 
+        >>> from cutplace import Location
         >>> Location("data.txt", has_column=True)
         data.txt (1;1)
         >>> Location("data.csv", has_cell=True)
@@ -76,7 +77,7 @@ class Location(object):
         >>> Location("data.ods", has_column=True, has_cell=True, has_sheet=True) # for very detailed parsers
         data.ods (Sheet1!R1C1;1)
         >>> from io import StringIO
-        >>> Location(io.StringIO("some text"), has_column=True)
+        >>> Location(StringIO("some text"), has_column=True)
         <io> (1;1)
         """
         assert file_path

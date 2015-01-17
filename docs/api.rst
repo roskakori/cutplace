@@ -15,13 +15,6 @@ This chapter describes how to perform a basic validation of a simple CSV file
 containing data about some customers. It also explains how to extend
 cutplace's fields formats and checks and implement your own.
 
-.. warning::
-
-  Due the major rework of the API with version 0.8.0 some sections in this
-  chapter are currently outdated and code examples might not work. Possibly
-  the online version at http://cutplace.readthedocs.org/en/latest/api.html
-  is already fixed.
-
 
 Set up logging
 ==============
@@ -275,6 +268,7 @@ example of a simple CID for CSV data with 3 fields:
 First, import the necessary modules::
 
     >>> from cutplace import data
+    >>> from cutplace import errors
     >>> from cutplace import fields
     >>> from cutplace import interface
 
@@ -348,23 +342,23 @@ Here is a very simple example of a field format that accepts values of "red",
     ...         # Validate that ``value`` is a color and return it.
     ...         assert value
     ...         if value not in ['red', 'green', 'blue']:
-    ...             raise fields.FieldValueError('color value is %r but must be one of: red, green, blue' % value)
+    ...             raise errors.FieldValueError('color value is %r but must be one of: red, green, blue' % value)
     ...         return value
+    >>> color_field = ColorFieldFormat('roof_color', False, '', '', cid.data_format)
+    >>> color_field.validated('red')
+    'red'
 
-The ``value`` parameter is a Unicode string. Cutplace ensures that
+The ``value`` parameter is a string. Cutplace ensures that
 :py:meth:`~cutplace.fields.AbstractFieldFormat.validated_value()` will never
 be called with an empty ``value`` parameter, hence the ``assert value`` - it
 will cause an :py:exc:`AssertionError` if ``value`` is ``''`` or ``None``
 because that would mean that the caller is broken.
 
-    >>> color_field = ColorFieldFormat('roof_color', False, '', '', cid.data_format)
-    >>> color_field.validated('red')
-    'red'
-
 Of course you could have achieved similar results using
-:py:class:`cutplace.ChoiceFieldFormat`. However, a custom field format can
-do more. In particular, ``validated_value()`` does not have to return a string.
-It can return any Python type and even ``None``.
+:py:class:`~cutplace.fields.ChoiceFieldFormat`. However, a custom field
+format can do more. In particular,
+:py:meth:`~cutplace.fields.AbstractFieldFormat.validated_value()` does not
+have to return a string. It can return any Python type and even ``None``.
 
 Here's a more advanced :py:class`ColorFieldFormat` that returns the color as
 a tuple of RGB values between 0 and 1::
@@ -383,7 +377,7 @@ a tuple of RGB values between 0 and 1::
     ...         elif color_name == 'blue':
     ...             result = (0.0, 1.0, 0.0)
     ...         else:
-    ...             raise cutplace.FieldValueError('color name is %r but must be one of: red, green, blue' % color_name)
+    ...             raise errors.FieldValueError('color name is %r but must be one of: red, green, blue' % color_name)
     ...         return result
 
 For a simple test, let's see this field format in action::
@@ -396,9 +390,10 @@ For a simple test, let's see this field format in action::
     ...
     cutplace.errors.FieldValueError: color name is 'yellow' but must be one of: red, green, blue
 
-Before you learned that ``validated_value()`` never gets called with an empty
-value. So what happens if you declare a color field that allows empty values?
-For instance::
+Before you learned that
+:py:meth:`~cutplace.fields.AbstractFieldFormat.validated_value()`
+never gets called with an empty value. So what happens if you declare a color
+field that allows empty values? For example::
 
     >>> # Sets ``is_allowed_to_be_empty`` to ``True`` to accept empty values.
     >>> color_field = ColorFieldFormat('roof_color', True, '', '', cid.data_format)
@@ -493,10 +488,13 @@ parameters:
   description of the check to refer to it in error messages
 * ``rule='...100'``, which describes what exactly the check
   should do. Each check can define its own syntax for the rule. In case of
-  ``FullNameLengthIsInRange`` the rule describes a :py:class:`cutplace.Range`.
-* ``available_field_names=['branch_id', 'customer_id', 'first_name','last_name',
-  'gender', 'date_of_birth']`` (as defined in the CID and using the same order)
-* ``location`` being the :py:class:`cutplace.Location` in the CID where the check was defined.
+  ``FullNameLengthIsInRange`` the rule describes a
+  :py:class:`cutplace.ranges.Range`.
+* ``available_field_names=['branch_id', 'customer_id', 'first_name',
+  'last_name', 'gender', 'date_of_birth']`` (as defined in the CID and using
+  the same order)
+* ``location`` being the :py:class:`cutplace.errors.Location` in the CID
+  where the check was defined.
 
 The constructor basically has to do 3 things:
 
@@ -588,8 +586,8 @@ data. Instead you typically would collect all information needed by
 instance variables. For an example, take a look at the source code of
 :py:class:`cutplace.checks.IsUniqueCheck`.
 
-Because our ``FullNameLengthIsInRangeCheck`` does not need to do anything
-here, we can omit it and keep inherit an empty implementation from
+Because our :py:class:`FullNameLengthIsInRangeCheck` does not need to do
+anything here, we can omit it and keep inherit an empty implementation from
 :py:meth:`cutplace.checks.AbstractCheck.check_at_end()`.
 
 
@@ -609,6 +607,7 @@ folder named :file:`~/cutplace_plugins` and store a Python module named
 :file:`myplugins.py` in it with the following contents::
 
 .. literalinclude:: ../examples/plugins.py
+
 
 The CID can now refer to :py:class:`ColorFieldFormat` as ``Color`` (without
 ``FieldFormat``) and to :py:class:`FullNameLengthIsInRangeCheck` as

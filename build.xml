@@ -100,6 +100,16 @@
             <arg path="setup.py" />
             <arg value="test" />
         </exec>
+        <exec executable="python" failonerror="false">
+            <arg path="setup.py" />
+            <arg value="doctest" />
+        </exec>
+        <exec dir="tests" executable="python" failonerror="false">
+            <arg value="-m" />
+            <arg value="doctest" />
+            <arg value="--fail-fast" />
+            <arg path="docs/api.rst" />
+        </exec>
     </target>
 
     <target name="performance" description="run performance test" depends="sitebase">

@@ -315,49 +315,7 @@ class DataFormat(object):
         * a string containing a single character such as "\t".
         * a symbolic name such as "Tab".
 
-        Anything else yields a `InterfaceError`.
-        >>> format = DataFormat(FORMAT_DELIMITED)
-        >>> format._validated_character("x", "34")
-        '"'
-        >>> format._validated_character("x", "9")
-        '\t'
-        >>> format._validated_character("x", "0x9")
-        '\t'
-        >>> format._validated_character("x", "Tab")
-        '\t'
-        >>> format._validated_character("x", "\t")
-        '\t'
-        >>> format._validated_character("x", "")
-        Traceback (most recent call last):
-            ...
-        InterfaceError: value for data format property 'x' must be specified
-        >>> format._validated_character("x", "Tab Tab")
-        Traceback (most recent call last):
-            ...
-        InterfaceError: value for data format property 'x' must describe a single character but is: 'Tab Tab'
-        >>> format._validated_character("x", "17.23")
-        Traceback (most recent call last):
-            ...
-        InterfaceError: numeric value for data format property 'x' must be an integer but is: '17.23'
-        >>> format._validated_character("x", "Hugo")
-        Traceback (most recent call last):
-            ...
-        InterfaceError: symbolic name 'Hugo' for data format property 'x' must be one of:
-        'cr', 'ff', 'lf', 'tab' or 'vt'
-        >>> format._validated_character("x", "( ")
-        Traceback (most recent call last):
-            ...
-        InterfaceError: value for data format property 'x' must a number, a single character or
-        a symbolic name but is: '( '
-        >>> format._validated_character("x", '\"\\')
-        Traceback (most recent call last):
-            ...
-        InterfaceError: value for data format property 'x' must a number, a single character or
-        a symbolic name but is: '"\\'
-        >>> format._validated_character("x", '"abc"')
-        Traceback (most recent call last):
-            ...
-        InterfaceError: text for data format property 'x' must be a single character but is: '"abc"'
+        Anything else yields an `InterfaceError`.
         """
         # TODO: Consolidate code with `ranges.__init__()`.
         assert key

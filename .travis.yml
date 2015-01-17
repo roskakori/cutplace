@@ -20,6 +20,7 @@ script:
   - python setup.py sdist --formats=zip
   - python setup.py bdist_wheel --universal
   - python setup.py test
+  - if [[ "$PYTHON_VERSION" == "3.4" ]]; then python setup.py doctest || echo "failed"; fi
 after_success:
   - if [[ "$COVERAGE" == "true" ]]; then coveralls || echo "failed"; fi
 cache:

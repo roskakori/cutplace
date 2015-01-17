@@ -20,6 +20,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import fnmatch
 import logging
 import unittest
 
@@ -256,25 +257,54 @@ class DataFormatTest(unittest.TestCase):
         delimited_format.set_property(data.KEY_QUOTE_CHARACTER, '"')
         self.assertRaises(errors.InterfaceError, delimited_format.validate)
 
-    def test_fails_on_number_token_validated_character(self):
-        delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
-        self.assertRaises(
-            errors.InterfaceError, data.DataFormat._validated_character, 'x', '17.23', self._location)
+    def test_can_validate_character(self):
+        self.assertEqual('"', data.DataFormat._validated_character("x", "34", self._location))
+        self.assertEqual('\t', data.DataFormat._validated_character('x', '9', self._location))
+        self.assertEqual('\t', data.DataFormat._validated_character('x', '0x9', self._location))
+        self.assertEqual('\t', data.DataFormat._validated_character('x', '\t', self._location))
+        self.assertEqual('\t', data.DataFormat._validated_character('x', 'Tab', self._location))
+        # TODO: self.assertEqual('\t', data.DataFormat._validated_character('x', '"\\t"', self._location))
 
-    def test_fails_on_string_token_validated_character(self):
-        delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
-        self.assertRaises(
-            errors.InterfaceError, data.DataFormat._validated_character, 'x', '\"abc\"', self._location)
+    def _test_fails_on_broken_validated_character(self, value, anticipated_error_message_pattern):
+        try:
+            data.DataFormat._validated_character('x', value, self._location)
+            self.fail('expected InterfaceError')
+        except errors.InterfaceError as anticipated_error:
+            anticipated_error_message = str(anticipated_error)
+            if not fnmatch.fnmatch(anticipated_error_message, anticipated_error_message_pattern):
+                self.fail(
+                    'anticipated error message must match %r but is %r'
+                    % (anticipated_error_message_pattern, anticipated_error_message))
 
-    def test_fails_on_no_valid_token_validated_character(self):
-        delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
-        self.assertRaises(
-            errors.InterfaceError, data.DataFormat._validated_character, 'x', '( ', self._location)
+    def test_fails_on_validated_character_with_empty_text(self):
+        self._test_fails_on_broken_validated_character('', "*: value for data format property 'x' must be specified")
 
-    def test_fails_on_no_single_character_validated_character(self):
-        delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
-        self.assertRaises(
-            errors.InterfaceError, data.DataFormat._validated_character, 'x', 'Tab Tab', self._location)
+    def test_fails_on_validated_character_with_float(self):
+        self._test_fails_on_broken_validated_character(
+            '17.23', "*: numeric value for data format property 'x' must be an integer but is: '17.23'")
+
+    def test_fails_on_validated_character_with_with_two_symbolic_names(self):
+        self._test_fails_on_broken_validated_character(
+            'Tab Tab', "*: value for data format property 'x' must describe a single character but is: 'Tab Tab'")
+
+    def test_fails_on_validated_character_with_unknown_symbolic_name(self):
+        self._test_fails_on_broken_validated_character(
+            'spam',
+            "*: symbolic name 'spam' for data format property 'x' must be one of: 'cr', 'ff', 'lf', 'tab' or 'vt'")
+
+    def test_fails_on_validated_character_with_trailing_blank(self):
+        self._test_fails_on_broken_validated_character(
+            '( ',
+            "*: value for data format property 'x' must a number, a single character or a symbolic name but is: '( '")
+
+    def test_fails_on_validated_character_with_unterminated_string(self):
+        self._test_fails_on_broken_validated_character(
+            '\"\\',
+            '*: value for data format property \'x\' must a number, a single character or a symbolic name but is: \'"\\\\\'')
+
+    def test_fails_on_validated_character_with_multiple_characters(self):
+        self._test_fails_on_broken_validated_character(
+            '"abc"', "*: text for data format property 'x' must be a single character but is: '\"abc\"'")
 
 
 if __name__ == '__main__':
