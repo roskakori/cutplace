@@ -7,9 +7,9 @@ Application programmer interface
 Overview
 ========
 
-Additionally to the command line tool ``cutplace`` all functions are available
-as Python API. For a complete reference about all public classes and functions,
-refer to the :ref:`modindex`.
+Additionally to the command line tool :command:`cutplace` all functions are
+available as Python API. For a complete reference about all public classes
+and functions, refer to the :ref:`modindex`.
 
 This chapter describes how to perform a basic validation of a simple CSV file
 containing data about some customers. It also explains how to extend
@@ -40,7 +40,7 @@ Next trim cutplace's logging to show only warnings and errors as you might not
 be particularly interested in whatever it is cutplace does during a
 validation::
 
-    >>> logging.getLogger("cutplace").setLevel(logging.WARNING)
+    >>> logging.getLogger('cutplace').setLevel(logging.WARNING)
 
 This should be enough to get you going. To learn more about logging, take a
 look at `logging chapter <http://docs.python.org/library/logging.html>`_ of
@@ -57,12 +57,12 @@ The class :py:mod:`cutplace.Cid` represents a CID. In case you have a CID
 stored in a file and want to read it, use::
 
     >>> import os.path
-    >>> from cutplace import Cid
+    >>> import cutplace
     >>>
     >>> # Compute the path of a test file in a system independent manner,
     >>> # assuming that the current folder is "docs".
-    >>> cid_path = os.path.join(os.pardir, "tests", "input", "cids", "customers.csv")
-    >>> cid = interface.Cid(cid_path)
+    >>> cid_path = os.path.join(os.pardir, 'tests', 'data', 'cids', 'customers.ods')
+    >>> cid = cutplace.Cid(cid_path)
     >>> cid.field_names
     ['branch_id', 'customer_id', 'first_name', 'surname', 'gender', 'date_of_birth']
 
@@ -82,9 +82,8 @@ use it.
 
 Here is a trivial example that reads all rows from a valid CSV file::
 
-    >>> import cutplace.Reader
-    >>> valida_data_path = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
-    >>> for row in cutplace.Reader(cid, valida_data_path).rows():
+    >>> valid_data_path = os.path.join(os.pardir, 'tests', 'data', 'valid_customers.csv')
+    >>> for row in cutplace.Reader(cid, valid_data_path).rows():
     ...   pass  # We could also do something useful with the data in ``row`` here.
 
 In this case we only validate the data, but we could easily extend the loop
@@ -94,15 +93,17 @@ database.
 Now what happens if the data do not conform with the interface? Let's take a
 look at it::
 
-    >>> broken_data_path = os.path.join(os.pardir, "tests", "input", "broken_customers.csv")
-    >>> for row in interface.validatedRows(cid, broken_data_path):
+    >>> import cutplace.errors
+    >>> broken_data_path = os.path.join(os.pardir, 'tests', 'data', 'broken_customers.csv')
+    >>> for row in cutplace.Reader(cid, broken_data_path).rows():
     ...   pass
     Traceback (most recent call last):
         ...
-    FieldValueError: broken_customers.csv (R4C1): field 'branch_id' must match format: value '12345' must match regular expression: '38\\d\\d\\d'
+    cutplace.errors.FieldValueError: broken_customers.csv (R4C1): cannot accept field branch_id: value '12345' must match regular expression: '38\\d\\d\\d'
 
 Apparently the first broken data item causes the reading to stop with an
-:py:exc:`Exception`. In many cases this is what you want.
+:py:exc:`cutplace.errors.FieldValueError`, which is a descendant of
+:py:exc:`cutplace.errors.CutplaceError`. In many cases this is what you want.
 
 Sometimes however the requirements for an application will state that all
 valid data should be processed and invalid data should be put aside for
@@ -110,27 +111,27 @@ further examination, for example by writing them to a log file. This is
 easy to do by setting the optional parameter ``on_error='yield'``. With
 this enabled, the generator always returns a value even for broken rows. The
 difference however is that broken rows do not result in a list of values
-but in a result of type :py:exc:`cutplace.DataError`. It is up to you to
+but in a result of type :py:exc:`cutplace.errors.DataError`. It is up to you to
 detect this and process the different kinds of results properly.
 
 Here is an example that prints any data related errors detected during
 validation::
 
-    >>> broken_data_path = os.path.join(os.pardir, "tests", "input", "broken_customers.csv")
+    >>> broken_data_path = os.path.join(os.pardir, 'tests', 'data', 'broken_customers.csv')
     >>> reader = cutplace.Reader(cid, broken_data_path)
-    >>> for row_or_error in reader.rows(on_error="yield"):
-    ...     if isinstance(row_or_error, tools.ErrorInfo):
-    ...         if isinstance(row_or_error.error, tools.CutplaceError):
+    >>> for row_or_error in reader.rows(on_error='yield'):
+    ...     if isinstance(row_or_error, Exception):
+    ...         if isinstance(row_or_error, cutplace.errors.CutplaceError):
     ...             # Print data related error details and move on.
-    ...             print row_or_error.error
+    ...             print(row_or_error)
     ...         else:
     ...             # Let other, more severe errors terminate the validation.
     ...             raise row_or_error
     ...     else:
     ...         pass # We could also do something useful with the data in ``row`` here.
-    broken_customers.csv (R4C1): field 'branch_id' must match format: value '12345' must match regular expression: '38\\d\\d\\d'
-    broken_customers.csv (R5C2): field 'customer_id' must match format: value must be an integer number: 'XX'
-    broken_customers.csv (R6C6): field 'date_of_birth' must match format: date must match format DD.MM.YYYY (%d.%m.%Y) but is: '30.02.1994' (day is out of range for month)
+    broken_customers.csv (R4C1): cannot accept field branch_id: value '12345' must match regular expression: '38\\d\\d\\d'
+    broken_customers.csv (R4C2): cannot accept field customer_id: value must be an integer number: 'XX'
+    broken_customers.csv (R4C7): cannot accept field date_of_birth: date must match format DD.MM.YYYY (%d.%m.%Y) but is: '30.02.1994' (day is out of range for month)
 
 Note that it is possible for the reader to throw other exceptions, for example
 :py:exc:`IOError` in case the file cannot be read at all or :py:exc:`UnicodeError`
@@ -139,7 +140,7 @@ they indicate a problem not related to the data but either in the specification
 or environment.
 
 The ``on_error`` parameter can also take the values ``'raise'`` (which is the
-default and raises a :py:exc:`cutplace.CutplaceError` on encountering the
+default and raises a :py:exc:`cutplace.errors.CutplaceError` on encountering the
 first error as described above) and ``'continue'``, which silently ignores
 any error and moves on with the next row. The latter can be useful during
 prototyping a new application when CID's and data are in a constant state of
@@ -162,11 +163,11 @@ Now we can read the data just like before. Instead of a simple ``pass`` loop
 we obtain the first name from ``row`` and check if it starts with ``'J'``. If
 so, we compute the full name and print it::
 
-    >>> for row in Reader(cid, valid_data_path).rows():
+    >>> for row in cutplace.Reader(cid, valid_data_path).rows():
     ...   first_name = row[first_name_index]
     ...   if first_name.startswith('J'):
     ...      surname = row[surname_index]
-    ...      full_name = surname + ", " + first_name
+    ...      full_name = surname + ', ' + first_name
     ...      print(full_name)
     Doe, John
     Miller, Jane
@@ -186,8 +187,8 @@ validation code::
     >>> import os.path
     >>> from cutplace import Cid, Reader
     >>> # Change this to use your own files.
-    >>> cid_path = os.path.join(os.pardir, "tests", "input", "cids", "customers.csv")
-    >>> data_path = os.path.join(os.pardir, "tests", "input", "valid_customers.csv")
+    >>> cid_path = os.path.join(os.pardir, 'tests', 'data', 'cids', 'customers.ods')
+    >>> data_path = os.path.join(os.pardir, 'tests', 'data', 'valid_customers.csv')
     >>> # Define the interface.
     >>> cid = Cid(cid_path)
     >>> # Validate the data.
@@ -198,7 +199,7 @@ In case you want to process the data, simply replace the ``pass`` inside the
 loop by whatever needs to be done.
 
 In case you want to continue even if a row was rejected, use the optional
-parameter ``on_error="yield"`` as described earlier.
+parameter ``on_error='yield'`` as described earlier.
 
 
 .. #84: Add validated writing.
@@ -208,20 +209,20 @@ parameter ``on_error="yield"`` as described earlier.
 
     To validate written data, use ``interface.Writer``. A ``Writer`` needs a CID
     tovalidate against and an output to write to. The output can be any filelike
-    object such as a file or a ``StringIO``. For example::
+    object such as a file or an :py:class:`io.StringIO`. For example::
 
-      >>> import StringIO
-      >>> out = StringIO.StringIO()
+      ### import io
+      ### out = io.StringIO()
 
     Now you can create a writer and write a valid row to it::
 
-      >>> writer = interface.Writer(cid, out)
-      >>> writer.writeRow(['38000', '234', 'John', 'Doe', 'male', '08.03.1957'])
+      ### writer = interface.Writer(cid, out)
+      ### writer.writeRow(['38000', '234', 'John', 'Doe', 'male', '08.03.1957'])
 
     Attempting to write broken data results in an ``Exception`` derived from
     ``CutplaceError``::
 
-      >>> writer.writeRow(['38000', 'not a number', 'Jane', 'Miller', 'female', '04.10.1946']) #doctest: +IGNORE_EXCEPTION_DETAIL
+      ### writer.writeRow(['38000', 'not a number', 'Jane', 'Miller', 'female', '04.10.1946']) #doctest: +IGNORE_EXCEPTION_DETAIL
       Traceback (most recent call last):
       FieldValueError: <io> (R1C2): field 'customer_id' must match format: value must be an integer number: 'not a number'
 
@@ -231,8 +232,8 @@ parameter ``on_error="yield"`` as described earlier.
 
     Once done, close both the writer and the output::
 
-      >>> writer.close()
-      >>> out.close()
+      ### writer.close()
+      ### out.close()
 
     As ``interface.Writer`` implements the context management protocoll, you can
     also use the ``with`` statement to automatically ``close()`` it when done.
@@ -243,8 +244,6 @@ parameter ``on_error="yield"`` as described earlier.
 
 Advanced usage
 ==============
-
-.. warning:: This section is out of date and needs to be reworked.
 
 In the previous section, you learned how to read a CID and use it to validate
 data using a few simple API calls. You also learned how to handle errors
@@ -300,28 +299,29 @@ Next we can add rows as read from a CID file using
     >>> # Use CSV as data format. This is the same as having a spreadsheet
     >>> # with the cells:
     >>> #
-    >>> # | F | Format         | CSV |
+    >>> # | F | Format         | Delimited |
     >>> # | F | Item separator | ;   |
-    >>> cid.add_data_format([data.KEY_FORMAT, data.FORMAT_CSV])
-    >>> cid.add_data_format([data.KEY_ITEM_DELIMITER, ";"])
+    >>> cid.add_data_format_row([cutplace.data.KEY_FORMAT, data.FORMAT_DELIMITED])
+    >>> cid.add_data_format_row([cutplace.data.KEY_ITEM_DELIMITER, ';'])
     >>>
     >>> # Add a couple of fields.
-    >>> cid.add_field_format(["id", "", "", "1...5", "Integer"])
-    >>> cid.add_field_format(["name"])
-    >>> cid.add_field_format(["date_of_birth", "", "X", "", "DateTime", "YYYY-MM-DD"])
+    >>> cid.add_field_format(['id', '', '', '1...5', 'Integer'])
+    >>> cid.add_field_format(['name'])
+    >>> cid.add_field_format(['date_of_birth', '', 'X', '', 'DateTime', 'YYYY-MM-DD'])
     >>>
     >>> # Make sure that the ``id`` field contains only unique values.
-    >>> cid.add_check(["id_must_be_unique", "IsUnique", "id"])
-    >>> cid.fieldNames
+    >>> cid.add_check(['id_must_be_unique', 'IsUnique', 'id'])
+    >>> cid.field_names
     ['id', 'name', 'date_of_birth']
 
 If any of this methods cannot handle the parameters you passed, they raise a
-:py:exc:`cutplace.CutplaceError` with a message describing what went wrong.
+:py:exc:`cutplace.errors.CutplaceError` with a message describing what went wrong.
 For example::
 
     >>> cid.add_check([]) #doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     InterfaceError: <source> (R1C2): check row (marked with 'c') must contain at least 2 columns
+
 
 Writing field formats
 ---------------------
@@ -341,14 +341,14 @@ Here is a very simple example of a field format that accepts values of "red",
 "green" and "blue"::
 
     >>> class ColorFieldFormat(fields.AbstractFieldFormat):
-    ...     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
-    ...         super(ColorFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue="")
+    ...     def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format):
+    ...         super(ColorFieldFormat, self).__init__(field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value='')
     ...
     ...     def validated_value(self, value):
     ...         # Validate that ``value`` is a color and return it.
     ...         assert value
-    ...         if value not in ["red", "green", "blue"]:
-    ...             raise fields.FieldValueError("color value is %r but must be one of: red, green, blue" % value)
+    ...         if value not in ['red', 'green', 'blue']:
+    ...             raise fields.FieldValueError('color value is %r but must be one of: red, green, blue' % value)
     ...         return value
 
 The ``value`` parameter is a Unicode string. Cutplace ensures that
@@ -370,76 +370,77 @@ Here's a more advanced :py:class`ColorFieldFormat` that returns the color as
 a tuple of RGB values between 0 and 1::
 
     >>> class ColorFieldFormat(fields.AbstractFieldFormat):
-    ...     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
-    ...         super(ColorFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat, emptyValue="")
+    ...     def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format):
+    ...         super(ColorFieldFormat, self).__init__(field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value='')
     ...
     ...     def validated_value(self, color_name):
     ...         # Validate that ``color_name`` is a color and return its RGB representation.
     ...         assert color_name
-    ...         if color_name == "red":
+    ...         if color_name == 'red':
     ...             result = (1.0, 0.0, 0.0)
-    ...         elif color_name == "green":
+    ...         elif color_name == 'green':
     ...             result = (0.0, 1.0, 0.0)
-    ...         elif color_name == "blue":
+    ...         elif color_name == 'blue':
     ...             result = (0.0, 1.0, 0.0)
     ...         else:
-    ...             raise fields.FieldValueError('color name is %r but must be one of: red, green, blue' % color_name)
+    ...             raise cutplace.FieldValueError('color name is %r but must be one of: red, green, blue' % color_name)
     ...         return result
 
 For a simple test, let's see this field format in action::
 
-    >>> color_field = ColorFieldFormat("roof_color", False, "", "", cid.dataFormat)
-    >>> color_field.validated("red")
+    >>> color_field = ColorFieldFormat('roof_color', False, '', '', cid.data_format)
+    >>> color_field.validated('red')
     (1.0, 0.0, 0.0)
-    >>> color_field.validated("yellow")
+    >>> color_field.validated('yellow')
     Traceback (most recent call last):
     ...
-    FieldValueError: color name is 'yellow' but must be one of: red, green, blue
+    cutplace.errors.FieldValueError: color name is 'yellow' but must be one of: red, green, blue
 
 Before you learned that ``validated_value()`` never gets called with an empty
-value. So what happens if you declare a color field that allows empty values,
-for instance:
+value. So what happens if you declare a color field that allows empty values?
+For instance::
 
->>> # Sets ``is_allowed_to_be_empty`` to ``True`` to accept empty values.
->>> color_field = ColorFieldFormat('roof_color', True, '', '', cid.dataFormat)
->>> color_field.validated('')
-''
->>> # Not quiet a color tuple...
+    >>> # Sets ``is_allowed_to_be_empty`` to ``True`` to accept empty values.
+    >>> color_field = ColorFieldFormat('roof_color', True, '', '', cid.data_format)
+    >>> color_field.validated('')
+    ''
+    >>> # Not quiet a color tuple...
 
-Well, that's not quite what we want. Instead of an empty string, some default
-RGB tuple would be a lot more useful. Say, ``(0.0, 0.0, 0.0)`` to represent
-black.
+Well, that's not quite what we want. Instead of an empty string, a reasonable
+default RGB tuple would be a lot more useful. Say, ``(0.0, 0.0, 0.0)`` to
+represent black.
 
-Fortunately field formats can just specify that by using the ``emptyValue``
+Fortunately field formats can just specify that by using the ``empty_value``
 parameter in the constructor. When passed to the ``super`` constructor in
-``AbstractFieldFormat``, everything will be taken care of. So here's a
-slightly modified version:
+:py:class:`~cutplace.fields.AbstractFieldFormat`, everything will be taken
+care of. So here's a slightly modified version::
 
->>> class ColorFieldFormat(fields.AbstractFieldFormat):
-...     def __init__(self, fieldName, isAllowedToBeEmpty, length, rule, dataFormat):
-...         super(ColorFieldFormat, self).__init__(fieldName, isAllowedToBeEmpty, length, rule, dataFormat,
-...                 emptyValue=(0.0, 0.0, 0.0)) # Use black as "empty" color.
-...
-...     def validated_value(self, color_name):
-...         # (Exactly same as before)
-...         assert color_name
-...         if color_name == 'red':
-...             result = (1.0, 0.0, 0.0)
-...         elif color_name == 'green':
-...             result = (0.0, 1.0, 0.0)
-...         elif color_name == 'blue':
-...             result = (0.0, 1.0, 0.0)
-...         else:
-...             raise fields.FieldValueError('color name is %r but must be one of: red, green, blue' % color_name)
-...         return result
+    >>> class ColorFieldFormat(fields.AbstractFieldFormat):
+    ...     def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format):
+    ...         super(ColorFieldFormat, self).__init__(field_name, is_allowed_to_be_empty, length, rule, data_format,
+    ...                 empty_value=(0.0, 0.0, 0.0)) # Use black as "empty" color.
+    ...
+    ...     def validated_value(self, color_name):
+    ...         # (Exactly same as before)
+    ...         assert color_name
+    ...         if color_name == 'red':
+    ...             result = (1.0, 0.0, 0.0)
+    ...         elif color_name == 'green':
+    ...             result = (0.0, 1.0, 0.0)
+    ...         elif color_name == 'blue':
+    ...             result = (0.0, 1.0, 0.0)
+    ...         else:
+    ...             raise cutplace.errors.FieldValueError('color name is %r but must be one of: red, green, blue' % color_name)
+    ...         return result
 
-Let's give it a try:
+Let's give it a try::
 
->>> color_field = ColorFieldFormat('roof_color', True, '', '', cid.dataFormat)
->>> color_field.validated('red')
-(1.0, 0.0, 0.0)
->>> color_field.validated('')
-(0.0, 0.0, 0.0)
+    >>> color_field = ColorFieldFormat('roof_color', True, '', '', cid.data_format)
+    >>> color_field.validated('red')
+    (1.0, 0.0, 0.0)
+    >>> color_field.validated('')
+    (0.0, 0.0, 0.0)
+
 
 Writing checks
 --------------
@@ -447,32 +448,33 @@ Writing checks
 Writing checks is quite similar to writing field formats. However, the
 interaction with the validation is more complex.
 
-Checks have to implement certain methods described in `checks.AbstractCheck
-<api/cutplace.checks.AbstractCheck-class.html>`_. For each check, cutplace
-performs the following actions:
+Checks have to implement certain methods described in
+:py:class:`cutplace.checks.AbstractCheck`. For each check, cutplace performs
+the following actions:
 
-#. When reading the CID, call the check's ``__init__()``.
-#. When starting to read a set of data, call the checks's ``reset()``.
-#. For each row of data, call the checks's ``checkRow()``.
-#. When done with a set of data, call the checks's ``checkAtEnd()``.
+#. When reading the CID, call the check's :py:meth:`__init__()`.
+#. When starting to read a set of data, call the checks's :py:meth:`reset()`.
+#. For each row of data, call the checks's :py:meth:``check_row()``.
+#. When done with a set of data, call the checks's :py:meth:`check_at_end()`.
 
-The remainder of this section will describe how to implement each of
-these methods. As an example, we implement a check to ensure that
-each customer's full name requires less than 100 characters. The field
-formats already ensure that ``first_name`` and ``last_name`` are at most
-60 characters each. However, assuming the full name is derived using the
-expression::
+The remainder of this section describes how to implement each of
+these methods.
+
+As an example, we implement a check to ensure that each customer's full name
+requires less than 100 characters. The field formats already ensure that
+``first_name`` and ``last_name`` are at most 60 characters each. However,
+assuming the full name is derived using the expression::
 
     last_name + ', ' + first_name
 
 this could lead to full names with up to 122 characters.
 
-To implements this check, start by inheriting from `checks.AbstractCheck
-<api/cutplace.checks.AbstractCheck-class.html>`_:
+To implements this check, start by inheriting from
+:py:class:`cutplace.checks.AbstractCheck`::
 
->>> from cutplace import checks
->>> class FullNameLengthIsInRangeCheck(checks.AbstractCheck):
-...     """Check that total length of customer name is within the specified range."""
+    >>> from cutplace import checks
+    >>> class FullNameLengthIsInRangeCheck(checks.AbstractCheck):
+    ...     """Check that total length of customer name is within the specified range."""
 
 Next, implement a constructor to which cutplace can pass the values
 found in the CID. For example, for our check the CID would contain:
@@ -484,46 +486,47 @@ found in the CID. For example, for our check the CID would contain:
 +-+-------------------------------------------+------------------------+-------+
 
 When cutplace encounters this line, it will create a new check by calling
-``checks.FullNameLengthIsInRangeCheck.__init__()``, passing the following
+:py:meth:`FullNameLengthIsInRangeCheck.__init__()`, passing the following
 parameters:
 
 * ``description='customer must be unique'``, which is just a human readable
   description of the check to refer to it in error messages
-* ``rule='...100"``, which describes what exactly the check
+* ``rule='...100'``, which describes what exactly the check
   should do. Each check can define its own syntax for the rule. In case of
   ``FullNameLengthIsInRange`` the rule describes a :py:class:`cutplace.Range`.
-* ``availableFieldNames=["branch_id", "customer_id", "first_name","last_name",
-  "gender", "date_of_birth"]`` (as defined in the CID and using the same order)
-* ``location`` being the ``tools.Location`` in the CID where the check was defined.
+* ``available_field_names=['branch_id', 'customer_id', 'first_name','last_name',
+  'gender', 'date_of_birth']`` (as defined in the CID and using the same order)
+* ``location`` being the :py:class:`cutplace.Location` in the CID where the check was defined.
 
 The constructor basically has to do 3 things:
 
 #. Call the super constructor
 #. Perform optional initialization needed by the check that needs to be
    done only once and not on each new data set. In most cases, this involves
-   parsing the ``rule`` parameter and obtain whatever information the checks needs
-   from it.
+   parsing the ``rule`` parameter and obtain whatever information the
+   checks needs from it.
 #. Call ``self.reset()``. This is not really necessary for this check, but in most
    cases it will make your life easier because you can avoid redundant initializations
    in the constructor.
 
->>> from cutplace import ranges
->>> class FullNameLengthIsInRangeCheck(checks.AbstractCheck):
-...     """Check that total length of customer name is within the specified range."""
-...     def __init__(self, description, rule, availableFieldNames, location=None):
-...         super(FullNameLengthIsInRangeCheck, self).__init__(description, rule, availableFieldNames, location)
-...         self._fullNameRange = ranges.Range(rule)
-...         self.reset()
+To sum it up as code::
+
+    >>> from cutplace import ranges
+    >>> class FullNameLengthIsInRangeCheck(checks.AbstractCheck):
+    ...     """Check that total length of customer name is within the specified range."""
+    ...     def __init__(self, description, rule, available_field_names, location=None):
+    ...         super(FullNameLengthIsInRangeCheck, self).__init__(description, rule, available_field_names, location)
+    ...         self._full_name_range = ranges.Range(rule)
+    ...         self.reset()
 
 Once cutplace is done reading the CID, it moves on to data. For each set of
-data it calls the checks `reset()
-<api/cutplace.checks.AbstractCheck-class.html#reset>`_ method. For our simple
-check, no actions are needed so we are good already because ``AbstractCheck``
-already provides a ``reset()`` that does nothing.
+data it calls the checks' :py:meth:`~cutplace.checks.AbstractCheck.reset()`
+method. For our simple check, no actions are needed so we are good because
+:py:meth:`~cutplace.checks.AbstractCheck.reset()` already does nothing.
 
 When cutplace validates data, it reads them row by row. For each row, it
-calls `validated() <api/cutplace.fields.AbstractFieldFormat-class.html#validated>`_
-on each cell in the row. In case all cells are valid, it collects them in a
+calls :py:meth:`~cutplace.fields.AbstractFieldFormat.validated()` on each
+cell in the row. In case all cells are valid, it collects them in a
 dictionary which maps the field name to its native value. Recall the interface
 from the :doc:`tutorial`, which defined the following fields:
 
@@ -532,13 +535,13 @@ from the :doc:`tutorial`, which defined the following fields:
 +=+====================+==========+======+======+========+============+
 +F+branch_id           +38000     +      +5     +        +            +
 +-+--------------------+----------+------+------+--------+------------+
-+F+customer_id         +16        +      +2:    +Integer +10:65535    +
++F+customer_id         +16        +      +2...  +Integer +10:65535    +
 +-+--------------------+----------+------+------+--------+------------+
-+F+first_name          +Jane      +      +:60   +        +            +
++F+first_name          +Jane      +      +...60 +        +            +
 +-+--------------------+----------+------+------+--------+------------+
-+F+surname             +Doe       +      +:60   +        +            +
++F+surname             +Doe       +      +...60 +        +            +
 +-+--------------------+----------+------+------+--------+------------+
-+F+gender              +female    +      +2:6   +Choice  +male, female+
++F+gender              +female    +      +2...6 +Choice  +male, female+
 +-+--------------------+----------+------+------+--------+------------+
 +F+date_of_birth       +27.02.1946+X     +10    +DateTime+DD.MM.YYYY  +
 +-+--------------------+----------+------+------+--------+------------+
@@ -553,56 +556,62 @@ Now consider a data row with the following values:
 
 The row map for this row would be::
 
-  rowMap = {
-      "branch_id": 38111,
-      "customer_id": 96,
-      "first_name": "Andrew",
-      "last_name": "Dixon",
-      "gender": "male",
-      "date_of_birth": time.struct_time(tm_year=1913, tm_mon=10, tm_mday=2, ...)
+  row_map = {
+      'branch_id': 38111,
+      'customer_id': 96,
+      'first_name': 'Andrew',
+      'last_name': 'Dixon',
+      'gender': 'male',
+      'date_of_birth': time.struct_time(tm_year=1913, tm_mon=10, tm_mday=2, ...)
   }
 
-With this knowledge, we can easily implement a ``checkRow`` that computes the
-full name and checks that it is within the required range. If not, it raises
-a `CheckError <api/cutplace.checks.CheckError-class.html>`_:
+With this knowledge, we can easily implement a :py:meth:`check_row()` that
+computes the full name and checks that it is within the required range. If
+not, it raises a :py:exc:`~cutplace.errors.CheckError`::
 
->>> def checkRow(self, rowMap, location):
-...     fullName = rowMap["last_name"] + ", " + rowMap["first_name"]
-...     fullNameLength = len(fullName)
-...     try:
-...         self._fullNameRange.validate("full name", fullNameLength)
-...     except errors.RangeValueError as error:
-...         raise errors.CheckError("full name length is %d but must be in range %s: %r" \
-...                 % (fullNameLength, self._fullNameRange, fullName))
+    >>> def check_row(self, row_map, location):
+    ...     first_name = row_map['first_name']
+    ...     surname = row_map['surname']
+    ...     full_name = surname + ', ' + first_name
+    ...     full_name_length = len(full_name)
+    ...     try:
+    ...         self._full_name_range.validate('full name', full_name_length)
+    ...     except cutplace.RangeValueError as error:
+    ...         raise cutplace.errors.CheckError('full name length is %d but must be in range %s: %r' \
+    ...                 % (full_name_length, self._full_name_range, full_name))
 
-And finally, there is
-`checkAtEnd() <api/cutplace.checks.AbstractCheck-class.html#checkAtEnd>`_ which
-is called when all data rows have been processed. Note that ``checkAtEnd()``
-does not have any parameters that contain actual data. Instead you typically
-would collect all information needed by ``checkAtEnd()`` in ``checkRow()`` and
-store them in instance variables.
+And finally, there is :py:meth:`cutplace.checks.AbstractCheck.check_at_end()`
+which is called when all data rows have been processed. Note that
+:py:meth:`check_at_end()` does not have any parameters that contain actual
+data. Instead you typically would collect all information needed by
+:py:meth:`check_at_end()` in :py:meth:`check_row()` and store them in
+instance variables. For an example, take a look at the source code of
+:py:class:`cutplace.checks.IsUniqueCheck`.
 
-Because our ``FullNameLengthIsInRangeCheck`` does not need to do anything here,
-we can omit it and keep inherit an empty implementation from ``AbstractCheck``.
+Because our ``FullNameLengthIsInRangeCheck`` does not need to do anything
+here, we can omit it and keep inherit an empty implementation from
+:py:meth:`cutplace.checks.AbstractCheck.check_at_end()`.
+
 
 .. _using-own-check-and-field-formats:
 
 Using your own checks and field format
 --------------------------------------
 
-Now that you know how to write your own field format, it would be nice to
-actually utilize it in a CID. For this purpose, cutplace lets you import
-plugins that can define their own fields.
+Now that you know how to write our own checks and field formats, it would be
+nice to actually utilize them in a CID. For this purpose, cutplace lets you
+import plugins that can define their own checks and field formats.
 
 Plugins are standard Python modules that define classes based on
-``fields.AbstractFieldFormat`` and ``checks.AbstractCheck``. For our
-example, create a folder named ``~/cutplace_plugins`` and store a Python
-module named ``myplugins.py`` in it with the following contents:
+:py:class:`cutplace.fields.AbstractCheck` and
+:py:class:`cutplace.fields.AbstractFieldFormat`. For our example, create a
+folder named :file:`~/cutplace_plugins` and store a Python module named
+:file:`myplugins.py` in it with the following contents::
 
 .. literalinclude:: ../examples/plugins.py
 
-The CID can now refer to ``ColorFieldFormat`` as ``Color`` (without
-``FieldFormat``) and to ``FullNameLengthIsInRangeCheck`` as
+The CID can now refer to :py:class:`ColorFieldFormat` as ``Color`` (without
+``FieldFormat``) and to :py:class:`FullNameLengthIsInRangeCheck` as
 ``FullNameLengthIsInRange`` (without ``Check``). For example:
 
 +-+-----------------+-------+------+------+-----+----+
@@ -636,8 +645,8 @@ Here is a data file where all but one row conforms to the CID:
 See: :download:`colors.csv <../examples/colors.csv>`
 
 To tell cutplace where the plugins folder is located, use the command line
-option ``--plugins``. Assuming that your ``myplugins.py`` is stored in
-``~/cutplace_plugins`` you can run::
+option :option:`--plugins`. Assuming that your :file:`myplugins.py` is stored in
+:file:`~/cutplace_plugins` you can run::
 
   cutplace --plugins ~/cutplace_plugins cid_colors.ods colors.csv
 
@@ -646,8 +655,8 @@ The output is::
   ERROR:cutplace:field error: colors.csv (R5C2): field 'color' must match format: color name is 'yellow' but must be one of: red, green, blue
   colors.csv: rejected 1 of 5 rows. 0 final checks failed.
 
-If you are unsure which plugins exactly cutplace imports, use ``--log=info``.
-For example, the output could contain::
+If you are unsure which plugins exactly cutplace imports, use
+:option:`--log=info`. For example, the output could contain::
 
   INFO:cutplace:import plugins from "/Users/me/cutplace_plugins"
   INFO:cutplace:  import plugins from "/Users/me/cutplace_plugins/myplugins.py"
