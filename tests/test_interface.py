@@ -253,6 +253,15 @@ class CidTest(unittest.TestCase):
         ])
         self._test_fails_on_broken_cid_from_text(cid_text, '*format is no_such_format but must be on of*')
 
+    def test_fails_on_duplicate_data_format(self):
+        cid_text = '\n'.join([
+            ',CID where the data format is set twice',
+            'D,Format,%s' % data.FORMAT_DELIMITED,
+            'D,Format,%s' % data.FORMAT_DELIMITED,
+        ])
+        self._test_fails_on_broken_cid_from_text(
+            cid_text, "*data format already is 'delimited' and must be set only once")
+
     def test_fails_on_field_before_data_format(self):
         cid_text = '\n'.join([
             ',CID where a field is declared before the data format',

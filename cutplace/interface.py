@@ -91,7 +91,7 @@ class Cid(object):
         It can be called repeatedly, for instance before each
         :py:meth:`add_check()` and :py:meth:`add_field_format()`.
         """
-        self._location = errors.create_caller_location(['interface'])
+        self._location = errors.create_caller_location(['interface'], has_cell=True)
 
     @property
     def data_format(self):
@@ -175,6 +175,40 @@ class Cid(object):
         assert check_type
         return self._create_class(self._check_name_to_class_map, check_type, "Check", "check")
 
+    def add_data_format_row(self, row_data):
+        """
+        Extract name and value from ``row_data`` and apply it to
+        :py:attr:`~cutplace.interface.Cid.data_format` by calling
+        :py:meth:`~cutplace.data.DataFormat.set_property`.
+
+        :param list row_data: a list with at least 2 items for name and value \
+            that can be passed to :py:meth:`data.DataFormat.set_property()`.
+        """
+        assert row_data is not None
+        assert len(row_data) >= 2
+
+        name, value = row_data[:2]
+        lower_name = name.lower()
+        self._location.advance_cell()
+        if name == '':
+            raise errors.InterfaceError('name of data format property must be specified', self._location)
+        self._location.advance_cell()
+        if (self._data_format is None) and (lower_name != data.KEY_FORMAT):
+            raise errors.InterfaceError(
+                'first data format row must set property %s instead of %s'
+                % (_compat.text_repr(data.KEY_FORMAT), _compat.text_repr(name)),
+                self._location)
+        if (self._data_format is not None) and (lower_name == data.KEY_FORMAT):
+            raise errors.InterfaceError(
+                'data format already is %s and must be set only once'
+                % _compat.text_repr(self._data_format.format),
+                self._location)
+        lower_value = value.lower()
+        if self._data_format is None:
+            self._data_format = data.DataFormat(lower_value, self._location)
+        else:
+            self._data_format.set_property(name.lower(), value, self._location)
+
     def read(self, source_path, rows):
         assert self.data_format is None, 'CID must be read only once'
 
@@ -187,15 +221,7 @@ class Cid(object):
                 row_type = row[0].lower().strip()
                 row_data = (row[1:] + [''] * 6)[:6]
                 if row_type == 'd':
-                    name, value = row_data[:2]
-                    self._location.advance_cell()
-                    if name == '':
-                        raise errors.InterfaceError('name of data format property must be specified', self._location)
-                    self._location.advance_cell()
-                    if self._data_format is None:
-                        self._data_format = data.DataFormat(value.lower(), self._location)
-                    else:
-                        self._data_format.set_property(name.lower(), value.lower())
+                    self.add_data_format_row(row_data)
                 elif row_type == 'f':
                     self.add_field_format(row_data)
                 elif row_type == 'c':

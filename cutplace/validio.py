@@ -95,7 +95,13 @@ class Reader(object):
                         expected_item_count, actual_item_count, field_values[expected_item_count:]),
                     self._location)
             for i in range(0, actual_item_count):
-                self._cid.field_formats[i].validated(field_values[i])
+                field_to_validate = self._cid.field_formats[i]
+                try:
+                    field_to_validate.validated(field_values[i])
+                except errors.FieldValueError as error:
+                    field_name = field_to_validate.field_name
+                    error.prepend_message('cannot accept field %s' % field_name, self._location)
+                    raise
                 self._location.advance_cell()
 
         def validate_row_checks(field_values):

@@ -35,6 +35,10 @@ class DataFormatTest(unittest.TestCase):
     """
     _TEST_ENCODING = "cp1252"
 
+    @property
+    def _location(self):
+        return errors.create_caller_location(['test_data'])
+
     def test_create_data_format(self):
         for format_name in [data.FORMAT_DELIMITED, data.FORMAT_FIXED, data.FORMAT_EXCEL]:
             data_format = data.DataFormat(format_name)
@@ -158,8 +162,8 @@ class DataFormatTest(unittest.TestCase):
         self.assertRaises(errors.InterfaceError, delimited_format.set_property,
                           data.KEY_ITEM_DELIMITER, 'broken-item-delimiter')
 
-        self.assertRaises(errors.InterfaceError, delimited_format._validated_character,
-                          data.KEY_ITEM_DELIMITER, '')
+        self.assertRaises(
+            errors.InterfaceError, data.DataFormat._validated_character, data.KEY_ITEM_DELIMITER, '', self._location)
 
     def test_can_set_skip_initial_space(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
@@ -254,19 +258,24 @@ class DataFormatTest(unittest.TestCase):
 
     def test_fails_on_number_token_validated_character(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
-        self.assertRaises(errors.InterfaceError, delimited_format._validated_character, 'x', '17.23')
+        self.assertRaises(
+            errors.InterfaceError, data.DataFormat._validated_character, 'x', '17.23', self._location)
 
     def test_fails_on_string_token_validated_character(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
-        self.assertRaises(errors.InterfaceError, delimited_format._validated_character, 'x', '\"abc\"')
+        self.assertRaises(
+            errors.InterfaceError, data.DataFormat._validated_character, 'x', '\"abc\"', self._location)
 
     def test_fails_on_no_valid_token_validated_character(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
-        self.assertRaises(errors.InterfaceError, delimited_format._validated_character, 'x', '( ')
+        self.assertRaises(
+            errors.InterfaceError, data.DataFormat._validated_character, 'x', '( ', self._location)
 
     def test_fails_on_no_single_character_validated_character(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
-        self.assertRaises(errors.InterfaceError, delimited_format._validated_character, 'x', 'Tab Tab')
+        self.assertRaises(
+            errors.InterfaceError, data.DataFormat._validated_character, 'x', 'Tab Tab', self._location)
+
 
 if __name__ == '__main__':
     logging.basicConfig()

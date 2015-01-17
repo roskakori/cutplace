@@ -12,6 +12,10 @@ Version 0.8.2, 2015-01-xx
   because it expresses the intended meaning more clearly. The colon is still
   supported so existing CID can remain the same, but the documentation and examples use
 
+* Improved error reporting when parsing CIDs. In particular all errors
+  related to the data format include a specific location, and some errors
+  provide more information about the context the occurred in.
+
 * Cleaned up :option:`--help`:
 
   * Removed description of obsolete option :option:`--cid-encoding`.

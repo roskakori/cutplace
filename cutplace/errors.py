@@ -271,7 +271,7 @@ class CutplaceError(Exception):
     @property
     def location(self):
         """
-        `Location` in the input that caused the error or `None`.
+        :py:class:`Location` in the input that caused the error or ``None``.
         """
         return self._location
 
@@ -286,7 +286,8 @@ class CutplaceError(Exception):
     @property
     def see_also_location(self):
         """
-        The `Location` in the input related to the ``see_also_message`` or ``None``.
+        The :py:class:`Location` in the input related to the
+        :py:attr:`see_also_message` or ``None``.
         """
         return self._see_also_location
 
@@ -296,6 +297,19 @@ class CutplaceError(Exception):
         The `Exception` that caused this error or `None`.
         """
         return self._cause
+
+    def prepend_message(self, prefix, new_location):
+        """
+        Add ``prefix`` and ``': '`` at the beginning of :py:attr:`message` and
+        change :py:attr:`location` to ``new_location``.
+
+        :param str prefix: the prefix to add at the beginning of :py:attr:`message`
+        :param Location new_location: the value for :py:attr:`location`
+        """
+        assert prefix is not None
+        assert new_location is not None
+        self._message = prefix + ': ' + self._message
+        self._location = copy.copy(new_location)
 
     def __str__(self):
         result = ''

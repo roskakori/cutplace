@@ -70,6 +70,7 @@ FORMAT_ODS = "ods"
 KEY_ALLOWED_CHARACTERS = "allowed_characters"
 KEY_ENCODING = "encoding"
 KEY_ESCAPE_CHARACTER = "escape_character"
+KEY_FORMAT = 'format'
 KEY_HEADER = "header"
 KEY_ITEM_DELIMITER = "item_delimiter"
 KEY_LINE_DELIMITER = "line_delimiter"
@@ -93,35 +94,46 @@ class DataFormat(object):
     """
 
     def __init__(self, format_name, location=None):
+        r"""
+        Create a new data format.
+
+        :param str format_name: the data format, which must be one of \
+            :py:const:`FORMAT_DELIMITED`, :py:const:`FORMAT_EXCEL`,
+            :py:const:`FORMAT_FIXED` or :py:const:`FORMAT_ODS`.
+        :param cutplace.errors.Location location: location where the data format was declared
+        :return:
+        """
+        assert format_name == format_name.lower(), 'format_name must be lower case: %r' % format_name
+
         if format_name not in (_VALID_FORMATS + ['csv']):
             raise errors.InterfaceError(
-                'format is %s but must be on of: %s' % (format_name, _VALID_FORMATS), location)
-        else:
-            self._location = location
-            self._format = format_name if format_name != 'csv' else FORMAT_DELIMITED
-            self._header = 0
-            self._is_valid = False
-            self._allowed_characters = None
-            self._encoding = 'cp1252'
-            if self.format == FORMAT_DELIMITED:
-                self._escape_character = '"'
-                self._item_delimiter = ','
-                self._quote_character = '"'
-                self._skip_initial_space = False
-            if self.format in (FORMAT_DELIMITED, FORMAT_FIXED):
-                self._decimal_separator = ','
-                self._line_delimiter = ANY
-                self._thousands_separator = ''
-            elif self.format in (FORMAT_EXCEL, FORMAT_ODS):
-                self._sheet = 1
-            if self.format in (FORMAT_DELIMITED, FORMAT_FIXED):
-                # Valid values for property 'line delimiter', which is only available for delimited and fixed data
-                # with no line delimiter only allowed for fixed data.
-                self._VALID_LINE_DELIMITER_TEXTS = sorted([
-                    line_delimiter_text
-                    for line_delimiter, line_delimiter_text in LINE_DELIMITER_TO_TEXT_MAP.items()
-                    if (line_delimiter is not None) or (self.format == FORMAT_FIXED)
-                ])
+                'format is %s but must be on of: %s' % (format_name, _VALID_FORMATS),
+                location if location is not None else errors.create_caller_location(['data']))
+        # HACK: Treat ``format_name`` 'csv' as synonym for ``FORMAT_DELIMITED``.
+        self._format = format_name if format_name != 'csv' else FORMAT_DELIMITED
+        self._header = 0
+        self._is_valid = False
+        self._allowed_characters = None
+        self._encoding = 'cp1252'
+        if self.format == FORMAT_DELIMITED:
+            self._escape_character = '"'
+            self._item_delimiter = ','
+            self._quote_character = '"'
+            self._skip_initial_space = False
+        if self.format in (FORMAT_DELIMITED, FORMAT_FIXED):
+            self._decimal_separator = ','
+            self._line_delimiter = ANY
+            self._thousands_separator = ''
+        elif self.format in (FORMAT_EXCEL, FORMAT_ODS):
+            self._sheet = 1
+        if self.format in (FORMAT_DELIMITED, FORMAT_FIXED):
+            # Valid values for property 'line delimiter', which is only available for delimited and fixed data
+            # with no line delimiter only allowed for fixed data.
+            self._VALID_LINE_DELIMITER_TEXTS = sorted([
+                line_delimiter_text
+                for line_delimiter, line_delimiter_text in LINE_DELIMITER_TO_TEXT_MAP.items()
+                if (line_delimiter is not None) or (self.format == FORMAT_FIXED)
+            ])
 
     @property
     def format(self):
@@ -180,7 +192,7 @@ class DataFormat(object):
     def thousands_separator(self):
         return self._thousands_separator
 
-    def set_property(self, name, value):
+    def set_property(self, name, value, location=None):
         r"""
         Set data format property ``name`` to ``value`` possibly translating ``value`` from
         a human readable representation to an internal one.
@@ -197,7 +209,8 @@ class DataFormat(object):
         """
         assert not self.is_valid, 'after validate() has been called property %r cannot be set anymore' % name
         assert name is not None
-        assert (value is not None) or name in (KEY_ALLOWED_CHARACTERS, KEY_LINE_DELIMITER)
+        assert name == name.lower(), 'property name must be lower case: %r' % name
+        assert (value is not None) or (name in (KEY_ALLOWED_CHARACTERS, KEY_LINE_DELIMITER))
 
         name = name.replace(' ', '_')
         property_attribute_name = '_' + name
@@ -205,7 +218,7 @@ class DataFormat(object):
             valid_property_names = _tools.human_readable_list(list(self.__dict__.keys()))
             raise errors.InterfaceError(
                 'data format property %r for format %s is %r but must be one of %s'
-                % (name, self.format, value, valid_property_names), self._location)
+                % (name, self.format, value, valid_property_names), location)
 
         if name == KEY_ENCODING:
             try:
@@ -213,43 +226,47 @@ class DataFormat(object):
             except LookupError:
                 raise errors.InterfaceError(
                     'value for data format property %r is %r but must be a valid encoding'
-                    % (KEY_ENCODING, self.encoding), self._location)
+                    % (KEY_ENCODING, self.encoding), location)
             self._encoding = value
         elif name == KEY_HEADER:
-            self._header = self._validated_int_at_least_0(name, value)
+            self._header = DataFormat._validated_int_at_least_0(name, value, location)
         elif name == KEY_ALLOWED_CHARACTERS:
             try:
                 self._allowed_characters = ranges.Range(value)
             except errors.InterfaceError as error:
                 raise errors.InterfaceError(
                     'value for property %r must be a valid range: %s'
-                    % (KEY_ALLOWED_CHARACTERS, error), self._location)
+                    % (KEY_ALLOWED_CHARACTERS, error), location)
         elif name == KEY_DECIMAL_SEPARATOR:
-            self._decimal_separator = self._validated_choice(KEY_DECIMAL_SEPARATOR, value, _VALID_DECIMAL_SEPARATORS)
+            self._decimal_separator = DataFormat._validated_choice(
+                KEY_DECIMAL_SEPARATOR, value, _VALID_DECIMAL_SEPARATORS, location)
         elif name == KEY_ESCAPE_CHARACTER:
-            self._escape_character = self._validated_choice(KEY_ESCAPE_CHARACTER, value, _VALID_ESCAPE_CHARACTERS)
+            self._escape_character = DataFormat._validated_choice(
+                KEY_ESCAPE_CHARACTER, value, _VALID_ESCAPE_CHARACTERS, location)
         elif name == KEY_ITEM_DELIMITER:
-            self._item_delimiter = self._validated_character(KEY_ITEM_DELIMITER, value)
+            self._item_delimiter = DataFormat._validated_character(KEY_ITEM_DELIMITER, value, location)
         elif name == KEY_LINE_DELIMITER:
             try:
                 self._line_delimiter = _TEXT_TO_LINE_DELIMITER_MAP[value]
             except KeyError:
                 raise errors.InterfaceError(
                     'line delimiter %r must be changed to one of: %s'
-                    % (value, _tools.human_readable_list(self._VALID_LINE_DELIMITER_TEXTS)), self._location)
+                    % (value, _tools.human_readable_list(self._VALID_LINE_DELIMITER_TEXTS)), location)
         elif name == KEY_QUOTE_CHARACTER:
-            self._quote_character = self._validated_choice(KEY_QUOTE_CHARACTER, value, _VALID_QUOTE_CHARACTERS)
+            self._quote_character = DataFormat._validated_choice(
+                KEY_QUOTE_CHARACTER, value, _VALID_QUOTE_CHARACTERS, location)
         elif name == KEY_SHEET:
-            self._sheet = self._validated_int_at_least_0(name, value)
+            self._sheet = DataFormat._validated_int_at_least_0(KEY_SHEET, value, location)
         elif name == KEY_SKIP_INITIAL_SPACE:
-            self._skip_initial_space = self._validated_bool(name, value)
+            self._skip_initial_space = DataFormat._validated_bool(KEY_SKIP_INITIAL_SPACE, value, location)
         elif name == KEY_THOUSANDS_SEPARATOR:
-            self._thousands_separator = self._validated_choice(
-                KEY_DECIMAL_SEPARATOR, value, _VALID_THOUSANDS_SEPARATORS)
+            self._thousands_separator = DataFormat._validated_choice(
+                KEY_THOUSANDS_SEPARATOR, value, _VALID_THOUSANDS_SEPARATORS, location)
         else:
             assert False, 'name=%r' % name
 
-    def _validated_choice(self, key, value, choices, ignore_case=False):
+    @staticmethod
+    def _validated_choice(key, value, choices, location, ignore_case=False):
         """
         Same as ``value`` or ``value.lower()`` in case ``ignore_case`` is set
         to ``True``. If the supposed result is not on of the available
@@ -263,30 +280,33 @@ class DataFormat(object):
         if result not in choices:
             raise errors.InterfaceError(
                 'data format property %r is %r but must be one of: %s'
-                % (key, value, _tools.human_readable_list(choices)), self._location)
+                % (key, value, _tools.human_readable_list(choices)), location)
         return result
 
-    def _validated_bool(self, key, value):
+    @staticmethod
+    def _validated_bool(key, value, location):
         assert key
         assert value is not None
-        bool_text = self._validated_choice(key, value, ('false', 'true'), True)
+        bool_text = DataFormat._validated_choice(key, value.lower(), ('false', 'true'), True, location)
         result = (bool_text == 'true')
         return result
 
-    def _validated_int_at_least_0(self, key, value):
+    @staticmethod
+    def _validated_int_at_least_0(key, value, location):
         assert key
         assert value is not None
         try:
             result = int(value)
         except ValueError:
             raise errors.InterfaceError(
-                'data format property %r is %r but must be a number' % (key, value), self._location)
+                'data format property %r is %r but must be a number' % (key, value), location)
         if result < 0:
             raise errors.InterfaceError(
-                'data format property %r is %d but must be at least 0' % (key, result), self._location)
+                'data format property %r is %d but must be at least 0' % (key, result), location)
         return result
 
-    def _validated_character(self, key, value):
+    @staticmethod
+    def _validated_character(key, value, location):
         r"""
         A single character intended as value for data format property ``key``
         derived from ``value``, which can be:
@@ -349,7 +369,7 @@ class DataFormat(object):
             next_token = next(tokens)
             if _tools.is_eof_token(next_token):
                 raise errors.InterfaceError(
-                    "value for data format property %r must be specified" % key, self._location)
+                    "value for data format property %r must be specified" % key, location)
             next_type = next_token[0]
             next_value = next_token[1]
             if next_type == token.NUMBER:
@@ -363,7 +383,7 @@ class DataFormat(object):
                 except ValueError:
                     raise errors.InterfaceError(
                         'numeric value for data format property %r must be an integer but is: %r'
-                        % (key, value), self._location)
+                        % (key, value), location)
             elif next_type == token.NAME:
                 try:
                     long_value = errors.NAME_TO_ASCII_CODE_MAP[next_value.lower()]
@@ -371,12 +391,12 @@ class DataFormat(object):
                     valid_symbols = _tools.human_readable_list(sorted(errors.NAME_TO_ASCII_CODE_MAP.keys()))
                     raise errors.InterfaceError(
                         'symbolic name %r for data format property %r must be one of: %s'
-                        % (value, key, valid_symbols), self._location)
+                        % (value, key, valid_symbols), location)
             elif next_type == token.STRING:
                 if len(next_value) != 3:
                     raise errors.InterfaceError(
                         'text for data format property %r must be a single character but is: %r'
-                        % (key, value), self._location)
+                        % (key, value), location)
                 left_quote = next_value[0]
                 right_quote = next_value[2]
                 assert left_quote in "\"\'", "leftQuote=%r" % left_quote
@@ -385,13 +405,13 @@ class DataFormat(object):
             else:
                 raise errors.InterfaceError(
                     'value for data format property %r must a number, a single character or a symbolic name but is: %r'
-                    % (key, value), self._location)
+                    % (key, value), location)
             # Ensure there are no further tokens.
             next_token = next(tokens)
             if not _tools.is_eof_token(next_token):
                 raise errors.InterfaceError(
                     'value for data format property %r must describe a single character but is: %r'
-                    % (key, value), self._location)
+                    % (key, value), location)
             assert long_value is not None
             assert long_value >= 0
             result = chr(long_value)
@@ -425,7 +445,6 @@ class DataFormat(object):
             check_distinct(KEY_ITEM_DELIMITER, KEY_LINE_DELIMITER)
             check_distinct(KEY_ITEM_DELIMITER, KEY_QUOTE_CHARACTER)
             check_distinct(KEY_LINE_DELIMITER, KEY_QUOTE_CHARACTER)
-        self._location = None
         self._is_valid = True
 
     def __str__(self):
