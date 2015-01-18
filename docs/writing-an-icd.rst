@@ -1,6 +1,6 @@
-=====================================
-Writing an Interface Control Document
-=====================================
+=======================================
+Writing a Cutplace Interface Definition
+=======================================
 
 This chapter describes all aspects of writing a CID and can be used as
 reference. In case you are looking for a gentle introduction, see the
@@ -55,16 +55,18 @@ Example data format
 ==  ==============  ===========
 ..  Property        Value
 ==  ==============  ===========
-D   Format          CSV
-D   Encoding        ISO-8859-15
+D   Format          Delimited
+D   Encoding        UTF-8
 D   Line delimiter  LF
 D   Item delimiter  ,
 ==  ==============  ===========
 
-This basically says that the data are provided as comma separated values (CSV)
-and the character encoding is ISO-8859-15 (which is similar to Latin-1 but also
-includes the Euro sign). Rows are separated using linefeed characters (ASCII
-code 10) and columns are separated using a comma (,).
+This basically says that the data are provided as a text file using a
+delimiter to separate field items from each other. Characters are encoded
+using `UTF-8 https://en.wikipedia.org/wiki/UTF-8`_, a character encoding
+capable of representing all possible Unicode characters. Rows are separated
+using linefeed characters (ASCII code 10) and field items are separated using
+a comma (,).
 
 The remainder of this section describes the supported formats and available
 properties for them.
@@ -79,9 +81,9 @@ For data, both lines and columns are delimited by certain characters.
 Example for delimited data using visible ASCII characters and Cyrillic (Unicode
 0x0400-0x4ff)
 
-==  ===================  =================
+==  ===================  =====================
 ..  Property             Value
-==  ===================  =================
+==  ===================  =====================
 D   Format               Delimited
 D   Encoding             UTF-8
 D   Line delimiter       CRLF
@@ -90,37 +92,33 @@ D   Quote character      "
 D   Escape character     "
 D   Decimal separator    .
 D   Thousands separator  ,
-D   Allowed characters   32:128, 1024:1280
-==  ===================  =================
+D   Allowed characters   32...128, 1024...1280
+==  ===================  =====================
 
 In case Format is Delimited, the following properties have to be specified:
 
 .. index:: pair: data format property; encoding
 
 Encoding
-    The character encoding. The most common values will be ASCII, ISO-8859-15
-    (for many western countries), UTF-8 (for Unicode), CP-850 (used by MS DOS
+    The character encoding. The most common values will be ASCII, CP1252
+    (for many western countries), UTF-8 (for Unicode), CP850 (used by MS DOS
     in many western countries).
 
 .. index:: pair: data format property; line delimiter
 
 Line delimiter
-    Thus describes which character or character sequence is used to mark the
+    This describes which character or character sequence is used to mark the
     end of a line. Possible values are:
 
     * LF - "line feed", ASCII code 10, used by Unix based platforms and others,
       for example Mac OS X, Linux, Solaris BSD-variants and Amiga OS.
 
-    * CRLF - "carriage return linefeed", two characters with ASCII code 13 and
-      10, used for example by Windows and MS DOS.
+    * CRLF - "carriage return and linefeed", two characters with ASCII code 13
+     and 10, used for example by Windows and MS DOS.
 
     * CR - "carriage return", ASCII code 13, used by Mac OS Classic.
 
-    * Any - Do an analysis of the input and automatically choose the line
-      delimiter from it based on the one used most often with the first few
-      lines. Note that this still requires that the line delimiter is used
-      consistently, using for example CR for some lines and LF for others is
-      not allowed.
+    * Any - accepts any of the above as line delimiter
 
 .. index:: pair: data format property; item delimiter
 
@@ -158,8 +156,8 @@ Escape character
 
 Decimal separator
 	The character to separate the fractional part of a number, for example
-	in `17.23`. Typical values are: dot (.) and comma (,). The default is dot
-	(.).
+	in ``17.23``. Typical values are: dot (.) and comma (,). The default is
+	dot (.).
 
 .. index:: pair: data format property; thousands separator
 
@@ -167,7 +165,7 @@ Decimal separator
 
 Thousands separator
     The character to optionally group digits in large numbers, for example in
-    `12,345,678`. Typical values are: comma (,), dot (.) and the space
+    ``12,345,678``. Typical values are: comma (,), dot (.) and the space
     character. By default, no character can be used to group digits.
 
 .. index:: pair: data format property; allowed characters
@@ -176,54 +174,23 @@ Allowed characters
     This range describing the characters allowed for data items. Each number
     represents the decimal Unicode value of a character that can be used. With
     the help of colons (:) you can easily specify several characters. For
-    example, ``32:128`` means "between 32 and 128".
+    example, ``32...128`` means "between 32 and 128".
 
     You can find more information on how to specify ranges in :ref:`ranges`.
 
-.. index:: pair: data format; CSV
+.. index:: single: data format; CSV
 
-CSV data (comma separated values)
----------------------------------
+CSV (comma separated values) as a special case for delimited data. Despite
+the name, CSV data regularly use other separators than comma (,), so cutplace
+treats them the same as delimited data. In fact, you can specify it in CID:
 
-CSV data are delimited data too, but most properties already have default
-values you do not need to specify unless you want to use other values.
-
-Minimal example for CSV data
-
-==  ========  =====
-..  Property  Value
-==  ========  =====
-F   Format    CSV
-==  ========  =====
-
-This is the same as:
-
-Example for CSV data with default values spelled out
-
-==  ==================  =====
-..  Property            Value
-==  ==================  =====
-F   Format              CSV
-F   Encoding            ASCII
-F   Line delimiter      Any
-F   Item delimiter      ,
-F   Quote character     "
-F   Escape character    "
-F   Allowed characters  0...
-==  ==================  =====
-
-Many of these values will be fine for all practical purpose.  Most frequently
-"Encoding" and "Item delimiter" might have to be adjusted.
-
-Example for CSV data common in many European regions
-
-==  ==============  ===========
+==  ==============  =====
 ..  Property        Value
-==  ==============  ===========
-F   Format          CSV
-F   Encoding        ISO-8859-15
-F   Item delimiter  ;
-==  ==============  ===========
+==  ==============  =====
+D   Format          CSV
+
+For cutplace, there is no difference between "delimited" and "CSV".
+
 
 .. index:: pair: data format; Excel
 
@@ -298,14 +265,14 @@ necessary.
 
 Example for fixed data format
 
-==  ==================  ===========
+==  ==================  ======
 ..  Property            Value
-==  ==================  ===========
+==  ==================  ======
 F   Format              Fixed
-F   Encoding            ISO-8859-15
+F   Encoding            CP1252
 F   Line delimiter      LF
 F   Allowed characters  0...
-==  ==================  ===========
+==  ==================  ======
 
 .. index:: pair: data format; ODS
 
