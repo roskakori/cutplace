@@ -202,6 +202,37 @@ class IntegerFieldFormatTest(unittest.TestCase):
             # Ignore expected error.
             pass
 
+    def test_can_process_default_example(self):
+        field_format = fields.IntegerFieldFormat("x", False, None, "", _ANY_FORMAT)
+        self.assertEqual(field_format.rangeRule.items, [(-2147483648, 2147483647)])
+
+    def test_can_process_rule_example(self):
+        field_format = fields.IntegerFieldFormat("x", False, None, "1...5", _ANY_FORMAT)
+        self.assertEqual(field_format.rangeRule.items, [(1, 5)])
+
+    def test_can_process_length_example(self):
+        field_format = fields.IntegerFieldFormat("x", False, "1...5", "", _ANY_FORMAT)
+        self.assertEqual(field_format.rangeRule.items, [(-99999, 99999)])
+
+        field_format = fields.IntegerFieldFormat("x", False, "2", "", _ANY_FORMAT)
+        self.assertEqual(field_format.rangeRule.items, [(-99, 99)])
+
+        field_format = fields.IntegerFieldFormat("x", False, "...2", "", _ANY_FORMAT)
+        self.assertEqual(field_format.rangeRule.items, [(-99, 99)])
+
+        field_format = fields.IntegerFieldFormat("x", False, "1...1", "", _ANY_FORMAT)
+        self.assertEqual(field_format.rangeRule.items, [(-9, 9)])
+
+        field_format = fields.IntegerFieldFormat("x", False, "1...3, 5...9", "", _ANY_FORMAT)
+        self.assertEqual(field_format.rangeRule.items, [(-999, 999), (-999999999, -99999), (99999, 999999999)])
+
+        field_format = fields.IntegerFieldFormat("x", False, "3...", "", _ANY_FORMAT)
+        self.assertEqual(field_format.rangeRule.items, [(None, -100), (100, None)])
+
+    def test_can_process_length_and_rule_example(self):
+        field_format = fields.IntegerFieldFormat("x", False, "1...", "1:10", _ANY_FORMAT)
+        self.assertEqual(field_format.rangeRule.items, [(1, 10)])
+
     def test_can_output_sql_default(self):
         field_format = fields.IntegerFieldFormat("x", True, None, "", _ANY_FORMAT)
         column_def, constraint = field_format.as_sql(fields.MSSQL)
@@ -230,11 +261,11 @@ class IntegerFieldFormatTest(unittest.TestCase):
         self.assertEqual(constraint, "constraint chk_x check( ( x between -2147483648 and 2147483647 ) )")
     """
 
-    # def test_can_output_sql_bigint_with_range(self):
-    #     field_format = fields.IntegerFieldFormat("x", True, "1:10", "", _ANY_FORMAT)
-    #     column_def, constraint = field_format.as_sql(fields.MSSQL)
-    #     self.assertEqual(column_def, "x bigint")
-    #     self.assertEqual(constraint, "constraint chk_x check( ( x between -999999999 and 9999999999 ) )")
+    def test_can_output_sql_bigint_with_range(self):
+        field_format = fields.IntegerFieldFormat("x", True, "1:10", "", _ANY_FORMAT)
+        column_def, constraint = field_format.as_sql(fields.MSSQL)
+        self.assertEqual(column_def, "x bigint")
+        self.assertEqual(constraint, "constraint chk_x check( ( x between -999999999 and 9999999999 ) )")
 
     def test_can_output_sql_bigint_with_rule(self):
         field_format = fields.IntegerFieldFormat("x", True, None, "1:" + str(10 ** 10), _ANY_FORMAT)

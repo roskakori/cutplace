@@ -353,7 +353,7 @@ class IntegerFieldFormat(AbstractFieldFormat):
     """
     Field format accepting numeric integer values with fractional part.
     """
-    _DEFAULT_RANGE = "%d:%d" % (-2 ** 31, 2 ** 31 - 1)
+    _DEFAULT_RANGE = "%d...%d" % (-2 ** 31, 2 ** 31 - 1)
 
     MAX_SMALLINT = 2 ** 15 - 1
     MAX_INTEGR = 2 ** 31 - 1
@@ -365,36 +365,59 @@ class IntegerFieldFormat(AbstractFieldFormat):
         # The default range is 32 bit. If the user wants a bigger range, he has to specify it.
         # Python's long scales to any range as long there is enough memory available to represent
         # it.
-        self.rangeRule = ranges.Range(rule, IntegerFieldFormat._DEFAULT_RANGE)
-        # if (length_text is None or length_text == '') and (rule is None or rule == ''):
-        #     self.rangeRule = ranges.Range(self._DEFAULT_RANGE)
-        # else:
-        #     default_range = ranges.Range(self._DEFAULT_RANGE)
-        #     length_range = ranges.Range(length_text)
-        #     upper_length = length_range.upper_limit
-        #
-        #     if upper_length is None:
-        #         range_lower_length = default_range.lower_limit
-        #         range_upper_length = default_range.upper_limit
-        #     else:
-        #         range_lower_length = '-' + ('9' * (int(upper_length) - 1))
-        #         range_upper_length = '9' * int(upper_length)
-        #
-        #     if (length_text is None or length_text == '') and (rule is not None and rule != ''):
-        #         self.rangeRule = ranges.Range(rule)
-        #     elif (length_text is not None and length_text != '') and (rule is None or rule == ''):
-        #         self.rangeRule = ranges.Range(
-        #             '%s...%s' % (range_lower_length, range_upper_length))
-        #     else:
-        #         length_range = ranges.Range('%s...%s' % (range_lower_length, range_upper_length))
-        #         rule_range = ranges.Range(rule)
-        #
-        #         if length_range.upper_limit is not None and rule_range.upper_limit is not None and length_range.upper_limit < rule_range.upper_limit:
-        #             raise errors.FieldValueError('length upper limit must be greater than the rule upper limit')
-        #         if length_range.lower_limit is not None and rule_range.lower_limit is not None and length_range.lower_limit > rule_range.lower_limit:
-        #             raise errors.FieldValueError('rule lower limit must be less than the length lower limit')
-        #
-        #         self.rangeRule = rule_range
+
+        if (length_text is None or length_text == '') and (rule is None or rule == ''):
+            self.rangeRule = ranges.Range(self._DEFAULT_RANGE)
+        elif (length_text is None or length_text == '') and (rule is not None and rule != ''):
+            self.rangeRule = ranges.Range(rule)
+        else:
+            length_range = ranges.Range(length_text)
+            range_rule_text = ''
+            self.rangeRule = None
+
+            if any((i[0] is not None and i[0] < 0) or (i[1] is not None and i[1] < 0) for i in length_range.items):
+                raise errors.FieldValueError("length_text must be a positive range but is: %s", length_text)
+
+            for item in length_range.items:
+                lower_length = item[0]
+                upper_length = item[1]
+
+                if lower_length is None or lower_length == 1:
+                    if lower_length == 1:
+                        self._is_allowed_to_be_empty = False
+
+                    if upper_length is None:
+                        if rule is not None or rule != '':
+                            self.rangeRule = ranges.Range(rule)
+                        else:
+                            self.rangeRule = ranges.Range('1...')
+                    else:
+                        range_rule_text += ('-' + ('9' * upper_length) + '...' + ('9' * upper_length)) + ', '
+                elif lower_length == upper_length:
+                    range_rule_text += ('-' + ('9' * lower_length) + '...' + ('9' * upper_length)) + ', '
+                else:
+                    if upper_length is None:
+                        range_rule_text += ('...-1' + ('0' * (lower_length-1)) + ', 1' +
+                                            ('0' * (lower_length-1) + '...')) + ', '
+                    else:
+                        range_rule_text += ('-' + ('9' * upper_length) + '...-' + ('9' * lower_length)) + ', ' + \
+                                           (('9' * lower_length) + '...' + ('9' * upper_length)) + ', '
+
+            range_rule_text = range_rule_text[:-2]
+
+            if (length_text is not None and length_text != '') and (rule is None or rule == ''):
+                if self.rangeRule is None:
+                    self.rangeRule = ranges.Range(range_rule_text)
+            else:
+                length_range = self.rangeRule if self.rangeRule is None else ranges.Range(range_rule_text)
+                rule_range = ranges.Range(rule)
+
+                if length_range.upper_limit is not None and rule_range.upper_limit is not None and length_range.upper_limit < rule_range.upper_limit:
+                    raise errors.FieldValueError('length upper limit must be greater than the rule upper limit')
+                if length_range.lower_limit is not None and rule_range.lower_limit is not None and length_range.lower_limit > rule_range.lower_limit:
+                    raise errors.FieldValueError('rule lower limit must be less than the length lower limit')
+
+                self.rangeRule = rule_range
 
     def validated_value(self, value):
         assert value
