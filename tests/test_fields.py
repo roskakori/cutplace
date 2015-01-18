@@ -143,27 +143,6 @@ class DecimalFieldFormatTest(unittest.TestCase):
         self.assertEqual(decimal.Decimal("12345678"), german_decimal_field_format.validated("12.345.678"))
         self.assertEqual(decimal.Decimal("171234567.89"), german_decimal_field_format.validated("171.234.567,89"))
 
-    def test_broken_decimals(self):
-        field_format = fields.DecimalFieldFormat("x", False, None, "", _ANY_FORMAT)
-        self.assertRaises(errors.FieldValueError, field_format.validated, "")
-        self.assertRaises(errors.FieldValueError, field_format.validated, "eggs")
-        self.assertRaises(errors.FieldValueError, field_format.validated, "12.345,678")
-
-        german_format = _create_german_decimal_format()
-        self.assertRaises(errors.FieldValueError, german_format.validated, "12,345,678")
-        self.assertRaises(errors.FieldValueError, german_format.validated, "12,345.678")
-
-    def test_broken_decimal_syntax(self):
-        self.assertRaises(errors.InterfaceError, fields.DecimalFieldFormat, "x", False, None, "eggs", _ANY_FORMAT)
-
-    def test_field_validates_decimal_rule(self):
-        field_format = fields.DecimalFieldFormat("x", False, None, "1...10.1", _ANY_FORMAT)
-        self.assertEqual(field_format.rangeRule.lower_limit, 1)
-        self.assertEqual(field_format.rangeRule.upper_limit, 10.1)
-        self.assertEqual(field_format.validated("5"), 5)
-        self.assertEqual(field_format.validated("5.5"), 5.5)
-        self.assertRaises(errors.FieldValueError, field_format.validated, "10.5")
-
 
 class IntegerFieldFormatTest(unittest.TestCase):
     """
@@ -209,69 +188,6 @@ class IntegerFieldFormatTest(unittest.TestCase):
     def test_can_process_rule_example(self):
         field_format = fields.IntegerFieldFormat("x", False, None, "1...5", _ANY_FORMAT)
         self.assertEqual(field_format.valid_range.items, [(1, 5)])
-
-    def test_can_process_length_example(self):
-        field_format = fields.IntegerFieldFormat("x", False, "1...5", "", _ANY_FORMAT)
-        self.assertEqual(field_format.valid_range.items, [(-99999, 99999)])
-
-        field_format = fields.IntegerFieldFormat("x", False, "2", "", _ANY_FORMAT)
-        self.assertEqual(field_format.valid_range.items, [(-99, 99)])
-
-        field_format = fields.IntegerFieldFormat("x", False, "...2", "", _ANY_FORMAT)
-        self.assertEqual(field_format.valid_range.items, [(-99, 99)])
-
-        field_format = fields.IntegerFieldFormat("x", False, "1...1", "", _ANY_FORMAT)
-        self.assertEqual(field_format.valid_range.items, [(-9, 9)])
-
-        field_format = fields.IntegerFieldFormat("x", False, "1...3, 5...9", "", _ANY_FORMAT)
-        self.assertEqual(field_format.valid_range.items, [(-999, 999), (-999999999, -99999), (99999, 999999999)])
-
-        field_format = fields.IntegerFieldFormat("x", False, "3...", "", _ANY_FORMAT)
-        self.assertEqual(field_format.valid_range.items, [(None, -100), (100, None)])
-
-    def test_can_process_length_and_rule_example(self):
-        field_format = fields.IntegerFieldFormat("x", False, "1...", "1:10", _ANY_FORMAT)
-        self.assertEqual(field_format.valid_range.items, [(1, 10)])
-
-    def test_can_output_sql_default(self):
-        field_format = fields.IntegerFieldFormat("x", True, None, "", _ANY_FORMAT)
-        column_def, constraint = field_format.as_sql(fields.MSSQL)
-        self.assertEqual(column_def, "x integer")
-        self.assertEqual(constraint, "constraint chk_x check( ( x between -2147483648 and 2147483647 ) )")
-
-    def test_can_output_sql_smallint_with_rule(self):
-        field_format = fields.IntegerFieldFormat("x", True, None, "1:10", _ANY_FORMAT)
-        self.assertEqual(field_format.as_sql(fields.MSSQL)[0], "x smallint")
-
-    def test_can_output_sql_smallint_with_range(self):
-        field_format = fields.IntegerFieldFormat("x", True, "1:3", "", _ANY_FORMAT)
-        self.assertEqual(field_format.as_sql(fields.MSSQL)[0], "x smallint")
-
-    def test_can_output_sql_integer_with_rule(self):
-        field_format = fields.IntegerFieldFormat("x", True, None, "1:" + str(10 ** 6), _ANY_FORMAT)
-        column_def, constraint = field_format.as_sql(fields.MSSQL)
-        self.assertEqual(column_def, "x integer")
-        self.assertEqual(constraint, "constraint chk_x check( ( x between 1 and " + str(10 ** 6) + " ) )")
-
-    """
-    def test_can_output_sql_integer_with_range(self):
-        field_format = fields.IntegerFieldFormat("x", True, "1:", "", _ANY_FORMAT)
-        column_def, constraint = field_format.as_sql(fields.MSSQL)
-        self.assertEqual(column_def, "x integer")
-        self.assertEqual(constraint, "constraint chk_x check( ( x between -2147483648 and 2147483647 ) )")
-    """
-
-    def test_can_output_sql_bigint_with_range(self):
-        field_format = fields.IntegerFieldFormat("x", True, "1:10", "", _ANY_FORMAT)
-        column_def, constraint = field_format.as_sql(fields.MSSQL)
-        self.assertEqual(column_def, "x bigint")
-        self.assertEqual(constraint, "constraint chk_x check( ( x between -999999999 and 9999999999 ) )")
-
-    def test_can_output_sql_bigint_with_rule(self):
-        field_format = fields.IntegerFieldFormat("x", True, None, "1:" + str(10 ** 10), _ANY_FORMAT)
-        column_def, constraint = field_format.as_sql(fields.MSSQL)
-        self.assertEqual(column_def, "x bigint")
-        self.assertEqual(constraint, "constraint chk_x check( ( x between 1 and " + str(10 ** 10) + " ) )")
 
 
 class RegExFieldFormatTest(unittest.TestCase):

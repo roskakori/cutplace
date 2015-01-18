@@ -182,18 +182,6 @@ class RangeTest(unittest.TestCase):
         self.assertRaises(errors.RangeValueError, multi_range.validate, "x", 10)
         self.assertRaises(errors.RangeValueError, multi_range.validate, "x", 723)
 
-    def test_can_handle_proper_decimal_ranges(self):
-        self.assertEquals(ranges.Range("1.1").items, [(1.1, 1.1)])
-        self.assertEquals(ranges.Range("1....").items, [(1, None)])
-        self.assertEquals(ranges.Range("...1.").items, [(None, 1)])
-        self.assertEquals(ranges.Range("1.1" + "\u2026" + "2.1").items, [(1.1, 2.1)])
-        self.assertEquals(ranges.Range("-1...2").items, [(-1, 2)])
-
-        self.assertEquals(ranges.Range("1.1:").items, [(1.1, None)])
-        self.assertEquals(ranges.Range(":1.1").items, [(None, 1.1)])
-        self.assertEquals(ranges.Range("1.1:2.1").items, [(1.1, 2.1)])
-        self.assertEquals(ranges.Range("-1.1:2.1").items, [(-1.1, 2.1)])
-
 
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()

@@ -58,10 +58,6 @@ class Range(object):
             if six.PY2:
                 # HACK: In Python 2.6, ``tokenize.generate_tokens()`` produces a token for leading white space.
                 description = description.strip()
-            if '.' * 4 in description and not (description[-1].isdigit() or description[-2].isdigit()):
-                description = description.replace('....', ELLIPSIS)
-            else:
-                description = description.replace('...', ELLIPSIS)
         # Find out if a `text` has been specified and if not, use optional `default` instead.
         has_description = (description is not None) and (description.strip() != '')
         if not has_description and default is not None:
@@ -75,11 +71,11 @@ class Range(object):
             self._lower_limit = None
             self._upper_limit = None
         else:
-            self._description = description
+            self._description = description.replace('...', ELLIPSIS)
             self._items = []
 
             # TODO: Consolidate code with `DelimitedDataFormat._validatedCharacter()`.
-            tokens = tokenize.generate_tokens(io.StringIO(description).readline)
+            tokens = tokenize.generate_tokens(io.StringIO(self._description).readline)
             end_reached = False
             while not end_reached:
                 lower = None
