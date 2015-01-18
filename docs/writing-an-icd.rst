@@ -63,7 +63,7 @@ D   Item delimiter  ,
 
 This basically says that the data are provided as a text file using a
 delimiter to separate field items from each other. Characters are encoded
-using `UTF-8 https://en.wikipedia.org/wiki/UTF-8`_, a character encoding
+using `UTF-8 <https://en.wikipedia.org/wiki/UTF-8>`_, a character encoding
 capable of representing all possible Unicode characters. Rows are separated
 using linefeed characters (ASCII code 10) and field items are separated using
 a comma (,).
