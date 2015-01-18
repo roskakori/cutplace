@@ -22,8 +22,11 @@ from __future__ import unicode_literals
 
 import codecs
 import io
+import string
 import token
 import tokenize
+
+import six
 
 from cutplace import errors
 from cutplace import ranges
@@ -313,17 +316,19 @@ class DataFormat(object):
         A single character intended as value for data format property ``key``
         derived from ``value``, which can be:
 
-        * a decimal or hex number (prefixed with "0x") referring to the ASCII/Unicode of the character
-        * a string containing a single character such as "\t".
-        * a symbolic name such as "Tab".
+        * a decimal or hex number (prefixed with ``'0x'``) referring to the ASCII/Unicode of the character
+        * a string containing a single character such as ``'\t'``.
+        * a symbolic name from :py:const:`cutplace.errors.NAME_TO_ASCII_CODE_MAP` such as ``tab``.
 
-        Anything else yields an `InterfaceError`.
+        :raises cutplace.errors.InterfaceError: on any broken ``value``
         """
         # TODO: Consolidate code with `ranges.__init__()`.
         assert key
         assert value is not None
-        if len(value) == 1 and (value < "0" or value > "9"):
-            result = value
+
+        stripped_value = value.strip()
+        if (len(stripped_value) == 1) and (stripped_value not in string.digits):
+            result_code = ord(stripped_value)
         else:
             tokens = tokenize.generate_tokens(io.StringIO(value).readline)
             next_token = next(tokens)
@@ -334,34 +339,35 @@ class DataFormat(object):
             next_value = next_token[1]
             if next_type == token.NUMBER:
                 try:
-                    if next_value[:2].lower() == "0x":
-                        next_value = next_value[2:]
-                        base = 16
-                    else:
-                        base = 10
-                    long_value = int(next_value, base)
+                    # Note: base 0 automatically handles prefixes like 0x.
+                    result_code = int(next_value, 0)
                 except ValueError:
                     raise errors.InterfaceError(
-                        'numeric value for data format property %s must be an integer but is: %s'
+                        'numeric value for data format property %s must be an integer number but is: %s'
                         % (_compat.text_repr(key), _compat.text_repr(value)), location)
             elif next_type == token.NAME:
                 try:
-                    long_value = errors.NAME_TO_ASCII_CODE_MAP[next_value.lower()]
+                    result_code = errors.NAME_TO_ASCII_CODE_MAP[next_value.lower()]
                 except KeyError:
                     valid_symbols = _tools.human_readable_list(sorted(errors.NAME_TO_ASCII_CODE_MAP.keys()))
                     raise errors.InterfaceError(
                         'symbolic name %s for data format property %s must be one of: %s'
                         % (_compat.text_repr(value), _compat.text_repr(key), valid_symbols), location)
             elif next_type == token.STRING:
-                if len(next_value) != 3:
-                    raise errors.InterfaceError(
-                        'text for data format property %s must be a single character but is: %s'
-                        % (_compat.text_repr(key), _compat.text_repr(value)), location)
                 left_quote = next_value[0]
-                right_quote = next_value[2]
+                right_quote = next_value[-1]
                 assert left_quote in "\"\'", "leftQuote=%r" % left_quote
                 assert right_quote in "\"\'", "rightQuote=%r" % right_quote
-                long_value = ord(next_value[1])
+                next_value = next_value[1:-1]
+                if len(next_value) != 1:
+                    next_value = next_value.encode('utf-8').decode('unicode_escape')
+                    if len(next_value) != 1:
+                        raise errors.InterfaceError(
+                            'text for data format property %s must be a single character but is: %s'
+                            % (_compat.text_repr(key), _compat.text_repr(value)), location)
+                result_code = ord(next_value)
+            elif (len(next_value) == 1) and not _tools.is_eof_token(next_token):
+                result_code = ord(next_value)
             else:
                 raise errors.InterfaceError(
                     'value for data format property %s must a number, a single character or a symbolic name but is: %s'
@@ -370,11 +376,12 @@ class DataFormat(object):
             next_token = next(tokens)
             if not _tools.is_eof_token(next_token):
                 raise errors.InterfaceError(
-                    'value for data format property %s must describe a single character but is: %s'
+                    'value for data format property %s must be a single character but is: %s'
                     % (_compat.text_repr(key), _compat.text_repr(value)), location)
-            assert long_value is not None
-            assert long_value >= 0
-            result = chr(long_value)
+        # TODO: Handle 'none' properly.
+        assert result_code is not None
+        assert result_code >= 0
+        result = six.unichr(result_code)
         assert result is not None
         return result
 

@@ -261,9 +261,9 @@ class DataFormatTest(unittest.TestCase):
         self.assertEqual('"', data.DataFormat._validated_character("x", "34", self._location))
         self.assertEqual('\t', data.DataFormat._validated_character('x', '9', self._location))
         self.assertEqual('\t', data.DataFormat._validated_character('x', '0x9', self._location))
-        self.assertEqual('\t', data.DataFormat._validated_character('x', '\t', self._location))
         self.assertEqual('\t', data.DataFormat._validated_character('x', 'Tab', self._location))
-        # TODO: self.assertEqual('\t', data.DataFormat._validated_character('x', '"\\t"', self._location))
+        self.assertEqual('\t', data.DataFormat._validated_character('x', '"\\t"', self._location))
+        self.assertEqual('\t', data.DataFormat._validated_character('x', '"\\u0009"', self._location))
 
     def _test_fails_on_broken_validated_character(self, value, anticipated_error_message_pattern):
         try:
@@ -279,30 +279,33 @@ class DataFormatTest(unittest.TestCase):
     def test_fails_on_validated_character_with_empty_text(self):
         self._test_fails_on_broken_validated_character('', "*: value for data format property 'x' must be specified")
 
+    def test_fails_on_validated_character_with_white_space_only(self):
+        self._test_fails_on_broken_validated_character('\t', "*: value for data format property 'x' must be specified")
+
     def test_fails_on_validated_character_with_float(self):
         self._test_fails_on_broken_validated_character(
-            '17.23', "*: numeric value for data format property 'x' must be an integer but is: '17.23'")
+            '17.23', "*: numeric value for data format property 'x' must be an integer number but is: '17.23'")
 
     def test_fails_on_validated_character_with_with_two_symbolic_names(self):
         self._test_fails_on_broken_validated_character(
-            'Tab Tab', "*: value for data format property 'x' must describe a single character but is: 'Tab Tab'")
+            'Tab Tab', "*: value for data format property 'x' must be a single character but is: 'Tab Tab'")
 
     def test_fails_on_validated_character_with_unknown_symbolic_name(self):
         self._test_fails_on_broken_validated_character(
             'spam',
             "*: symbolic name 'spam' for data format property 'x' must be one of: 'cr', 'ff', 'lf', 'tab' or 'vt'")
 
-    def test_fails_on_validated_character_with_trailing_blank(self):
+    def test_fails_on_validated_character_with_unterminated_multi_line_expression(self):
         self._test_fails_on_broken_validated_character(
-            '( ',
-            "*: value for data format property 'x' must a number, a single character or a symbolic name but is: '( '")
+            '((',
+            "*: value for data format property 'x' must be a single character but is: '(('")
 
     def test_fails_on_validated_character_with_unterminated_string(self):
         self._test_fails_on_broken_validated_character(
             '\"\\',
-            '*: value for data format property \'x\' must a number, a single character or a symbolic name but is: \'"\\\\\'')
+            '*: value for data format property \'x\' must be a single character but is: \'"\\\\\'')
 
-    def test_fails_on_validated_character_with_multiple_characters(self):
+    def test_fails_on_validated_character_with_multiple_characters_as_string(self):
         self._test_fails_on_broken_validated_character(
             '"abc"', "*: text for data format property 'x' must be a single character but is: '\"abc\"'")
 
