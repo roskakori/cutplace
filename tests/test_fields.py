@@ -204,34 +204,34 @@ class IntegerFieldFormatTest(unittest.TestCase):
 
     def test_can_process_default_example(self):
         field_format = fields.IntegerFieldFormat("x", False, None, "", _ANY_FORMAT)
-        self.assertEqual(field_format.rangeRule.items, [(-2147483648, 2147483647)])
+        self.assertEqual(field_format.valid_range.items, [(-2147483648, 2147483647)])
 
     def test_can_process_rule_example(self):
         field_format = fields.IntegerFieldFormat("x", False, None, "1...5", _ANY_FORMAT)
-        self.assertEqual(field_format.rangeRule.items, [(1, 5)])
+        self.assertEqual(field_format.valid_range.items, [(1, 5)])
 
     def test_can_process_length_example(self):
         field_format = fields.IntegerFieldFormat("x", False, "1...5", "", _ANY_FORMAT)
-        self.assertEqual(field_format.rangeRule.items, [(-99999, 99999)])
+        self.assertEqual(field_format.valid_range.items, [(-99999, 99999)])
 
         field_format = fields.IntegerFieldFormat("x", False, "2", "", _ANY_FORMAT)
-        self.assertEqual(field_format.rangeRule.items, [(-99, 99)])
+        self.assertEqual(field_format.valid_range.items, [(-99, 99)])
 
         field_format = fields.IntegerFieldFormat("x", False, "...2", "", _ANY_FORMAT)
-        self.assertEqual(field_format.rangeRule.items, [(-99, 99)])
+        self.assertEqual(field_format.valid_range.items, [(-99, 99)])
 
         field_format = fields.IntegerFieldFormat("x", False, "1...1", "", _ANY_FORMAT)
-        self.assertEqual(field_format.rangeRule.items, [(-9, 9)])
+        self.assertEqual(field_format.valid_range.items, [(-9, 9)])
 
         field_format = fields.IntegerFieldFormat("x", False, "1...3, 5...9", "", _ANY_FORMAT)
-        self.assertEqual(field_format.rangeRule.items, [(-999, 999), (-999999999, -99999), (99999, 999999999)])
+        self.assertEqual(field_format.valid_range.items, [(-999, 999), (-999999999, -99999), (99999, 999999999)])
 
         field_format = fields.IntegerFieldFormat("x", False, "3...", "", _ANY_FORMAT)
-        self.assertEqual(field_format.rangeRule.items, [(None, -100), (100, None)])
+        self.assertEqual(field_format.valid_range.items, [(None, -100), (100, None)])
 
     def test_can_process_length_and_rule_example(self):
         field_format = fields.IntegerFieldFormat("x", False, "1...", "1:10", _ANY_FORMAT)
-        self.assertEqual(field_format.rangeRule.items, [(1, 10)])
+        self.assertEqual(field_format.valid_range.items, [(1, 10)])
 
     def test_can_output_sql_default(self):
         field_format = fields.IntegerFieldFormat("x", True, None, "", _ANY_FORMAT)

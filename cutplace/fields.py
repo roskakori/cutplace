@@ -367,13 +367,13 @@ class IntegerFieldFormat(AbstractFieldFormat):
         # it.
 
         if (length_text is None or length_text == '') and (rule is None or rule == ''):
-            self.rangeRule = ranges.Range(self._DEFAULT_RANGE)
+            self.valid_range = ranges.Range(self._DEFAULT_RANGE)
         elif (length_text is None or length_text == '') and (rule is not None and rule != ''):
-            self.rangeRule = ranges.Range(rule)
+            self.valid_range = ranges.Range(rule)
         else:
             length_range = ranges.Range(length_text)
             range_rule_text = ''
-            self.rangeRule = None
+            self.valid_range = None
 
             if any((i[0] is not None and i[0] < 0) or (i[1] is not None and i[1] < 0) for i in length_range.items):
                 raise errors.FieldValueError("length_text must be a positive range but is: %s", length_text)
@@ -388,9 +388,9 @@ class IntegerFieldFormat(AbstractFieldFormat):
 
                     if upper_length is None:
                         if rule is not None or rule != '':
-                            self.rangeRule = ranges.Range(rule)
+                            self.valid_range = ranges.Range(rule)
                         else:
-                            self.rangeRule = ranges.Range('1...')
+                            self.valid_range = ranges.Range('1...')
                     else:
                         range_rule_text += ('-' + ('9' * upper_length) + '...' + ('9' * upper_length)) + ', '
                 elif lower_length == upper_length:
@@ -406,10 +406,10 @@ class IntegerFieldFormat(AbstractFieldFormat):
             range_rule_text = range_rule_text[:-2]
 
             if (length_text is not None and length_text != '') and (rule is None or rule == ''):
-                if self.rangeRule is None:
-                    self.rangeRule = ranges.Range(range_rule_text)
+                if self.valid_range is None:
+                    self.valid_range = ranges.Range(range_rule_text)
             else:
-                length_range = self.rangeRule if self.rangeRule is None else ranges.Range(range_rule_text)
+                length_range = self.valid_range if self.valid_range is None else ranges.Range(range_rule_text)
                 rule_range = ranges.Range(rule)
 
                 if length_range.upper_limit is not None and rule_range.upper_limit is not None and length_range.upper_limit < rule_range.upper_limit:
@@ -417,20 +417,20 @@ class IntegerFieldFormat(AbstractFieldFormat):
                 if length_range.lower_limit is not None and rule_range.lower_limit is not None and length_range.lower_limit > rule_range.lower_limit:
                     raise errors.FieldValueError('rule lower limit must be less than the length lower limit')
 
-                self.rangeRule = rule_range
+                self.valid_range = rule_range
 
     def validated_value(self, value):
         assert value
 
         try:
-            long_value = int(value)
+            value_as_int = int(value)
         except ValueError:
             raise errors.FieldValueError("value must be an integer number: %r" % value)
         try:
-            self.rangeRule.validate("value", long_value)
+            self.valid_range.validate("value", value_as_int)
         except errors.RangeValueError as error:
             raise errors.FieldValueError(str(error))
-        return long_value
+        return value_as_int
 
     def as_sql(self, db):
         return sql.as_sql_number(self._field_name, self._is_allowed_to_be_empty, self._length, self._rule, db)
