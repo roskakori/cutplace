@@ -96,15 +96,15 @@
     </target>
 
     <target name="test" description="run test suite">
-        <exec executable="python" failonerror="false">
+        <exec executable="python" failonerror="true">
             <arg path="setup.py" />
             <arg value="test" />
         </exec>
-        <exec executable="python" failonerror="false">
+        <exec executable="python" failonerror="true">
             <arg path="setup.py" />
             <arg value="doctest" />
         </exec>
-        <exec dir="tests" executable="python" failonerror="false">
+        <exec dir="tests" executable="python" failonerror="true">
             <arg value="-m" />
             <arg value="doctest" />
             <arg value="--fail-fast" />
