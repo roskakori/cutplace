@@ -156,15 +156,6 @@ class AbstractCheck(object):
         """
         return self._field_names
 
-    def as_sql(self):
-        """
-        Source code to represent the check as SQL constraint. The default implementation is an empty
-        string.
-
-        :rtype: str
-        """
-        return ''
-
 
 class IsUniqueCheck(AbstractCheck):
     """
@@ -212,9 +203,6 @@ class IsUniqueCheck(AbstractCheck):
 
     def reset(self):
         self._row_key_to_location_map = {}
-
-    def as_sql(self):
-        return "UNIQUE( " + ",".join(self._fieldNames) + ") "
 
     def check_row(self, field_name_to_value_map, location):
         row_key = tuple(field_name_to_value_map[field_name] for field_name in self._field_names_to_check)
