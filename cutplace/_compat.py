@@ -65,7 +65,7 @@ if six.PY2:
         return dict((key, value if not isinstance(value, six.text_type) else str(value))
                     for key, value in key_to_value_map.items())
 
-    class _UnicodeCsvWriter:
+    class _UnicodeCsvWriter(object):
         r"""
         A CSV writer for Python 2 which will write rows to `target_stream`
         which must be able to write unicode strings.

@@ -278,10 +278,10 @@ class DecimalFieldFormat(AbstractFieldFormat):
     _DEFAULT_RANGE = '%d...%d' % (-2 ** 31, 2 ** 31 - 1)
 
     def __init__(self, field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value=None):
-        super(DecimalFieldFormat, self).__init__(field_name, is_allowed_to_be_empty, length_text, rule, data_format,
-                                                 empty_value)
-        #if rule.strip():
-        #    raise errors.InterfaceError("decimal rule must be empty")
+        super(DecimalFieldFormat, self).__init__(
+            field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value)
+        if rule.strip() != '':
+            raise errors.InterfaceError("decimal rule must be empty")
         self.decimalSeparator = data_format.decimal_separator
         self.thousandsSeparator = data_format.thousands_separator
 
@@ -366,7 +366,7 @@ class IntegerFieldFormat(AbstractFieldFormat):
 
     MAX_SMALLINT = 2 ** 15 - 1
     MAX_INTEGR = 2 ** 31 - 1
-    MAX_BIGINT = 2 ** 63 -1
+    MAX_BIGINT = 2 ** 63 - 1
 
     def __init__(self, field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value=None):
         super(IntegerFieldFormat, self).__init__(field_name, is_allowed_to_be_empty, length_text, rule, data_format,
