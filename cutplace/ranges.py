@@ -35,6 +35,78 @@ from cutplace._compat import python_2_unicode_compatible
 
 ELLIPSIS = '\u2026'  # '...' as single character.
 
+MAX_INTEGER = 2 ** 31 - 1
+MIN_INTEGER = -2 ** 31
+
+DEFAULT_INTEGER_RANGE_TEXT = '%d...%d' % (MIN_INTEGER, MAX_INTEGER)
+
+
+def code_for_number_token(name, value, location):
+    """
+    The numeric code for text representing an :py:class:`int` in ``value``.
+
+    :param str name: the name of the value as it is known to the end user
+    :param str value: the text that represents an :py:class:`int`
+    :param cutplace.errors.Location location: the location of ``value`` or ``None``
+    """
+    assert name is not None
+    assert value is not None
+
+    try:
+        # Note: base 0 automatically handles prefixes like 0x.
+        result = int(value, 0)
+    except ValueError:
+        raise errors.InterfaceError(
+            'numeric value for %s must be an integer number but is: %s' % (name, _compat.text_repr(value)), location)
+    return result
+
+
+def code_for_symbolic_token(name, value, location):
+    """
+    The numeric code for text representing an a symbolic name in ``value``,
+    which has to be one of the values in
+    :py:const:`cutplace.errors.NAME_TO_ASCII_CODE_MAP`.
+
+    :param str name: the name of the value as it is known to the end user
+    :param str value: the text that represents a symbolic name
+    :param cutplace.errors.Location location: the location of ``value`` or ``None``
+    """
+    assert name is not None
+    assert value is not None
+
+    try:
+        result = errors.NAME_TO_ASCII_CODE_MAP[value.lower()]
+    except KeyError:
+        valid_symbols = _tools.human_readable_list(sorted(errors.NAME_TO_ASCII_CODE_MAP.keys()))
+        raise errors.InterfaceError(
+            'symbolic name %s for %s must be one of: %s' % (_compat.text_repr(value), name, valid_symbols), location)
+    return result
+
+
+def code_for_string_token(name, value, location):
+    """
+    The numeric code for text representing an string with a single character in ``value``.
+
+    :param str name: the name of the value as it is known to the end user
+    :param str value: the text that represents a string with a single character
+    :param cutplace.errors.Location location: the location of ``value`` or ``None``
+    """
+    assert name is not None
+    assert value is not None
+    assert len(value) >= 2
+    left_quote = value[0]
+    right_quote = value[-1]
+    assert left_quote in "\"\'", "left_quote=%r" % left_quote
+    assert right_quote in "\"\'", "right_quote=%r" % right_quote
+
+    value_without_quotes = value[1:-1]
+    if len(value_without_quotes) != 1:
+        value_without_quotes = value_without_quotes.encode('utf-8').decode('unicode_escape')
+        if len(value_without_quotes) != 1:
+            raise errors.InterfaceError(
+                'text for %s must be a single character but is: %s' % (name, _compat.text_repr(value)), location)
+    return ord(value_without_quotes)
+
 
 @python_2_unicode_compatible
 class Range(object):
@@ -74,7 +146,8 @@ class Range(object):
             self._description = description.replace('...', ELLIPSIS)
             self._items = []
 
-            # TODO: Consolidate code with `DelimitedDataFormat._validatedCharacter()`.
+            name_for_code = 'range'
+            location = None  # TODO: Add location where range is declared.
             tokens = tokenize.generate_tokens(io.StringIO(self._description).readline)
             end_reached = False
             while not end_reached:
@@ -87,77 +160,59 @@ class Range(object):
                     next_type = next_token[0]
                     next_value = next_token[1]
                     if next_type in (token.NAME, token.NUMBER, token.STRING):
-                        if next_type == token.NUMBER:
-                            try:
-                                if next_value[:2].lower() == "0x":
-                                    long_value = float.fromhex(next_value)
-                                else:
-                                    long_value = float(next_value)
-
-                                if int(long_value) == long_value:
-                                    long_value = int(long_value)
-
-                            except ValueError:
-                                raise errors.InterfaceError(
-                                    "number must be an integer or float but is: %s" % _compat.text_repr(next_value))
+                        if next_type == token.NAME:
+                            value_as_int = code_for_symbolic_token(name_for_code, next_value, location)
+                        elif next_type == token.NUMBER:
+                            value_as_int = code_for_number_token(name_for_code, next_value, location)
                             if after_hyphen:
-                                long_value *= - 1
+                                value_as_int *= - 1
                                 after_hyphen = False
-                        elif next_type == token.NAME:
-                            try:
-                                long_value = errors.NAME_TO_ASCII_CODE_MAP[next_value.lower()]
-                            except KeyError:
-                                valid_symbols = _tools.human_readable_list(sorted(errors.NAME_TO_ASCII_CODE_MAP.keys()))
-                                raise errors.InterfaceError(
-                                    "symbolic name %s must be one of: %s"
-                                    % (_compat.text_repr(next_value), valid_symbols))
                         elif next_type == token.STRING:
-                            if len(next_value) != 3:
-                                raise errors.InterfaceError(
-                                    "text for range must contain a single character but is: %s"
-                                    % _compat.text_repr(next_value))
-                            left_quote = next_value[0]
-                            right_quote = next_value[2]
-                            assert left_quote in "\"\'", "leftQuote=%r" % left_quote
-                            assert right_quote in "\"\'", "rightQuote=%r" % right_quote
-                            long_value = ord(next_value[1])
+                            value_as_int = code_for_string_token(name_for_code, next_value, location)
+                        elif (len(next_value) == 1) and not _tools.is_eof_token(next_token):
+                            value_as_int = ord(next_value)
+                        else:
+                            raise errors.InterfaceError(
+                                'value for %s must a number, a single character or a symbolic name but is: %s'
+                                % (name_for_code, _compat.text_repr(next_value)), location)
                         if ellipsis_found:
                             if upper is None:
-                                upper = long_value
+                                upper = value_as_int
                             else:
                                 raise errors.InterfaceError(
                                     "range must have at most lower and upper limit but found another number: %s"
-                                    % _compat.text_repr(next_value))
+                                    % _compat.text_repr(next_value), location)
                         elif lower is None:
-                            lower = long_value
+                            lower = value_as_int
                         else:
                             raise errors.InterfaceError(
                                 "number must be followed by ellipsis (...) but found: %s"
-                                % _compat.text_repr(next_value))
+                                % _compat.text_repr(next_value), location)
                     elif after_hyphen:
                         raise errors.InterfaceError(
-                            "hyphen (-) must be followed by number but found: %s" % _compat.text_repr(next_value))
+                            "hyphen (-) must be followed by number but found: %s" % _compat.text_repr(next_value),
+                            location)
                     elif (next_type == token.OP) and (next_value == "-"):
                         after_hyphen = True
                     elif next_value in (ELLIPSIS, ':'):
                         ellipsis_found = True
                     else:
-                        message = "range must be specified using integer numbers, text, " \
-                                  "symbols and ellipsis (...) but found: %s [token type: %d]" \
-                                  % (_compat.text_repr(next_value), next_type)
-                        raise errors.InterfaceError(message)
+                        raise errors.InterfaceError(
+                            "range must be specified using integer numbers, text, "
+                            "symbols and ellipsis (...) but found: %s [token type: %d]"
+                            % (_compat.text_repr(next_value), next_type), location)
                     next_token = next(tokens)
 
                 if after_hyphen:
-                    raise errors.InterfaceError("hyphen (-) at end must be followed by number")
+                    raise errors.InterfaceError("hyphen (-) at end must be followed by number", location)
 
                 # Decide upon the result.
-                if (lower is None):
-                    if (upper is None):
+                if lower is None:
+                    if upper is None:
                         if ellipsis_found:
                             # Handle "...".
-                            # TODO: Handle "..." same as ""?
-                            raise errors.InterfaceError("ellipsis (...) must be preceded and/or succeeded by number")
+                            raise errors.InterfaceError(
+                                'ellipsis (...) must be preceded and/or succeeded by number', location)
                         else:
                             # Handle "".
                             result = None
@@ -169,7 +224,8 @@ class Range(object):
                     # Handle "x..." and "x...y".
                     if (upper is not None) and (lower > upper):
                         raise errors.InterfaceError(
-                            "lower range %d must be greater or equal than upper range %d" % (lower, upper))
+                            "lower range %d must be greater or equal than upper range %d" % (lower, upper),
+                            location)
                     result = (lower, upper)
                 else:
                     # Handle "x".
@@ -179,17 +235,15 @@ class Range(object):
                         if self._items_overlap(item, result):
                             # TODO: use _repr_item() or something to display item in error message.
                             raise errors.InterfaceError(
-                                "range items must not overlap: %r and %r"
-                                % (self._repr_item(item), self._repr_item(result)))
+                                "range items must not overlap: %s and %s"
+                                % (self._repr_item(item), self._repr_item(result)), location)
                     self._items.append(result)
                 if _tools.is_eof_token(next_token):
                     end_reached = True
 
             self._lower_limit = None
             self._upper_limit = None
-
             is_first_item = True
-
             for lower_item, upper_item in self._items:
                 if is_first_item:
                     self._lower_limit = lower_item
@@ -262,11 +316,7 @@ class Range(object):
         """
         Human readable description of the range similar to a Python tuple.
         """
-        if self.items:
-            result = "'%s'" % self
-        else:
-            result = str(None)
-        return result
+        return "Range('%s')" % self
 
     def __str__(self):
         """

@@ -322,10 +322,10 @@ class DataFormat(object):
 
         :raises cutplace.errors.InterfaceError: on any broken ``value``
         """
-        # TODO: Consolidate code with `ranges.__init__()`.
         assert key
         assert value is not None
 
+        name_for_errors = 'data format property %s' % _compat.text_repr(key)
         stripped_value = value.strip()
         if (len(stripped_value) == 1) and (stripped_value not in string.digits):
             result_code = ord(stripped_value)
@@ -334,50 +334,27 @@ class DataFormat(object):
             next_token = next(tokens)
             if _tools.is_eof_token(next_token):
                 raise errors.InterfaceError(
-                    "value for data format property %s must be specified" % _compat.text_repr(key), location)
+                    "value for %s must be specified" % name_for_errors, location)
             next_type = next_token[0]
             next_value = next_token[1]
-            if next_type == token.NUMBER:
-                try:
-                    # Note: base 0 automatically handles prefixes like 0x.
-                    result_code = int(next_value, 0)
-                except ValueError:
-                    raise errors.InterfaceError(
-                        'numeric value for data format property %s must be an integer number but is: %s'
-                        % (_compat.text_repr(key), _compat.text_repr(value)), location)
-            elif next_type == token.NAME:
-                try:
-                    result_code = errors.NAME_TO_ASCII_CODE_MAP[next_value.lower()]
-                except KeyError:
-                    valid_symbols = _tools.human_readable_list(sorted(errors.NAME_TO_ASCII_CODE_MAP.keys()))
-                    raise errors.InterfaceError(
-                        'symbolic name %s for data format property %s must be one of: %s'
-                        % (_compat.text_repr(value), _compat.text_repr(key), valid_symbols), location)
+            if next_type == token.NAME:
+                result_code = ranges.code_for_symbolic_token(name_for_errors, next_value, location)
+            elif next_type == token.NUMBER:
+                result_code = ranges.code_for_number_token(name_for_errors, next_value, location)
             elif next_type == token.STRING:
-                left_quote = next_value[0]
-                right_quote = next_value[-1]
-                assert left_quote in "\"\'", "leftQuote=%r" % left_quote
-                assert right_quote in "\"\'", "rightQuote=%r" % right_quote
-                next_value = next_value[1:-1]
-                if len(next_value) != 1:
-                    next_value = next_value.encode('utf-8').decode('unicode_escape')
-                    if len(next_value) != 1:
-                        raise errors.InterfaceError(
-                            'text for data format property %s must be a single character but is: %s'
-                            % (_compat.text_repr(key), _compat.text_repr(value)), location)
-                result_code = ord(next_value)
+                result_code = ranges.code_for_string_token(name_for_errors, next_value, location)
             elif (len(next_value) == 1) and not _tools.is_eof_token(next_token):
                 result_code = ord(next_value)
             else:
                 raise errors.InterfaceError(
-                    'value for data format property %s must a number, a single character or a symbolic name but is: %s'
-                    % (_compat.text_repr(key), _compat.text_repr(value)), location)
+                    'value for %s must a number, a single character or a symbolic name but is: %s'
+                    % (name_for_errors, _compat.text_repr(value)), location)
             # Ensure there are no further tokens.
             next_token = next(tokens)
             if not _tools.is_eof_token(next_token):
                 raise errors.InterfaceError(
-                    'value for data format property %s must be a single character but is: %s'
-                    % (_compat.text_repr(key), _compat.text_repr(value)), location)
+                    'value for %s must be a single character but is: %s'
+                    % (name_for_errors, _compat.text_repr(value)), location)
         # TODO: Handle 'none' properly.
         assert result_code is not None
         assert result_code >= 0

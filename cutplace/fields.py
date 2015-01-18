@@ -310,19 +310,13 @@ class IntegerFieldFormat(AbstractFieldFormat):
     """
     Field format accepting numeric integer values with fractional part.
     """
-    _DEFAULT_RANGE = "%d...%d" % (-2 ** 31, 2 ** 31 - 1)
-
-    MAX_SMALLINT = 2 ** 15 - 1
-    MAX_INTEGR = 2 ** 31 - 1
-    MAX_BIGINT = 2 ** 63 - 1
-
     def __init__(self, field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value=None):
         super(IntegerFieldFormat, self).__init__(field_name, is_allowed_to_be_empty, length_text, rule, data_format,
                                                  empty_value)
         # The default range is 32 bit. If the user wants a bigger range, he has to specify it.
         # Python's long scales to any range as long there is enough memory available to represent
         # it.
-        self.valid_range = ranges.Range(rule, IntegerFieldFormat._DEFAULT_RANGE)
+        self.valid_range = ranges.Range(rule, ranges.DEFAULT_INTEGER_RANGE_TEXT)
 
     def validated_value(self, value):
         assert value

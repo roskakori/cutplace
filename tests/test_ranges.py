@@ -1,5 +1,5 @@
 """
-Tests for ranges.
+Tests for :py:mod:`ranges`.
 """
 # Copyright (C) 2009-2015 Thomas Aglassinger
 #
@@ -30,10 +30,9 @@ from tests import dev_test
 class RangeTest(unittest.TestCase):
 
     """
-    Test cases for ranges.
+    Test cases for :py:class:`cutplace.ranges.Range`.
     """
-
-    def test_proper_ranges(self):
+    def test_can_parse_proper_ranges(self):
         self.assertEquals(ranges.Range("1").items, [(1, 1)])
         self.assertEquals(ranges.Range("1...").items, [(1, None)])
         self.assertEquals(ranges.Range("...1").items, [(None, 1)])
@@ -45,39 +44,44 @@ class RangeTest(unittest.TestCase):
         self.assertEquals(ranges.Range("1:2").items, [(1, 2)])
         self.assertEquals(ranges.Range("-1:2").items, [(-1, 2)])
 
-    def test_empty_range(self):
-        self.assertEquals(ranges.Range("").items, None)
-        self.assertEquals(ranges.Range(" ").items, None)
-
-        # Another way to express an empty ranges.
-        empty_range = ranges.Range(None)
+    def _test_can_handle_empty_range(self, description):
+        empty_range = ranges.Range(description)
         self.assertEquals(empty_range.items, None)
+        self.assertEquals(empty_range.lower_limit, None)
+        self.assertEquals(empty_range.upper_limit, None)
+        self.assertIsNone(empty_range.validate("x", ranges.MIN_INTEGER - 1))
+        self.assertIsNone(empty_range.validate("x", 1))
+        self.assertIsNone(empty_range.validate("x", 0))
+        self.assertIsNone(empty_range.validate("x", -1))
+        self.assertIsNone(empty_range.validate("x", ranges.MAX_INTEGER + 1))
 
-        # Range validation still works even with empty ranges.
-        self.assertFalse(empty_range.validate("name", 1))
-        self.assertFalse(empty_range.validate("name", -1))
+    def test_can_handle_empty_range(self):
+        self._test_can_handle_empty_range(None)
+        self._test_can_handle_empty_range('')
+        self._test_can_handle_empty_range(' \t  ')
 
-    def test_proper_hex_ranges(self):
+    def test_can_parse_hex_range(self):
         self.assertEquals(ranges.Range("0x7f").items, [(127, 127)])
         self.assertEquals(ranges.Range("0x7F").items, [(127, 127)])
 
-    def test_proper_multi_ranges(self):
+    def test_can_parse_multiple_ranges(self):
         self.assertEquals(ranges.Range("1, 3").items, [(1, 1), (3, 3)])
         self.assertEquals(ranges.Range("1...2, 5...").items, [(1, 2), (5, None)])
 
-    def test_symbolic_range(self):
+    def test_can_parse_symbolic_range(self):
         self.assertEquals(ranges.Range("TAB").items, [(9, 9)])
         self.assertEquals(ranges.Range("vt").items, [(11, 11)])
         self.assertEquals(ranges.Range("Tab...Vt").items, [(9, 11)])
         self.assertEquals(ranges.Range("Tab...11").items, [(9, 11)])
 
-    def test_text_range(self):
+    def test_can_parse_text_range(self):
         self.assertEquals(ranges.Range("\"a\"").items, [(97, 97)])
 
-    def test_ranges_with_default(self):
+    def test_can_use_default_range(self):
+        self.assertEquals(ranges.Range("", "2...3").items, [(2, 3)])
+
+    def test_can_override_default_range(self):
         self.assertEquals(ranges.Range("1...2", "2...3").items, [(1, 2)])
-        # self.assertEquals(ranges.Range("", "2...3").items, [None, (2, 3)])
-        # self.assertEquals(ranges.Range("", "2...3").items, [(2, 3)])
 
     def test_can_get_lower_limit(self):
         self.assertEquals(ranges.Range("5...9").lower_limit, 5)
@@ -86,6 +90,7 @@ class RangeTest(unittest.TestCase):
         self.assertEquals(ranges.Range("...1, 3...").lower_limit, None)
         self.assertEquals(ranges.Range("5...9").lower_limit, 5)
         self.assertEquals(ranges.Range("1...2, 5...9").lower_limit, 1)
+        self.assertEquals(ranges.Range("5...9, 1...2").lower_limit, 1)
 
     def test_can_get_upper_limit(self):
         self.assertEquals(ranges.Range("1...2").upper_limit, 2)
@@ -94,13 +99,20 @@ class RangeTest(unittest.TestCase):
         self.assertEquals(ranges.Range("...1, 3...").upper_limit, None)
         self.assertEquals(ranges.Range("1...2, 5...9").upper_limit, 9)
 
-    def test_broken_overlapping_multi_range(self):
+    def test_fails_on_inconsistent_overlapping_multi_range(self):
         self.assertRaises(errors.InterfaceError, ranges.Range, "1...5, 2...3")
         self.assertRaises(errors.InterfaceError, ranges.Range, "1..., 2...3")
         self.assertRaises(errors.InterfaceError, ranges.Range, "...5, 2...3")
         self.assertRaises(errors.InterfaceError, ranges.Range, "...5, ...3")
         self.assertRaises(errors.InterfaceError, ranges.Range, "...5, 1...")
         self.assertRaises(errors.InterfaceError, ranges.Range, "...5, 2")
+
+    def _test_fails_with_interface_error(self, description, anticipated_error_message_pattern):
+        try:
+            ranges.Range(description)
+            self.fail("test must fail with InterfaceError")
+        except errors.InterfaceError as anticipated_error:
+            dev_test.assert_fnmatches(self, str(anticipated_error), anticipated_error_message_pattern)
 
     def test_broken_ranges(self):
         self.assertRaises(errors.InterfaceError, ranges.Range, "x")
@@ -116,40 +128,24 @@ class RangeTest(unittest.TestCase):
         self.assertRaises(errors.InterfaceError, ranges.Range, "2...1")
         self.assertRaises(errors.InterfaceError, ranges.Range, "2...-3")
         self.assertRaises(errors.InterfaceError, ranges.Range, "-1...-3")
-        try:
-            ranges.Range("?")
-            self.fail("test must fail with InterfaceError")
-        except errors.InterfaceError as error:
-            dev_test.assert_fnmatches(
-                self, str(error),
-                "range must be specified using integer numbers, text, symbols and ellipsis (...) but found: '?'*")
+        self._test_fails_with_interface_error(
+            '?', "range must be specified using integer numbers, text, symbols and ellipsis (...) but found: '?'*")
 
-        # Test is obsoleted because the range now supports float to
-        # try:
-        #     ranges.Range("1.23")
-        #     self.fail("test must fail with InterfaceError")
-        # except errors.InterfaceError as error:
-        #     self.assertEqual(str(error), "number must be an integer but is: '1.23'")
+    def test_fails_on_floating_point_number(self):
+        self._test_fails_with_interface_error(
+            '1.23', "numeric value for range must be an integer number but is: '1.23'")
 
-    def test_broken_symbolic_names(self):
+    def test_fails_on_unknown_symbolic_name(self):
         self.assertRaises(errors.InterfaceError, ranges.Range, "spam")
-        self.assertRaises(errors.InterfaceError, ranges.Range, "Esc...Tab")
 
-    def test_broken_text_range(self):
+    def test_fails_on_inconsistent_symbolic_names(self):
+        self.assertRaises(errors.InterfaceError, ranges.Range, "Cr...Tab")
+
+    def test_fails_on_string_with_multiple_characters(self):
         self.assertRaises(errors.InterfaceError, ranges.Range, "\"ab\"")
+
+    def test_fails_on_unterminated_string(self):
         self.assertRaises(errors.InterfaceError, ranges.Range, "\"\"")
-
-    def _test_no_range(self, text):
-        no_range = ranges.Range(text)
-        self.assertEqual(no_range.items, None)
-        no_range.validate("x", 0)
-        no_range.validate("x", 2 ** 32)
-        no_range.validate("x", - (2 ** 32) - 1)
-
-    def test_no_range(self):
-        self._test_no_range(None)
-        self._test_no_range("")
-        self._test_no_range("  ")
 
     def test_validate(self):
         lower_and_upper_range = ranges.Range("-1...1")
