@@ -33,6 +33,8 @@ from cutplace import ranges
 from cutplace import errors
 from cutplace import _compat
 from cutplace import _tools
+from cutplace import sql
+
 from cutplace._compat import python_2_unicode_compatible
 
 # TODO #61: Replace various %r by %s and apply _compat.text_repr().
@@ -254,19 +256,8 @@ class ChoiceFieldFormat(AbstractFieldFormat):
         return value
 
     def as_sql(self, db):
-        if all(choice.isnumeric() for choice in self.choices):
-            column_def, _ = IntegerFieldFormat(self._field_name, self._is_allowed_to_be_empty,
-                                               self._length.description, self._rule, self._data_format,
-                                               self._empty_value).as_sql(db)
-            constraint = "constraint chk_" + self._field_name + " check( " + self._field_name + " in [" + \
-                         ",".join(map(str, self.choices)) + "] )"
-        else:
-            max_length = max(self.choices, key=len)
-            column_def = self._field_name + " varchar(" + str(len(max_length)) + ")"
-            column_def += " not null" if not self._is_allowed_to_be_empty else ""
-            constraint = "constraint chk_" + self._field_name + " check( " + self._field_name + " in ['" + \
-                         "','".join(map(str, self.choices)) + "'] )"
-        return [column_def, constraint]
+        return sql.as_sql_text(self._field_name, self._is_allowed_to_be_empty, self._length, self._rule,
+                               self._empty_value, db)
 
 
 class DecimalFieldFormat(AbstractFieldFormat):
@@ -280,8 +271,8 @@ class DecimalFieldFormat(AbstractFieldFormat):
     def __init__(self, field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value=None):
         super(DecimalFieldFormat, self).__init__(
             field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value)
-        if rule.strip() != '':
-            raise errors.InterfaceError("decimal rule must be empty")
+        #if rule.strip() != '':
+        #    raise errors.InterfaceError("decimal rule must be empty")
         self.decimalSeparator = data_format.decimal_separator
         self.thousandsSeparator = data_format.thousands_separator
 
@@ -419,38 +410,7 @@ class IntegerFieldFormat(AbstractFieldFormat):
         return long_value
 
     def as_sql(self, db):
-        if (self._rule == '') and (self._length.description is not None):
-            range_limit = 10 ** max([item[1] for item in self._length.items])  # get the highest integer of the range
-        else:
-            range_limit = max([rule[1] for rule in self.rangeRule.items])  # get the highest integer of the range
-
-        if range_limit <= self.MAX_SMALLINT:
-            column_def = self._field_name + " smallint"
-        elif range_limit <= self.MAX_INTEGR:
-            column_def = self._field_name + " integer"
-        else:
-            if db in (MSSQL, DB2) and range_limit <= self.MAX_BIGINT:
-                column_def = self._field_name + " bigint"
-            else:
-                column_def, _ = DecimalFieldFormat(self._field_name, self._is_allowed_to_be_empty,
-                                                   self._length.description, self._rule, self._data_format,
-                                                   self._empty_value).as_sql(db)
-
-        if not self.is_allowed_to_be_empty:
-            column_def += " not null"
-
-        constraint = ""
-        for i in range(len(self.rangeRule.items)):
-            if i == 0:
-                constraint = "constraint chk_" + self._field_name + " check( "
-            constraint += "( " + self._field_name + " between " + str(self.rangeRule.items[i][0]) + " and " + \
-                          str(self.rangeRule.items[i][1]) + " )"
-            if i < len(self.rangeRule.items) - 1:
-                constraint += " or "
-            else:
-                constraint += " )"
-
-        return [column_def, constraint]
+        return sql.as_sql_number(self._field_name, self._is_allowed_to_be_empty, self._length, self._rule, db)
 
 
 class DateTimeFieldFormat(AbstractFieldFormat):
@@ -485,17 +445,7 @@ class DateTimeFieldFormat(AbstractFieldFormat):
         return result
 
     def as_sql(self, db):
-        if "hh" in self.human_readable_format and "YY" in self.human_readable_format:
-            column_def = self._field_name + " datetime"
-        elif "hh" in self.human_readable_format:
-            column_def = self._field_name + " time"
-        else:
-            column_def = self._field_name + " date"
-
-        if not self.is_allowed_to_be_empty:
-            column_def += " not null"
-
-        return [column_def, ""]
+        return sql.as_sql_date(self._field_name, self._is_allowed_to_be_empty, self.human_readable_format, db)
 
 
 class RegExFieldFormat(AbstractFieldFormat):
@@ -515,19 +465,8 @@ class RegExFieldFormat(AbstractFieldFormat):
         return value
 
     def as_sql(self, db):
-        constraint = ""
-
-        if self._length.items is not None:
-            column_def = self._field_name + " varchar(" + str(self._length.max) + ")"
-            constraint = "constraint chk_" + self._field_name + " check (length(" + self._field_name + " >= " + \
-                         str(self._length.min) + "))"
-        else:
-            column_def = self._field_name + " varchar(255)"
-
-        if not self.is_allowed_to_be_empty:
-            column_def += " not null"
-
-        return column_def, constraint
+        return sql.as_sql_text(self._field_name, self._is_allowed_to_be_empty, self._length, self._rule,
+                               self._empty_value, db)
 
 
 class PatternFieldFormat(AbstractFieldFormat):
@@ -549,19 +488,8 @@ class PatternFieldFormat(AbstractFieldFormat):
         return value
 
     def as_sql(self, db):
-        constraint = ""
-
-        if self._length.items is not None:
-            column_def = self._field_name + " varchar(" + str(self._length.max) + ")"
-            constraint = "constraint chk_" + self._field_name + " check (length(" + self._field_name + " >= " + \
-                         str(self._length.min) + "))"
-        else:
-            column_def = self._field_name + " varchar(255)"
-
-        if not self.is_allowed_to_be_empty:
-            column_def += " not null"
-
-        return column_def, constraint
+        return sql.as_sql_text(self._field_name, self._is_allowed_to_be_empty, self._length, self._rule,
+                               self._empty_value, db)
 
 
 class TextFieldFormat(AbstractFieldFormat):
@@ -578,19 +506,8 @@ class TextFieldFormat(AbstractFieldFormat):
         return value
 
     def as_sql(self, db):
-        constraint = ""
-
-        if self._length.items is not None:
-            column_def = self._field_name + " varchar(" + str(self._length.max) + ")"
-            constraint = "constraint chk_" + self._field_name + " check (length(" + self._field_name + " >= " + \
-                         str(self._length.min) + "))"
-        else:
-            column_def = self._field_name + " varchar(255)"
-
-        if not self.is_allowed_to_be_empty:
-            column_def += " not null"
-
-        return column_def, constraint
+        return sql.as_sql_text(self._field_name, self._is_allowed_to_be_empty, self._length, self._rule,
+                               self._empty_value, db)
 
 
 def get_field_name_index(supposed_field_name, available_field_names):
