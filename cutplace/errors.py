@@ -1,7 +1,7 @@
 """
 Errors that can be raised by cutplace.
 """
-# Copyright (C) 2009-2013 Thomas Aglassinger
+# Copyright (C) 2009-2015 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
@@ -28,13 +28,13 @@ import six
 
 from cutplace._compat import python_2_unicode_compatible
 
-# Symbolic names that can be used to improve the legibility of the CID.
+#: Symbolic names that can be used to improve the legibility of the CID.
 NAME_TO_ASCII_CODE_MAP = {
-    "cr": 13,
-    "ff": 12,
-    "lf": 10,
-    "tab": 9,
-    "vt": 11
+    'cr': 13,
+    'ff': 12,
+    'lf': 10,
+    'tab': 9,
+    'vt': 11
 }
 
 

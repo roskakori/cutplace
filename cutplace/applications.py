@@ -4,7 +4,7 @@ Front end for command line application. This takes care of parsing the
 command line options, calling appropriate the low level function, reporting
 any errors and setting a proper exit code.
 """
-# Copyright (C) 2009-2013 Thomas Aglassinger
+# Copyright (C) 2009-2015 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
