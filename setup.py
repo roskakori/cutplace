@@ -70,7 +70,7 @@ __location__ = os.path.join(os.getcwd(), os.path.dirname(
     inspect.getfile(inspect.currentframe())))
 
 MAIN_PACKAGE = "cutplace"
-DESCRIPTION = "validated reading and writing of tabular files (CVS, Excel, PRN)"
+DESCRIPTION = "validated reading of tabular files (CVS, Excel, ODS, PRN)"
 LICENSE = "lgpl3"
 URL = "https://pypi.python.org/pypi/cutplace"
 AUTHOR = "Thomas Aglassinger"
@@ -254,7 +254,7 @@ def setup_package():
           version=version,
           url=URL,
           description=DESCRIPTION,
-          keywords="validate check csv ods excel prn fixed format",
+          keywords="validate check read csv ods excel prn fixed format",
           author=AUTHOR,
           author_email=EMAIL,
           license=LICENSE,
