@@ -383,10 +383,10 @@ class CidTest(unittest.TestCase):
             ',CID with a range as fixed field length',
             'D,Format,%s' % data.FORMAT_FIXED,
             ' ,Name         ,,,Length,Type    ,Rule',
-            'F,some         ,,,1:    ,',
+            'F,some         ,,,1...',
         ])
         self._test_fails_on_broken_cid_from_text(
-            cid_text, '*length of field * for fixed data format must be a specific number but is: 1:')
+            cid_text, "*: length of field 'some' for fixed data format must be a specific number but is: 1...")
 
     def test_fails_on_broken_mark_for_empty_field(self):
         cid_text = '\n'.join([
