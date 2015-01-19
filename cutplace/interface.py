@@ -327,26 +327,27 @@ class Cid(object):
         if self._data_format.format == data.FORMAT_FIXED:
             if field_length.items is None:
                 raise errors.InterfaceError(
-                    "length of field %r must be specified with fixed data format" % field_name, self._location)
+                    "length of field %s must be specified with fixed data format" % _compat.text_repr(field_name),
+                    self._location)
             if field_length.lower_limit != field_length.upper_limit:
                 raise errors.InterfaceError(
-                    "length of field %r for fixed data format must be a specific number but is: %s"
-                    % (field_name, field_format.length), self._location)
+                    "length of field %s for fixed data format must be a specific number but is: %s"
+                    % (_compat.text_repr(field_name), field_format.length), self._location)
             if field_length.lower_limit < 1:
                 raise errors.InterfaceError(
-                    "length of field %r for fixed data format must be at least 1 but is: %d"
-                    % (field_name, field_format.length.lower_limit), self._location)
+                    "length of field %s for fixed data format must be at least 1 but is: %d"
+                    % (_compat.text_repr(field_name), field_format.length.lower_limit), self._location)
         elif field_length.lower_limit is not None:
             if field_length.lower_limit < 0:
                 raise errors.InterfaceError(
-                    "lower limit for length of field %r must be at least 0 but is: %d"
-                    % (field_name, field_format.length.lower_limit), self._location)
+                    "lower limit for length of field %s must be at least 0 but is: %d"
+                    % (_compat.text_repr(field_name), field_format.length.lower_limit), self._location)
         elif field_length.upper_limit is not None:
             # Note: 0 as upper limit is valid for a field that must always be empty.
             if field_length.upper_limit < 0:
                 raise errors.InterfaceError(
-                    "upper limit for length of field %r must be at least 0 but is: %d"
-                    % (field_name, field_format.length.upper_limit), self._location)
+                    "upper limit for length of field %s must be at least 0 but is: %d"
+                    % (_compat.text_repr(field_name), field_format.length.upper_limit), self._location)
 
         # Set and validate example in case there is one.
         if field_example != '':
@@ -355,7 +356,8 @@ class Cid(object):
             except errors.FieldValueError as error:
                 self._location.set_cell(2)
                 raise errors.InterfaceError(
-                    "cannot validate example for field %r: %s" % (field_name, error), self._location)
+                    "cannot validate example for field %s: %s" % (_compat.text_repr(field_name), error),
+                    self._location)
 
         self._location.set_cell(1)
         self._field_name_to_format_map[field_name] = field_format
