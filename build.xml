@@ -95,22 +95,31 @@
         </exec>
     </target>
 
-    <target name="test" description="run test suite">
+    <target name="unittest" description="run unt tests">
         <exec executable="python" failonerror="true">
             <arg path="setup.py" />
             <arg value="test" />
         </exec>
+    </target>
+
+    <target name="doctest" description="run doctests">
         <exec executable="python" failonerror="true">
             <arg path="setup.py" />
             <arg value="doctest" />
         </exec>
+    </target>
+
+    <target name="test_docs" description="run examples in documentation">
         <exec dir="tests" executable="python" failonerror="true">
+            <env key="PYTHONPATH" path="${basedir}/cutplace:${env.PYTHONPATH}" />
             <arg value="-m" />
             <arg value="doctest" />
             <arg value="--fail-fast" />
             <arg path="docs/api.rst" />
         </exec>
     </target>
+
+    <target name="test" description="run test suite" depends="unittest, doctest, test_docs, flake8" />
 
     <target name="performance" description="run performance test" depends="sitebase">
         <exec executable="nosetests" failonerror="false">
@@ -191,11 +200,7 @@
 
     <target name="flake8" description="build flake8 violations report">
         <echo message="build flake8 violations report" />
-        <exec executable="tox">
-            <!--
-            Note: We do not use failonerror="true" because any violations results in an exit code
-            of 1, which would result in the whole build to be considered failed.
-            -->
+        <exec executable="tox" failonerror="true">
             <arg value="-e" />
             <arg value="flake8" />
             <redirector output="flake8.txt" />
