@@ -281,7 +281,6 @@ class Range(object):
         """
         The minimum value of all items in the list
         """
-
         return self._lower_limit
 
     @property
@@ -289,7 +288,6 @@ class Range(object):
         """
         The maximum value of all items in the list
         """
-
         return self._upper_limit
 
     def _repr_item(self, item):
@@ -301,13 +299,13 @@ class Range(object):
             (lower, upper) = item
             if lower is None:
                 assert upper is not None
-                result += ":%s" % upper
+                result += "...%s" % upper
             elif upper is None:
-                result += "%s:" % lower
+                result += "%s..." % lower
             elif lower == upper:
                 result += "%s" % lower
             else:
-                result += "%s:%s" % (lower, upper)
+                result += "%s...%s" % (lower, upper)
         else:
             result = str(None)
         return result
