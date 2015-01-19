@@ -15,21 +15,22 @@ Run locally from console::
   $ export PYTHONPATH=`pwd`:`pwd`/cutplace:`pwd`/tests
   $ python -m cutplace.applications --version
 
-Test that the distribution archive can be installed and run in a fresh
-terminal session::
-
-  $ virtualenv-3.4 /tmp/cpt
-  $ source /tmp/cpt/bin/activate
-  $ pip install ~/workspace/cutplace/dist/cutplace-0.8.0.zip
-  $ cutplace --version
-  $ cd
-  $ rm -rf /tmp/cpt
-  $ ^D
-
 Create the installer archive::
 
   $ python setup.py sdist --formats=zip
   $ python setup.py bdist_wheel
+
+Test that the distribution archive can be installed and run in a fresh
+terminal session::
+
+  $ ant sdist
+  $ virtualenv-3.4 /tmp/cpt
+  $ source /tmp/cpt/bin/activate
+  $ pip install ~/workspace/cutplace/dist/cutplace-0.8.x.zip
+  $ cutplace --version
+  $ cd
+  $ rm -rf /tmp/cpt
+  $ ^D
 
 Tag a release::
 
