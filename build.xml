@@ -111,7 +111,7 @@
 
     <target name="test_docs" description="run examples in documentation">
         <exec dir="tests" executable="python" failonerror="true">
-            <env key="PYTHONPATH" path="${basedir}/cutplace:${env.PYTHONPATH}" />
+            <env key="PYTHONPATH" path="${basedir}:${env.PYTHONPATH}" />
             <arg value="-m" />
             <arg value="doctest" />
             <arg value="--fail-fast" />
