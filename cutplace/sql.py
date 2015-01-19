@@ -22,11 +22,11 @@ from __future__ import unicode_literals
 
 from cutplace import _tools
 from cutplace import ranges
-from cutplace import _compat
 
+# TODO: Move to module ``ranges``.
 MAX_SMALLINT = 2 ** 15 - 1
 MAX_INTEGER = 2 ** 31 - 1
-MAX_BIGINT = 2 ** 63 -1
+MAX_BIGINT = 2 ** 63 - 1
 
 MSSQL = "mssql"
 ORACLE = "oracle"
@@ -43,15 +43,17 @@ def generate_choices(rule):
     tokens = _tools.tokenize_without_space(rule)
 
     # Extract choices from rule tokens.
-    previous_toky = None
+    # TODO: Handle comma after comma without choice.
+    # previous_toky = None
     toky = next(tokens)
     while not _tools.is_eof_token(toky):
         if _tools.is_comma_token(toky):
-            # Handle comma after comma without choice.
-            if previous_toky:
-                previous_toky_text = previous_toky[1]
-            else:
-                previous_toky_text = None
+            # TODO: Handle comma after comma without choice.
+            # if previous_toky:
+            #     previous_toky_text = previous_toky[1]
+            # else:
+            #     previous_toky_text = None
+            pass
         choice = _tools.token_text(toky)
         choices.append(choice)
         toky = next(tokens)
@@ -77,11 +79,11 @@ def as_sql_text(field_name, field_is_allowed_to_be_empty, field_length, field_ru
 
         if all(choice.isnumeric() for choice in choices):
             column_def = as_sql_number(field_name, field_is_allowed_to_be_empty, field_length, field_rule, db)[0]
-            constraint += "constraint chk_rule_" + field_name + " check( " + field_name + " in [" + \
-                     ",".join(map(str, choices)) + "] );"
+            constraint += "constraint chk_rule_" + field_name + " check( " + field_name + " in [" \
+                + ",".join(map(str, choices)) + "] );"
         else:
-            constraint += "constraint chk_rule_" + field_name + " check( " + field_name + " in ['" + \
-                     "','".join(map(str, choices)) + "'] );"
+            constraint += "constraint chk_rule_" + field_name + " check( " + field_name + " in ['" \
+                + "','".join(map(str, choices)) + "'] );"
 
     if not field_is_allowed_to_be_empty:
         column_def += " not null"
