@@ -387,7 +387,7 @@ class RegExFieldFormat(AbstractFieldFormat):
         return value
 
     def as_sql(self, db):
-        return sql.as_sql_text(self._field_name, self._is_allowed_to_be_empty, self._length, self._rule,
+        return sql.as_sql_text(self._field_name, self._is_allowed_to_be_empty, self._length, None,
                                self._empty_value, db)
 
 
@@ -410,7 +410,7 @@ class PatternFieldFormat(AbstractFieldFormat):
         return value
 
     def as_sql(self, db):
-        return sql.as_sql_text(self._field_name, self._is_allowed_to_be_empty, self._length, self._rule,
+        return sql.as_sql_text(self._field_name, self._is_allowed_to_be_empty, self._length, None,
                                self._empty_value, db)
 
 
@@ -428,7 +428,7 @@ class TextFieldFormat(AbstractFieldFormat):
         return value
 
     def as_sql(self, db):
-        return sql.as_sql_text(self._field_name, self._is_allowed_to_be_empty, self._length, self._rule,
+        return sql.as_sql_text(self._field_name, self._is_allowed_to_be_empty, self._length, None,
                                self._empty_value, db)
 
 

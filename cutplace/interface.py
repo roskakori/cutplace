@@ -456,18 +456,17 @@ class Cid(object):
         return self._check_name_to_check_map[check_name]
 
     def as_sql(self, db):
-        create_table = "CREATE TABLE " + self._cid_path + " ("
+        split_path = self._cid_path.split("\\")[-1:]
+        table_name = split_path[0].split(".")
+        create_table = "CREATE TABLE " + table_name[0] + " (\n"
         constraints = ""
 
         # get column definitions and constraints for all fields
         for field in self._field_formats:
             column_def, constraint = field.as_sql(db)
             create_table += column_def + ",\n"
-            constraints += constraint + ",\n"
-
-        # get constraints for all checks
-        for i in range(len(self._check_names)):
-            constraints += "CONSTRAINT " + self._check_names[i] + self.check_map[self._check_names[i]] + ",\n"
+            if len(constraint) > 0:
+                constraints += constraint + ",\n"
 
         create_table += constraints
 

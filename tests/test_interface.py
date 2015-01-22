@@ -32,6 +32,7 @@ from cutplace import errors
 from cutplace import fields
 from cutplace import ranges
 from cutplace import rowio
+from cutplace import sql
 from tests import dev_test
 
 
@@ -436,6 +437,22 @@ class CidTest(unittest.TestCase):
         ])
         self._test_fails_on_broken_cid_from_text(
             cid_text, "*check description must be used only once: 'duplicate_check' (see also: *: first declaration)")
+
+    def test_can_create_sql_statement(self):
+        cid_reader = interface.Cid()
+        source_path = dev_test.path_to_test_cid("customers.xls")
+        cid_reader.read(source_path, rowio.excel_rows(source_path))
+        self.maxDiff = None
+        self.assertEqual(cid_reader.as_sql(sql.MYSQL), "CREATE TABLE customers (\nbranch_id varchar(255) not null,"
+                                                       "\ncustomer_id integer not null,\nfirst_name varchar(255),"
+                                                       "\nsurname varchar(60) not null,\ngender varchar(255) not null,"
+                                                       "\ndate_of_birth date not null,"
+                                                       "\nconstraint chk_customer_id check( ( "
+                                                       "customer_id between 0 and 99999 ) ),"
+                                                       "\nconstraint chk_length_surname check (length(surname >= 1) "
+                                                       "and length(surname <= 60)),"
+                                                       "\nconstraint chk_rule_gender "
+                                                       "check( gender in ('male','female','unknown') ),\n);")
 
 
 if __name__ == '__main__':

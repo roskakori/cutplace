@@ -257,25 +257,25 @@ class ChoiceFieldFormatTest(unittest.TestCase):
         field_format = fields.ChoiceFieldFormat("color", True, None, "red,grEEn, blue ", _ANY_FORMAT)
         column_def, constraint = field_format.as_sql(fields.MSSQL)
         self.assertEqual(column_def, "color varchar(255)")
-        self.assertEqual(constraint, "constraint chk_rule_color check( color in ['red','grEEn','blue'] );")
+        self.assertEqual(constraint, "constraint chk_rule_color check( color in ('red','grEEn','blue') )")
 
     def test_can_output_sql_smallint(self):
         field_format = fields.ChoiceFieldFormat("color", True, None, "1,2, 3 ", _ANY_FORMAT)
         column_def, constraint = field_format.as_sql(fields.MSSQL)
         self.assertEqual(column_def, "color smallint")
-        self.assertEqual(constraint, "constraint chk_rule_color check( color in [1,2,3] );")
+        self.assertEqual(constraint, "constraint chk_rule_color check( color in (1,2,3) )")
 
     def test_can_output_sql_integer(self):
         field_format = fields.ChoiceFieldFormat("color", True, None, "1000000,2, 3 ", _ANY_FORMAT)
         column_def, constraint = field_format.as_sql(fields.MSSQL)
         self.assertEqual(column_def, "color integer")
-        self.assertEqual(constraint, "constraint chk_rule_color check( color in [1000000,2,3] );")
+        self.assertEqual(constraint, "constraint chk_rule_color check( color in (1000000,2,3) )")
 
     def test_can_output_sql_bigint(self):
         field_format = fields.ChoiceFieldFormat("color", True, None, "10000000000,2, 3 ", _ANY_FORMAT)
         column_def, constraint = field_format.as_sql(fields.MSSQL)
         self.assertEqual(column_def, "color bigint")
-        self.assertEqual(constraint, "constraint chk_rule_color check( color in [10000000000,2,3] );")
+        self.assertEqual(constraint, "constraint chk_rule_color check( color in (10000000000,2,3) )")
 
 
 class PatternFieldFormatTest(unittest.TestCase):
@@ -297,7 +297,7 @@ class PatternFieldFormatTest(unittest.TestCase):
         field_format = fields.PatternFieldFormat("x", False, None, "h*g?", _ANY_FORMAT)
         column_def, constraint = field_format.as_sql(fields.MSSQL)
         self.assertEqual(column_def, "x varchar(255) not null")
-        self.assertEqual(constraint, "constraint chk_rule_x check( x in ['h','g'] );")
+        self.assertEqual(constraint, "")
 
 
 if __name__ == '__main__':  # pragma: no cover
