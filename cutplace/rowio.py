@@ -159,6 +159,27 @@ def _raise_delimited_data_format_error(delimited_path, reader, error):
     raise errors.DataFormatError('cannot parse delimited file: %s' % error, location)
 
 
+def _as_delimited_keywords(delimited_data_format):
+    assert delimited_data_format is not None
+    assert delimited_data_format.is_valid
+    assert delimited_data_format.format == data.FORMAT_DELIMITED
+
+    if delimited_data_format.escape_character == delimited_data_format.quote_character:
+        doublequote = True
+        escapechar = None
+    else:
+        doublequote = False
+        escapechar = delimited_data_format.escape_character
+    result = {
+        'delimiter': delimited_data_format.item_delimiter,
+        'doublequote': doublequote,
+        'escapechar': escapechar,
+        'quotechar': delimited_data_format.quote_character,
+        'skipinitialspace': delimited_data_format.skip_initial_space,
+        'strict': True,
+    }
+    return result
+
 def delimited_rows(delimited_source, data_format):
     """
     Rows in ``delimited_source`` with using ``data_format``. In case
@@ -170,37 +191,23 @@ def delimited_rows(delimited_source, data_format):
     :raises cutplace.errors.DataFormatError: if ``delimited`` source is not
       a valid delimited file
     """
-    if data_format.escape_character == data_format.quote_character:
-        doublequote = True
-        escapechar = None
-    else:
-        doublequote = False
-        escapechar = data_format.escape_character
-
     if isinstance(delimited_source, six.string_types):
-        is_opened = True
-        delimited_file = io.open(delimited_source, 'r', newline='', encoding=data_format.encoding)
+        delimited_stream = io.open(delimited_source, 'r', newline='', encoding=data_format.encoding)
+        has_opened_delimited_stream = True
     else:
-        is_opened = False
-        delimited_file = delimited_source
-    keywords = {
-        'delimiter': data_format.item_delimiter,
-        'doublequote': doublequote,
-        'escapechar': escapechar,
-        'quotechar': data_format.quote_character,
-        'skipinitialspace': data_format.skip_initial_space,
-        'strict': True,
-    }
+        delimited_stream = delimited_source
+        has_opened_delimited_stream = False
+    keywords = _as_delimited_keywords(data_format)
     try:
-        delimited_reader = _compat.csv_reader(delimited_file, **keywords)
+        delimited_reader = _compat.csv_reader(delimited_stream, **keywords)
         try:
             for row in delimited_reader:
                 yield row
         except csv.Error as error:
             _raise_delimited_data_format_error(delimited_source, delimited_reader, error)
     finally:
-        if is_opened:
-            delimited_file.close()
+        if has_opened_delimited_stream:
+            delimited_stream.close()
 
 
 def _findall(element, xpath, namespaces):
@@ -444,3 +451,80 @@ def auto_rows(source):
         result = delimited_rows(source, delimited_format)
 
     return result
+
+
+class AbstractRowWriter(object):
+    """
+    Base class for writers that can write rows using a certain
+    :py:class:`cutplace.data.DataFormat`.
+    """
+    def __init__(self, target_path, data_format):
+        assert target_path is not None
+        assert data_format is not None
+        self._data_format = data_format
+        self._target_path = target_path
+
+
+class DelimitedRowWriter(AbstractRowWriter):
+    def __init__(self, delimited_target, data_format):
+        assert delimited_target is not None
+        assert data_format is not None
+        assert data_format.format == data.FORMAT_DELIMITED
+        assert data_format.is_valid
+
+        self._has_opened_target_stream = False
+        if isinstance(delimited_target, six.string_types):
+            self._target_path = delimited_target
+            self._target_stream = io.open(self._target_path, 'w', encoding=data_format.encoding, newline='')
+            self._has_opened_target_stream = True
+        else:
+            self._target_path = delimited_target
+            self._target_stream = delimited_target
+        self._location = errors.Location(self.target_path, has_cell=True)
+        keywords = _as_delimited_keywords(data_format)
+        self._delimited_writer = _compat.csv_writer(self._target_stream, **keywords)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self._has_opened_target_stream:
+            assert self.target_stream is not None
+            self.close()
+
+    @property
+    def data_format(self):
+        return self._data_format
+
+    @property
+    def location(self):
+        """
+        The :py:class:`cutplace.errors.Location` to write the next row to.
+        This is automatically advanced by :py:meth:`~.write_row`.
+        """
+        return self._location
+
+    @property
+    def target_path(self):
+        return self._target_path
+
+    def write_row(self, row_to_write):
+        try:
+            self._delimited_writer.writerow(row_to_write)
+        except UnicodeEncodeError as error:
+            raise errors.DataFormatError('cannot write data row: %s; row=%s' % (error, row_to_write), self.location)
+        self._location.advance_line()
+
+    def write_rows(self, rows_to_write):
+        assert self.target_stream is not None
+        assert rows_to_write is not None
+
+        for row_to_write in rows_to_write:
+            self.write_row(row_to_write)
+
+    def close(self):
+        if self._has_opened_target_stream:
+            self._target_stream.close()
+            self._has_opened_target_stream = False
+        self._target_stream = None
+        self._target_path = None

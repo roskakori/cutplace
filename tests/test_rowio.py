@@ -29,6 +29,7 @@ from cutplace import errors
 from cutplace import rowio
 from tests import dev_test
 
+_EURO_SIGN = '\u20ac'
 
 class RowsTest(unittest.TestCase):
     def _assert_rows_contain_data(self, rows):
@@ -241,6 +242,55 @@ class RowsTest(unittest.TestCase):
     def test_can_auto_read_ods_rows(self):
         ods_path = dev_test.path_to_test_data('valid_customers.ods')
         self._assert_rows_contain_data(rowio.auto_rows(ods_path))
+
+
+class DelimitedRowWriterTest(unittest.TestCase):
+    @staticmethod
+    def _unified_newlines(text):
+        assert text is not None
+        return text.replace('\r\n', '\n').replace('\r', '\n')
+
+    def test_can_write_delimited_to_string_io(self):
+        delimited_data_format = data.DataFormat(data.FORMAT_DELIMITED)
+        delimited_data_format.validate()
+        with io.StringIO() as target:
+            with rowio.DelimitedRowWriter(target, delimited_data_format) as delimited_writer:
+                delimited_writer.write_row(['a', 'b', _EURO_SIGN])
+                delimited_writer.write_row([])
+                delimited_writer.write_row([1, 2, 'end'])
+            data_written = DelimitedRowWriterTest._unified_newlines(target.getvalue())
+        self.assertEqual('%r' % data_written, '%r' % 'a,b,\u20ac\n\n1,2,end\n')
+
+    def test_can_write_delimited_to_path(self):
+        delimited_data_format = data.DataFormat(data.FORMAT_DELIMITED)
+        delimited_data_format.set_property(data.KEY_ENCODING, 'utf-8')
+        delimited_data_format.validate()
+        delimited_path = dev_test.path_to_test_result('test_can_write_delimited_to_path.csv')
+        with io.open(delimited_path, 'w', encoding=delimited_data_format.encoding) as delimited_target_stream:
+            with rowio.DelimitedRowWriter(delimited_target_stream, delimited_data_format) as delimited_writer:
+                delimited_writer.write_row(['a', 'b', _EURO_SIGN])
+                delimited_writer.write_row([])
+                delimited_writer.write_row([1, 2, 'end'])
+        with io.open(delimited_path, 'r', encoding=delimited_data_format.encoding) as delimited_source_stream:
+            # Note: all kinds of newline characters are translated to '\n' because of newline=None.
+            data_written = delimited_source_stream.read()
+        self.assertEqual('%r' % data_written, '%r' % 'a,b,\u20ac\n\n1,2,end\n')
+
+    def test_fails_on_unicode_error_during_delimited_write(self):
+        delimited_data_format = data.DataFormat(data.FORMAT_DELIMITED)
+        delimited_data_format.set_property(data.KEY_ENCODING, 'latin-1')
+        delimited_data_format.validate()
+        delimited_path = dev_test.path_to_test_result('test_fails_on_unicode_error_during_delimited_write.csv')
+        with io.open(delimited_path, 'w', encoding=delimited_data_format.encoding) as delimited_target_stream:
+            with rowio.DelimitedRowWriter(delimited_target_stream, delimited_data_format) as delimited_writer:
+                try:
+                    delimited_writer.write_row(['a'])
+                    delimited_writer.write_row(['b', _EURO_SIGN])
+                    self.fail()
+                except errors.DataError as anticipated_error:
+                    anticipated_error_message = str(anticipated_error)
+                    dev_test.assert_fnmatches(
+                        self, anticipated_error_message, "*.csv (R2C1): cannot write data row: *; row=?'b', '\u20ac'?")
 
 
 if __name__ == "__main__":  # pragma: no cover
