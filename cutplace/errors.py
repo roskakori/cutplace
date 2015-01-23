@@ -199,7 +199,8 @@ class Location(object):
 
 def create_caller_location(modules_to_ignore=None, has_column=False, has_cell=False, has_sheet=False):
     """
-    `Location` referring to the calling Python source code.
+    :py:class`~cutplace.errors.Location` referring to the calling Python
+    source code.
     """
     actual_modules_to_ignore = ["errors"]
     if modules_to_ignore:
@@ -231,34 +232,41 @@ class CutplaceError(Exception):
     Error caused by issues in the CID or data. Details are provided by the
     following properties:
 
-    * `message` - a description of the condition that cause the error and
-      possibly suggestions on what needs to be fixed.
-    * `location` (can be `None`) - `Location` pointing to the source of
-      the error.
-    * `see_also_message`, `see_also_error`  (can be `None`): a message and
-      `Location` describing additional information. For example, when a
-      key field has to be unique but two data rows use the same value, this
-      points to the first value while the actual `message` and `location`
-      point to the duplicate.
+    * :py:attr:`~cutplace.errors.CutplaceError.message` - a description of
+      the condition that cause the error and possibly suggestions on what
+      needs to be fixed.
+    * :py:attr:`~cutplace.errors.CutplaceError.location` (can be ``None``) -
+      :py:class:`~cutplace.errors.Location` pointing to the source of the
+      error.
+    * :py:attr:`~cutplace.errors.CutplaceError.see_also_message`,
+      :py:attr:`~cutplace.errors.CutplaceError.see_also_location` (can be
+      ``None``): a message and :py:class:`~cutplace.errors.CutplaceError`
+      describing additional information. For example, when a key field has to
+      be unique but two data rows use the same value, this points to the
+      first value while the actual ``message`` and ``location`` point to the
+      duplicate.
 
-    Additionally `__str__()` summarizes all details about the error in a
-    human readable way that can be presented to the end user.
+    Additionally :py:meth:`~cutplace.errors.CutplaceError.__str__()`
+    summarizes all details about the error in a human readable way that can
+    be presented to the end user.
     """
 
     def __init__(self, message, location=None, see_also_message=None, see_also_location=None, cause=None):
         """
-        Create exception that supports a `message` describing the error and an optional
-        `Location` in the input where the error happened. If the message is related
-        to another location (for example when attempting to redefine a field with
-        the same name), ``see_also_message`` should describe the meaning of the other
-        location and ``see_also_location`` should point to the location. If the exception is the
-        result of another exception that happened earlier (for example a `UnicodeError`,
-        ``cause`` should contain this exception to simplify debugging.
+        Create an :py:exc:`Exception` that provides a ``message`` describing
+        the error and an optional ``Location`` in the input where the error
+        happened. If the message is related to another location (for example
+        when attempting to redefine a field with the same name),
+        ``see_also_message`` should describe the meaning of the other
+        location and ``see_also_location`` should point to that location. If
+        the exception is the result of another exception that happened
+        earlier (for example a :py:exc:`UnicodeError`, ``cause`` should
+        refer to this exception to simplify debugging.
         """
         assert message
         assert (see_also_location and see_also_message) or not see_also_location
         if six.PY2:
-            # HACK: We cannot use `super()` here because `Exception` is an old style class.
+            # HACK: We cannot use `super()` here because ``Exception`` is an old style class.
             Exception.__init__(self, message)
         else:
             super().__init__(self, message)
@@ -272,15 +280,25 @@ class CutplaceError(Exception):
     @property
     def location(self):
         """
-        :py:class:`Location` in the input that caused the error or ``None``.
+        :py:class:`~cutplace.errors.Location` in the input that caused the
+        error or ``None``.
         """
         return self._location
 
     @property
+    def message(self):
+        """
+        Human readable description of the condition that caused the error and
+        needs to be fixed.
+        """
+        return self._message
+
+    @property
     def see_also_message(self):
         """
-        A message further explaining the actual message by referring to another location in the
-        input.
+        A message further explaining the actual message by referring to
+        :py:attr:`~cutplace.errors.CutplaceError.see_also_location` or
+        ``None``.
         """
         return self._see_also_message
 
@@ -295,17 +313,19 @@ class CutplaceError(Exception):
     @property
     def cause(self):
         """
-        The `Exception` that caused this error or `None`.
+        The :py:exc:`Exception` that caused this error or ``None``.
         """
         return self._cause
 
     def prepend_message(self, prefix, new_location):
         """
-        Add ``prefix`` and ``': '`` at the beginning of :py:attr:`message` and
-        change :py:attr:`location` to ``new_location``.
+        Add ``prefix`` and ``': '`` at the beginning of :py:attr:`message`
+        and change :py:attr:`location` to ``new_location``.
 
-        :param str prefix: the prefix to add at the beginning of :py:attr:`message`
-        :param Location new_location: the value for :py:attr:`location`
+        :param str prefix: the prefix to add at the beginning of \
+          :py:attr:`~cutplace.errors.Location.message`
+        :param cutplace.errors.Location new_location: the value for \
+          :py:attr:`~cutplace.errors.Location.location`
         """
         assert prefix is not None
         assert new_location is not None
@@ -313,6 +333,9 @@ class CutplaceError(Exception):
         self._location = copy.copy(new_location)
 
     def __str__(self):
+        """
+        Human readable summary of all details related to the error.
+        """
         result = ''
         if self._location:
             result += str(self.location) + ': '
@@ -360,7 +383,9 @@ class DataFormatError(DataError):
 
 class FieldValueError(DataError):
     """
-    Error raised when `AbstractFieldFormat.validated` detects an error.
+    Error raised when
+    :py:meth:`cutplace.fields.AbstractFieldFormat.validated` detects an
+    error.
     """
     pass
 

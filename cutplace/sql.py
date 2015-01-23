@@ -28,12 +28,18 @@ MAX_SMALLINT = 2 ** 15 - 1
 MAX_INTEGER = 2 ** 31 - 1
 MAX_BIGINT = 2 ** 63 - 1
 
-MSSQL = "mssql"
-ORACLE = "oracle"
+#: SQL dialect: ANSI SQL
+ANSI = 'ansi'
+#: SQL dialect: DB2 by IBM
 DB2 = "db2"
+#: SQL dialect: Microsoft SQL
+MSSQL = "mssql"
+#: SQL dialect: ANSI MySQL / MariaDB
 MYSQL = "mysql"
+#: SQL dialect: Oracle
+ORACLE = "oracle"
 
-_DEFAULT_RANGE = "%d:%d" % (-2 ** 31, 2 ** 31 - 1)
+_DEFAULT_INTEGER_RANGE = '%d...%d' % (-2 ** 31, 2 ** 31 - 1)
 
 
 def generate_choices(rule):
@@ -92,7 +98,7 @@ def as_sql_text(field_name, field_is_allowed_to_be_empty, field_length, field_ru
 
 
 def as_sql_number(field_name, field_is_allowed_to_be_empty, field_length, field_rule, db):
-    range_rule = ranges.Range(field_rule, _DEFAULT_RANGE)
+    range_rule = ranges.Range(field_rule, _DEFAULT_INTEGER_RANGE)
     if (field_rule == '') and (field_length.description is not None):
         range_limit = 10 ** max([item[1] for item in field_length.items])  # get the highest integer of the range
     else:

@@ -104,7 +104,6 @@ class DataFormat(object):
             :py:const:`FORMAT_DELIMITED`, :py:const:`FORMAT_EXCEL`,
             :py:const:`FORMAT_FIXED` or :py:const:`FORMAT_ODS`.
         :param cutplace.errors.Location location: location where the data format was declared
-        :return:
         """
         assert format_name == format_name.lower(), 'format_name must be lower case: %r' % format_name
 

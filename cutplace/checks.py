@@ -42,11 +42,11 @@ class AbstractCheck(object):
 
         :param str description: human readable description of the check
         :param str rule: the check conditions to validate
-        :param available_field_names: the names of the fields available for the check (typically referring \
+        :param list available_field_names: the names of the fields available for the check (typically referring \
             to :py:attr:`cutplace.interface.Cid.field_names`)
         :param location_of_definition: location in the CID where the check was declared to be (used by error \
-            messages); if ``None``, use `.errors.create_caller_location(['checks'])`
-        :type location_of_definition: py:class:`~.errors.Location` or None
+            messages); if ``None``, use ``cutplace.errors.create_caller_location(['checks'])``
+        :type location_of_definition: :py:class:`~cutplace.errors.Location` or None
         """
         assert description
         assert rule is not None
@@ -71,9 +71,9 @@ class AbstractCheck(object):
         Reset all internal resources needed by the check to keep track of the check conditions.
         By default do nothing.
 
-        It is recommended that the py:meth:`.__init__` of any child classes calls this method.
+        It is recommended that the :py:meth:`.__init__` of any child classes calls this method.
 
-        This is called by py:meth:`cutplace.validator.Reader.validate` when starting to validate the data.
+        This is called by :py:meth:`cutplace.validator.Reader.validate` when starting to validate the data.
         """
         pass
 
@@ -148,11 +148,11 @@ class AbstractCheck(object):
     @property
     def field_names(self):
         """
-        Names of fields declared in the ICD using this field format. They can be used by checks
+        Names of fields declared in the CID using this field format. They can be used by checks
         that need to extract field values by name or that have a `rule` referring to certain
         fields.
 
-        The order of field names in this list match the order of declaration in the ICD.
+        The order of field names in this list match the order of declaration in the CID.
         """
         return self._field_names
 
@@ -183,7 +183,7 @@ class IsUniqueCheck(AbstractCheck):
                         "field name must contain only ASCII letters, numbers and underscores (_) "
                         + "but found: %r [token type=%r]" % (token_value, token_type), self.location_of_rule)
                 try:
-                    fields.get_field_name_index(token_value, available_field_names)
+                    fields.field_name_index(token_value, available_field_names, location)
                     if token_value in unique_field_names:
                         raise errors.InterfaceError(
                             "duplicate field name for unique check must be removed: %s" % token_value,
@@ -233,7 +233,7 @@ class DistinctCountCheck(AbstractCheck):
             raise errors.InterfaceError(
                 "rule must start with a field name but found: %r" % first_token[1], self.location_of_rule)
         self._field_name_to_count = first_token[1]
-        fields.get_field_name_index(self._field_name_to_count, available_field_names)
+        fields.field_name_index(self._field_name_to_count, available_field_names, location)
         line_where_field_name_ends, column_where_field_name_ends = first_token[3]
         assert column_where_field_name_ends > 0
         assert line_where_field_name_ends == 1

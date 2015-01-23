@@ -120,6 +120,16 @@ def _excel_cell_value(cell, datemode):
 
 
 def excel_rows(source_path, sheet=1):
+    """
+    Rows read from an Excel document (both *.xls and *.xlsx thanks to
+    :py:mod:`xlrd`).
+
+    :param str source_path: path to the Excel file to be read
+    :param int sheet: the sheet in the file to be read
+    :return: sequence of lists with each list representing a row in the \
+      Excel file
+    :raises cutplace.errors.DataFormatError: in case the file cannot be read
+    """
     assert source_path is not None
     assert sheet >= 1, 'sheet=%r' % sheet
 
@@ -154,8 +164,11 @@ def delimited_rows(delimited_source, data_format):
     Rows in ``delimited_source`` with using ``data_format``. In case
     ``data_source`` is a string, it is considered a path to file which
     is automatically opened and closed in oder to retrieve the data.
-    Otherwise ``data_source`` is considered to be a filelike object that
+    Otherwise ``data_source`` is assumed to be a filelike object that
     can be read directly and is be opened and closed by the caller.
+
+    :raises cutplace.errors.DataFormatError: if ``delimited`` source is not
+      a valid delimited file
     """
     if data_format.escape_character == data_format.quote_character:
         doublequote = True
@@ -204,6 +217,9 @@ def _findall(element, xpath, namespaces):
 def ods_rows(source_ods_path, sheet=1):
     """
     Rows stored in ODS document ``source_ods_path`` in ``sheet``.
+
+    :raises cutplace.errors.DataFormarError: if ``source_ods_path`` is not \
+      a valid ODS file.
     """
     assert sheet >= 1
 

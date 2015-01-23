@@ -20,8 +20,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from six.moves import zip_longest
-
 from cutplace import data
 from cutplace import errors
 from cutplace import interface
@@ -33,7 +31,7 @@ def _create_field_map(field_names, field_values):
     assert field_values
     assert len(field_names) == len(field_values)
 
-    return dict(zip_longest(field_names, field_values))
+    return dict(zip(field_names, field_values))
 
 
 class Reader(object):
@@ -58,25 +56,36 @@ class Reader(object):
             return rowio.ods_rows(self._source_path, data_format.sheet)
 
     @property
+    def cid(self):
+        """
+        The :py:class:`cutplace.interface.Cid` used to validate data.
+        """
+        return self._cid
+
+    @property
     def source_path(self):
         """
-        The path of the file to be read.
+        The path of the dat file to be read.
         """
         return self._source_path
 
     def rows(self, on_error='raise'):
         """
-        Data rows of `source_path`.
+        Data rows of ``source_path``.
 
-        If a row cannot be read, ``on_error`` specified what to do about it:
+        If a row cannot be read, ``on_error`` specifies what to do about it:
 
-        * 'continue': quietly continue with the next row
-        * 'raise' (the default): raise an exception and stop reading.
-        * 'yield': instead of of a row, the result contains an `errors.DataError`
+        * ``'continue'``: quietly continue with the next row.
+        * ``'raise'`` (the default): raise an exception and stop reading.
+        * ``'yield'``: instead of of a row, the result contains a :py:exc:`cutplace.errors.DataError`.
 
-        Even with ``on_error`` set to ' continue'  or 'yield' certain errors still cause a stop, for example checks
-        at the end of the file still raise a `errors.CheckError` and generally broken files result in an
-        `error.DataFormatError`.
+        Even with ``on_error`` set to ' continue'  or 'yield' certain errors
+        still cause a stop, for example checks at the end of the file still
+        raise a :py:exc:`cutplace.errors.CheckError` and generally broken
+        files result in a
+        :py:exc:`cutplace.errors.DataFormatError`.
+
+        :raises cutplace.errors.DataError: on broken data
         """
         assert on_error in ('continue', 'raise', 'yield')
 
@@ -87,14 +96,15 @@ class Reader(object):
             actual_item_count = len(field_values)
             if actual_item_count < expected_item_count:
                 raise errors.DataError(
-                    'row must contain %d fields but only has %d: %s' % (expected_item_count, actual_item_count, field_values),
+                    'row must contain %d fields but only has %d: %s'
+                    % (expected_item_count, actual_item_count, field_values),
                     self._location)
             if actual_item_count > expected_item_count:
                 raise errors.DataError(
                     'row must contain %d fields but has %d, additional values are: %s' % (
                         expected_item_count, actual_item_count, field_values[expected_item_count:]),
                     self._location)
-            for i in range(0, actual_item_count):
+            for i in range(actual_item_count):
                 field_to_validate = self._cid.field_formats[i]
                 try:
                     field_to_validate.validated(field_values[i])
@@ -139,8 +149,19 @@ class Reader(object):
                 check.cleanup()
 
     def validate(self):
+        """
+        Validate that the data read from
+        :py:meth:`~cutplace.validio.Reader.rows()` conform to
+        :py:attr:`~cutplace.validio.Reader.cid`.
+
+        :raises cutplace.errors.DataError: on broken data
+        """
         for _ in self.rows():
             pass
 
     def close(self):
+        """
+        Release all resources allocated for reading.
+        """
+        # TODO: Ponder: do we actually need this?
         pass

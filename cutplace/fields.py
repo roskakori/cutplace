@@ -37,18 +37,13 @@ from cutplace import sql
 
 from cutplace._compat import python_2_unicode_compatible
 
-# TODO #61: Replace various %r by %s and apply _compat.text_repr().
+# TODO #61: Replace various %r or '%s' by %s and apply _compat.text_repr().
 
 # Expected suffix for classes that describe filed formats.
 _FieldFormatClassSuffix = "FieldFormat"
 
 _ASCII_LETTERS = set(string.ascii_letters)
 _ASCII_LETTERS_DIGITS_AND_UNDERSCORE = set(string.ascii_letters + string.digits + '_')
-
-MSSQL = "mssql"
-ORACLE = "oracle"
-DB2 = "db2"
-MYSQL = "mysql"
 
 
 @python_2_unicode_compatible
@@ -58,8 +53,10 @@ class AbstractFieldFormat(object):
     other field formats. To implement another field format, it is usually
     sufficient to:
 
-      1. Overload `__init__()` but call ``super().__init__(...)`` from it.
-      2. Implement `validated_value()`.
+      1. Overload :py:meth:`~cutplace.fields.AbstractFieldFormat.__init__()`
+         but call ``super().__init__(...)`` from it.
+      2. Implement
+         :py:meth:`~cutplace.fields.AbstractFieldFormat.validated_value()`.
     """
 
     def __init__(self, field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value=None):
@@ -88,15 +85,19 @@ class AbstractFieldFormat(object):
     @property
     def is_allowed_to_be_empty(self):
         """
-        ``True`` if the field can be empty in the data set, resulting in `validated()` to return
-        `emptyValue`.
+        ``True`` if the field can be empty in the data set, resulting in
+        :py:meth:`~cutplace.fields.AbstractFieldFormat.validated()` to return
+        :py:attr:`~cutplace.fields.AbstractFieldFormat.empty_value`.
+
+        :rtype: bool
         """
         return self._is_allowed_to_be_empty
 
     @property
     def length(self):
         """
-        A `ranges.Range` describing the possible length of the value.
+        A :py:class:`cutplace.ranges.Range` describing the possible length of
+        the value.
         """
         return self._length
 
@@ -104,21 +105,29 @@ class AbstractFieldFormat(object):
     def rule(self):
         """
         A field format dependent rule to describe possible values.
+
+        :rtype: str
         """
         return self._rule
 
     @property
     def data_format(self):
         """
-        The `data.AbstractDataFormat` the data set has in case the field needs any properties from
-        it to validate its value, for instance `data.KEY_DECIMAL_SEPARATOR`.
+        The :py:class:`cutplace.data.DataFormat` the data set has in case the
+        field needs any properties from it to validate its value, for
+        instance :py:const:`cutplace.data.KEY_DECIMAL_SEPARATOR`.
         """
         return self._data_format
 
     @property
     def empty_value(self):
         """
-        The result of `validated(value)` in case ``value`` is an empty string.
+        The result of
+        :py:meth:`~cutplace.fields.AbstractFieldFormat.validated()` in case
+        the ``value`` passed to it is an empty string.
+
+        :rtype: same type as a typical result of \
+          :py:meth:`~cutplace.fields.AbstractFieldFormat.validated()`
         """
         return self._empty_value
 
@@ -133,6 +142,13 @@ class AbstractFieldFormat(object):
     example = property(_get__example, _set_example, doc="Example value or ``None`` if no example is provided.")
 
     def validate_characters(self, value):
+        """
+        Validate that all characters in ``value`` are within
+        :py:attr:`~cutplace.data.DataFormat.allowed_characters`.
+
+        :raises cutplace.errors.FieldValueError: if any character in \
+          ``value`` is not allowed
+        """
         valid_character_range = self.data_format.allowed_characters
         if valid_character_range is not None:
             for character in value:
@@ -143,12 +159,26 @@ class AbstractFieldFormat(object):
                         "value for fields '%s' must contain only valid characters: %s" % (self.field_name, error))
 
     def validate_empty(self, value):
+        """
+        Validate that ``value`` actually is not empty in case
+        :py:attr:`~cutplace.fields.AbstractFieldFormat.is_allowed_to_be_empty`
+        is ``True``.
+
+        :raises cutplace.errors.FieldValueError: if ``value`` is empty but \
+          must not be
+        """
         if not self.is_allowed_to_be_empty:
             if not value:
                 raise errors.FieldValueError("value must not be empty")
 
     def validate_length(self, value):
-        # Do we have some data at all?
+        """
+        Validate that ``value`` conforms to
+        :py:attr:`~cutplace.fields.AbstractFieldFormat.length`.
+
+        :raises cutplace.errors.FieldValueError: if ``value`` is too short \
+          or too long
+        """
         if self.length is not None and not (self.is_allowed_to_be_empty and value == ""):
             try:
                 self.length.validate(
@@ -158,16 +188,17 @@ class AbstractFieldFormat(object):
 
     def validated_value(self, value):
         """
-        The `value` in its native type for this field.
+        The ``value`` in its native type for this field.
 
         By the time this is called it is already ensured that:
 
-          - `value` is not an empty string
-          - `value` contains only valid characters
-          - trailing blanks have been removed from `value` for fixed format data
+          - ``value`` is not an empty string
+          - ``value`` contains only valid characters
+          - trailing blanks have been removed from ``value`` for fixed format
+            data
 
         Concrete field formats must override this because the default
-        implementation just raises a `NotImplementedError`.
+        implementation just raises a :py:exc:`~builtins.NotImplementedError`.
         """
         assert value
 
@@ -176,7 +207,9 @@ class AbstractFieldFormat(object):
     def validated(self, value):
         """
         Validate that value complies with field description and return the value in its "native"
-        type. If not, raise `errors.FieldValueError`.
+        type.
+
+        :raises cutplace.errors.FieldValueError: if ``value`` is invalid
         """
         self.validate_characters(value)
         if self.data_format.format == data.FORMAT_FIXED:
@@ -195,7 +228,7 @@ class AbstractFieldFormat(object):
 
     def as_sql(self, db):
         """
-        The information of the field will be converted to a column definition in an sql create table statement
+        (Work in progress, see https://github.com/roskakori/cutplace/issues/73)
         """
         raise NotImplementedError
 
@@ -210,7 +243,7 @@ class ChoiceFieldFormat(AbstractFieldFormat):
     """
     def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format):
         super(ChoiceFieldFormat, self).__init__(
-            field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value="")
+            field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value='')
         self.choices = []
 
         # Split rule into tokens, ignoring white space.
@@ -262,8 +295,9 @@ class ChoiceFieldFormat(AbstractFieldFormat):
 
 class DecimalFieldFormat(AbstractFieldFormat):
     """
-    Field format accepting decimal numeric values, taking the data format properties
-    `data.KEY_DECIMAL_SEPARATOR` and `data.KEY_THOUSANDS_SEPARATOR` into account.
+    Field format accepting decimal numeric values, taking the data format
+    properties :py:const:`cutplace.data.KEY_DECIMAL_SEPARATOR` and
+    :py:const:`cutplace.data.KEY_THOUSANDS_SEPARATOR` into account.
     """
 
     def __init__(self, field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value=None):
@@ -308,14 +342,14 @@ class DecimalFieldFormat(AbstractFieldFormat):
 
 class IntegerFieldFormat(AbstractFieldFormat):
     """
-    Field format accepting numeric integer values with fractional part.
+    Field format accepting numeric integer values (without fractional part).
     """
     def __init__(self, field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value=None):
         super(IntegerFieldFormat, self).__init__(field_name, is_allowed_to_be_empty, length_text, rule, data_format,
                                                  empty_value)
-        # The default range is 32 bit. If the user wants a bigger range, he has to specify it.
-        # Python's long scales to any range as long there is enough memory available to represent
-        # it.
+        # The default range is 32 bit. If the user wants a bigger range, he
+        # has to specify it. Python's ``int`` scales to any range as long
+        # there is enough memory available to represent it.
         self.valid_range = ranges.Range(rule, ranges.DEFAULT_INTEGER_RANGE_TEXT)
 
     def validated_value(self, value):
@@ -376,7 +410,7 @@ class RegExFieldFormat(AbstractFieldFormat):
     """
     def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format):
         super(RegExFieldFormat, self).__init__(field_name, is_allowed_to_be_empty, length, rule, data_format,
-                                               empty_value="")
+                                               empty_value='')
         self.regex = re.compile(rule, re.IGNORECASE | re.MULTILINE)
 
     def validated_value(self, value):
@@ -395,7 +429,7 @@ class PatternFieldFormat(AbstractFieldFormat):
     """
     Field format accepting values that match a pattern using "*" and "?" as place holders.
     """
-    def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value=""):
+    def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value=''):
         super(PatternFieldFormat, self).__init__(
             field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value)
         self.pattern = fnmatch.translate(rule)
@@ -418,7 +452,7 @@ class TextFieldFormat(AbstractFieldFormat):
     """
     Field format accepting any text.
     """
-    def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value=""):
+    def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value=''):
         super(TextFieldFormat, self).__init__(
             field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value)
 
@@ -432,30 +466,37 @@ class TextFieldFormat(AbstractFieldFormat):
                                self._empty_value, db)
 
 
-def get_field_name_index(supposed_field_name, available_field_names):
+def field_name_index(field_name_to_look_up, available_field_names, location):
     """
-    The index of `supposedFieldName` in `availableFieldNames`.
+    The index of ``field_name_to_look_up`` (without leading or trailing
+    white space) in ``available_field_names``.
 
-    In case it is missing, raise a `InterfaceError`.
+    :param cutplace.errors.Location location: location used in case of errors
+    :raise cutplace.errors.InterfaceError: if ``field_name_to_look_up`` is \
+      not part of ``available_field_names``
     """
-    assert supposed_field_name is not None
-    assert supposed_field_name == supposed_field_name.strip()
+    assert field_name_to_look_up is not None
+    assert field_name_to_look_up == field_name_to_look_up.strip()
     assert available_field_names
 
-    field_name = supposed_field_name.strip()
+    field_name_to_look_up = field_name_to_look_up.strip()
     try:
-        field_index = available_field_names.index(field_name)
+        field_index = available_field_names.index(field_name_to_look_up)
     except ValueError:
         raise errors.InterfaceError(
-            'unknown field name %r must be replaced by one of: %s'
-            % (field_name, _tools.human_readable_list(available_field_names)))
+            'unknown field name %s must be replaced by one of: %s'
+            % (_compat.text_repr(field_name_to_look_up), _tools.human_readable_list(available_field_names)),
+            location)
     return field_index
 
 
 def validated_field_name(supposed_field_name, location=None):
     """
-    Same as ``supposedFieldName`` except with surrounding white space removed, provided that it
-    describes a valid field name. Otherwise, raise a `InterfaceError` pointing to ``location``.
+    Same as ``supposed_field_name`` except with surrounding white space removed.
+
+    :param cutplace.errors.Location location: location used in case of errors
+    :raise cutplace.errors.InterfaceError: if ``supposed_field_name`` is \
+      invalid
     """
     field_name = supposed_field_name.strip()
     basic_requirements_text = 'field name must be a valid Python name consisting of ASCII letters, ' \
