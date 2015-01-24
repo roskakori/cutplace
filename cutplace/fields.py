@@ -269,10 +269,11 @@ class DecimalFieldFormat(AbstractFieldFormat):
     def __init__(self, field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value=None):
         super(DecimalFieldFormat, self).__init__(
             field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value)
-        if rule.strip() != '':
-            raise errors.InterfaceError("decimal rule must be empty")
+        # if rule.strip() != '':
+        #    raise errors.InterfaceError("decimal rule must be empty")
         self.decimalSeparator = data_format.decimal_separator
         self.thousandsSeparator = data_format.thousands_separator
+        self.valid_range = ranges.DecimalRange(rule, ranges.DEFAULT_INTEGER_RANGE_TEXT)
 
     def validated_value(self, value):
         assert value
@@ -302,6 +303,11 @@ class DecimalFieldFormat(AbstractFieldFormat):
             # TODO: limite exception handler to decimal exception or whatever decimal.Decimal raises.
             message = "value is %r but must be a decimal number: %s" % (value, error)
             raise errors.FieldValueError(message)
+
+        try:
+            self.valid_range.validate("value", result)
+        except errors.RangeValueError as error:
+            raise errors.FieldValueError(str(error))
 
         return result
 

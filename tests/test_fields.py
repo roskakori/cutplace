@@ -24,6 +24,7 @@ from __future__ import unicode_literals
 import decimal
 import logging
 import unittest
+import decimal
 
 from cutplace import data
 from cutplace import errors
@@ -142,6 +143,48 @@ class DecimalFieldFormatTest(unittest.TestCase):
         self.assertEqual(decimal.Decimal("17.23"), german_decimal_field_format.validated("17,23"))
         self.assertEqual(decimal.Decimal("12345678"), german_decimal_field_format.validated("12.345.678"))
         self.assertEqual(decimal.Decimal("171234567.89"), german_decimal_field_format.validated("171.234.567,89"))
+
+    def test_can_set_rule_for_field_format(self):
+        field_format = fields.DecimalFieldFormat("x", False, None, "3.2...4.2", _ANY_FORMAT)
+        self.assertEqual(decimal.Decimal('3.2'), field_format.validated('3.2'))
+        self.assertEqual(decimal.Decimal('3.7'), field_format.validated('3.7'))
+        self.assertEqual(decimal.Decimal('4'), field_format.validated('4'))
+        self.assertEqual(decimal.Decimal('4.2'), field_format.validated('4.2'))
+        self.assertRaises(errors.FieldValueError, field_format.validated, '4.3')
+
+        field_format = fields.DecimalFieldFormat("x", False, None, "3.2...", _ANY_FORMAT)
+        self.assertEqual(decimal.Decimal('3.2'), field_format.validated('3.2'))
+        self.assertEqual(decimal.Decimal('3.7'), field_format.validated('3.7'))
+        self.assertEqual(decimal.Decimal('400'), field_format.validated('400'))
+        self.assertEqual(decimal.Decimal('4.2'), field_format.validated('4.2'))
+        self.assertRaises(errors.FieldValueError, field_format.validated, '2.3')
+
+        field_format = fields.DecimalFieldFormat("x", False, None, "...4.2", _ANY_FORMAT)
+        self.assertEqual(decimal.Decimal('3.2'), field_format.validated('3.2'))
+        self.assertEqual(decimal.Decimal('3.7'), field_format.validated('3.7'))
+        self.assertEqual(decimal.Decimal('-4'), field_format.validated('-4'))
+        self.assertEqual(decimal.Decimal('4.2'), field_format.validated('4.2'))
+        self.assertRaises(errors.FieldValueError, field_format.validated, '4.3')
+
+    def test_fails_on_outer_range_for_field_rule(self):
+        field_format = fields.DecimalFieldFormat("x", False, None, "3.2...4.2", _ANY_FORMAT)
+        self.assertRaises(errors.FieldValueError, field_format.validated, '4.3')
+        self.assertRaises(errors.FieldValueError, field_format.validated, '2.3')
+
+    def test_fails_on_no_number(self):
+        field_format = fields.DecimalFieldFormat("x", False, None, "3.2...4.2", _ANY_FORMAT)
+        self.assertRaises(errors.FieldValueError, field_format.validated, "abc")
+
+    def test_fails_on_double_decimal_separator(self):
+        field_format = fields.DecimalFieldFormat("x", False, None, "3.2...4.2", _ANY_FORMAT)
+        field_format.decimalSeparator = "."
+        self.assertRaises(errors.FieldValueError, field_format.validated, "3..3")
+
+    def test_fails_on_thousand_separator_after_decimal_separator(self):
+        field_format = fields.DecimalFieldFormat("x", False, None, "3000.2...4000.2", _ANY_FORMAT)
+        field_format.thousandsSeparator = "."
+        field_format.decimalSeparator = ","
+        self.assertRaises(errors.FieldValueError, field_format.validated, "3000,300.234")
 
 
 class IntegerFieldFormatTest(unittest.TestCase):

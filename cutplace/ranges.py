@@ -25,6 +25,7 @@ from __future__ import unicode_literals
 import io
 import token
 import tokenize
+import decimal
 
 import six
 
@@ -388,3 +389,220 @@ class Range(object):
             if not is_valid:
                 raise errors.RangeValueError(
                     "%s is %r but must be within range: %r" % (name, value, self), location)
+
+
+class DecimalRange(Range):
+
+    def __init__(self, description, default=None, location=None):
+
+        assert default is None or (default.strip() != ''), "default=%r" % default
+
+        if description is not None:
+            if six.PY2:
+                # HACK: In Python 2.6, ``tokenize.generate_tokens()`` produces a token for leading white space.
+                description = description.strip()
+
+        # Find out if a `text` has been specified and if not, use optional `default` instead.
+        has_description = (description is not None) and (description.strip() != '')
+        if not has_description and default is not None:
+            description = default
+            has_description = True
+
+        if not has_description:
+            # Use empty ranges.
+            self._description = None
+            self._items = None
+            self._lower_limit = None
+            self._upper_limit = None
+        else:
+            if '.' * 4 in description and not (description[-1].isdigit() or description[-2].isdigit()):
+                self._description = description.replace('....', ELLIPSIS)
+            else:
+                self._description = description.replace('...', ELLIPSIS)
+            self._items = []
+            tokens = tokenize.generate_tokens(io.StringIO(self._description).readline)
+            end_reached = False
+            while not end_reached:
+                lower = None
+                upper = None
+                ellipsis_found = False
+                after_hyphen = False
+                next_token = next(tokens)
+                while not _tools.is_eof_token(next_token) and not _tools.is_comma_token(next_token):
+                    next_type = next_token[0]
+                    next_value = next_token[1]
+                    if next_type == token.NUMBER:
+                        if next_type == token.NUMBER:
+                            try:
+                                decimal_value = decimal.Decimal(next_value)
+                            except decimal.DecimalException:
+                                raise errors.InterfaceError(
+                                    "number must be an decimal or integer but is: %s" % _compat.text_repr(next_value))
+                            if after_hyphen:
+                                decimal_value *= - 1
+                                after_hyphen = False
+
+                        if ellipsis_found:
+                            if upper is None:
+                                upper = decimal_value
+                            else:
+                                raise errors.InterfaceError(
+                                    "range must have at most lower and upper limit but found another number: %s"
+                                    % _compat.text_repr(next_value), location)
+                        elif lower is None:
+                            lower = decimal_value
+                        else:
+                            raise errors.InterfaceError(
+                                "number must be followed by ellipsis (...) but found: %s"
+                                % _compat.text_repr(next_value))
+                    elif after_hyphen:
+                        raise errors.InterfaceError(
+                            "hyphen (-) must be followed by number but found: %s" % _compat.text_repr(next_value))
+                    elif (next_type == token.OP) and (next_value == "-"):
+                        after_hyphen = True
+                    elif next_value in (ELLIPSIS, ':'):
+                        ellipsis_found = True
+                    else:
+                        message = "range must be specified using integer numbers, text, " \
+                                  "symbols and ellipsis (...) but found: %s [token type: %d]" \
+                                  % (_compat.text_repr(next_value), next_type)
+                        raise errors.InterfaceError(message)
+                    next_token = next(tokens)
+
+                if after_hyphen:
+                    raise errors.InterfaceError("hyphen (-) at end must be followed by number")
+
+                # Decide upon the result.
+                if (lower is None):
+                    if (upper is None):
+                        if ellipsis_found:
+                            # Handle "...".
+                            # TODO: Handle "..." same as ""?
+                            raise errors.InterfaceError("ellipsis (...) must be preceded and/or succeeded by number")
+
+                    else:
+                        assert ellipsis_found
+                        # Handle "...y".
+                        result = (None, upper)
+                elif ellipsis_found:
+                    # Handle "x..." and "x...y".
+                    if (upper is not None) and (lower > upper):
+                        raise errors.InterfaceError(
+                            "lower range %d must be greater or equal than upper range %d" % (lower, upper))
+                    result = (lower, upper)
+                else:
+                    # Handle "x".
+                    result = (lower, lower)
+                if result is not None:
+                    for item in self._items:
+                        if self._items_overlap(item, result):
+                            # TODO: use _repr_item() or something to display item in error message.
+                            raise errors.InterfaceError(
+                                "range items must not overlap: %r and %r"
+                                % (self._repr_item(item), self._repr_item(result)))
+                    self._items.append(result)
+                if _tools.is_eof_token(next_token):
+                    end_reached = True
+
+            self._lower_limit = None
+            self._upper_limit = None
+
+            is_first_item = True
+
+            for lower_item, upper_item in self._items:
+                if is_first_item:
+                    self._lower_limit = lower_item
+                    self._upper_limit = upper_item
+                    is_first_item = False
+
+                if lower_item is None:
+                    self._lower_limit = None
+                elif (self._lower_limit is not None) and (lower_item < self._lower_limit):
+                    self._lower_limit = lower_item
+
+                if upper_item is None:
+                    self._upper_limit = None
+                elif (self._upper_limit is not None) and (upper_item > self._upper_limit):
+                    self._upper_limit = upper_item
+
+    def __repr__(self):
+        """
+        Human readable description of the range similar to a Python tuple.
+        """
+        if self.items:
+            result = "'%s'" % self
+        else:
+            result = str(None)
+        return result
+
+    def __str__(self):
+        """
+        Human readable description of the range similar to a Python tuple.
+        """
+        if self.items:
+            result = ""
+            is_first = True
+            for item in self._items:
+                if is_first:
+                    is_first = False
+                else:
+                    result += ", "
+                result += self._repr_item(item)
+        else:
+            result = str(None)
+        return result
+
+    def _repr_item(self, item):
+        """
+        Human readable description of a range item.
+        """
+        if item is not None:
+            result = ""
+            (lower, upper) = item
+            if lower is None:
+                assert upper is not None
+                result += ":%s" % upper.to_eng_string()
+            elif upper is None:
+                result += "%s:" % lower.to_eng_string()
+            elif lower == upper:
+                result += "%s" % lower.to_eng_string()
+            else:
+                result += "%s:%s" % (lower.to_eng_string(), upper.to_eng_string())
+        else:
+            result = str(None)
+        return result
+
+    def validate(self, name, value, location=None):
+        """
+        Validate that value is within the specified range and in case it is not, raise a `RangeValueError`.
+        """
+        assert name is not None
+        assert name
+        assert value is not None
+
+        if not isinstance(value, decimal.Decimal):
+            value_d = decimal.Decimal(value)
+        else:
+            value_d = value
+
+        if isinstance(value, float):
+            value_d = round(value_d, len(str(value).split('.')[1]))
+
+        if self._items is not None:
+            is_valid = False
+            item_index = 0
+            while not is_valid and item_index < len(self._items):
+                lower, upper = self._items[item_index]
+                if lower is None:
+                    assert upper is not None
+                    if value_d <= upper:
+                        is_valid = True
+                elif upper is None:
+                    if value >= lower:
+                        is_valid = True
+                elif (value_d >= lower) and (value_d <= upper):
+                    is_valid = True
+                item_index += 1
+            if not is_valid:
+                raise errors.RangeValueError(
+                    "%s is %r but must be within range: %r" % (name, value_d, self), location)
