@@ -150,7 +150,7 @@ Version 0.7.1, 2012-05-20
     (issue #45).
   * Added property ``example`` for ``*FieldFormat`` (issue #41).
 
-* Cleaned up build and the section on :ref:`jenkins` so that everything works
+* Cleaned up build and the section on "Jenkins" so that everything works
   as described even if Jenkins runs as deamon with MacPorts.
 
 Version 0.7.0, 2012-01-09
@@ -169,7 +169,7 @@ Version 0.7.0, 2012-01-09
   cores.
 
 * Cleaned up developer reports (Ticket #40). Most of the reports are now
-  built using Jenkins as described in :ref:`jenkins`, the only exception
+  built using Jenkins as described in "Jenkins", the only exception
   being the profiler report to monitor performance. Also changed build
   instructions to favor ``ant`` over ``setup.py``.
 

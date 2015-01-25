@@ -4,14 +4,9 @@
     <!-- Set global properties for this build. -->
     <property name="source" location="${basedir}/source" />
     <property name="tests.dir" location="${basedir}/tests" />
-    <property name="tests-input.dir" location="${tests.dir}/input" />
-    <property name="tests-input-icds.dir" location="${tests-input.dir}/icds" />
-    <property name="tests-output.dir" location="${tests.dir}/output" />
+    <property name="tests-result.dir" location="${tests.dir}/output" />
     <property name="build" location="${basedir}/build" />
     <property name="dist" location="${basedir}/dist" />
-    <property name="site.dir" location="${build}/site" />
-    <property name="reports.dir" location="${site.dir}/reports" />
-    <property name="slocdata.dir" location="${basedir}/slocdata" />
 
     <!-- Property to access environment variables. -->
     <property environment="env" />
@@ -21,22 +16,8 @@
         <attribute name="command" />
         <sequential>
             <exec executable="python" failonerror="true">
-                <arg value="setup.py" />
+                <arg file="setup.py" />
                 <arg value="@{command}" />
-            </exec>
-        </sequential>
-    </macrodef>
-
-    <macrodef name="convertods">
-        <!-- Macro to convert an ODS file to CSV . -->
-        <attribute name="basename" />
-        <attribute name="format" />
-        <sequential>
-            <exec executable="python" failonerror="true">
-                <env key="PYTHONPATH" path="${basedir}/cutplace:${env.PYTHONPATH}" />
-                <arg file="tests/_ods.py" />
-                <arg file="@{basename}.ods" />
-                <arg file="@{basename}.csv" />
             </exec>
         </sequential>
     </macrodef>
@@ -57,7 +38,7 @@
             <fileset defaultexcludes="false" dir="." includes="**/.DS_Store" />
         </delete>
         <exec executable="python" failonerror="true">
-            <arg value="setup.py" />
+            <arg file="setup.py" />
             <arg value="sdist" />
             <arg value="--formats=zip" />
         </exec>
@@ -69,7 +50,7 @@
             <fileset defaultexcludes="false" dir="." includes="**/.DS_Store" />
         </delete>
         <exec executable="python" failonerror="true">
-            <arg value="setup.py" />
+            <arg file="setup.py" />
             <arg value="sdist" />
             <arg value="--formats=zip" />
             <arg value="upload" />
@@ -79,7 +60,7 @@
     <target name="bdist_wheel" depends="docs" description="build binary distribution">
         <tstamp />
         <exec executable="python" failonerror="true">
-            <arg value="setup.py" />
+            <arg file="setup.py" />
             <arg value="bdist_wheel" />
             <arg value="--universal" />
         </exec>
@@ -88,17 +69,26 @@
     <target name="bdist_wheel_upload" depends="docs" description="build binary distribution and upload it to PyPI">
         <tstamp />
         <exec executable="python" failonerror="true">
-            <arg value="setup.py" />
+            <arg file="setup.py" />
             <arg value="bdist_wheel" />
             <arg value="--universal" />
             <arg value="upload" />
         </exec>
     </target>
 
-    <target name="unittest" description="run unt tests">
+    <target name="unittest" description="run unit tests">
+        <exec executable="python" failonerror="true">
+            <arg file="setup.py" />
+            <arg value="test" />
+        </exec>
+    </target>
+
+    <target name="htmlcov" description="run unit tests and built HTML coverage report in folder htmlcov">
         <exec executable="python" failonerror="true">
             <arg path="setup.py" />
             <arg value="test" />
+            <arg value="--cov-html" />
+            <arg file="." />
         </exec>
     </target>
 
@@ -115,13 +105,13 @@
             <arg value="-m" />
             <arg value="doctest" />
             <arg value="--fail-fast" />
-            <arg path="docs/api.rst" />
+            <arg file="docs/api.rst" />
         </exec>
     </target>
 
     <target name="test" description="run test suite" depends="unittest, doctest, test_docs, flake8" />
 
-    <target name="performance" description="run performance test" depends="sitebase">
+    <target name="performance" description="run performance test">
         <exec executable="nosetests" failonerror="false">
             <arg value="--with-xunit" />
             <arg value="--xunit-file" />
@@ -135,67 +125,17 @@
         <pyst command="clean" />
         <delete>
             <fileset dir="." includes="**/*.pyc, **/*$py.class" />
-            <fileset dir="." includes="coverage.xml, nosetests.xml, nosetests_performance.xml, flake8.txt, sloccount.sc" />
+            <fileset dir="." includes="coverage.xml, nosetests.xml, nosetests_performance.xml, flake8.txt" />
         </delete>
         <delete includeemptydirs="true">
-            <fileset dir="${tests-output.dir}" includes="**/*" />
+            <fileset dir="${tests-result.dir}" includes="**/*" />
         </delete>
         <delete dir="${build}" />
-        <delete dir="${slocdata.dir}" />
+        <delete dir="htmlcov" />
     </target>
 
-    <target name="site" depends="reports, docs" description="build web site">
-        <!-- Dummy target to invoke all dependencies. -->
-    </target>
-
-    <target name="sitebase">
-        <mkdir dir="${site.dir}/images" />
-        <mkdir dir="${reports.dir}" />
-    </target>
-
-	<target description="copy web site to github pages for publication" name="gh-pages" depends="site">
-		<copy todir="../gh-pages-cutplace" overwrite="true" preservelastmodified="true">
-            <fileset dir="${site.dir}">
-                <exclude name=".buildinfo" />
-                <exclude name=".doctrees/**" />
-            </fileset>
-		</copy>
-	</target>
-
-    <target description="build documentation" name="docs" depends="sitebase">
-        <!-- TODO: Remove obsolete CSV copies
-        <convertods basename="examples/customers" format="csv" />
-        <convertods basename="examples/icd_colors" format="csv" />
-        <convertods basename="examples/icd_customers" format="csv" />
-        <convertods basename="examples/icd_customers_field_names_only" format="csv" />
-        <convertods basename="examples/icd_customers_with_empty_fields" format="csv" />
-        <convertods basename="examples/icd_customers_with_examples" format="csv" />
-        <convertods basename="examples/icd_customers_with_lengths" format="csv" />
-        <convertods basename="examples/icd_customers_with_types_and_rules" format="csv" />
-        -->
+    <target description="build documentation" name="docs">
         <pyst command="docs" />
-    </target>
-
-    <target name="reports" depends="sitebase, flake8, sloccount, performance" description="build developer reports" />
-
-    <target name="sloccount" description="build sloccount report">
-        <mkdir dir="${slocdata.dir}" />
-        <echo message="build sloccount report" />
-        <exec executable="sloccount" failonerror="true">
-            <arg value="--details" />
-            <arg value="--wide" />
-            <arg value="--datadir" />
-            <arg path="${slocdata.dir}" />
-            <arg path="${basedir}/cutplace" />
-            <redirector logError="true" output="sloccount.sc">
-                <outputfilterchain>
-                    <linecontainsregexp>
-                        <regexp pattern="^[0-9]+\t.+" />
-                    </linecontainsregexp>
-                </outputfilterchain>
-            </redirector>
-        </exec>
-        <delete dir="${slocdata.dir}" />
     </target>
 
     <target name="flake8" description="build flake8 violations report">
