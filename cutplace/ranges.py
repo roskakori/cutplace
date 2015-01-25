@@ -108,6 +108,45 @@ def code_for_string_token(name, value, location):
     return ord(value_without_quotes)
 
 
+def create_range_from_length(length_range):
+    """
+    Create a range from length.
+    """
+    assert length_range is not None
+    range_rule_text = ''
+
+    if length_range.items is not None:
+        if any((i[0] is not None and i[0] < 0) or (i[1] is not None and i[1] < 1) for i in length_range.items):
+            raise errors.RangeValueError(
+                "length must be a positive range and upper limit has to be greater than one, but is: %s" % length_range.description)
+
+        for item in length_range.items:
+            lower_length = item[0]
+            upper_length = item[1]
+
+            if lower_length is None or lower_length == 0 or lower_length == 1:
+                if upper_length is None:
+                    range_rule_text += ','
+                elif upper_length == 1:
+                    range_rule_text += '0...9,'
+                else:
+                    range_rule_text += ('-' + ('9' * (upper_length - 1)) + '...' + ('9' * upper_length)) + ','
+            elif lower_length == upper_length:
+                range_rule_text += ('-' + ('9' * (lower_length - 1)) + '...' + ('9' * upper_length)) + ','
+            else:
+                if upper_length is None:
+                    range_rule_text += ('...-1' + ('0' * (lower_length-2)) + ',1' +
+                                        ('0' * (lower_length-1)) + '...,')
+                else:
+                    range_rule_text += ('-' + ('9' * (upper_length - 1)) + '...-1' + ('0' * (lower_length - 2))) + ',1' + \
+                                       (('0' * (lower_length - 1)) + '...' + ('9' * upper_length)) + ','
+
+        range_rule_text = range_rule_text.rstrip(',')
+    else:
+        range_rule_text = ''
+    return Range(range_rule_text)
+
+
 @python_2_unicode_compatible
 class Range(object):
     """

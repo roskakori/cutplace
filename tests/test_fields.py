@@ -183,11 +183,81 @@ class IntegerFieldFormatTest(unittest.TestCase):
 
     def test_can_process_default_example(self):
         field_format = fields.IntegerFieldFormat("x", False, None, "", _ANY_FORMAT)
-        self.assertEqual(field_format.valid_range.items, [(-2147483648, 2147483647)])
+        self.assertEqual(field_format.validated("-2147483648"), -2147483648)
+        self.assertEqual(field_format.validated("2147483647"), 2147483647)
+
+        self.assertRaises(errors.FieldValueError, field_format.validated, "-2147483649")
+        self.assertRaises(errors.FieldValueError, field_format.validated, "2147483648")
 
     def test_can_process_rule_example(self):
         field_format = fields.IntegerFieldFormat("x", False, None, "1...5", _ANY_FORMAT)
-        self.assertEqual(field_format.valid_range.items, [(1, 5)])
+        self.assertEqual(field_format.validated("1"), 1)
+        self.assertEqual(field_format.validated("5"), 5)
+
+        self.assertRaises(errors.FieldValueError, field_format.validated, "0")
+        self.assertRaises(errors.FieldValueError, field_format.validated, "6")
+
+    def test_can_process_length_example(self):
+        field_format = fields.IntegerFieldFormat("x", False, "1...3", "", _ANY_FORMAT)
+        self.assertEqual(field_format.validated("0"), 0)
+        self.assertEqual(field_format.validated("1"), 1)
+        self.assertEqual(field_format.validated("99"), 99)
+        self.assertEqual(field_format.validated("999"), 999)
+        self.assertEqual(field_format.validated("-1"), -1)
+        self.assertEqual(field_format.validated("-99"), -99)
+        self.assertFalse(field_format.is_allowed_to_be_empty)
+
+        self.assertRaises(errors.FieldValueError, field_format.validated, "-100")
+        self.assertRaises(errors.FieldValueError, field_format.validated, "9999")
+
+        """
+        field_format = fields.IntegerFieldFormat("x", False, "2...2", "", _ANY_FORMAT)
+        self.assertEqual(field_format.validated("0"), 0)
+        self.assertEqual(field_format.validated("1"), 1)
+        self.assertEqual(field_format.validated("99"), 99)
+        self.assertEqual(field_format.validated("-1"), -1)
+
+        self.assertRaises(errors.FieldValueError, field_format.validated, "-10")
+        self.assertRaises(errors.FieldValueError, field_format.validated, "100")
+        """
+
+        field_format = fields.IntegerFieldFormat("x", False, "3...4, 10...", "", _ANY_FORMAT)
+        self.assertEqual(field_format.validated("-999"), -999)
+        self.assertEqual(field_format.validated("-10"), -10)
+        self.assertEqual(field_format.validated("-100000001"), -100000001)
+        self.assertEqual(field_format.validated("100"), 100)
+        self.assertEqual(field_format.validated("9999"), 9999)
+
+        self.assertRaises(errors.FieldValueError, field_format.validated, "-1")
+        self.assertRaises(errors.FieldValueError, field_format.validated, "0")
+        self.assertRaises(errors.FieldValueError, field_format.validated, "9")
+        self.assertRaises(errors.FieldValueError, field_format.validated, "10000")
+
+    def test_can_process_rule_or_length_example(self):
+        field_format = fields.IntegerFieldFormat("x", False, "1...", "3...5", _ANY_FORMAT)
+        self.assertEqual(field_format.validated("3"), 3)
+        self.assertEqual(field_format.validated("5"), 5)
+
+        self.assertRaises(errors.FieldValueError, field_format.validated, "1")
+        self.assertRaises(errors.FieldValueError, field_format.validated, "6")
+        self.assertRaises(errors.FieldValueError, field_format.validated, "2")
+
+        field_format = fields.IntegerFieldFormat("x", False, "1...5", "-9...-1, 10...", _ANY_FORMAT)
+        self.assertEqual(field_format.validated("-1"), -1)
+        self.assertEqual(field_format.validated("10"), 10)
+        self.assertEqual(field_format.validated("-9"), -9)
+        self.assertEqual(field_format.validated("25"), 25)
+        self.assertEqual(field_format.validated("10000"), 10000)
+
+        self.assertRaises(errors.FieldValueError, field_format.validated, "-10")
+        self.assertRaises(errors.FieldValueError, field_format.validated, "0")
+        self.assertRaises(errors.FieldValueError, field_format.validated, "9")
+
+    def test_fails_on_rule_or_length_example(self):
+        self.assertRaises(errors.FieldValueError, fields.IntegerFieldFormat, "x", False, "1...2", "3...100", _ANY_FORMAT)
+        self.assertRaises(errors.FieldValueError, fields.IntegerFieldFormat, "x", False, "3...4", "3...10000", _ANY_FORMAT)
+        self.assertRaises(errors.FieldValueError, fields.IntegerFieldFormat, "x", False, "2...4", "-4000...100", _ANY_FORMAT)
+        self.assertRaises(errors.FieldValueError, fields.IntegerFieldFormat, "x", False, "3...4", "-1000...100", _ANY_FORMAT)
 
 
 class RegExFieldFormatTest(unittest.TestCase):
