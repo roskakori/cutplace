@@ -5,6 +5,18 @@ Revision history
 This chapter describes improvements compared to earlier versions of cutplace.
 
 
+Version 0.8.3, 2015-01-xx
+=========================
+
+* Improved API:
+
+  * Removed shortcuts for exceptions from :py:mod:`cutplace`. Use the
+    originals in :py:mod:`cutplace.errors` instead.
+  * Added :py:class:`cutplace.Writer` for validated writing of delimited and
+    fixed data
+    (`issue #84 <https://github.com/roskakori/cutplace/issues/84>`_).
+  * Improved API documentation.
+
 Version 0.8.2, 2015-01-19
 =========================
 
@@ -15,7 +27,7 @@ Version 0.8.2, 2015-01-19
 
 * Improved error reporting when parsing CIDs. In particular all errors
   related to the data format include a specific location, and some errors
-  provide more information about the context the occurred in.
+  provide more information about the context they occurred in.
 
 * Cleaned up :option:`--help`:
 

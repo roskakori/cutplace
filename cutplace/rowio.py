@@ -121,8 +121,8 @@ def _excel_cell_value(cell, datemode):
 
 def excel_rows(source_path, sheet=1):
     """
-    Rows read from an Excel document (both *.xls and *.xlsx thanks to
-    :py:mod:`xlrd`).
+    Rows read from an Excel document (both :file:`*.xls` and :file:`*.xlsx`
+    thanks to :py:mod:`xlrd`).
 
     :param str source_path: path to the Excel file to be read
     :param int sheet: the sheet in the file to be read
@@ -179,6 +179,7 @@ def _as_delimited_keywords(delimited_data_format):
         'strict': True,
     }
     return result
+
 
 def delimited_rows(delimited_source, data_format):
     """
@@ -455,34 +456,34 @@ def auto_rows(source):
 
 class AbstractRowWriter(object):
     """
-    Base class for writers that can write rows using a certain
-    :py:class:`cutplace.data.DataFormat`.
+    Base class for writers that can write rows to ``target`` using a certain
+    :py:class:`~cutplace.data.DataFormat`.
+
+    :param target: :py:class:`str` or filelike object to write to; a \
+      :py:class:`str` is assumed to be a path to a file which is \
+      automatically opened during in the constructor and closed with \
+      :py:meth:`~.cutplace.rowio.AbstractRowWriter.close` or by using the \
+      ``with`` statement
+    :param cutplace.data.DataFormat: data format to use for writing
     """
-    def __init__(self, target_path, data_format):
-        assert target_path is not None
+    def __init__(self, target, data_format):
+        assert target is not None
         assert data_format is not None
-        self._data_format = data_format
-        self._target_path = target_path
-
-
-class DelimitedRowWriter(AbstractRowWriter):
-    def __init__(self, delimited_target, data_format):
-        assert delimited_target is not None
-        assert data_format is not None
-        assert data_format.format == data.FORMAT_DELIMITED
         assert data_format.is_valid
 
+        self._data_format = data_format
         self._has_opened_target_stream = False
-        if isinstance(delimited_target, six.string_types):
-            self._target_path = delimited_target
+        if isinstance(target, six.string_types):
+            self._target_path = target
             self._target_stream = io.open(self._target_path, 'w', encoding=data_format.encoding, newline='')
             self._has_opened_target_stream = True
         else:
-            self._target_path = delimited_target
-            self._target_stream = delimited_target
+            try:
+                self._target_path = target.name
+            except AttributeError:
+                self._target_path = '<io>'
+            self._target_stream = target
         self._location = errors.Location(self.target_path, has_cell=True)
-        keywords = _as_delimited_keywords(data_format)
-        self._delimited_writer = _compat.csv_writer(self._target_stream, **keywords)
 
     def __enter__(self):
         return self
@@ -500,7 +501,8 @@ class DelimitedRowWriter(AbstractRowWriter):
     def location(self):
         """
         The :py:class:`cutplace.errors.Location` to write the next row to.
-        This is automatically advanced by :py:meth:`~.write_row`.
+        This is automatically advanced by
+        :py:meth:`~.cutplace.rowio.AbstractRowWriter.write_row`.
         """
         return self._location
 
@@ -508,12 +510,12 @@ class DelimitedRowWriter(AbstractRowWriter):
     def target_path(self):
         return self._target_path
 
-    def write_row(self, row_to_write):
-        try:
-            self._delimited_writer.writerow(row_to_write)
-        except UnicodeEncodeError as error:
-            raise errors.DataFormatError('cannot write data row: %s; row=%s' % (error, row_to_write), self.location)
-        self._location.advance_line()
+    @property
+    def target_stream(self):
+        return self._target_stream
+
+    def write_row(self, rows_to_write):
+        raise NotImplementedError
 
     def write_rows(self, rows_to_write):
         assert self.target_stream is not None
@@ -528,3 +530,73 @@ class DelimitedRowWriter(AbstractRowWriter):
             self._has_opened_target_stream = False
         self._target_stream = None
         self._target_path = None
+
+
+class DelimitedRowWriter(AbstractRowWriter):
+    def __init__(self, target, data_format):
+        assert target is not None
+        assert data_format is not None
+        assert data_format.format == data.FORMAT_DELIMITED
+        assert data_format.is_valid
+
+        super(DelimitedRowWriter, self).__init__(target, data_format)
+        keywords = _as_delimited_keywords(data_format)
+        self._delimited_writer = _compat.csv_writer(self._target_stream, **keywords)
+
+    def write_row(self, row_to_write):
+        try:
+            self._delimited_writer.writerow(row_to_write)
+        except UnicodeEncodeError as error:
+            raise errors.DataFormatError('cannot write data row: %s; row=%s' % (error, row_to_write), self.location)
+        self._location.advance_line()
+
+
+class FixedRowWriter(AbstractRowWriter):
+    def __init__(self, target, data_format, field_lengths):
+        assert target is not None
+        assert data_format is not None
+        assert data_format.format == data.FORMAT_FIXED
+        assert data_format.is_valid
+        assert field_lengths is not None
+        for field_length in field_lengths:
+            assert field_length is not None
+            assert field_length >= 1, 'field_length=%r' % field_length
+
+        super(FixedRowWriter, self).__init__(target, data_format)
+        self._field_lengths = field_lengths
+        self._expected_row_item_count = len(self._field_lengths)
+        if self.data_format.line_delimiter == 'any':
+            self._line_separator = os.linesep
+        else:
+            self._line_separator = self.data_format.line_delimiter
+
+    def write_row(self, row_to_write):
+        """
+        Write a row of fixed length strings.
+
+        :param list row_to_write: a list of str where each item must have \
+          exactly the same length as the corresponding entry in \
+          :py:attr:`~.field_lengths`
+        :raises AssertionError: if ``row_to_write`` is not a list of \
+          strings with each matching the corresponding ``field_lengths`` \
+          as specified to :py:meth:`~.__init__`.
+        """
+        assert row_to_write is not None
+        row_to_write_item_count = len(row_to_write)
+        assert row_to_write_item_count == self._expected_row_item_count, \
+            'row %d have %d items instead of %d: %s' \
+            % (self.location.line, self._expected_row_item_count, row_to_write_item_count, row_to_write)
+
+        for item_index, item in enumerate(row_to_write):
+            assert isinstance(item, six.text_type), \
+                'row %d, item %d must be a (unicode) str but is: %r' % (self.location.line, item_index, item)
+            assert len(item) == self._field_lengths[item_index], \
+                'row %d, item %d must have exactly %d characters instead of %d: %r' \
+                % (self.location.line, item_index, len(item), self._field_lengths[item_index], item)
+        try:
+            self._target_stream.write(''.join(row_to_write))
+        except UnicodeEncodeError as error:
+            raise errors.DataFormatError('cannot write data row: %s; row=%s' % (error, row_to_write), self.location)
+        if self._line_separator is not None:
+            self._target_stream.write(self._line_separator)
+        self.location.advance_line()

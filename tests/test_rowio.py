@@ -1,5 +1,5 @@
 """
-Test for `iotools` module.
+Tests for the :py:mod:`cutplace.rowio` module.
 """
 # Copyright (C) 2009-2015 Thomas Aglassinger
 #
@@ -30,6 +30,7 @@ from cutplace import rowio
 from tests import dev_test
 
 _EURO_SIGN = '\u20ac'
+
 
 class RowsTest(unittest.TestCase):
     def _assert_rows_contain_data(self, rows):
@@ -245,12 +246,7 @@ class RowsTest(unittest.TestCase):
 
 
 class DelimitedRowWriterTest(unittest.TestCase):
-    @staticmethod
-    def _unified_newlines(text):
-        assert text is not None
-        return text.replace('\r\n', '\n').replace('\r', '\n')
-
-    def test_can_write_delimited_to_string_io(self):
+    def test_can_write_delimited_data_to_string_io(self):
         delimited_data_format = data.DataFormat(data.FORMAT_DELIMITED)
         delimited_data_format.validate()
         with io.StringIO() as target:
@@ -258,10 +254,10 @@ class DelimitedRowWriterTest(unittest.TestCase):
                 delimited_writer.write_row(['a', 'b', _EURO_SIGN])
                 delimited_writer.write_row([])
                 delimited_writer.write_row([1, 2, 'end'])
-            data_written = DelimitedRowWriterTest._unified_newlines(target.getvalue())
+            data_written = dev_test.unified_newlines(target.getvalue())
         self.assertEqual('%r' % data_written, '%r' % 'a,b,\u20ac\n\n1,2,end\n')
 
-    def test_can_write_delimited_to_path(self):
+    def test_can_write_delimited_data_to_path(self):
         delimited_data_format = data.DataFormat(data.FORMAT_DELIMITED)
         delimited_data_format.set_property(data.KEY_ENCODING, 'utf-8')
         delimited_data_format.validate()
@@ -278,7 +274,7 @@ class DelimitedRowWriterTest(unittest.TestCase):
 
     def test_fails_on_unicode_error_during_delimited_write(self):
         delimited_data_format = data.DataFormat(data.FORMAT_DELIMITED)
-        delimited_data_format.set_property(data.KEY_ENCODING, 'latin-1')
+        delimited_data_format.set_property(data.KEY_ENCODING, 'ascii')
         delimited_data_format.validate()
         delimited_path = dev_test.path_to_test_result('test_fails_on_unicode_error_during_delimited_write.csv')
         with io.open(delimited_path, 'w', encoding=delimited_data_format.encoding) as delimited_target_stream:
@@ -291,6 +287,45 @@ class DelimitedRowWriterTest(unittest.TestCase):
                     anticipated_error_message = str(anticipated_error)
                     dev_test.assert_fnmatches(
                         self, anticipated_error_message, "*.csv (R2C1): cannot write data row: *; row=?'b', '\u20ac'?")
+
+
+class FixedRowWriter(unittest.TestCase):
+    def test_can_write_fixed_data_to_string(self):
+        fixed_data_format = data.DataFormat(data.FORMAT_FIXED)
+        fixed_data_format.set_property(data.KEY_ENCODING, 'utf-8')
+        fixed_data_format.validate()
+        field_lengths = [1, 3]
+        with io.StringIO() as target:
+            with rowio.FixedRowWriter(target, fixed_data_format, field_lengths) as fixed_writer:
+                fixed_writer.write_row(['a', 'bcd'])
+                fixed_writer.write_row([_EURO_SIGN, '   '])
+            data_written = dev_test.unified_newlines(target.getvalue())
+        self.assertEqual('%r' % data_written, '%r' % 'abcd\n\u20ac   \n')
+
+    def test_can_write_fixed_data_without_line_delimiter(self):
+        fixed_data_format = data.DataFormat(data.FORMAT_FIXED)
+        fixed_data_format.set_property(data.KEY_LINE_DELIMITER, 'none')
+        fixed_data_format.validate()
+        with io.StringIO() as target:
+            with rowio.FixedRowWriter(target, fixed_data_format, [1]) as fixed_writer:
+                fixed_writer.write_rows([['1'], ['2'], ['3']])
+            data_written = target.getvalue()
+        self.assertEqual(data_written, '123')
+
+    def test_fails_on_unicode_error_during_fixed_write(self):
+        fixed_data_format = data.DataFormat(data.FORMAT_FIXED)
+        fixed_data_format.set_property(data.KEY_ENCODING, 'ascii')
+        fixed_data_format.validate()
+        fixed_path = dev_test.path_to_test_result('test_fails_on_unicode_error_during_fixed_write.txt')
+        with rowio.FixedRowWriter(fixed_path, fixed_data_format, [1]) as fixed_writer:
+            fixed_writer.write_row(['a'])
+            try:
+                fixed_writer.write_row([_EURO_SIGN])
+                self.fail()
+            except errors.DataError as anticipated_error:
+                anticipated_error_message = str(anticipated_error)
+                dev_test.assert_fnmatches(
+                    self, anticipated_error_message, "*.txt (R2C1): cannot write data row: *; row=?'\u20ac'?")
 
 
 if __name__ == "__main__":  # pragma: no cover

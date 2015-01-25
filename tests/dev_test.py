@@ -248,3 +248,11 @@ def assert_fnmatches(test_case, actual_value, expected_pattern):
     test_case.assertNotEqual(None, actual_value)
     if not fnmatch.fnmatch(actual_value, expected_pattern):
         test_case.fail('%r must match pattern %r' % (actual_value, expected_pattern))
+
+
+def unified_newlines(text):
+    """
+    Same as ``text`` but with newline sequences unified to ``'\n'``.
+    """
+    assert text is not None
+    return text.replace('\r\n', '\n').replace('\r', '\n')

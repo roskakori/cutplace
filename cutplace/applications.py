@@ -120,9 +120,10 @@ class CutplaceApp(object):
         assert self.cid is not None
 
         _log.info('validate "%s"', data_path)
-        reader = validio.Reader(self.cid, data_path)
+
         try:
-            reader.validate()
+            with validio.Reader(self.cid, data_path) as reader:
+                reader.validate_rows()
             _log.info('  accepted %d rows', reader.accepted_rows_count)
         except errors.CutplaceError as error:
             _log.error('  %s', error)
@@ -137,8 +138,9 @@ def process(argv=None):
     Before calling this, module :py:mod:`logging` has to be set up properly.
     For example, by calling :py:func:`logging.basicConfig`.
 
-    :return: 0 unless ``argv`` requested to validate one or more files and at
-    least one of them contained rejected data. In this case, the result is 1.
+    :return: 0 unless ``argv`` requested to validate one or more files and \
+      at least one of them contained rejected data. In this case, the \
+      result is 1.
     """
     if argv is None:  # pragma: no cover
         argv = sys.argv

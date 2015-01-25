@@ -111,20 +111,20 @@ Here is an example that prints any data related errors detected during
 validation::
 
     >>> broken_data_path = os.path.join(os.pardir, 'tests', 'data', 'broken_customers.csv')
-    >>> reader = cutplace.Reader(cid, broken_data_path)
-    >>> for row_or_error in reader.rows(on_error='yield'):
-    ...     if isinstance(row_or_error, Exception):
-    ...         if isinstance(row_or_error, cutplace.errors.CutplaceError):
-    ...             # Print data related error details and move on.
-    ...             print(row_or_error)
+    >>> with cutplace.Reader(cid, broken_data_path) as reader:
+    ...     for row_or_error in reader.rows(on_error='yield'):
+    ...         if isinstance(row_or_error, Exception):
+    ...             if isinstance(row_or_error, cutplace.errors.CutplaceError):
+    ...                 # Print data related error details and move on.
+    ...                 print(row_or_error)
+    ...             else:
+    ...                 # Let other, more severe errors terminate the validation.
+    ...                 raise row_or_error
     ...         else:
-    ...             # Let other, more severe errors terminate the validation.
-    ...             raise row_or_error
-    ...     else:
-    ...         pass # We could also do something useful with the data in ``row`` here.
+    ...             pass # We could also do something useful with the data in ``row`` here.
     broken_customers.csv (R4C1): cannot accept field branch_id: value '12345' must match regular expression: '38\\d\\d\\d'
-    broken_customers.csv (R4C2): cannot accept field customer_id: value must be an integer number: 'XX'
-    broken_customers.csv (R4C7): cannot accept field date_of_birth: date must match format DD.MM.YYYY (%d.%m.%Y) but is: '30.02.1994' (day is out of range for month)
+    broken_customers.csv (R5C2): cannot accept field customer_id: value must be an integer number: 'XX'
+    broken_customers.csv (R6C6): cannot accept field date_of_birth: date must match format DD.MM.YYYY (%d.%m.%Y) but is: '30.02.1994' (day is out of range for month)
 
 Note that it is possible for the reader to throw other exceptions, for example
 :py:exc:`IOError` in case the file cannot be read at all or :py:exc:`UnicodeError`
