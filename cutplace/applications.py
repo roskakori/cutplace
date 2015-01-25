@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
 Front end for command line application. This takes care of parsing the
-command line options, calling appropriate the low level function, reporting
-any errors and setting a proper exit code.
+command line options, calling the appropriate low level function, reporting
+any errors and setting a proper exit code to be passed to the end user.
 """
 # Copyright (C) 2009-2015 Thomas Aglassinger
 #
@@ -46,6 +46,9 @@ class CutplaceApp(object):
     Command line application to validate CID's and data.
     """
     def __init__(self):
+        """
+        Setup the empty command line application.
+        """
         self._log = _log
         self.cid = None
         self.cid_encoding = DEFAULT_CID_ENCODING
@@ -96,6 +99,10 @@ class CutplaceApp(object):
         self._log.debug('arguments=%s', args)
 
     def set_cid_from_path(self, cid_path):
+        """
+        Read the :py:class:`cutplace.interface.Cid` to be used by this
+        application from ``cid_path``.
+        """
         assert cid_path is not None
         new_cid = interface.Cid()
         _log.info('read CID from "%s"', cid_path)
@@ -106,15 +113,17 @@ class CutplaceApp(object):
 
     def validate(self, data_path):
         """
-        Validate data stored in file `data_path`.
+        Validate data stored in file ``data_path`` and log possible errors
+        of type :py:exc:`cutplace.errors.CutplaceError` to the log.
         """
         assert data_path is not None
         assert self.cid is not None
 
         _log.info('validate "%s"', data_path)
-        reader = validio.Reader(self.cid, data_path)
+
         try:
-            reader.validate()
+            with validio.Reader(self.cid, data_path) as reader:
+                reader.validate_rows()
             _log.info('  accepted %d rows', reader.accepted_rows_count)
         except errors.CutplaceError as error:
             _log.error('  %s', error)
@@ -123,14 +132,15 @@ class CutplaceApp(object):
 
 def process(argv=None):
     """
-    Do whatever the command line options ``argv`` request. In case of error, raise an appropriate
-    `Exception`.
+    Do whatever the command line options ``argv`` request. In case of error,
+    raise an appropriate :py:exc:`Exception`.
 
-    Return 0 unless ``argv`` requested to validate one or more files and at least one of them
-    contained rejected data. In this case, the result is 1.
+    Before calling this, module :py:mod:`logging` has to be set up properly.
+    For example, by calling :py:func:`logging.basicConfig`.
 
-    Before calling this, module ``logging`` has to be set up properly. For example, by calling
-    `logging.basicConfig()`.
+    :return: 0 unless ``argv`` requested to validate one or more files and \
+      at least one of them contained rejected data. In this case, the \
+      result is 1.
     """
     if argv is None:  # pragma: no cover
         argv = sys.argv
