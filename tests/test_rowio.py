@@ -286,10 +286,10 @@ class DelimitedRowWriterTest(unittest.TestCase):
                 except errors.DataError as anticipated_error:
                     anticipated_error_message = str(anticipated_error)
                     dev_test.assert_fnmatches(
-                        self, anticipated_error_message, "*.csv (R2C1): cannot write data row: *; row=?'b', '\u20ac'?")
+                        self, anticipated_error_message, "*.csv (R2C1): cannot write data row: *; row=*'b', *")
 
 
-class FixedRowWriter(unittest.TestCase):
+class FixedRowWriterTest(unittest.TestCase):
     def test_can_write_fixed_data_to_string(self):
         fixed_data_format = data.DataFormat(data.FORMAT_FIXED)
         fixed_data_format.set_property(data.KEY_ENCODING, 'utf-8')
@@ -325,7 +325,7 @@ class FixedRowWriter(unittest.TestCase):
             except errors.DataError as anticipated_error:
                 anticipated_error_message = str(anticipated_error)
                 dev_test.assert_fnmatches(
-                    self, anticipated_error_message, "*.txt (R2C1): cannot write data row: *; row=?'\u20ac'?")
+                    self, anticipated_error_message, "*.txt (R2C1): cannot write data row: *; row=*")
 
 
 if __name__ == "__main__":  # pragma: no cover

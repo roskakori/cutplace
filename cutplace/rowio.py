@@ -566,7 +566,10 @@ class FixedRowWriter(AbstractRowWriter):
         self._field_lengths = field_lengths
         self._expected_row_item_count = len(self._field_lengths)
         if self.data_format.line_delimiter == 'any':
-            self._line_separator = os.linesep
+            if six.PY2:
+                self._line_separator = six.text_type(os.linesep)
+            else:
+                self._line_separator = os.linesep
         else:
             self._line_separator = self.data_format.line_delimiter
 

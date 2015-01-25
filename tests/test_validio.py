@@ -29,12 +29,13 @@ from cutplace import validio
 from cutplace import rowio
 from tests import dev_test
 
+_TEST_ENCODING = "cp1252"
+
 
 class ReaderTest(unittest.TestCase):
     """
     Tests for data formats.
     """
-    _TEST_ENCODING = "cp1252"
 
     def test_can_open_and_validate_csv_source_file(self):
         cid = interface.Cid(dev_test.path_to_test_cid("icd_customers.xls"))
@@ -161,4 +162,4 @@ class WriterTest(unittest.TestCase):
                 except errors.FieldValueError as anticipated_error:
                     dev_test.assert_fnmatches(
                         self, str(anticipated_error),
-                        "* (R2C2): cannot accept field height: value must be an integer number: 'not_a_number'")
+                        "* (R2C2): cannot accept field height: value must be an integer number: *'not_a_number'")

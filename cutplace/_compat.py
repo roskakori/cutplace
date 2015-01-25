@@ -19,11 +19,15 @@ https://docs.python.org/2/library/csv.html#examples.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
+import csv
 
 # TODO: Probably we can eventually replace ``six`` by ``future`` from
 #  and remove `_compat` all together.
-import csv
-
 import six
 
 
@@ -105,9 +109,18 @@ if six.PY2:
             self._csv_writer = csv.writer(self._queue, dialect=dialect, **str_keywords)
 
         def writerow(self, row):
+            assert row is not None
+
             row_as_list = list(row)
+            # Convert ``row`` to a list of unicode strings.
+            row_to_write = []
+            for item in row_as_list:
+                if item is None:
+                    item = ''
+                elif not isinstance(item, six.text_type):
+                    item = six.text_type(item)
+                row_to_write.append(item.encode('utf-8'))
             try:
-                row_to_write = [item.encode('utf-8') if item is not None else '' for item in row_as_list]
                 self._csv_writer.writerow(row_to_write)
             except TypeError as error:
                 raise TypeError('%s: %s' % (error, row_as_list))
