@@ -12,6 +12,9 @@ Version 0.8.3, 2015-01-xx
 
   * Removed shortcuts for exceptions from :py:mod:`cutplace`. Use the
     originals in :py:mod:`cutplace.errors` instead.
+  * Added convenience function :py:func:`cutplace.validate` and
+    :py:func:`cutplace.validated_rows` to validate and read data with a
+    single line of source code.
   * Added :py:class:`cutplace.Writer` for validated writing of delimited and
     fixed data
     (`issue #84 <https://github.com/roskakori/cutplace/issues/84>`_).

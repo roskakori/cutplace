@@ -20,10 +20,16 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import six
+
 from cutplace import data
 from cutplace import errors
 from cutplace import interface
 from cutplace import rowio
+from cutplace import _compat
+
+# Valid choices for ``on_error`` parameter.
+_VALID_ON_ERROR_CHOICES = ('continue', 'raise', 'yield')
 
 
 def _create_field_map(field_names, field_values):
@@ -48,10 +54,15 @@ class BaseValidator(object):
     It also provides a context manager and can consequently be used with the
     ``with`` statement.
     """
-    def __init__(self, cid):
-        assert cid is not None
+    def __init__(self, cid_or_path):
+        assert cid_or_path is not None
 
-        self._cid = cid
+        if isinstance(cid_or_path, six.string_types):
+            self._cid = interface.Cid(cid_or_path)
+        else:
+            self._cid = cid_or_path
+            assert self._cid.data_format.is_valid, \
+                'DataFormat.validate() must be called before using a CID for validation'
         self._expected_item_count = len(self._cid.field_formats)
         self._location = None
         self._is_closed = False
@@ -83,7 +94,7 @@ class BaseValidator(object):
         """
         return self._location
 
-    def validate_row(self, field_values):
+    def validate_row(self, row):
         """
         Validate ``row`` by:
 
@@ -97,36 +108,37 @@ class BaseValidator(object):
 
         The caller is responsible for :py:attr:`~.location` pointing to the
         correct row in the data while ``validate_row`` take care of calling
-        :py:meth:`~.Location.advance_cell` appropriately.
+        :py:meth:`cutplace.errors.Location.advance_cell` appropriately.
         """
-        assert field_values is not None
+        assert row is not None
         assert self.location is not None
 
         # Validate that number of fields.
-        actual_item_count = len(field_values)
+        actual_item_count = len(row)
         if actual_item_count < self._expected_item_count:
             raise errors.DataError(
                 'row must contain %d fields but only has %d: %s'
-                % (self._expected_item_count, actual_item_count, field_values),
+                % (self._expected_item_count, actual_item_count, row),
                 self._location)
         if actual_item_count > self._expected_item_count:
             raise errors.DataError(
                 'row must contain %d fields but has %d, additional values are: %s'
-                % (self._expected_item_count, actual_item_count, field_values[self._expected_item_count:]),
+                % (self._expected_item_count, actual_item_count, row[self._expected_item_count:]),
                 self.location)
 
         # Validate each field according to its format.
-        for field_index, field_value in enumerate(field_values):
+        for field_index, field_value in enumerate(row):
             field_to_validate = self.cid.field_formats[field_index]
             try:
                 field_to_validate.validated(field_value)
             except errors.FieldValueError as error:
-                error.prepend_message('cannot accept field %s' % field_to_validate.field_name, self.location)
+                error.prepend_message(
+                    'cannot accept field %s' % _compat.text_repr(field_to_validate.field_name), self.location)
                 raise
             self.location.advance_cell()
 
         # Validate the whole row according to row checks.
-        field_map = _create_field_map(self.cid.field_names, field_values)
+        field_map = _create_field_map(self.cid.field_names, row)
         for check_name in self.cid.check_names:
             self.cid.check_map[check_name].check_row(field_map, self.location)
 
@@ -149,11 +161,11 @@ class BaseValidator(object):
 
 
 class Reader(BaseValidator):
-    def __init__(self, cid, source_path):
-        assert cid is not None
+    def __init__(self, cid_or_path, source_path):
+        assert cid_or_path is not None
         assert source_path is not None
 
-        super(Reader, self).__init__(cid)
+        super(Reader, self).__init__(cid_or_path)
         self._source_path = source_path
         self.accepted_rows_count = None
         self.rejected_rows_count = None
@@ -196,7 +208,7 @@ class Reader(BaseValidator):
 
         :raises cutplace.errors.DataError: on broken data
         """
-        assert on_error in ('continue', 'raise', 'yield')
+        assert on_error in _VALID_ON_ERROR_CHOICES, 'on_error=%r' % on_error
 
         self._location = errors.Location(self._source_path, has_cell=True)
         self.accepted_rows_count = 0
@@ -234,18 +246,19 @@ class Reader(BaseValidator):
 
 
 class Writer(BaseValidator):
-    def __init__(self, cid, target):
-        assert cid is not None
+    def __init__(self, cid_or_path, target):
+        assert cid_or_path is not None
         assert target is not None
-        data_format = cid.data_format
-        assert data_format.is_valid
 
-        super(Writer, self).__init__(cid)
+        super(Writer, self).__init__(cid_or_path)
+
+        data_format = cid_or_path.data_format
+        assert self.cid.data_format.is_valid
         self._delegated_writer = None
         if data_format.format == data.FORMAT_DELIMITED:
             self._delegated_writer = rowio.DelimitedRowWriter(target, data_format)
         elif data_format.format == data.FORMAT_FIXED:
-            field_lengths = interface.field_lengths(cid)
+            field_lengths = interface.field_lengths(self.cid)
             self._delegated_writer = rowio.FixedRowWriter(target, data_format, field_lengths)
         else:
             raise NotImplementedError('data_format=%r' % data_format.format)
@@ -279,3 +292,42 @@ class Writer(BaseValidator):
             if self._delegated_writer is not None:
                 self._delegated_writer.close()
                 self._delegated_writer = None
+
+
+def validated_rows(cid_or_path, data_stream_or_path, on_error='raise'):
+    """
+    Rows read from ``data`` and validated against ``cid_or_path``.
+
+    :param cid_or_path: :py:class:`~.Cid` or :py:class:`str` describing a \
+      path pointing to a CID
+    :param data_stream_or_path: filelike object or :py:class:`str` \
+      describing a path pointing to the data to be read
+    :param str on_error: same as ``on_error`` for :py:meth:`~.Reader.rows`
+    :raises cutplace.errors.DataError: on broken data
+    :raises cutplace.errors.InterfaceError: on a broken CID
+    """
+    assert cid_or_path is not None
+    assert data_stream_or_path is not None
+    assert on_error in _VALID_ON_ERROR_CHOICES, 'on_error=%r' % on_error
+
+    with Reader(cid_or_path, data_stream_or_path) as reader:
+        for row in reader.rows(on_error):
+            yield row
+
+
+def validate(cid_or_path, data_stream_or_path):
+    """
+    Validate that ``data_or_path`` conform to ``cid_or_path``.
+
+    :param cid_or_path: :py:class:`~.Cid` or :py:class:`str` describing a \
+      path pointing to a CID
+    :param data_stream_or_path: filelike object or :py:class:`str` \
+      describing a path pointing to the data to be read
+    :raises cutplace.errors.DataError: on broken data
+    :raises cutplace.errors.InterfaceError: on a broken CID
+    """
+    assert cid_or_path is not None
+    assert data_stream_or_path is not None
+
+    with Reader(cid_or_path, data_stream_or_path) as reader:
+        reader.validate_rows()

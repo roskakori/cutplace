@@ -26,7 +26,6 @@ import unittest
 from cutplace import interface
 from cutplace import errors
 from cutplace import validio
-from cutplace import rowio
 from tests import dev_test
 
 _TEST_ENCODING = "cp1252"
@@ -74,7 +73,7 @@ class ReaderTest(unittest.TestCase):
 
     def test_fails_on_invalid_csv_source_file_with_duplicates(self):
         cid = interface.Cid(dev_test.path_to_test_cid("icd_customers.xls"))
-        with validio.Reader(cid, dev_test.path_to_test_data("broken_customers_with_duplicates.csv")) as  reader:
+        with validio.Reader(cid, dev_test.path_to_test_data("broken_customers_with_duplicates.csv")) as reader:
             self.assertRaises(errors.CheckError, reader.validate_rows)
 
     def test_fails_on_invalid_csv_source_file_with_not_observed_count_expression(self):
@@ -162,4 +161,31 @@ class WriterTest(unittest.TestCase):
                 except errors.FieldValueError as anticipated_error:
                     dev_test.assert_fnmatches(
                         self, str(anticipated_error),
-                        "* (R2C2): cannot accept field height: value must be an integer number: *'not_a_number'")
+                        "* (R2C2): cannot accept field 'height': value must be an integer number: *'not_a_number'")
+
+
+class ValidationFunctionsTest(unittest.TestCase):
+    def setUp(self):
+        self._cid_path = dev_test.path_to_test_cid("icd_customers.xls")
+        self._cid = interface.Cid(self._cid_path)
+        self._data_path = dev_test.path_to_test_data("valid_customers.csv")
+
+    def test_can_validate_from_files(self):
+        validio.validate(self._cid_path, self._data_path)
+
+    def test_can_read_validated_rows_from_files(self):
+        row_count = 0
+        for row_count, _ in enumerate(validio.validated_rows(self._cid_path, self._data_path)):
+            pass
+        self.assertNotEqual(0, row_count)
+
+    def test_can_validate_from_cid_and_stream(self):
+        with io.open(self._data_path, 'r', encoding=_TEST_ENCODING, newline='') as data_stream:
+            validio.validate(self._cid, data_stream)
+
+    def test_can_read_validated_rows_from_cid_and_stream(self):
+        row_count = 0
+        with io.open(self._data_path, 'r', encoding=_TEST_ENCODING, newline='') as data_stream:
+            for row_count, _ in enumerate(validio.validated_rows(self._cid, data_stream)):
+                pass
+        self.assertNotEqual(0, row_count)
