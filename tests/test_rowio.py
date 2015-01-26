@@ -294,9 +294,9 @@ class FixedRowWriterTest(unittest.TestCase):
         fixed_data_format = data.DataFormat(data.FORMAT_FIXED)
         fixed_data_format.set_property(data.KEY_ENCODING, 'utf-8')
         fixed_data_format.validate()
-        field_lengths = [1, 3]
+        field_names_and_lengths = [('a', 1), ('b', 3)]
         with io.StringIO() as target:
-            with rowio.FixedRowWriter(target, fixed_data_format, field_lengths) as fixed_writer:
+            with rowio.FixedRowWriter(target, fixed_data_format, field_names_and_lengths) as fixed_writer:
                 fixed_writer.write_row(['a', 'bcd'])
                 fixed_writer.write_row([_EURO_SIGN, '   '])
             data_written = dev_test.unified_newlines(target.getvalue())
@@ -307,7 +307,7 @@ class FixedRowWriterTest(unittest.TestCase):
         fixed_data_format.set_property(data.KEY_LINE_DELIMITER, 'none')
         fixed_data_format.validate()
         with io.StringIO() as target:
-            with rowio.FixedRowWriter(target, fixed_data_format, [1]) as fixed_writer:
+            with rowio.FixedRowWriter(target, fixed_data_format, [('x', 1)]) as fixed_writer:
                 fixed_writer.write_rows([['1'], ['2'], ['3']])
             data_written = target.getvalue()
         self.assertEqual(data_written, '123')
@@ -317,7 +317,7 @@ class FixedRowWriterTest(unittest.TestCase):
         fixed_data_format.set_property(data.KEY_ENCODING, 'ascii')
         fixed_data_format.validate()
         fixed_path = dev_test.path_to_test_result('test_fails_on_unicode_error_during_fixed_write.txt')
-        with rowio.FixedRowWriter(fixed_path, fixed_data_format, [1]) as fixed_writer:
+        with rowio.FixedRowWriter(fixed_path, fixed_data_format, [('x', 1)]) as fixed_writer:
             fixed_writer.write_row(['a'])
             try:
                 fixed_writer.write_row([_EURO_SIGN])

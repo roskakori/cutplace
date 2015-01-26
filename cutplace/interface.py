@@ -538,24 +538,6 @@ def create_cid_from_string(cid_text):
     return result
 
 
-def field_lengths(fixed_cid):
-    """
-    List of :py:class:`int`s for all field lengths in ``fixed_cid`` which
-    must be of data format py:attr:`~cutplace.data.FORMAT_FIXED`.
-    """
-    assert fixed_cid is not None
-    assert fixed_cid.data_format.format == data.FORMAT_FIXED, 'format=' + fixed_cid.data_format.format
-    result = []
-    for field_format in fixed_cid.field_formats:
-        field_length_range = field_format.length.items[0]
-        lower, upper = field_length_range
-        assert lower is not None
-        assert lower == upper
-        field_length = lower
-        result.append(field_length)
-    return result
-
-
 def field_names_and_lengths(fixed_cid):
     """
     List of tuples ``(field_name, field_length)`` for all field formats in

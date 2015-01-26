@@ -96,7 +96,7 @@ class BaseValidator(object):
 
     def validate_row(self, row):
         """
-        Validate ``row`` by:
+        Validate a single ``row``:
 
         1. Check if the number of items in ``row`` matches the number of
            fields in the CID
@@ -107,8 +107,8 @@ class BaseValidator(object):
            :py:meth:`cutplace.checks.AbstractCheck.check_row`)
 
         The caller is responsible for :py:attr:`~.location` pointing to the
-        correct row in the data while ``validate_row`` take care of calling
-        :py:meth:`cutplace.errors.Location.advance_cell` appropriately.
+        correct row in the data while ``validate_row`` takes care of calling
+        :py:meth:`cutplace.errors.Location.set_cell` appropriately.
         """
         assert row is not None
         assert self.location is not None
@@ -119,7 +119,7 @@ class BaseValidator(object):
             raise errors.DataError(
                 'row must contain %d fields but only has %d: %s'
                 % (self._expected_item_count, actual_item_count, row),
-                self._location)
+                self.location)
         if actual_item_count > self._expected_item_count:
             raise errors.DataError(
                 'row must contain %d fields but has %d, additional values are: %s'
@@ -128,6 +128,7 @@ class BaseValidator(object):
 
         # Validate each field according to its format.
         for field_index, field_value in enumerate(row):
+            self.location.set_cell(field_index)
             field_to_validate = self.cid.field_formats[field_index]
             try:
                 field_to_validate.validated(field_value)
@@ -135,9 +136,9 @@ class BaseValidator(object):
                 error.prepend_message(
                     'cannot accept field %s' % _compat.text_repr(field_to_validate.field_name), self.location)
                 raise
-            self.location.advance_cell()
 
         # Validate the whole row according to row checks.
+        self.location.set_cell(0)
         field_map = _create_field_map(self.cid.field_names, row)
         for check_name in self.cid.check_names:
             self.cid.check_map[check_name].check_row(field_map, self.location)
@@ -161,12 +162,21 @@ class BaseValidator(object):
 
 
 class Reader(BaseValidator):
-    def __init__(self, cid_or_path, source_path):
+    def __init__(self, cid_or_path, source_data_stream_or_path):
         assert cid_or_path is not None
-        assert source_path is not None
+        assert source_data_stream_or_path is not None
 
         super(Reader, self).__init__(cid_or_path)
-        self._source_path = source_path
+        # TODO: Consolite obtaining source path with other code segments that do similar things.
+        if isinstance(source_data_stream_or_path, six.string_types):
+            source_path = source_data_stream_or_path
+        else:
+            try:
+                source_path = source_data_stream_or_path.name
+            except AttributeError:
+                source_path = '<io>'
+        self._location = errors.Location(source_path, has_cell=True)
+        self._source_path = source_data_stream_or_path
         self.accepted_rows_count = None
         self.rejected_rows_count = None
 
@@ -182,13 +192,6 @@ class Reader(BaseValidator):
                 data_format.line_delimiter)
         elif data_format.format == data.FORMAT_ODS:
             return rowio.ods_rows(self._source_path, data_format.sheet)
-
-    @property
-    def source_path(self):
-        """
-        The path of the dat file to be read.
-        """
-        return self._source_path
 
     def rows(self, on_error='raise'):
         """
@@ -258,8 +261,8 @@ class Writer(BaseValidator):
         if data_format.format == data.FORMAT_DELIMITED:
             self._delegated_writer = rowio.DelimitedRowWriter(target, data_format)
         elif data_format.format == data.FORMAT_FIXED:
-            field_lengths = interface.field_lengths(self.cid)
-            self._delegated_writer = rowio.FixedRowWriter(target, data_format, field_lengths)
+            field_names_and_lengths = interface.field_names_and_lengths(self.cid)
+            self._delegated_writer = rowio.FixedRowWriter(target, data_format, field_names_and_lengths)
         else:
             raise NotImplementedError('data_format=%r' % data_format.format)
 
@@ -280,10 +283,9 @@ class Writer(BaseValidator):
 
     def write_rows(self, rows_to_write):
         assert rows_to_write is not None
-        assert self._delegated_writer is not None
 
         for row_to_write in rows_to_write:
-            self._delegated_writer.write_row(row_to_write)
+            self.write_row(row_to_write)
 
     def close(self):
         try:

@@ -552,19 +552,20 @@ class DelimitedRowWriter(AbstractRowWriter):
 
 
 class FixedRowWriter(AbstractRowWriter):
-    def __init__(self, target, data_format, field_lengths):
+    def __init__(self, target, data_format, field_names_and_lengths):
         assert target is not None
         assert data_format is not None
         assert data_format.format == data.FORMAT_FIXED
         assert data_format.is_valid
-        assert field_lengths is not None
-        for field_length in field_lengths:
+        assert field_names_and_lengths is not None
+        for field_name, field_length in field_names_and_lengths:
+            assert field_name is not None
             assert field_length is not None
             assert field_length >= 1, 'field_length=%r' % field_length
 
         super(FixedRowWriter, self).__init__(target, data_format)
-        self._field_lengths = field_lengths
-        self._expected_row_item_count = len(self._field_lengths)
+        self._field_names_and_lengths = field_names_and_lengths
+        self._expected_row_item_count = len(self._field_names_and_lengths)
         if self.data_format.line_delimiter == 'any':
             if six.PY2:
                 self._line_separator = six.text_type(os.linesep)
@@ -585,21 +586,34 @@ class FixedRowWriter(AbstractRowWriter):
           as specified to :py:meth:`~.__init__`.
         """
         assert row_to_write is not None
-        row_to_write_item_count = len(row_to_write)
-        assert row_to_write_item_count == self._expected_row_item_count, \
-            'row %d have %d items instead of %d: %s' \
-            % (self.location.line, self._expected_row_item_count, row_to_write_item_count, row_to_write)
 
-        for item_index, item in enumerate(row_to_write):
-            assert isinstance(item, six.text_type), \
-                'row %d, item %d must be a (unicode) str but is: %r' % (self.location.line, item_index, item)
-            assert len(item) == self._field_lengths[item_index], \
-                'row %d, item %d must have exactly %d characters instead of %d: %r' \
-                % (self.location.line, item_index, len(item), self._field_lengths[item_index], item)
+        row_to_write_item_count = len(row_to_write)
+        if row_to_write_item_count != self._expected_row_item_count:
+            raise errors.DataFormatError(
+                'row must have %d items instead of %d: %s'
+                % (self._expected_row_item_count, row_to_write_item_count, row_to_write), self.location)
+        for field_index, field_value in enumerate(row_to_write):
+            self.location.set_cell(field_index)
+            field_name, expected_field_length = self._field_names_and_lengths[field_index]
+            if not isinstance(field_value, six.text_type):
+                raise errors.DataError(
+                    'field %s must be of type %s but is: %s (%s)'
+                    % (_compat.text_repr(field_name), six.text_type.__name__, field_value, type(field_value).__name__),
+                    self.location)
+            actual_field_length = len(field_value)
+            if actual_field_length != expected_field_length:
+                raise errors.DataError(
+                    'field %s must have exactly %d characters instead of %d: %s'
+                    % (_compat.text_repr(field_name), expected_field_length, actual_field_length,
+                       _compat.text_repr(field_value)),
+                    self.location)
+        self.location.set_cell(0)
         try:
             self._target_stream.write(''.join(row_to_write))
         except UnicodeEncodeError as error:
-            raise errors.DataFormatError('cannot write data row: %s; row=%s' % (error, row_to_write), self.location)
+            raise errors.DataFormatError(
+                'cannot write data row: %s; row=%s'
+                % (error, row_to_write), self.location)
         if self._line_separator is not None:
             self._target_stream.write(self._line_separator)
         self.location.advance_line()

@@ -135,18 +135,29 @@ class ReaderTest(unittest.TestCase):
 
 class WriterTest(unittest.TestCase):
     def setUp(self):
-        standard_cid_text = '\n'.join([
+        standard_delimited_cid_text = '\n'.join([
             'd,format,delimited',
             ' ,name   ,,empty,length,type,rule',
             'f,surname',
             'f,height ,,     ,      ,Integer',
             'f,born_on,,     ,      ,DateTime,YYYY-MM-DD'
         ])
-        self._standard_cid = interface.create_cid_from_string(standard_cid_text)
+        self._standard_delimited_cid = interface.create_cid_from_string(standard_delimited_cid_text)
+
+        fixed_cid_text = '\n'.join([
+            'd,format,fixed',
+            ' ,name   ,,empty,length,type,rule',
+            'f,surname,,     ,10',
+            'f,height ,,     , 3    ,Integer',
+            'f,born_on,,     ,10    ,DateTime,YYYY-MM-DD'
+        ])
+        # FIXME: Properly skip blanks when parsing "length" in CID.
+        fixed_cid_text = fixed_cid_text.replace(' ', '')
+        self._standard_fixed_cid = interface.create_cid_from_string(fixed_cid_text)
 
     def test_can_write_delimited(self):
         with io.StringIO() as delimited_stream:
-            with validio.Writer(self._standard_cid, delimited_stream) as delimited_writer:
+            with validio.Writer(self._standard_delimited_cid, delimited_stream) as delimited_writer:
                 delimited_writer.write_row(['Miller', '173', '1967-05-23'])
                 delimited_writer.write_row(['Webster', '167', '1983-11-02'])
             data_written = dev_test.unified_newlines(delimited_stream.getvalue())
@@ -154,7 +165,7 @@ class WriterTest(unittest.TestCase):
 
     def test_fails_on_writing_broken_field(self):
         with io.StringIO() as delimited_stream:
-            with validio.Writer(self._standard_cid, delimited_stream) as delimited_writer:
+            with validio.Writer(self._standard_delimited_cid, delimited_stream) as delimited_writer:
                 delimited_writer.write_row(['Miller', '173', '1967-05-23'])
                 try:
                     delimited_writer.write_row(['Webster', 'not_a_number', '1983-11-02'])
@@ -162,6 +173,75 @@ class WriterTest(unittest.TestCase):
                     dev_test.assert_fnmatches(
                         self, str(anticipated_error),
                         "* (R2C2): cannot accept field 'height': value must be an integer number: *'not_a_number'")
+
+    def test_can_write_fixed_multiple_rows(self):
+        with io.StringIO() as fixed_stream:
+            with validio.Writer(self._standard_fixed_cid, fixed_stream) as fixed_writer:
+                fixed_writer.write_rows([
+                    ['Miller    ', '173', '1967-05-23'],
+                    ['Webster   ', '167', '1983-11-02']])
+            data_written = dev_test.unified_newlines(fixed_stream.getvalue())
+        self.assertEqual('%r' % 'Miller    1731967-05-23\nWebster   1671983-11-02\n', '%r' % data_written)
+
+    def test_fails_on_writing_too_long_fixed_field(self):
+        with io.StringIO() as fixed_stream:
+            with validio.Writer(self._standard_fixed_cid, fixed_stream) as fixed_writer:
+                broken_rows_to_write = [
+                    ['Miller    ', '173', '1967-05-23'],
+                    ['Webster   ', '16789', '1983-11-02'],
+                ]
+                try:
+                    fixed_writer.write_rows(broken_rows_to_write)
+                    self.fail()
+                except errors.DataError as anticipated_error:
+                    dev_test.assert_fnmatches(
+                        self, str(anticipated_error),
+                        "* (R2C2): field 'height' must have exactly 3 characters instead of 5: '16789'")
+
+    def test_fails_on_writing_too_short_fixed_field(self):
+        with io.StringIO() as fixed_stream:
+            with validio.Writer(self._standard_fixed_cid, fixed_stream) as fixed_writer:
+                broken_rows_to_write = [
+                    ['Miller    ', '173', '1967-05-23'],
+                    ['Webster   ', '7', '1983-11-02'],
+                ]
+                try:
+                    fixed_writer.write_rows(broken_rows_to_write)
+                    self.fail()
+                except errors.DataError as anticipated_error:
+                    dev_test.assert_fnmatches(
+                        self, str(anticipated_error),
+                        "* (R2C2): field 'height' must have exactly 3 characters instead of 1: '7'")
+
+    def test_fails_on_writing_fixed_integer_field_with_non_numeric_value(self):
+        with io.StringIO() as fixed_stream:
+            with validio.Writer(self._standard_fixed_cid, fixed_stream) as fixed_writer:
+                broken_rows_to_write = [
+                    ['Miller    ', '173', '1967-05-23'],
+                    ['Webster   ', 'abc', '1983-11-02'],
+                ]
+                try:
+                    fixed_writer.write_rows(broken_rows_to_write)
+                    self.fail()
+                except errors.DataError as anticipated_error:
+                    dev_test.assert_fnmatches(
+                        self, str(anticipated_error),
+                        "* (R2C2): cannot accept field 'height': value must be an integer number: 'abc'")
+
+    def test_fails_on_writing_fixed_row_with_too_few_fields(self):
+        with io.StringIO() as fixed_stream:
+            with validio.Writer(self._standard_fixed_cid, fixed_stream) as fixed_writer:
+                broken_rows_to_write = [
+                    ['Miller    ', '173', '1967-05-23'],
+                    ['Webster   ', 'abc'],
+                ]
+                try:
+                    fixed_writer.write_rows(broken_rows_to_write)
+                    self.fail()
+                except errors.DataError as anticipated_error:
+                    dev_test.assert_fnmatches(
+                        self, str(anticipated_error),
+                        "* row must contain 3 fields but only has 2: ?'Webster   ', 'abc'?")
 
 
 class ValidationFunctionsTest(unittest.TestCase):
