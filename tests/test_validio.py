@@ -241,7 +241,7 @@ class WriterTest(unittest.TestCase):
                 except errors.DataError as anticipated_error:
                     dev_test.assert_fnmatches(
                         self, str(anticipated_error),
-                        "* row must contain 3 fields but only has 2: ?'Webster   ', 'abc'?")
+                        "* row must contain 3 fields but only has 2: *'Webster   ', *'abc'?")
 
 
 class ValidationFunctionsTest(unittest.TestCase):

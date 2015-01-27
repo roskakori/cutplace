@@ -358,7 +358,7 @@ class IntegerFieldFormat(AbstractFieldFormat):
         try:
             value_as_int = int(value)
         except ValueError:
-            raise errors.FieldValueError("value must be an integer number: %r" % value)
+            raise errors.FieldValueError("value must be an integer number: %s" % _compat.text_repr(value))
         try:
             self.valid_range.validate("value", value_as_int)
         except errors.RangeValueError as error:
