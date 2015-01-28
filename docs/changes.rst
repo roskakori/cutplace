@@ -8,6 +8,8 @@ This chapter describes improvements compared to earlier versions of cutplace.
 Version 0.8.3, 2015-01-xx
 =========================
 
+* Fixed reading of Excel error cells.
+
 * Improved API:
 
   * Removed shortcuts for exceptions from :py:mod:`cutplace`. Use the
@@ -23,10 +25,10 @@ Version 0.8.3, 2015-01-xx
 Version 0.8.2, 2015-01-19
 =========================
 
-* Changed syntax for ranges to prefer ellipsis (``...``) to colon (``:``)
+* Changed syntax for ranges to prefer ellipsis (``...``) over colon (``:``)
   because it expresses the intended meaning more clearly. The colon is still
-  supported so existing CID can remain the same, but the documentation and
-  examples use the new syntax.
+  supported so existing CIDs keep working, but the documentation and examples
+  use the new syntax.
 
 * Improved error reporting when parsing CIDs. In particular all errors
   related to the data format include a specific location, and some errors

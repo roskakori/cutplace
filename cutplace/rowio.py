@@ -84,35 +84,40 @@ if six.PY2:
 
 def _excel_cell_value(cell, datemode):
     """
-    The value of ``cell`` as text taking into account the way excel encodes dates and times.
+    The value of ``cell`` as text taking into account the way excel encodes
+    dates and times.
 
-    Numeric Excel types (Currency,  Fractional, Number, Percent, Scientific) simply yield the decimal number
-    without any special formatting.
+    Numeric Excel types (Currency,  Fractional, Number, Percent, Scientific)
+    simply return the decimal number without any special formatting.
 
-    Dates result in a text using the format "YYYY-MM-DD", times in a text using the format "hh:mm:ss".
+    Dates result in a text using the format "YYYY-MM-DD", times in a text
+    using the format "hh:mm:ss".
 
-    Boolean yields "0" or "1".
+    Boolean results in "0" or "1".
 
-    Formulas are evaluated and yield the respective result.
+    Formulas are evaluated and return the respective result.
+
+    :param str datemode: the datemode from the workbook the cell was read \
+      from; refer to the :py:mod:`xlrd` documentation for more details
     """
     assert cell is not None
 
     if cell.ctype == xlrd.XL_CELL_DATE:
         cell_tuple = xlrd.xldate_as_tuple(cell.value, datemode)
-        assert len(cell_tuple) == 6, "cellTuple=%r" % cell_tuple
+        assert len(cell_tuple) == 6, "cell_tuple=%r" % cell_tuple
         if cell_tuple[:3] == (0, 0, 0):
             time_tuple = cell_tuple[3:]
-            result = str(datetime.time(*time_tuple))
+            result = six.text_type(datetime.time(*time_tuple))
         else:
-            result = str(datetime.datetime(*cell_tuple))
+            result = six.text_type(datetime.datetime(*cell_tuple))
     elif cell.ctype == xlrd.XL_CELL_ERROR:
         default_error_text = xlrd.error_text_from_code[0x2a]  # same as "#N/A!"
         error_code = cell.value
-        result = str(xlrd.error_text_from_code.get(error_code, default_error_text), "ascii")
-    elif isinstance(cell.value, str):
+        result = six.text_type(xlrd.error_text_from_code.get(error_code, default_error_text))
+    elif isinstance(cell.value, six.text_type):
         result = cell.value
     else:
-        result = str(cell.value)
+        result = six.text_type(cell.value)
         if (cell.ctype == xlrd.XL_CELL_NUMBER) and (result.endswith(".0")):
             result = result[:-2]
 

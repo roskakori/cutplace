@@ -244,6 +244,14 @@ class RowsTest(unittest.TestCase):
         ods_path = dev_test.path_to_test_data('valid_customers.ods')
         self._assert_rows_contain_data(rowio.auto_rows(ods_path))
 
+    def test_can_extract_all_excel_field_types(self):
+        field_types_path = dev_test.path_to_test_data('fieldtypes.xls')
+        for row_number, row in enumerate(rowio.excel_rows(field_types_path)):
+            self.assertEqual(3, len(row))
+            if row_number >= 1:
+                _, excel_value, cutplace_value = row
+                self.assertEqual(cutplace_value, excel_value)
+
 
 class DelimitedRowWriterTest(unittest.TestCase):
     def test_can_write_delimited_data_to_string_io(self):
