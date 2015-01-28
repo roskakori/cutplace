@@ -84,7 +84,7 @@ def as_sql_text(field_name, field_is_allowed_to_be_empty, field_length, field_ru
         choices = generate_choices(field_rule)
 
         if all(choice.isnumeric() for choice in choices):
-            column_def = as_sql_number(field_name, field_is_allowed_to_be_empty, field_length, field_rule, db)[0]
+            column_def = as_sql_number(field_name, field_is_allowed_to_be_empty, field_length, field_rule, None, db)[0]
             constraint += "constraint chk_rule_" + field_name + " check( " + field_name + " in (" \
                 + ",".join(map(str, choices)) + ") )"
         else:
@@ -97,9 +97,11 @@ def as_sql_text(field_name, field_is_allowed_to_be_empty, field_length, field_ru
     return [column_def, constraint]
 
 
-def as_sql_number(field_name, field_is_allowed_to_be_empty, field_length, field_rule, db):
+def as_sql_number(field_name, field_is_allowed_to_be_empty, field_length, field_rule, range_rule, db):
+    if range_rule is None:
+        range_rule = ranges.Range(field_rule, ranges.DEFAULT_INTEGER_RANGE_TEXT)
+
     column_def = ""
-    range_rule = ranges.Range(field_rule, ranges.DEFAULT_INTEGER_RANGE_TEXT)
     if (field_rule == '') and (field_length.description is not None):
         range_limit = 10 ** max([item[1] for item in field_length.items])  # get the highest integer of the range
     else:

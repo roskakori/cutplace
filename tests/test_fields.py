@@ -54,7 +54,7 @@ class AbstractFieldFormatTest(unittest.TestCase):
         field_format = fields.AbstractFieldFormat("x", False, None, "", _ANY_FORMAT)
         self.assertRaises(errors.FieldValueError, field_format.validate_empty, "")
 
-    def test_validate_length(self):
+    def test_can_validate_length(self):
         field_format = fields.AbstractFieldFormat("x", False, "3:5", "", _ANY_FORMAT)
         field_format.validate_length("123")
         field_format.validate_length("1234")
@@ -62,15 +62,15 @@ class AbstractFieldFormatTest(unittest.TestCase):
         self.assertRaises(errors.FieldValueError, field_format.validate_length, "12")
         self.assertRaises(errors.FieldValueError, field_format.validate_length, "123456")
 
-    def test_empty_and_length_limit(self):
+    def test_can_create_empty_field_with_length_limit(self):
         field_format = fields.AbstractFieldFormat("x", True, "3:5", "", _ANY_FORMAT)
         field_format.validate_length("")
 
-    def test_validate(self):
+    def test_can_validate_field_format(self):
         field_format = fields.AbstractFieldFormat("x", True, "3:5", "", _ANY_FORMAT)
         self.assertRaises(NotImplementedError, field_format.validated, "xyz")
 
-    def test_as_sql(self):
+    def test_can_create_sql_statement(self):
         field_format = fields.AbstractFieldFormat("x", True, "3:5", "", _ANY_FORMAT)
         self.assertRaises(NotImplementedError, field_format.as_sql, "xyz")
 
@@ -79,7 +79,7 @@ class DateTimeFieldFormatTest(unittest.TestCase):
     """
     Tests  for `DateTimeFieldFormat`.
     """
-    def test_valid_dates(self):
+    def test_can_valid_dates(self):
         field_format = fields.DateTimeFieldFormat("x", False, None, "YYYY-MM-DD", _ANY_FORMAT)
         field_format.validated("2000-01-01")
         field_format.validated("2000-02-29")
@@ -88,12 +88,12 @@ class DateTimeFieldFormatTest(unittest.TestCase):
         field_format.validated("0001-01-01")
         field_format.validated("9999-12-31")
 
-    def test_empty_date(self):
+    def test_can_set_empty_date(self):
         field_format = fields.DateTimeFieldFormat("x", True, None, "YYYY-MM-DD", _ANY_FORMAT)
         self.assertEquals(field_format.validated(""), None)
         self.assertNotEquals(field_format.validated("2000-01-01"), None)
 
-    def test_broken_dates(self):
+    def test_can_handle_broken_dates(self):
         field_format = fields.DateTimeFieldFormat("x", False, None, "YYYY-MM-DD", _ANY_FORMAT)
         self.assertRaises(errors.FieldValueError, field_format.validated, "2000-02-30")
         self.assertRaises(errors.FieldValueError, field_format.validated, "0000-01-01")
@@ -102,7 +102,7 @@ class DateTimeFieldFormatTest(unittest.TestCase):
         # FIXME: Raise FieldValueError for the following value due lack of leading zeros.
         field_format.validated("2000-1-1")
 
-    def test_percent_sign(self):
+    def test_can_handle_with_percent_sign(self):
         field_format = fields.DateTimeFieldFormat("x", False, None, "%YYYY-MM-DD", _ANY_FORMAT)
         field_format.validated("%2000-01-01")
 
@@ -129,12 +129,12 @@ class DecimalFieldFormatTest(unittest.TestCase):
     """
     Test for `DecimalFieldFormat`.
     """
-    def test_valid_decimals(self):
+    def test_can_validate_decimals(self):
         field_format = fields.DecimalFieldFormat("x", False, None, "", _ANY_FORMAT)
         self.assertEqual(decimal.Decimal("17.23"), field_format.validated("17.23"))
         self.assertEqual(decimal.Decimal("17.123456789"), field_format.validated("17.123456789"))
 
-    def test_valid_german_decimals(self):
+    def test_can_validate_german_decimals(self):
         german_data_format = data.DataFormat(data.FORMAT_DELIMITED)
         german_data_format.set_property(data.KEY_DECIMAL_SEPARATOR, ",")
         german_data_format.set_property(data.KEY_THOUSANDS_SEPARATOR, ".")
@@ -148,7 +148,7 @@ class IntegerFieldFormatTest(unittest.TestCase):
     """
     Tests  for `IntegerFieldFormat`.
     """
-    def test_within_range(self):
+    def test_can_validate_field_with_range(self):
         field_format = fields.IntegerFieldFormat("x", False, None, "1:10", _ANY_FORMAT)
         self.assertEquals(field_format.validated("1"), 1)
         self.assertEquals(field_format.validated("7"), 7)
@@ -156,15 +156,15 @@ class IntegerFieldFormatTest(unittest.TestCase):
         field_format = fields.IntegerFieldFormat("x", False, None, "123", _ANY_FORMAT)
         self.assertEquals(field_format.validated("123"), 123)
 
-    def test_too_small(self):
+    def test_fails_on_too_small_number(self):
         field_format = fields.IntegerFieldFormat("x", False, None, "1:10", _ANY_FORMAT)
         self.assertRaises(errors.FieldValueError, field_format.validated, "0")
 
-    def test_too_big(self):
+    def test_fails_on_too_big_number(self):
         field_format = fields.IntegerFieldFormat("x", False, None, "1:10", _ANY_FORMAT)
         self.assertRaises(errors.FieldValueError, field_format.validated, "11")
 
-    def test_no_number(self):
+    def test_fails_on_no_number(self):
         field_format = fields.IntegerFieldFormat("x", False, None, "1:10", _ANY_FORMAT)
         self.assertRaises(errors.FieldValueError, field_format.validated, "abc")
 
@@ -194,15 +194,15 @@ class RegExFieldFormatTest(unittest.TestCase):
     """
     Tests  for `RegExFieldFormat`.
     """
-    def test_match(self):
+    def test_can_match_on_pattern(self):
         field_format = fields.RegExFieldFormat("x", False, None, r"a.*", _ANY_FORMAT)
         self.assertEquals(field_format.validated("abc"), "abc")
 
-    def test_no_match(self):
+    def test_fails_on_invalid_input_for_pattern(self):
         field_format = fields.RegExFieldFormat("x", False, None, r"a.*", _ANY_FORMAT)
         self.assertRaises(errors.FieldValueError, field_format.validated, "xyz")
 
-    def test_broken_regex(self):
+    def test_fails_on_broken_regex(self):
         try:
             fields.RegExFieldFormat("x", False, None, "*", _ANY_FORMAT)
             self.fail("broken pattern must raise error")
@@ -217,7 +217,7 @@ class ChoiceFieldFormatTest(unittest.TestCase):
     """
     Tests  for `ChoiceFieldFormat`.
     """
-    def test_matching_choice(self):
+    def test_can_match_choice(self):
         field_format = fields.ChoiceFieldFormat("color", False, None, "red,grEEn, blue ", _ANY_FORMAT)
         self.assertEquals(field_format.validated("red"), "red")
         # Value without blanks around it.
@@ -228,25 +228,25 @@ class ChoiceFieldFormatTest(unittest.TestCase):
         self.assertRaises(errors.FieldValueError, field_format.validated, "gReen")
         self.assertRaises(errors.FieldValueError, field_format.validated, "")
 
-    def test_improper_choice(self):
+    def test_fails_on_improper_choice(self):
         field_format = fields.ChoiceFieldFormat("color", False, None, "red,green, blue ", _ANY_FORMAT)
         self.assertRaises(errors.FieldValueError, field_format.validated, "tree")
 
-    def test_matching_only_choice(self):
+    def test_can_match_on_only_choice(self):
         field_format = fields.ChoiceFieldFormat("color", False, None, "red", _ANY_FORMAT)
         self.assertEquals(field_format.validated("red"), "red")
 
-    def test_match_with_umlaut(self):
+    def test_can_match_choice_with_umlaut(self):
         field_format = fields.ChoiceFieldFormat("geschlecht", False, None, "\"männlich\", \"weiblich\"", _ANY_FORMAT)
         self.assertEquals(field_format.validated("männlich"), "männlich")
         self.assertRaises(errors.FieldValueError, field_format.validated, "unbekannt")
 
-    def test_possibly_empty_field_with_length(self):
+    def test_can_match_possibly_empty_field_with_length(self):
         field_format = fields.ChoiceFieldFormat("optional_color", True, ":5", "red, green, blue", _ANY_FORMAT)
         self.assertEquals(field_format.validated("red"), "red")
         self.assertEquals(field_format.validated(""), "")
 
-    def test_broken_empty_choice(self):
+    def test_fails_on_broken_or_empty_choice(self):
         self.assertRaises(errors.InterfaceError, fields.ChoiceFieldFormat, "color", False, None, "", _ANY_FORMAT)
         self.assertRaises(errors.InterfaceError, fields.ChoiceFieldFormat, "color", False, None, " ", _ANY_FORMAT)
         self.assertRaises(errors.InterfaceError, fields.ChoiceFieldFormat, "color", False, None, "red,", _ANY_FORMAT)

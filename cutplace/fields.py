@@ -316,7 +316,7 @@ class IntegerFieldFormat(AbstractFieldFormat):
         # The default range is 32 bit. If the user wants a bigger range, he has to specify it.
         # Python's long scales to any range as long there is enough memory available to represent
         # it.
-        self.valid_range = ranges.Range(rule, ranges.DEFAULT_INTEGER_RANGE_TEXT)
+        self.valid_range = ranges.Range(self._rule, ranges.DEFAULT_INTEGER_RANGE_TEXT)
 
     def validated_value(self, value):
         assert value
@@ -332,7 +332,8 @@ class IntegerFieldFormat(AbstractFieldFormat):
         return value_as_int
 
     def as_sql(self, db):
-        return sql.as_sql_number(self._field_name, self._is_allowed_to_be_empty, self._length, self._rule, db)
+        return sql.as_sql_number(self._field_name, self._is_allowed_to_be_empty, self._length, self._rule,
+                                 self.valid_range, db)
 
 
 class DateTimeFieldFormat(AbstractFieldFormat):
