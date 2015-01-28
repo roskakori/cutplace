@@ -32,7 +32,7 @@ from tests import dev_test
 _EURO_SIGN = '\u20ac'
 
 
-class RowsTest(unittest.TestCase):
+class _BaseRowsTest(unittest.TestCase):
     def _assert_rows_contain_data(self, rows):
         self.assertTrue(rows is not None)
 
@@ -43,23 +43,51 @@ class RowsTest(unittest.TestCase):
         none_empty_rows = [row for row in rows_as_list if len(row) > 0]
         self.assertTrue(len(none_empty_rows) > 0)
 
+
+class ExcelRowsTest(_BaseRowsTest):
     def test_can_read_excel_rows(self):
         excel_path = dev_test.path_to_test_data('valid_customers.xls')
         self._assert_rows_contain_data(rowio.excel_rows(excel_path))
 
+    def test_can_extract_all_excel_field_types(self):
+        field_types_path = dev_test.path_to_test_data('fieldtypes.xls')
+        for row_number, row in enumerate(rowio.excel_rows(field_types_path)):
+            self.assertEqual(3, len(row))
+            if row_number >= 1:
+                _, excel_value, cutplace_value = row
+                self.assertEqual(cutplace_value, excel_value)
+
+    def test_fails_on_excel_from_csv(self):
+        csv_path = dev_test.path_to_test_data('valid_customers.csv')
+        try:
+            list(rowio.excel_rows(csv_path))
+            self.fail()
+        except errors.DataFormatError as anticipated_error:
+            dev_test.assert_fnmatches(self, str(anticipated_error), '* (R1C1): cannot read Excel file: *')
+
+    def test_fails_on_excel_from_ods(self):
+        ods_path = dev_test.path_to_test_data('valid_customers.ods')
+        try:
+            list(rowio.excel_rows(ods_path))
+            self.fail()
+        except errors.DataFormatError as anticipated_error:
+            dev_test.assert_fnmatches(self, str(anticipated_error), '* (R1C1): cannot read Excel file: *')
+
+
+class OdsRowsTest(_BaseRowsTest):
     def test_can_read_ods_rows(self):
         ods_path = dev_test.path_to_test_data('valid_customers.ods')
         self._assert_rows_contain_data(rowio.ods_rows(ods_path))
 
-    def test_fails_on_ods_with_broken_zip(self):
+    def test_fails_on_ods_from_csv(self):
         broken_ods_path = dev_test.path_to_test_data('customers.csv')
         try:
             list(rowio.ods_rows(broken_ods_path))
             self.fail('expected DataFormatError')
         except errors.DataFormatError as error:
             error_message = '%s' % error
-            self.assertTrue('cannot uncompress ODS spreadsheet:' in error_message,
-                    'error_message=%r' % error_message)
+            self.assertTrue(
+                'cannot uncompress ODS spreadsheet:' in error_message, 'error_message=%r' % error_message)
 
     def test_fails_on_ods_without_content_xml(self):
         broken_ods_path = dev_test.path_to_test_data('broken_without_content_xml.ods')
@@ -68,8 +96,8 @@ class RowsTest(unittest.TestCase):
             self.fail('expected DataFormatError')
         except errors.DataFormatError as error:
             error_message = '%s' % error
-            self.assertTrue('cannot extract content.xml' in error_message,
-                    'error_message=%r' % error_message)
+            self.assertTrue(
+                'cannot extract content.xml' in error_message, 'error_message=%r' % error_message)
 
     def test_fails_on_ods_without_broken_content_xml(self):
         broken_ods_path = dev_test.path_to_test_data('broken_content_xml.ods')
@@ -78,8 +106,8 @@ class RowsTest(unittest.TestCase):
             self.fail('expected DataFormatError')
         except errors.DataFormatError as error:
             error_message = '%s' % error
-            self.assertTrue('cannot parse content.xml' in error_message,
-                    'error_message=%r' % error_message)
+            self.assertTrue(
+                'cannot parse content.xml' in error_message, 'error_message=%r' % error_message)
 
     def test_fails_on_non_existent_ods_sheet(self):
         ods_path = dev_test.path_to_test_data('valid_customers.ods')
@@ -88,9 +116,19 @@ class RowsTest(unittest.TestCase):
             self.fail('expected DataFormatError')
         except errors.DataFormatError as error:
             error_message = '%s' % error
-            self.assertTrue('ODS must contain at least' in error_message,
-                    'error_message=%r' % error_message)
+            self.assertTrue(
+                'ODS must contain at least' in error_message, 'error_message=%r' % error_message)
 
+    def test_fails_on_ods_from_excel(self):
+        excel_path = dev_test.path_to_test_data('valid_customers.xls')
+        try:
+            list(rowio.ods_rows(excel_path))
+            self.fail()
+        except errors.DataFormatError as anticipated_error:
+            dev_test.assert_fnmatches(self, str(anticipated_error), '*: cannot uncompress ODS spreadsheet: *')
+
+
+class DelimitedRowsTest(_BaseRowsTest):
     def test_can_read_delimited_non_ascii(self):
         data_format = data.DataFormat(data.FORMAT_DELIMITED)
         data_format.validate()
@@ -106,22 +144,11 @@ class RowsTest(unittest.TestCase):
             list(rowio.delimited_rows(broken_delimited_path, customer_cid.data_format))
         except errors.DataFormatError as error:
             error_message = '%s' % error
-            self.assertTrue('cannot parse delimited file' in error_message,
-                    'error_message=%r' % error_message)
+            self.assertTrue(
+                'cannot parse delimited file' in error_message, 'error_message=%r' % error_message)
 
-    def test_can_read_fixed_rows(self):
-        cid_path = dev_test.path_to_test_cid('customers_fixed.ods')
-        customer_cid = interface.Cid(cid_path)
-        fixed_path = dev_test.path_to_test_data('valid_customers_fixed.txt')
-        field_names_and_lengths = interface.field_names_and_lengths(customer_cid)
-        rows = list(rowio.fixed_rows(fixed_path, customer_cid.data_format.encoding, field_names_and_lengths))
-        self.assertNotEqual(0, len(rows))
-        for row_index in range(len(rows) - 1):
-            row = rows[row_index]
-            next_row = rows[row_index + 1]
-            self.assertNotEqual(0, len(row))
-            self.assertEqual(len(row), len(next_row))
 
+class FixedRowsTest(_BaseRowsTest):
     @staticmethod
     def _create_fixed_data_format_and_fields_for_name_and_height(line_delimiter='any', validate=True):
         """
@@ -139,11 +166,24 @@ class RowsTest(unittest.TestCase):
         )
         return data_format, field_names_and_lengths
 
+    def test_can_read_fixed_rows(self):
+        cid_path = dev_test.path_to_test_cid('customers_fixed.ods')
+        customer_cid = interface.Cid(cid_path)
+        fixed_path = dev_test.path_to_test_data('valid_customers_fixed.txt')
+        field_names_and_lengths = interface.field_names_and_lengths(customer_cid)
+        rows = list(rowio.fixed_rows(fixed_path, customer_cid.data_format.encoding, field_names_and_lengths))
+        self.assertNotEqual(0, len(rows))
+        for row_index in range(len(rows) - 1):
+            row = rows[row_index]
+            next_row = rows[row_index + 1]
+            self.assertNotEqual(0, len(row))
+            self.assertEqual(len(row), len(next_row))
+
     def _test_can_read_fixed_rows_from_stringio(self, data_text, data_format=None):
         assert (data_format is None) or data_format.is_valid
 
         default_data_format, field_names_and_lengths = \
-            RowsTest._create_fixed_data_format_and_fields_for_name_and_height()
+            FixedRowsTest._create_fixed_data_format_and_fields_for_name_and_height()
         actual_data_format = default_data_format if data_format is None else data_format
         with io.StringIO(data_text) as data_io:
             rows = list(rowio.fixed_rows(
@@ -154,7 +194,7 @@ class RowsTest(unittest.TestCase):
                 self.assertTrue(item in data_text, 'item %r must be part of data %r' % (item, data_text))
 
     def test_can_read_fixed_rows_with_any_line_delimiter(self):
-        data_format, _ = RowsTest._create_fixed_data_format_and_fields_for_name_and_height()
+        data_format, _ = FixedRowsTest._create_fixed_data_format_and_fields_for_name_and_height()
         self._test_can_read_fixed_rows_from_stringio('hugo172\nsepp163\n', data_format)
 
     def test_can_read_empty_fixed_rows(self):
@@ -169,12 +209,12 @@ class RowsTest(unittest.TestCase):
         base_data_text = 'hugo172\nsepp163\n'
         for line_delimiter in ('\n', '\r', '\r\n'):
             line_delimiter_text = data.LINE_DELIMITER_TO_TEXT_MAP[line_delimiter]
-            data_format, _ = RowsTest._create_fixed_data_format_and_fields_for_name_and_height(line_delimiter_text)
+            data_format, _ = FixedRowsTest._create_fixed_data_format_and_fields_for_name_and_height(line_delimiter_text)
             data_text = base_data_text.replace('\n', line_delimiter)
             self._test_can_read_fixed_rows_from_stringio(data_text, data_format)
 
     def test_can_read_fixed_rows_with_missing_terminating_line_delimiter(self):
-        data_format, field_names_and_lengths = RowsTest._create_fixed_data_format_and_fields_for_name_and_height()
+        data_format, field_names_and_lengths = FixedRowsTest._create_fixed_data_format_and_fields_for_name_and_height()
         with io.StringIO('hugo172\nsepp163') as data_io:
             rows = list(rowio.fixed_rows(
                 data_io, data_format.encoding, field_names_and_lengths, data_format.line_delimiter))
@@ -182,14 +222,14 @@ class RowsTest(unittest.TestCase):
         self.assertEqual(2, len(rows))
 
     def test_can_read_fixed_rows_with_mixed_line_delimiters(self):
-        data_format, field_names_and_lengths = RowsTest._create_fixed_data_format_and_fields_for_name_and_height()
+        data_format, field_names_and_lengths = FixedRowsTest._create_fixed_data_format_and_fields_for_name_and_height()
         with io.StringIO('john172\rmary163\nbill167\r\njane184\r\n') as data_io:
             rows = list(rowio.fixed_rows(
                 data_io, data_format.encoding, field_names_and_lengths, data_format.line_delimiter))
         self.assertEqual([['john', '172'], ['mary', '163'], ['bill', '167'], ['jane', '184']], rows)
 
     def test_can_read_fixed_rows_with_mixed_line_delimiters_terminated_by_carriage_return(self):
-        data_format, field_names_and_lengths = RowsTest._create_fixed_data_format_and_fields_for_name_and_height()
+        data_format, field_names_and_lengths = FixedRowsTest._create_fixed_data_format_and_fields_for_name_and_height()
         with io.StringIO('john172\r\nmary163\r') as data_io:
             rows = list(rowio.fixed_rows(
                 data_io, data_format.encoding, field_names_and_lengths, data_format.line_delimiter))
@@ -199,7 +239,7 @@ class RowsTest(unittest.TestCase):
         assert (data_format is None) or data_format.is_valid
 
         default_data_format, field_names_and_lengths = \
-            RowsTest._create_fixed_data_format_and_fields_for_name_and_height()
+            FixedRowsTest._create_fixed_data_format_and_fields_for_name_and_height()
         actual_data_format = default_data_format if data_format is None else data_format
         with io.StringIO(data_text) as data_io:
             rows = rowio.fixed_rows(
@@ -212,7 +252,7 @@ class RowsTest(unittest.TestCase):
                 dev_test.assert_fnmatches(self, str(anticipated_error), expected_error_pattern)
 
     def test_fails_on_fixed_rows_with_broken_line_delimiter(self):
-        data_format, _ = RowsTest._create_fixed_data_format_and_fields_for_name_and_height('lf')
+        data_format, _ = FixedRowsTest._create_fixed_data_format_and_fields_for_name_and_height('lf')
         self._fails_on_fixed_rows_from_stringio(
             'hugo172\tsepp163', r"*line delimiter is '\t' but must be '\n'", data_format)
 
@@ -221,12 +261,12 @@ class RowsTest(unittest.TestCase):
             'hugo172\tsepp163', r"*line delimiter is '\t' but must be one of: '\n', '\r' or '\r\n'")
 
     def test_fails_on_fixed_rows_with_incomplete_record(self):
-        data_format, _ = RowsTest._create_fixed_data_format_and_fields_for_name_and_height('lf')
+        data_format, _ = FixedRowsTest._create_fixed_data_format_and_fields_for_name_and_height('lf')
         self._fails_on_fixed_rows_from_stringio(
             'x', "*cannot read field 'name': need 4 characters but found only 1: 'x'", data_format)
 
     def test_fails_on_fixed_rows_with_missing_record(self):
-        data_format, _ = RowsTest._create_fixed_data_format_and_fields_for_name_and_height('lf')
+        data_format, _ = FixedRowsTest._create_fixed_data_format_and_fields_for_name_and_height('lf')
         self._fails_on_fixed_rows_from_stringio(
             'john', "*after field 'name' 3 characters must follow for: 'size'", data_format)
 
@@ -240,17 +280,11 @@ class RowsTest(unittest.TestCase):
         excel_path = dev_test.path_to_test_data('valid_customers.xls')
         self._assert_rows_contain_data(rowio.auto_rows(excel_path))
 
+
+class AutoRowsTest(_BaseRowsTest):
     def test_can_auto_read_ods_rows(self):
         ods_path = dev_test.path_to_test_data('valid_customers.ods')
         self._assert_rows_contain_data(rowio.auto_rows(ods_path))
-
-    def test_can_extract_all_excel_field_types(self):
-        field_types_path = dev_test.path_to_test_data('fieldtypes.xls')
-        for row_number, row in enumerate(rowio.excel_rows(field_types_path)):
-            self.assertEqual(3, len(row))
-            if row_number >= 1:
-                _, excel_value, cutplace_value = row
-                self.assertEqual(cutplace_value, excel_value)
 
 
 class DelimitedRowWriterTest(unittest.TestCase):

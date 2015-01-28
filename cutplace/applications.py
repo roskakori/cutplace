@@ -151,7 +151,7 @@ def process(argv=None):
     cutplace_app.set_options(argv)
     if cutplace_app.is_gui:
         # TODO #77: Open graphical user interface.
-        pass
+        raise NotImplementedError
     elif cutplace_app.data_paths:
         for data_path in cutplace_app.data_paths:
             try:
