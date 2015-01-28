@@ -60,9 +60,9 @@ class ToolsTest(unittest.TestCase):
         self.assertEqual(_tools.human_readable_list(['a', 'b']), "'a' or 'b'")
         self.assertEqual(_tools.human_readable_list(['a', 'b', 'c']), "'a', 'b' or 'c'")
 
-    def _test_can_derive_suffix(self, expectedPath, pathToTest, suffixToTest):
-        actualPath = _tools.with_suffix(pathToTest, suffixToTest)
-        self.assertEqual(expectedPath, actualPath)
+    def _test_can_derive_suffix(self, expected_path, path_to_test, suffix_to_test):
+        actualPath = _tools.with_suffix(path_to_test, suffix_to_test)
+        self.assertEqual(expected_path, actualPath)
 
     def test_can_build_name_with_suffix(self):
         self._test_can_derive_suffix('hugo.pas', 'hugo.txt', '.pas')
@@ -70,6 +70,9 @@ class ToolsTest(unittest.TestCase):
         self._test_can_derive_suffix('hugo.', 'hugo.txt', '.')
         self._test_can_derive_suffix('hugo.txt', 'hugo', '.txt')
         self._test_can_derive_suffix(os.path.join('eggs', 'hugo.pas'), os.path.join('eggs', 'hugo.txt'), '.pas')
+
+    def test_fails_on_mkdirs_with_empty_path(self):
+        self.assertRaises(OSError, _tools.mkdirs, '')
 
 
 if __name__ == "__main__":  # pragma: no cover
