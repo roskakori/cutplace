@@ -114,7 +114,7 @@ Line delimiter
       for example Mac OS X, Linux, Solaris BSD-variants and Amiga OS.
 
     * CRLF - "carriage return and linefeed", two characters with ASCII code 13
-     and 10, used for example by Windows and MS DOS.
+      and 10, used for example by Windows and MS DOS.
 
     * CR - "carriage return", ASCII code 13, used by Mac OS Classic.
 
@@ -188,6 +188,7 @@ treats them the same as delimited data. In fact, you can specify it in CID:
 ..  Property        Value
 ==  ==============  =====
 D   Format          CSV
+==  ==============  =====
 
 For cutplace, there is no difference between "delimited" and "CSV".
 
@@ -240,20 +241,22 @@ from Excel will look to cutplace:
 .. index:: pair: Excel type; time
 .. index:: pair: Excel type; percent
 
-============= ============= ===================
-Excel type    cutplace type rule
-============= ============= ===================
-Currency      Decimal
-Date          DateTime      YYYY-MM-DD 00:00:00
-Date and time DateTime      YYYY-MM-DD hh:mm:ss
-Percent       Decimal
-Time          DateTime      hh:mm:ss
-============= ============= ===================
+Mapping between Excel types and cutplace
+
+=============  =============  ===================
+Excel type     cutplace type  rule
+=============  =============  ===================
+Currency       Decimal
+Date           DateTime       YYYY-MM-DD 00:00:00
+Date and time  DateTime       YYYY-MM-DD hh:mm:ss
+Percent        Decimal
+Time           DateTime       hh:mm:ss
+=============  =============  ===================
 
 .. warning::
   Excel cannot represent integer numbers exactly, so you better use
   *Decimal* instead of *Integer* in the CID. In case you do use *Integer*
-  be prepared for weird validation error and rounding issues.
+  be prepared for weird validation errors and rounding issues.
 
 .. index:: pair: data format; fixed
 

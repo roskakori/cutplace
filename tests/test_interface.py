@@ -247,6 +247,14 @@ class CidTest(unittest.TestCase):
     def test_fails_on_empty_cid_from_text(self):
         self._test_fails_on_broken_cid_from_text('', '*data format must be specified*')
 
+    def test_fails_on_no_format_for_data_format(self):
+        cid_text = '\n'.join([
+            ',CID referring to an unknown data format',
+            'D,encoding,ascii',
+        ])
+        self._test_fails_on_broken_cid_from_text(
+            cid_text, "*: first data format row must set property 'format' instead of 'encoding'")
+
     def test_fails_on_unknown_data_format(self):
         cid_text = '\n'.join([
             ',CID referring to an unknown data format',

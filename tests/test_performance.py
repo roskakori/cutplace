@@ -63,8 +63,8 @@ def _build_and_validate_many_customers():
 
     # Validate the data using the API, so in case of errors we get specific information.
     customers_cid = interface.Cid(icd_ods_path)
-    reader = validio.Reader(customers_cid, many_customers_csv_path)
-    reader.validate()
+    with validio.Reader(customers_cid, many_customers_csv_path) as reader:
+        reader.validate_rows()
 
     # Validate the data using the command line application in order to use
     # the whole tool chain from an end user's point of view.

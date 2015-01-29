@@ -31,4 +31,4 @@ the intrinsic of data format specific modules.
 
 For more information, read the documentation at
 http://cutplace.readthedocs.org/ or visit the project at
-http://roskakori.github.com/cutplace/.
+https://github.com/roskakori/cutplace.

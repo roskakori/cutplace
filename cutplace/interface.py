@@ -49,11 +49,15 @@ class Cid(object):
 
     def __init__(self, cid_path=None):
         """
-        Initialize a new CID with :py:attr:`location` pointing to ``cid_path``
-        or in case it is ``None`` to the caller location as provided by
-        :py:func:`cutplace.errors.create_caller_location`.
+        Initialize a new CID with :py:attr:`~cutplace.interface.Cid.location`
+        pointing to ``cid_path``, which can be one of the following:
 
-        :param cid_path: the path to a CID or ``None``
+        * a path to a file using CSV, Excel, or ODS as format; for CSV files,
+          the delimiter is assumed to be a comma (,) and the encoding to be
+          UTF-8 (which is backward compatible with ASCII).
+        * ``None``, in which case location is automatically set to
+          :py:func:`cutplace.errors.create_caller_location`.
+        * an :py:class:`io.StringIO` containing a CSV
         """
         self._cid_path = cid_path
         self._data_format = None
@@ -65,8 +69,8 @@ class Cid(object):
         # TODO: Change to tuple(check_name, check).
         self._check_name_to_check_map = {}
         self._location = None
-        self._check_name_to_class_map = self._create_name_to_class_map(checks.AbstractCheck)
-        self._field_format_name_to_class_map = self._create_name_to_class_map(fields.AbstractFieldFormat)
+        self._check_name_to_class_map = Cid._create_name_to_class_map(checks.AbstractCheck)
+        self._field_format_name_to_class_map = Cid._create_name_to_class_map(fields.AbstractFieldFormat)
         if cid_path is not None:
             self.read(cid_path, rowio.auto_rows(cid_path))
         else:
@@ -96,31 +100,43 @@ class Cid(object):
     @property
     def data_format(self):
         """
-        The data format used by the this ICD; refer to the `data` module for possible formats.
+        The data format used by the this CID; refer to the
+        :py:mod:`cutplace.data` module for possible formats.
+
+        :rtype: cutplace.data.DataFormat
         """
         return self._data_format
 
     @property
     def field_names(self):
-        """List of field names defined in this ICD in the order they have been defined."""
+        """
+        List of field names defined in this CID in the order they have been defined.
+        """
         return self._field_names
 
     @property
     def field_formats(self):
-        """List of field names defined in this ICD in the order they have been defined."""
+        """
+        List of field names defined in this CID in the order they have been defined.
+        """
         return self._field_formats
 
     @property
     def check_names(self):
-        """List of check names in no particular order."""
+        """
+        List of check names in no particular order.
+        """
         return self._check_names
 
     @property
     def check_map(self):
-        """List of check names in no particular order."""
+        """
+        List of check names in no particular order.
+        """
         return self._check_name_to_check_map
 
-    def _class_info(self, some_class):
+    @staticmethod
+    def _class_info(some_class):
         assert some_class is not None
         qualified_name = some_class.__module__ + "." + some_class.__name__
         try:
@@ -130,7 +146,8 @@ class Cid(object):
         result = qualified_name + " (see: \"" + source_path + "\")"
         return result
 
-    def _create_name_to_class_map(self, base_class):
+    @staticmethod
+    def _create_name_to_class_map(base_class):
         assert base_class is not None
         result = {}
         # Note: we use a ``set`` of sub classes to ignore duplicates.
@@ -139,8 +156,8 @@ class Cid(object):
             plain_class_name = qualified_class_name.split('.')[-1]
             clashing_class = result.get(plain_class_name)
             if clashing_class is not None:
-                clashing_class_info = self._class_info(clashing_class)
-                class_to_process_info = self._class_info(class_to_process)
+                clashing_class_info = Cid._class_info(clashing_class)
+                class_to_process_info = Cid._class_info(class_to_process)
                 if clashing_class_info == class_to_process_info:
                     # HACK: Ignore duplicate classes. Such classes can occur after `import_plugins`
                     # has been called more than once.
@@ -182,7 +199,8 @@ class Cid(object):
         :py:meth:`~cutplace.data.DataFormat.set_property`.
 
         :param list row_data: a list with at least 2 items for name and value \
-            that can be passed to :py:meth:`data.DataFormat.set_property()`.
+            that can be passed to \
+            :py:meth:`cutplace.data.DataFormat.set_property()`.
         """
         assert row_data is not None
         assert len(row_data) >= 2
@@ -209,13 +227,29 @@ class Cid(object):
         else:
             self._data_format.set_property(name.lower(), value, self._location)
 
-    def read(self, source_path, rows):
+    def read(self, cid_path, rows):
+        """
+        Provided no ``cid_path`` has already been specified for
+        :py:class:`~cutplace.interface.Cid.__init__()`, process ``rows``
+        using :py:meth:`~cutplace.interface.Cid.add_data_format_row()`,
+        :py:meth:`~cutplace.interface.Cid.add_field_format()` and
+        :py:meth:`~cutplace.interface.Cid.add_check()`. Report any errors by
+        referring to ``cid_path``.
+
+        :param str cid_path: the path from which ``rows`` where obtained
+        :param sequence rows: sequence of lists where each list either \
+          describes a data format, field format, check or comment for a CID.
+
+        :raises cutplace.errors.InterfaceError: in case any row in ``rows`` \
+          cannot be processed
+        """
+        assert cid_path is not None
         assert self.data_format is None, 'CID must be read only once'
 
         # TODO: Detect format and use proper reader.
-        self._location = errors.Location(source_path, has_cell=True)
+        self._location = errors.Location(cid_path, has_cell=True)
         if self._cid_path is None:
-            self._cid_path = source_path
+            self._cid_path = cid_path
         for row in rows:
             if row:
                 row_type = row[0].lower().strip()
@@ -233,6 +267,7 @@ class Cid(object):
             self._location.advance_line()
         if self.data_format is None:
             raise errors.InterfaceError('data format must be specified', self._location)
+        self.data_format.validate()
         if len(self.field_names) == 0:
             raise errors.InterfaceError('fields must be specified', self._location)
 
@@ -243,15 +278,16 @@ class Cid(object):
 
         1) field name
         2) optional: example value (can be empty)
-        3) optional: empty flag ("X"=field is allowed to be empty)
-        4) optional: length (using the syntax of `ranges.Range`).
-        5) optional: field type (e.g. 'Integer' for `fields.IntegerFieldFormat`)
+        3) optional: empty flag ("X" = field is allowed to be empty)
+        4) optional: length (using the syntax of py:class:`cutplace.ranges.Range`)
+        5) optional: field type (e.g. 'Integer' for py:class:`cutplace.fields.IntegerFieldFormat`)
         6) optional: rule to validate field (depending on type)
 
         Any missing items are interpreted as empty string (``''``).
         Additional items are ignored.
 
-        Any errors detected cause an `errors.InterfaceError`.
+        :raises cutplace.errors.InterfaceError: on broken \
+          ``possibly_incomplete_items``
         """
         assert possibly_incomplete_items is not None
         assert self._location is not None
@@ -380,7 +416,11 @@ class Cid(object):
         2. type (e.g. 'IsUnique'  mapping to :py:class:`cutplace.checks.IsUniqueCheck`)
         3. rule (e.g. 'customer_id')
 
-        Missing items are interpreted as '', additional items are ignored.
+        Missing items are interpreted as empty string (``''``), additional
+        items are ignored.
+
+        :raises cutplace.errors.InterfaceError: on broken \
+          ``possibly_incomplete_items``
         """
         assert possibly_incomplete_items is not None
 
@@ -428,10 +468,16 @@ class Cid(object):
 
     def field_value_for(self, field_name, row):
         """
-        The value for field ``field_name`` in ``row``. Broken parameters cause an `AssertionError`.
+        The value for field ``field_name`` in ``row``.
+
+        :param list row: the row to obtain the :py:class:`str` value for \
+          ``field_name`` from
+
+        :raises AssertionError: if ``field_name`` is not part of the CID
+        :raises AssertionError: if ``row`` does not have the expected number of items
         """
         assert field_name in self._field_name_to_index_map, \
-            "unknown field name '%s' must be replaced by one of: %s" \
+            "unknown field name %r must be replaced by one of: %s" \
             % (field_name, _tools.human_readable_list(sorted(self.field_names)))
         assert row is not None
         actual_row_count = len(row)
@@ -443,19 +489,23 @@ class Cid(object):
 
     def field_format_for(self, field_name):
         """
-        The `fields.AbstractFieldFormat` for ``field_name``. Unknown field names cause a `KeyError`.
+        The :py:class:`cutplace.fields.AbstractFieldFormat` for
+        ``field_name``.
+
+        :raises KeyError: on unknown ``field_name``
         """
         return self._field_name_to_format_map[field_name]
 
     def check_for(self, check_name):
         """
-        The `checks.AbstractCheck` for ``check_name``. If no such check has been defined,
-        raise a `KeyError`.
+        The :py:class:`cutplace.checks.AbstractCheck` for ``check_name``.
+
+        :raises KeyError: on unknown ``check_name``
         """
         assert check_name is not None
         return self._check_name_to_check_map[check_name]
 
-    def as_sql_create_table(self, db):
+    def as_sql_create_table(self, dialect='ansi'):
         file_name = os.path.basename(self._cid_path)
         table_name = file_name.split('.')
 
@@ -466,8 +516,9 @@ class Cid(object):
 
         # get column definitions and constraints for all fields
         for field in self._field_formats:
-            column_def, constraint = field.as_sql(db)
+            column_def, constraint = field.as_sql(dialect)
             create_table += column_def + ",\n"
+
             if len(constraint) > 0:
                 constraints += constraint + ",\n"
 
@@ -479,7 +530,8 @@ class Cid(object):
 
 def create_cid_from_string(cid_text):
     """
-    A `Cid` as described in ``cid_text`` using CSV format (factory function).
+    A py:class:`~cutplace.interface.Cid` as described in ``cid_text``
+    using CSV format with comma (,) as delimiter (factory function).
     """
     with io.StringIO(cid_text) as cid_string_io:
         result = Cid(cid_string_io)
@@ -488,8 +540,11 @@ def create_cid_from_string(cid_text):
 
 def field_names_and_lengths(fixed_cid):
     """
-    List of tuples `(field_name, field_length)` for all field format in `fixed_cid` which must be of data format
-    `data.FORMAT_FIXED`.
+    List of tuples ``(field_name, field_length)`` for all field formats in
+    ``fixed_cid`` which must be of data format
+    py:attr:`~cutplace.data.FORMAT_FIXED`. Here, ``field_length`` is an
+    ``int`` derived from
+    :py:attr:`~cutplace.fields.AbstractFieldFormat.length`.
     """
     assert fixed_cid is not None
     assert fixed_cid.data_format.format == data.FORMAT_FIXED, 'format=' + fixed_cid.data_format.format
@@ -508,8 +563,9 @@ def field_names_and_lengths(fixed_cid):
 
 def import_plugins(folder_to_scan_for_plugins):
     """
-    Import all Python modules found in folder ``folder_to_scan_for_plugins`` (non recursively) consequently
-    making the contained field formats and checks available for CIDs.
+    Import all Python modules found in folder
+    ``folder_to_scan_for_plugins`` (non recursively) consequently making the
+    contained field formats and checks available for CIDs.
     """
     def log_imported_items(item_name, base_set, current_set):
         new_items = [item.__name__ for item in (current_set - base_set)]
