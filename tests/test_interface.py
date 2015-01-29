@@ -440,19 +440,33 @@ class CidTest(unittest.TestCase):
 
     def test_can_create_sql_statement(self):
         cid_reader = interface.Cid()
-        source_path = dev_test.path_to_test_cid("customers.xls")
-        cid_reader.read(source_path, rowio.excel_rows(source_path))
+        cid_reader.read('customers', [
+            ['D', 'Format', 'delimited'],
+            ['D', 'Line delimiter', 'any'],
+            ['D', 'Item delimiter', ','],
+            ['D', 'Quote character', '"'],
+            ['D', 'Escape character', '\\'],
+            ['D', 'Encoding', 'ISO-8859-1'],
+            ['D', 'Allowed characters', '32:'],
+            ['F', 'branch_id', '38123', '', '', 'RegEx'],
+            ['F', 'customer_id', '12345', '', '', 'Integer', '0...99999'],
+            ['F', 'first_name', 'John', 'X', '', 'Text'],
+            ['F', 'surname', 'Doe', '', '1...60', 'Text'],
+            ['F', 'gender', 'male', '', '', 'Choice', 'male, female, unknown'],
+            ['F', 'date_of_birth', '03.11.1969', '', '', 'DateTime', 'DD.MM.YYYY'],
+
+
+        ])
         self.maxDiff = None
-        self.assertEqual(cid_reader.as_sql(sql.MYSQL), "CREATE TABLE customers (\nbranch_id varchar(255) not null,"
-                                                       "\ncustomer_id integer not null,\nfirst_name varchar(255),"
-                                                       "\nsurname varchar(60) not null,\ngender varchar(255) not null,"
-                                                       "\ndate_of_birth date not null,"
-                                                       "\nconstraint chk_customer_id check( ( "
-                                                       "customer_id between 0 and 99999 ) ),"
-                                                       "\nconstraint chk_length_surname check (length(surname >= 1) "
-                                                       "and length(surname <= 60)),"
-                                                       "\nconstraint chk_rule_gender "
-                                                       "check( gender in ('male','female','unknown') ),\n);")
+        self.assertEqual(
+            cid_reader.as_sql_create_table(sql.MYSQL),
+            "create table customers (\nbranch_id varchar(255) not null,"
+            "\ncustomer_id integer not null,\nfirst_name varchar(255),"
+            "\nsurname varchar(60) not null,\ngender varchar(255) not null,"
+            "\ndate_of_birth date not null,"
+            "\nconstraint chk_customer_id check( ( customer_id between 0 and 99999 ) ),"
+            "\nconstraint chk_length_surname check (length(surname >= 1) and length(surname <= 60)),"
+            "\nconstraint chk_rule_gender check( gender in ('male','female','unknown') ),\n);")
 
 
 if __name__ == '__main__':

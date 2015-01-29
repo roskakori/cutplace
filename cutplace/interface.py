@@ -455,11 +455,14 @@ class Cid(object):
         assert check_name is not None
         return self._check_name_to_check_map[check_name]
 
-    def as_sql(self, db):
-        split_path = self._cid_path.split("\\")[-1:]
-        table_name = split_path[0].split(".")
-        create_table = "CREATE TABLE " + table_name[0] + " (\n"
+    def as_sql_create_table(self, db):
+        file_name = os.path.basename(self._cid_path)
+        table_name = file_name.split('.')
+
+        create_table = "create table " + table_name[0] + " (\n"
         constraints = ""
+
+        #FIXME: check correctness of sql table names
 
         # get column definitions and constraints for all fields
         for field in self._field_formats:
