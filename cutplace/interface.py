@@ -512,7 +512,7 @@ class Cid(object):
         create_table = "create table " + table_name[0] + " (\n"
         constraints = ""
 
-        #FIXME: check correctness of sql table names
+        # FIXME: check correctness of sql table names
 
         # get column definitions and constraints for all fields
         for field in self._field_formats:

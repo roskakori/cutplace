@@ -74,15 +74,15 @@ def as_sql_text(field_name, field_is_allowed_to_be_empty, field_length, field_ru
     if field_length.items is not None:
         column_def = field_name + " varchar(" + str(field_length.upper_limit) + ")"
         if field_length.lower_limit is not None and field_length.upper_limit is not None:
-            constraint = "constraint chk_length_" + field_name + " check (length(" + field_name + " >= " + \
-                     str(field_length.lower_limit) + ") and length(" + field_name + " <= " + \
-                     str(field_length.upper_limit) + "))"
+            constraint = "constraint chk_length_" + field_name + " check (length(" + field_name + " >= " \
+                + str(field_length.lower_limit) + ") and length(" + field_name + " <= " \
+                + str(field_length.upper_limit) + "))"
         elif field_length.lower_limit is not None:
-            constraint = "constraint chk_length_" + field_name + " check (length(" + field_name + " >= " + \
-                     str(field_length.lower_limit) + "))"
+            constraint = "constraint chk_length_" + field_name + " check (length(" + field_name + " >= " \
+                + str(field_length.lower_limit) + "))"
         elif field_length.upper_limit is not None:
-            constraint = "constraint chk_length_" + field_name + " check (length(" + field_name + " <= " + \
-                     str(field_length.upper_limit) + "))"
+            constraint = "constraint chk_length_" + field_name + " check (length(" + field_name + " <= " \
+                + str(field_length.upper_limit) + "))"
     else:
         column_def = field_name + " varchar(255)"
 
