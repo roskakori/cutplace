@@ -70,7 +70,7 @@ Validating data
 
 Now that we know how our data are supposed to look, we want to validate and
 optionally process them. The easiest way to do so are two simple functions
-called :py:func:`cutplace.validate` and :py:func:`cutplace.validated_rows`.
+called :py:func:`cutplace.validate` and :py:func:`cutplace.rows`.
 Both of them take to parameters: the path to a CID and the path to the data
 to validate or read. For example::
 
@@ -82,7 +82,7 @@ For broken data, it raises :py:exc:`cutplace.error.DataError`.
 
 To also process the data after each row has been validated, use::
 
-    >>> for row in cutplace.validated_rows(cid_path, valid_data_path):
+    >>> for row in cutplace.rows(cid_path, valid_data_path):
     ...     pass  # We could also do something useful with the data in ``row`` here.
 
 We could easily extend the loop body to process the data in some meaningful
@@ -122,7 +122,7 @@ Apparently the first broken data item causes the validation to stop with an
 Sometimes however the requirements for an application will state that all
 valid data should be processed and invalid data should be put aside for
 further examination, for example by writing them to a log file. This is
-easy to implement using :py:func:`cutplace.validated_rows` with the optional
+easy to implement using :py:func:`cutplace.rows` with the optional
 parameter ``on_error='yield'``. With this enabled, the generator always
 returns a value even for broken rows. The difference however is that broken
 rows do not result in a list of values but in a result of type
@@ -133,7 +133,7 @@ Here is an example that prints any data related errors detected during
 validation::
 
     >>> broken_data_path = os.path.join(os.pardir, 'tests', 'data', 'broken_customers.csv')
-    >>> for row_or_error in cutplace.validated_rows(cid, broken_data_path, on_error='yield'):
+    >>> for row_or_error in cutplace.rows(cid, broken_data_path, on_error='yield'):
     ...     if isinstance(row_or_error, Exception):
     ...         if isinstance(row_or_error, cutplace.errors.CutplaceError):
     ...             # Print data related error details and move on.
@@ -177,7 +177,7 @@ Now we can read the data just like before. Instead of a simple ``pass`` loop
 we obtain the first name from ``row`` and check if it starts with ``'J'``. If
 so, we compute the full name and print it::
 
-    >>> for row in cutplace.validated_rows(cid, valid_data_path):
+    >>> for row in cutplace.rows(cid, valid_data_path):
     ...   first_name = row[first_name_index]
     ...   if first_name.startswith('J'):
     ...      surname = row[surname_index]
@@ -203,12 +203,12 @@ specifies that no row should be validated.
 Functions that support ``validate_until`` are:
 
 * :py:func:`cutplace.validate`
-* :py:func:`cutplace.validated_rows`
+* :py:func:`cutplace.rows`
 * :py:func:`cutplace.Reader.__init__`
 
 Pure validation functions such as :py:func:`cutplace.validate` completely
 stop processing the input after reaching the limit while reading functions
-such as :py:func:`cutplace.validated_rows` keep producing rows - just without
+such as :py:func:`cutplace.rows` keep producing rows - just without
 validating them.
 
 A typical use case would be enabling full validation during testing and
@@ -234,7 +234,7 @@ validation code::
     >>> # Define the interface.
     >>> cid = Cid(cid_path)
     >>> # Validate the data.
-    >>> for row in cutplace.validated_rows(cid, data_path):
+    >>> for row in cutplace.rows(cid, data_path):
     ...   pass # We could also do something useful with the data in ``row`` here.
 
 In case you want to process the data, simply replace the ``pass`` inside the

@@ -318,7 +318,7 @@ class Writer(BaseValidator):
                 self._delegated_writer = None
 
 
-def validated_rows(cid_or_path, data_stream_or_path, on_error='raise', validate_until=None):
+def rows(cid_or_path, data_stream_or_path, on_error='raise', validate_until=None):
     """
     Rows read from ``data`` and validated against ``cid_or_path``.
 

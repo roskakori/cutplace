@@ -287,9 +287,9 @@ class ValidationFunctionsTest(unittest.TestCase):
     def test_can_validate_from_files(self):
         validio.validate(self._cid_path, self._data_path)
 
-    def test_can_read_validated_rows_from_files(self):
+    def test_can_read_rows_from_files(self):
         row_count = 0
-        for row_count, _ in enumerate(validio.validated_rows(self._cid_path, self._data_path)):
+        for row_count, _ in enumerate(validio.rows(self._cid_path, self._data_path)):
             pass
         self.assertNotEqual(0, row_count)
 
@@ -297,10 +297,10 @@ class ValidationFunctionsTest(unittest.TestCase):
         with io.open(self._data_path, 'r', encoding=_TEST_ENCODING, newline='') as data_stream:
             validio.validate(self._cid, data_stream)
 
-    def test_can_read_validated_rows_from_cid_and_stream(self):
+    def test_can_read_rows_from_cid_and_stream(self):
         row_count = 0
         with io.open(self._data_path, 'r', encoding=_TEST_ENCODING, newline='') as data_stream:
-            for row_count, _ in enumerate(validio.validated_rows(self._cid, data_stream)):
+            for row_count, _ in enumerate(validio.rows(self._cid, data_stream)):
                 pass
         self.assertNotEqual(0, row_count)
 

@@ -8,7 +8,7 @@ accessible through a Python API.
 from cutplace.errors import Location
 from cutplace.interface import Cid
 from cutplace.ranges import Range
-from cutplace.validio import Reader, Writer, validate, validated_rows
+from cutplace.validio import Reader, Writer, validate, rows
 from cutplace._version import get_versions
 
 #: Package version information.
@@ -23,6 +23,6 @@ __all__ = [
     'Reader',
     'Writer',
     'validate',
-    'validated_rows',
+    'rows',
     '__version__'
 ]

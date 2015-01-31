@@ -8,10 +8,9 @@ This chapter describes improvements compared to earlier versions of cutplace.
 Version 0.8.3, 2015-01-31
 =========================
 
-* Added option :option`--until` to increase performance by skipping
-  validation of field format and checks after a specified number of
-  rows
-  (`issue #86 <https://github.com/roskakori/cutplace/issues/86>`_).
+* Added option :option:`--until` to increase performance by skipping
+  validation of field format and checks after a specified number of rows
+  (issue `#86 <https://github.com/roskakori/cutplace/issues/86>`_).
 
 * Fixed reading of Excel error cells.
 
@@ -20,12 +19,13 @@ Version 0.8.3, 2015-01-31
   * Removed shortcuts for exceptions from :py:mod:`cutplace`. Use the
     originals in :py:mod:`cutplace.errors` instead.
   * Added convenience function :py:func:`cutplace.validate` and
-    :py:func:`cutplace.validated_rows` to validate and read data with a
+    :py:func:`cutplace.rows` to validate and read data with a
     single line of source code.
   * Added :py:class:`cutplace.Writer` for validated writing of delimited and
-    fixed data
-    (`issue #84 <https://github.com/roskakori/cutplace/issues/84>`_).
+    fixed data (issue
+    `#84 <https://github.com/roskakori/cutplace/issues/84>`_).
   * Improved API documentation.
+
 
 Version 0.8.2, 2015-01-19
 =========================
