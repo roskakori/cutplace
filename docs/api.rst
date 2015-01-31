@@ -190,6 +190,34 @@ Of course nothing prevents you from doing more glamorous things here like
 inserting the data into a database or rendering them to a dynamic web page.
 
 
+Partial validation
+------------------
+
+If performance is an issue, validation of field formats and row checks can be
+limited to a specified number of rows using the parameter
+``validate_until``. Any integer value greater than 0 specifies the
+number of rows after which validation should stop. ``None`` means that the
+whole input should be validated (the default) while the number ``0``
+specifies that no row should be validated.
+
+Functions that support ``validate_until`` are:
+
+* :py:func:`cutplace.validate`
+* :py:func:`cutplace.validated_rows`
+* :py:func:`cutplace.Reader.__init__`
+
+Pure validation functions such as :py:func:`cutplace.validate` completely
+stop processing the input after reaching the limit while reading functions
+such as :py:func:`cutplace.validated_rows` keep producing rows - just without
+validating them.
+
+A typical use case would be enabling full validation during testing and
+reducing validation to the first 100 rows in the production environment.
+Ideally this would detect all errors during testing (when performance is less
+of an issue) and quickly process the data in production while still detecting
+errors early in the data.
+
+
 Putting it all together
 -----------------------
 
@@ -614,8 +642,8 @@ anything here, we can omit it and keep inherit an empty implementation from
 
 .. _using-own-check-and-field-formats:
 
-Using your own checks and field format
---------------------------------------
+Using your own checks and field formats
+---------------------------------------
 
 Now that you know how to write our own checks and field formats, it would be
 nice to actually utilize them in a CID. For this purpose, cutplace lets you

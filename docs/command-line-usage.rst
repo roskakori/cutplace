@@ -44,6 +44,8 @@ In case the CID is in good shape, no error messages appear and the exit code is
 0.
 
 
+.. index:: pair: command line option; --until
+
 Validate that a data file conforms to a CID
 ============================================
 
@@ -61,6 +63,20 @@ example::
 
 In case the data do not conform to the CID, error messages show up in the
 console.
+
+To just quickly check that the first few rows of a data file conform the CID,
+use the :option:`--until` option. For example::
+
+  cutplace --until 20 cid_customers.ods customers_data.csv
+
+This validates only the first 20 rows in a file, so possible errors in row 21
+or later are not detected any more. This is can be useful in production
+environments where having to wait for a full validation can be an issue. You
+can still do a full validation during testing, so :option:`--until` offers
+a trade off between performance and correctness.
+
+Setting :option:`--until=-1` enables validation for all rows (which is the
+default) while :option:`--until=0` disables it for the whole file.
 
 
 .. index:: pair: command line option; --plugins

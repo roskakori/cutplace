@@ -5,8 +5,13 @@ Revision history
 This chapter describes improvements compared to earlier versions of cutplace.
 
 
-Version 0.8.3, 2015-01-xx
+Version 0.8.3, 2015-01-31
 =========================
+
+* Added option :option`--until` to increase performance by skipping
+  validation of field format and checks after a specified number of
+  rows
+  (`issue #86 <https://github.com/roskakori/cutplace/issues/86>`_).
 
 * Fixed reading of Excel error cells.
 

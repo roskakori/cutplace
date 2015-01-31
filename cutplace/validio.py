@@ -20,6 +20,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import itertools
+
 import six
 
 from cutplace import data
@@ -162,12 +164,31 @@ class BaseValidator(object):
 
 
 class Reader(BaseValidator):
-    def __init__(self, cid_or_path, source_data_stream_or_path):
+    def __init__(self, cid_or_path, source_data_stream_or_path, on_error='raise', validate_until=None):
+        """
+        An iterator that produces possibly validated rows from
+        ``source_data_stream_or_path`` conforming to ``cid_or_path``.
+
+        If a row cannot be read, ``on_error`` specifies what to do about it:
+
+        * ``'continue'``: quietly continue with the next row.
+        * ``'raise'`` (the default): raise an exception and stop reading.
+        * ``'yield'``: instead of of a row, the result contains a \
+          :py:exc:`cutplace.errors.DataError`.
+
+        :param validate_until: number of rows after which validation should \
+          stop; further rows are still produces but not validated anymore; \
+          ``None`` all rows should be validated (the default); 0 means no \
+          rows should be validated
+        :type: int or None
+        """
         assert cid_or_path is not None
         assert source_data_stream_or_path is not None
+        assert on_error in _VALID_ON_ERROR_CHOICES, 'on_error=%r' % on_error
+        assert (validate_until is None) or (validate_until >= 0)
 
         super(Reader, self).__init__(cid_or_path)
-        # TODO: Consolite obtaining source path with other code segments that do similar things.
+        # TODO: Consolidate obtaining source path with other code segments that do similar things.
         if isinstance(source_data_stream_or_path, six.string_types):
             source_path = source_data_stream_or_path
         else:
@@ -176,32 +197,35 @@ class Reader(BaseValidator):
             except AttributeError:
                 source_path = '<io>'
         self._location = errors.Location(source_path, has_cell=True)
-        self._source_path = source_data_stream_or_path
+        self._source_data_stream_or_path = source_data_stream_or_path
+        self._on_error = on_error
+        self._validate_until = validate_until
         self.accepted_rows_count = None
         self.rejected_rows_count = None
 
+    @property
+    def on_error(self):
+        return self._on_error
+
     def _raw_rows(self):
         data_format = self.cid.data_format
-        if data_format.format == data.FORMAT_EXCEL:
-            return rowio.excel_rows(self._source_path, data_format.sheet)
-        elif data_format.format == data.FORMAT_DELIMITED:
-            return rowio.delimited_rows(self._source_path, data_format)
-        elif data_format.format == data.FORMAT_FIXED:
+        format = data_format.format
+        if format == data.FORMAT_EXCEL:
+            return rowio.excel_rows(self._source_data_stream_or_path, data_format.sheet)
+        elif format == data.FORMAT_DELIMITED:
+            return rowio.delimited_rows(self._source_data_stream_or_path, data_format)
+        elif format == data.FORMAT_FIXED:
             return rowio.fixed_rows(
-                self._source_path, data_format.encoding, interface.field_names_and_lengths(self.cid),
+                self._source_data_stream_or_path, data_format.encoding, interface.field_names_and_lengths(self.cid),
                 data_format.line_delimiter)
-        elif data_format.format == data.FORMAT_ODS:
-            return rowio.ods_rows(self._source_path, data_format.sheet)
+        elif format == data.FORMAT_ODS:
+            return rowio.ods_rows(self._source_data_stream_or_path, data_format.sheet)
+        else:
+            assert False, 'format=%r' % format
 
-    def rows(self, on_error='raise'):
+    def rows(self):
         """
         Data rows of ``source_path``.
-
-        If a row cannot be read, ``on_error`` specifies what to do about it:
-
-        * ``'continue'``: quietly continue with the next row.
-        * ``'raise'`` (the default): raise an exception and stop reading.
-        * ``'yield'``: instead of of a row, the result contains a :py:exc:`cutplace.errors.DataError`.
 
         Even with ``on_error`` set to ' continue'  or 'yield' certain errors
         still cause a stop, for example checks at the end of the file still
@@ -211,26 +235,24 @@ class Reader(BaseValidator):
 
         :raises cutplace.errors.DataError: on broken data
         """
-        assert on_error in _VALID_ON_ERROR_CHOICES, 'on_error=%r' % on_error
-
-        self._location = errors.Location(self._source_path, has_cell=True)
         self.accepted_rows_count = 0
         self.rejected_rows_count = 0
         for check in self.cid.check_map.values():
             check.reset()
-        for row in self._raw_rows():
+        for row_count, row in enumerate(self._raw_rows(), 1):
             try:
-                self.validate_row(row)
+                if (self._validate_until is None) or (row_count <= self._validate_until):
+                    self.validate_row(row)
                 self.accepted_rows_count += 1
                 yield row
             except errors.DataError as error:
-                if on_error == 'raise':
+                if self.on_error == 'raise':
                     raise
                 self.rejected_rows_count += 1
-                if on_error == 'yield':
+                if self.on_error == 'yield':
                     yield error
                 else:
-                    assert on_error == 'continue'
+                    assert self.on_error == 'continue'
             self._location.advance_line()
 
     def validate_rows(self):
@@ -296,33 +318,37 @@ class Writer(BaseValidator):
                 self._delegated_writer = None
 
 
-def validated_rows(cid_or_path, data_stream_or_path, on_error='raise'):
+def validated_rows(cid_or_path, data_stream_or_path, on_error='raise', validate_until=None):
     """
     Rows read from ``data`` and validated against ``cid_or_path``.
 
-    :param cid_or_path: :py:class:`~.Cid` or :py:class:`str` describing a \
-      path pointing to a CID
+    :param cid_or_path: :py:class:`cutplace.Cid` or :py:class:`str` \
+      describing a path pointing to a CID
     :param data_stream_or_path: filelike object or :py:class:`str` \
       describing a path pointing to the data to be read
-    :param str on_error: same as ``on_error`` for :py:meth:`~.Reader.rows`
-    :raises cutplace.errors.DataError: on broken data
+    :param str on_error: same as ``on_error`` for :py:class:`cutplace.Reader`
+    :param validate_until: same as ``on_error`` for \
+      :py:class:`cutplace.Reader`
+    :raises cutplace.errors.DataError: on broken data but only in case \
+      ``on_error='raise'`` (the default)
     :raises cutplace.errors.InterfaceError: on a broken CID
     """
     assert cid_or_path is not None
     assert data_stream_or_path is not None
     assert on_error in _VALID_ON_ERROR_CHOICES, 'on_error=%r' % on_error
+    assert (validate_until is None) or (validate_until >= 0)
 
-    with Reader(cid_or_path, data_stream_or_path) as reader:
-        for row in reader.rows(on_error):
+    with Reader(cid_or_path, data_stream_or_path, on_error, validate_until) as reader:
+        for row in reader.rows():
             yield row
 
 
-def validate(cid_or_path, data_stream_or_path):
+def validate(cid_or_path, data_stream_or_path, validate_until=None):
     """
     Validate that ``data_or_path`` conform to ``cid_or_path``.
 
-    :param cid_or_path: :py:class:`~.Cid` or :py:class:`str` describing a \
-      path pointing to a CID
+    :param cid_or_path: :py:class:`cutplace.Cid` or :py:class:`str` \
+      describing a path pointing to a CID
     :param data_stream_or_path: filelike object or :py:class:`str` \
       describing a path pointing to the data to be read
     :raises cutplace.errors.DataError: on broken data
@@ -330,6 +356,11 @@ def validate(cid_or_path, data_stream_or_path):
     """
     assert cid_or_path is not None
     assert data_stream_or_path is not None
+    assert (validate_until is None) or (validate_until >= 0)
 
-    with Reader(cid_or_path, data_stream_or_path) as reader:
-        reader.validate_rows()
+    with Reader(cid_or_path, data_stream_or_path, validate_until=validate_until) as reader:
+        rows_to_validate = reader.rows()
+        if validate_until is not None:
+            rows_to_validate = itertools.islice(rows_to_validate, validate_until)
+        for _ in rows_to_validate:
+            pass

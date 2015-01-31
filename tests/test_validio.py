@@ -30,12 +30,20 @@ from tests import dev_test
 
 _TEST_ENCODING = "cp1252"
 
+_DIGIT_CID_TEXT = '\n'.join([
+    'd,format,delimited',
+    'd,encoding,ascii',
+    'f,digit,,,1,Integer'
+])
+#: A CID for delimited data with 1 column per row that has to be a single
+#  digit.
+_DIGIT_CID = interface.create_cid_from_string(_DIGIT_CID_TEXT)
+
 
 class ReaderTest(unittest.TestCase):
     """
     Tests for data formats.
     """
-
     def test_can_open_and_validate_csv_source_file(self):
         cid = interface.Cid(dev_test.path_to_test_cid("icd_customers.xls"))
         with validio.Reader(cid, dev_test.path_to_test_data("valid_customers.csv")) as reader:
@@ -111,8 +119,8 @@ class ReaderTest(unittest.TestCase):
         ])
         cid = interface.create_cid_from_string(cid_text)
         with io.StringIO('1\nabc\n3') as partially_broken_data:
-            with validio.Reader(cid, partially_broken_data) as reader:
-                rows = list(reader.rows('yield'))
+            with validio.Reader(cid, partially_broken_data, 'yield') as reader:
+                rows = list(reader.rows())
         self.assertEqual(3, len(rows), 'expected 3 rows but got: %s' % rows)
         self.assertEqual(['1'], rows[0])
         self.assertEqual(errors.FieldValueError, type(rows[1]), 'rows=%s' % rows)
@@ -126,11 +134,37 @@ class ReaderTest(unittest.TestCase):
         ])
         cid = interface.create_cid_from_string(cid_text)
         with io.StringIO('1\nabc\n3') as partially_broken_data:
-            with validio.Reader(cid, partially_broken_data) as reader:
-                rows = list(reader.rows('continue'))
+            with validio.Reader(cid, partially_broken_data, 'continue') as reader:
+                rows = list(reader.rows())
         expected_row_count = 2
         self.assertEqual(expected_row_count, len(rows), 'expected %d rows but got: %s' % (expected_row_count, rows))
         self.assertEqual([['1'], ['3']], rows)
+
+    def test_can_skip_whole_validation(self):
+        data_with_row_3_broken = '1\n2\na\n'
+        with io.StringIO(data_with_row_3_broken) as partially_broken_data:
+            with validio.Reader(_DIGIT_CID, partially_broken_data, validate_until=0) as reader:
+                rows = list(reader.rows())
+        self.assertEqual([['1'], ['2'], ['a']], rows)
+
+    def test_can_skip_part_of_validation(self):
+        data_with_row_3_broken = '1\n2\na\n'
+        with io.StringIO(data_with_row_3_broken) as partially_broken_data:
+            with validio.Reader(_DIGIT_CID, partially_broken_data, validate_until=2) as reader:
+                rows = list(reader.rows())
+        self.assertEqual([['1'], ['2'], ['a']], rows)
+
+    def test_fails_on_broken_data_before_skipping_validation(self):
+        data_with_row_3_broken = '1\n2\na\n'
+        with io.StringIO(data_with_row_3_broken) as partially_broken_data:
+            with validio.Reader(_DIGIT_CID, partially_broken_data, validate_until=3) as reader:
+                try:
+                    list(reader.rows())
+                    self.fail()
+                except errors.FieldValueError as anticipated_error:
+                    dev_test.assert_fnmatches(
+                        self, str(anticipated_error),
+                        "* (R3C1): cannot accept field 'digit': value must be an integer number: 'a'")
 
 
 class WriterTest(unittest.TestCase):
@@ -269,3 +303,10 @@ class ValidationFunctionsTest(unittest.TestCase):
             for row_count, _ in enumerate(validio.validated_rows(self._cid, data_stream)):
                 pass
         self.assertNotEqual(0, row_count)
+
+    def test_can_validate_until(self):
+        data_with_row_3_broken = '1\n2\na\n'
+        with io.StringIO(data_with_row_3_broken) as partially_broken_data:
+            validio.validate(_DIGIT_CID, partially_broken_data, 2)
+        with io.StringIO(data_with_row_3_broken) as partially_broken_data:
+            self.assertRaises(errors.FieldValueError, validio.validate, _DIGIT_CID, partially_broken_data, 3)
