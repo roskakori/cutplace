@@ -5,9 +5,9 @@ Command line usage
 ==================
 
 This chapter describes how to use cutplace from the command line. It assumes
-the user already opened a console window (for example ``Terminal.app`` on Mac
-OS X, ``term`` on Linux or ``cmd.exe`` on Windows) and is ready to enter
-commands in it.
+the user already opened a console window (for example :command:`Terminal.app`
+on Mac OS X, :command:`term` on Linux or :command:`cmd.exe` on Windows) and
+is ready to enter commands in it.
 
 .. index:: pair: command line option; --help
 .. index:: pair: command line option; --version
@@ -34,7 +34,7 @@ Validate a CID
 
 To validate that a CID is syntactically and semantically correct, simply run
 cutplace with the path of the CID as only option. For example, a CID stored in
-ODS format and named ``cid_customers.ods`` can be validated by running::
+ODS format and named :file:`cid_customers.ods` can be validated by running::
 
   cutplace cid_customers.ods
 
@@ -49,8 +49,8 @@ Validate that a data file conforms to a CID
 
 To validate that a data file conforms to a CID, pass the path of the CID and
 the data file. For example using the same CID as in the previous section to
-validate a data file containing customers stored in ``cid_customers.ods``,
-run::
+validate a data file containing customers stored in
+:file:`cid_customers.ods`, run::
 
   cutplace cid_customers.ods customers_data.csv
 
@@ -65,20 +65,20 @@ console.
 
 .. index:: pair: command line option; --plugins
 
-Import plugsins
-===============
+Import plugins
+==============
 
 You can define your own field format and checks in simple Python modules and
 tell cutplace to import them. For more information on how to write such
 modules see :ref:`using-own-check-and-field-formats`.
 
-To import all plugins located in the folder ``~/cutplace-plugins``, use::
+To import all plugins located in the folder :file:`~/cutplace-plugins`, use::
 
   cutplace --plugins ~/cutplace-plugins ...
 
-This will import and initialize all ``*.py`` files in this folder. To see
+This will import and initialize all :file:`*.py` files in this folder. To see
 which checks and field formats are actually recognized, also specify
-``--log=info``.
+:option:`--log=info`.
 
 
 Dealing with errors

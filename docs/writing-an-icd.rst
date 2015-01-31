@@ -79,7 +79,7 @@ Delimited data
 For data, both lines and columns are delimited by certain characters.
 
 Example for delimited data using visible ASCII characters and Cyrillic (Unicode
-0x0400-0x4ff)
+0x0400-0x04ff)
 
 ==  ===================  =====================
 ..  Property             Value
@@ -512,14 +512,14 @@ special characters as place holders:
 A ``sequence`` can be a list of characters such as ``[abc123]`` or a range
 like ``[a-z]``.
 
-Examples for Pattern fields
+Examples for pattern fields
 
-==  ============  =====  ======  =======  ============
-..  Name          Empty  Length  Type     Rule
-==  ============  =====  ======  =======  ============
-F   dos_filename         1...12  Pattern  ?*.*
-F   branch_id                    Pattern  B???-????-?*
-==  ============  =====  ======  =======  ============
+==  ============  ===========  ======  ======  =======  ============
+..  Name          Example      Empty   Length  Type     Rule
+==  ============  ===========  ======  ======  =======  ============
+F   dos_filename  cmd.exe              1...12  Pattern  ?*.*
+F   branch_id     B123-abc-x3                  Pattern  B???-????-?*
+==  ============  ===========  ======  ======  =======  ============
 
 .. index:: double: field format; RegEx
 
