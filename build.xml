@@ -4,7 +4,7 @@
     <!-- Set global properties for this build. -->
     <property name="source" location="${basedir}/source" />
     <property name="tests.dir" location="${basedir}/tests" />
-    <property name="tests-result.dir" location="${tests.dir}/output" />
+    <property name="tests-results.dir" location="${tests.dir}/results" />
     <property name="build" location="${basedir}/build" />
     <property name="dist" location="${basedir}/dist" />
 
@@ -128,7 +128,7 @@
             <fileset dir="." includes="coverage.xml, nosetests.xml, nosetests_performance.xml, flake8.txt" />
         </delete>
         <delete includeemptydirs="true">
-            <fileset dir="${tests-result.dir}" includes="**/*" />
+            <fileset dir="${tests-results.dir}" includes="**/*" />
         </delete>
         <delete dir="${build}" />
         <delete dir="htmlcov" />
@@ -140,10 +140,13 @@
 
     <target name="flake8" description="build flake8 violations report">
         <echo message="build flake8 violations report" />
-        <exec executable="tox" failonerror="true">
-            <arg value="-e" />
-            <arg value="flake8" />
-            <redirector output="flake8.txt" />
+        <exec executable="flake8" failonerror="true">
+            <arg value="--config" />
+            <arg file="tox.ini" />
+            <arg file="setup.py" />
+            <arg file="cutplace" />
+            <arg file="tests" />
+            <redirector error="flake8.txt" output="flake8.txt" />
         </exec>
         <concat>
             <filelist files="flake8.txt"/>
