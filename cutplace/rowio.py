@@ -84,35 +84,40 @@ if six.PY2:
 
 def _excel_cell_value(cell, datemode):
     """
-    The value of ``cell`` as text taking into account the way excel encodes dates and times.
+    The value of ``cell`` as text taking into account the way excel encodes
+    dates and times.
 
-    Numeric Excel types (Currency,  Fractional, Number, Percent, Scientific) simply yield the decimal number
-    without any special formatting.
+    Numeric Excel types (Currency,  Fractional, Number, Percent, Scientific)
+    simply return the decimal number without any special formatting.
 
-    Dates result in a text using the format "YYYY-MM-DD", times in a text using the format "hh:mm:ss".
+    Dates result in a text using the format "YYYY-MM-DD", times in a text
+    using the format "hh:mm:ss".
 
-    Boolean yields "0" or "1".
+    Boolean results in "0" or "1".
 
-    Formulas are evaluated and yield the respective result.
+    Formulas are evaluated and return the respective result.
+
+    :param str datemode: the datemode from the workbook the cell was read \
+      from; refer to the :py:mod:`xlrd` documentation for more details
     """
     assert cell is not None
 
     if cell.ctype == xlrd.XL_CELL_DATE:
         cell_tuple = xlrd.xldate_as_tuple(cell.value, datemode)
-        assert len(cell_tuple) == 6, "cellTuple=%r" % cell_tuple
+        assert len(cell_tuple) == 6, "cell_tuple=%r" % cell_tuple
         if cell_tuple[:3] == (0, 0, 0):
             time_tuple = cell_tuple[3:]
-            result = str(datetime.time(*time_tuple))
+            result = six.text_type(datetime.time(*time_tuple))
         else:
-            result = str(datetime.datetime(*cell_tuple))
+            result = six.text_type(datetime.datetime(*cell_tuple))
     elif cell.ctype == xlrd.XL_CELL_ERROR:
         default_error_text = xlrd.error_text_from_code[0x2a]  # same as "#N/A!"
         error_code = cell.value
-        result = str(xlrd.error_text_from_code.get(error_code, default_error_text), "ascii")
-    elif isinstance(cell.value, str):
+        result = six.text_type(xlrd.error_text_from_code.get(error_code, default_error_text))
+    elif isinstance(cell.value, six.text_type):
         result = cell.value
     else:
-        result = str(cell.value)
+        result = six.text_type(cell.value)
         if (cell.ctype == xlrd.XL_CELL_NUMBER) and (result.endswith(".0")):
             result = result[:-2]
 
@@ -552,21 +557,25 @@ class DelimitedRowWriter(AbstractRowWriter):
 
 
 class FixedRowWriter(AbstractRowWriter):
-    def __init__(self, target, data_format, field_lengths):
+    def __init__(self, target, data_format, field_names_and_lengths):
         assert target is not None
         assert data_format is not None
         assert data_format.format == data.FORMAT_FIXED
         assert data_format.is_valid
-        assert field_lengths is not None
-        for field_length in field_lengths:
+        assert field_names_and_lengths is not None
+        for field_name, field_length in field_names_and_lengths:
+            assert field_name is not None
             assert field_length is not None
             assert field_length >= 1, 'field_length=%r' % field_length
 
         super(FixedRowWriter, self).__init__(target, data_format)
-        self._field_lengths = field_lengths
-        self._expected_row_item_count = len(self._field_lengths)
+        self._field_names_and_lengths = field_names_and_lengths
+        self._expected_row_item_count = len(self._field_names_and_lengths)
         if self.data_format.line_delimiter == 'any':
-            self._line_separator = os.linesep
+            if six.PY2:
+                self._line_separator = six.text_type(os.linesep)
+            else:
+                self._line_separator = os.linesep
         else:
             self._line_separator = self.data_format.line_delimiter
 
@@ -582,21 +591,34 @@ class FixedRowWriter(AbstractRowWriter):
           as specified to :py:meth:`~.__init__`.
         """
         assert row_to_write is not None
-        row_to_write_item_count = len(row_to_write)
-        assert row_to_write_item_count == self._expected_row_item_count, \
-            'row %d have %d items instead of %d: %s' \
-            % (self.location.line, self._expected_row_item_count, row_to_write_item_count, row_to_write)
 
-        for item_index, item in enumerate(row_to_write):
-            assert isinstance(item, six.text_type), \
-                'row %d, item %d must be a (unicode) str but is: %r' % (self.location.line, item_index, item)
-            assert len(item) == self._field_lengths[item_index], \
-                'row %d, item %d must have exactly %d characters instead of %d: %r' \
-                % (self.location.line, item_index, len(item), self._field_lengths[item_index], item)
+        row_to_write_item_count = len(row_to_write)
+        if row_to_write_item_count != self._expected_row_item_count:
+            raise errors.DataFormatError(
+                'row must have %d items instead of %d: %s'
+                % (self._expected_row_item_count, row_to_write_item_count, row_to_write), self.location)
+        for field_index, field_value in enumerate(row_to_write):
+            self.location.set_cell(field_index)
+            field_name, expected_field_length = self._field_names_and_lengths[field_index]
+            if not isinstance(field_value, six.text_type):
+                raise errors.DataError(
+                    'field %s must be of type %s but is: %s (%s)'
+                    % (_compat.text_repr(field_name), six.text_type.__name__, field_value, type(field_value).__name__),
+                    self.location)
+            actual_field_length = len(field_value)
+            if actual_field_length != expected_field_length:
+                raise errors.DataError(
+                    'field %s must have exactly %d characters instead of %d: %s'
+                    % (_compat.text_repr(field_name), expected_field_length, actual_field_length,
+                       _compat.text_repr(field_value)),
+                    self.location)
+        self.location.set_cell(0)
         try:
             self._target_stream.write(''.join(row_to_write))
         except UnicodeEncodeError as error:
-            raise errors.DataFormatError('cannot write data row: %s; row=%s' % (error, row_to_write), self.location)
+            raise errors.DataFormatError(
+                'cannot write data row: %s; row=%s'
+                % (error, row_to_write), self.location)
         if self._line_separator is not None:
             self._target_stream.write(self._line_separator)
         self.location.advance_line()

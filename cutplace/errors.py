@@ -48,22 +48,27 @@ class Location(object):
 
     def __init__(self, file_path, has_column=False, has_cell=False, has_sheet=False):
         """
-        Create a new ``Location`` for the input described by ``file_path``. This can also be
-        a symbolic name such as ``"<source>"`` or ``"<string>"`` in case the input is no actual
-        file. If ``file_path`` is no string type, ``"<io>"`` will be used.
+        Create a new :py:class`Location` for the input described by
+        ``file_path``. This can also be a symbolic name such as
+        ``"<source>"`` or ``"<string>"`` in case the input is no actual file.
+        If ``file_path`` is no string type, ``"<io>"`` will be used.
 
-        If the input is a text or binary file, ``has_column`` should be ``True`` and
-        `advance_column()` should be called on every character or byte read.
+        If the input is a text or binary file, ``has_column`` should be
+        ``True`` and :py:meth:`~.advance_column` should be called on every
+        character or byte read.
 
-        If the input is a tabular file such as CSV, ``has_cell`` should be ``True`` and
-        `advance_cell()` or `setCell` be called on each cell processed.
+        If the input is a tabular file such as CSV, ``has_cell`` should be
+        ``True`` and :py:meth:`~.advance_cell()` or :py:meth:`~.set_cell` be
+        called on each cell processed.
 
-        If the input is a spreadsheet  format such as ODS or Excel, `advance_sheet()` should be called
-        each time a new sheet starts.
+        If the input is a spreadsheet format such as ODS or Excel,
+        :py:meth:`~.advance_sheet()` should be called each time a new sheet
+        starts.
 
-        You can also combine these properties, for example to exactly point out an error location
-        in a spreadsheet cell, all of ``has_column``, ``has_cell`` and ``has_sheet`` can be ``True``
-        with the column pointing at a broken character in a cell.
+        You can also combine these properties, for example to exactly point
+        out an error location in a spreadsheet cell, all of ``has_column``,
+        ``has_cell`` and ``has_sheet`` can be ``True`` with the column
+        pointing at a broken character in a cell.
 
         Common examples:
 
@@ -113,7 +118,6 @@ class Location(object):
         assert self._has_cell
         self._cell += amount
 
-    # TODO: Change property ``cell`` to have getter and setter.
     def set_cell(self, new_cell):
         assert new_cell is not None
         assert new_cell >= 0

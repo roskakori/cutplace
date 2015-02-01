@@ -37,6 +37,7 @@ from cutplace import __version__
 DEFAULT_CID_ENCODING = 'utf-8'
 DEFAULT_LOG_LEVEL = 'info'
 assert DEFAULT_LOG_LEVEL in _tools.LOG_LEVEL_NAME_TO_LEVEL_MAP
+DEFAULT_VALIDATE_UNTIL = -1
 
 _log = logging.getLogger("cutplace")
 
@@ -57,6 +58,7 @@ class CutplaceApp(object):
         self.data_paths = None
         self.last_validation_was_ok = False
         self.all_validations_were_ok = True
+        self.validate_until = None
 
     def set_options(self, argv):
         """
@@ -78,6 +80,9 @@ class CutplaceApp(object):
         parser.add_argument(
             '--plugins', '-P', metavar='FOLDER', dest='plugins_folder',
             help='folder to scan for plugins (default: no plugins)')
+        parser.add_argument(
+            '-u', '--until', metavar='COUNT', dest='validate_until', default=DEFAULT_VALIDATE_UNTIL, type=int,
+            help='maximum number of rows to validate; -1=all, 0=none (default: %d)' % DEFAULT_VALIDATE_UNTIL)
         parser.add_argument('--version', action='version', version=version)
         parser.add_argument(
             'cid_path', metavar='CID-FILE', help='file containing a cutplace interface definition (CID)')
@@ -88,6 +93,13 @@ class CutplaceApp(object):
         self._log.setLevel(_tools.LOG_LEVEL_NAME_TO_LEVEL_MAP[args.log_level])
         # TODO #77: self.is_gui = args.is_gui
 
+        if args.validate_until is not None:
+            if args.validate_until == -1:
+                self.validate_until = None
+            elif args.validate_until >= 0:
+                self.validate_until = args.validate_until
+            else:
+                parser.error('option --until is %d but must be at least -1' % args.validate_until)
         if args.plugins_folder is not None:
             interface.import_plugins(args.plugins_folder)
         if args.cid_path is not None:
@@ -118,11 +130,12 @@ class CutplaceApp(object):
         """
         assert data_path is not None
         assert self.cid is not None
+        assert (self.validate_until is None) or (self.validate_until >= 0)
 
         _log.info('validate "%s"', data_path)
 
         try:
-            with validio.Reader(self.cid, data_path) as reader:
+            with validio.Reader(self.cid, data_path, validate_until=self.validate_until) as reader:
                 reader.validate_rows()
             _log.info('  accepted %d rows', reader.accepted_rows_count)
         except errors.CutplaceError as error:
@@ -151,7 +164,7 @@ def process(argv=None):
     cutplace_app.set_options(argv)
     if cutplace_app.is_gui:
         # TODO #77: Open graphical user interface.
-        pass
+        raise NotImplementedError
     elif cutplace_app.data_paths:
         for data_path in cutplace_app.data_paths:
             try:

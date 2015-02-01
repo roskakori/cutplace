@@ -401,7 +401,7 @@ class Cid(object):
         self._field_names.append(field_name)
         self._field_formats.append(field_format)
         # TODO: Remember location where field format was defined to later include it in error message
-        _log.info("%s: defined field: %s", self._location, field_format)
+        _log.debug("%s: defined field: %s", self._location, field_format)
 
         assert field_name
         assert field_type
@@ -505,22 +505,22 @@ class Cid(object):
         assert check_name is not None
         return self._check_name_to_check_map[check_name]
 
-    def as_sql(self, dialect='ansi'):
-        """
-        (Work in progress, see https://github.com/roskakori/cutplace/issues/73)
-        """
-        create_table = "create table " + self._cid_path + " ("
+    def as_sql_create_table(self, dialect='ansi'):
+        file_name = os.path.basename(self._cid_path)
+        table_name = file_name.split('.')
+
+        create_table = "create table " + table_name[0] + " (\n"
         constraints = ""
+
+        # FIXME: check correctness of sql table names
 
         # get column definitions and constraints for all fields
         for field in self._field_formats:
             column_def, constraint = field.as_sql(dialect)
             create_table += column_def + ",\n"
-            constraints += constraint + ",\n"
 
-        # get constraints for all checks
-        for i in range(len(self._check_names)):
-            constraints += "constraint " + self._check_names[i] + self.check_map[self._check_names[i]] + ",\n"
+            if len(constraint) > 0:
+                constraints += constraint + ",\n"
 
         create_table += constraints
 
@@ -535,24 +535,6 @@ def create_cid_from_string(cid_text):
     """
     with io.StringIO(cid_text) as cid_string_io:
         result = Cid(cid_string_io)
-    return result
-
-
-def field_lengths(fixed_cid):
-    """
-    List of :py:class:`int`s for all field lengths in ``fixed_cid`` which
-    must be of data format py:attr:`~cutplace.data.FORMAT_FIXED`.
-    """
-    assert fixed_cid is not None
-    assert fixed_cid.data_format.format == data.FORMAT_FIXED, 'format=' + fixed_cid.data_format.format
-    result = []
-    for field_format in fixed_cid.field_formats:
-        field_length_range = field_format.length.items[0]
-        lower, upper = field_length_range
-        assert lower is not None
-        assert lower == upper
-        field_length = lower
-        result.append(field_length)
     return result
 
 

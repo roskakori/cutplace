@@ -79,7 +79,7 @@ Delimited data
 For data, both lines and columns are delimited by certain characters.
 
 Example for delimited data using visible ASCII characters and Cyrillic (Unicode
-0x0400-0x4ff)
+0x0400-0x04ff)
 
 ==  ===================  =====================
 ..  Property             Value
@@ -114,7 +114,7 @@ Line delimiter
       for example Mac OS X, Linux, Solaris BSD-variants and Amiga OS.
 
     * CRLF - "carriage return and linefeed", two characters with ASCII code 13
-     and 10, used for example by Windows and MS DOS.
+      and 10, used for example by Windows and MS DOS.
 
     * CR - "carriage return", ASCII code 13, used by Mac OS Classic.
 
@@ -188,6 +188,7 @@ treats them the same as delimited data. In fact, you can specify it in CID:
 ..  Property        Value
 ==  ==============  =====
 D   Format          CSV
+==  ==============  =====
 
 For cutplace, there is no difference between "delimited" and "CSV".
 
@@ -240,20 +241,22 @@ from Excel will look to cutplace:
 .. index:: pair: Excel type; time
 .. index:: pair: Excel type; percent
 
-============= ============= ===================
-Excel type    cutplace type rule
-============= ============= ===================
-Currency      Decimal
-Date          DateTime      YYYY-MM-DD 00:00:00
-Date and time DateTime      YYYY-MM-DD hh:mm:ss
-Percent       Decimal
-Time          DateTime      hh:mm:ss
-============= ============= ===================
+Mapping between Excel types and cutplace
+
+=============  =============  ===================
+Excel type     cutplace type  rule
+=============  =============  ===================
+Currency       Decimal
+Date           DateTime       YYYY-MM-DD 00:00:00
+Date and time  DateTime       YYYY-MM-DD hh:mm:ss
+Percent        Decimal
+Time           DateTime       hh:mm:ss
+=============  =============  ===================
 
 .. warning::
   Excel cannot represent integer numbers exactly, so you better use
   *Decimal* instead of *Integer* in the CID. In case you do use *Integer*
-  be prepared for weird validation error and rounding issues.
+  be prepared for weird validation errors and rounding issues.
 
 .. index:: pair: data format; fixed
 
@@ -509,14 +512,14 @@ special characters as place holders:
 A ``sequence`` can be a list of characters such as ``[abc123]`` or a range
 like ``[a-z]``.
 
-Examples for Pattern fields
+Examples for pattern fields
 
-==  ============  =====  ======  =======  ============
-..  Name          Empty  Length  Type     Rule
-==  ============  =====  ======  =======  ============
-F   dos_filename         1...12  Pattern  ?*.*
-F   branch_id                    Pattern  B???-????-?*
-==  ============  =====  ======  =======  ============
+==  ============  ===========  ======  ======  =======  ============
+..  Name          Example      Empty   Length  Type     Rule
+==  ============  ===========  ======  ======  =======  ============
+F   dos_filename  cmd.exe              1...12  Pattern  ?*.*
+F   branch_id     B123-abc-x3                  Pattern  B???-????-?*
+==  ============  ===========  ======  ======  =======  ============
 
 .. index:: double: field format; RegEx
 

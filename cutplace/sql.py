@@ -39,8 +39,6 @@ MYSQL = "mysql"
 #: SQL dialect: Oracle
 ORACLE = "oracle"
 
-_DEFAULT_INTEGER_RANGE = '%d...%d' % (-2 ** 31, 2 ** 31 - 1)
-
 
 def generate_choices(rule):
     choices = []
@@ -74,9 +72,17 @@ def as_sql_text(field_name, field_is_allowed_to_be_empty, field_length, field_ru
     constraint = ""
 
     if field_length.items is not None:
-        column_def = field_name + " varchar(" + str(field_length.max) + ")"
-        constraint = "constraint chk_length_" + field_name + " check (length(" + field_name + " >= " + \
-                     str(field_length.lower_limit) + "));"
+        column_def = field_name + " varchar(" + str(field_length.upper_limit) + ")"
+        if field_length.lower_limit is not None and field_length.upper_limit is not None:
+            constraint = "constraint chk_length_" + field_name + " check (length(" + field_name + " >= " \
+                + str(field_length.lower_limit) + ") and length(" + field_name + " <= " \
+                + str(field_length.upper_limit) + "))"
+        elif field_length.lower_limit is not None:
+            constraint = "constraint chk_length_" + field_name + " check (length(" + field_name + " >= " \
+                + str(field_length.lower_limit) + "))"
+        elif field_length.upper_limit is not None:
+            constraint = "constraint chk_length_" + field_name + " check (length(" + field_name + " <= " \
+                + str(field_length.upper_limit) + "))"
     else:
         column_def = field_name + " varchar(255)"
 
@@ -84,12 +90,12 @@ def as_sql_text(field_name, field_is_allowed_to_be_empty, field_length, field_ru
         choices = generate_choices(field_rule)
 
         if all(choice.isnumeric() for choice in choices):
-            column_def = as_sql_number(field_name, field_is_allowed_to_be_empty, field_length, field_rule, db)[0]
-            constraint += "constraint chk_rule_" + field_name + " check( " + field_name + " in [" \
-                + ",".join(map(str, choices)) + "] );"
+            column_def = as_sql_number(field_name, field_is_allowed_to_be_empty, field_length, field_rule, None, db)[0]
+            constraint += "constraint chk_rule_" + field_name + " check( " + field_name + " in (" \
+                + ",".join(map(str, choices)) + ") )"
         else:
-            constraint += "constraint chk_rule_" + field_name + " check( " + field_name + " in ['" \
-                + "','".join(map(str, choices)) + "'] );"
+            constraint += "constraint chk_rule_" + field_name + " check( " + field_name + " in ('" \
+                + "','".join(map(str, choices)) + "') )"
 
     if not field_is_allowed_to_be_empty:
         column_def += " not null"
@@ -97,8 +103,12 @@ def as_sql_text(field_name, field_is_allowed_to_be_empty, field_length, field_ru
     return [column_def, constraint]
 
 
-def as_sql_number(field_name, field_is_allowed_to_be_empty, field_length, field_rule, db):
-    range_rule = ranges.Range(field_rule, _DEFAULT_INTEGER_RANGE)
+def as_sql_number(field_name, field_is_allowed_to_be_empty, field_length, field_rule, range_rule, db):
+    if range_rule is None:
+        range_rule = ranges.Range(field_rule, ranges.DEFAULT_INTEGER_RANGE_TEXT)
+
+    column_def = ""
+
     if (field_rule == '') and (field_length.description is not None):
         range_limit = 10 ** max([item[1] for item in field_length.items])  # get the highest integer of the range
     else:
@@ -123,8 +133,8 @@ def as_sql_number(field_name, field_is_allowed_to_be_empty, field_length, field_
     for i in range(len(range_rule.items)):
         if i == 0:
             constraint = "constraint chk_" + field_name + " check( "
-        constraint += "( " + field_name + " between " + str(range_rule.items[i][0]) + " and " + \
-                      str(range_rule.items[i][1]) + " )"
+        constraint += "( " + field_name + " between " + str(range_rule.lower_limit) + " and " + \
+                      str(range_rule.upper_limit) + " )"
         if i < len(range_rule.items) - 1:
             constraint += " or "
         else:
@@ -134,6 +144,7 @@ def as_sql_number(field_name, field_is_allowed_to_be_empty, field_length, field_
 
 
 def as_sql_date(field_name, field_is_allowed_to_be_empty, human_readable_format, db):
+    column_def = ""
     constraint = ""
 
     if "hh" in human_readable_format and "YY" in human_readable_format:

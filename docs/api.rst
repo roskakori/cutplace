@@ -43,6 +43,7 @@ the Python library documentation.
 Basic usage
 ===========
 
+
 Reading a CID
 -------------
 
@@ -67,64 +68,84 @@ also keeps declaration and validation in separate files.
 Validating data
 ---------------
 
-Now that we know how our data are supposed to look, we can validate and optionally
-process them using a :py:mod:`cutplace.Reader`, which provides a simple
-generator function :py:func:`cutplace.Reader.rows` that returns all data rows.
-If you are familiar with Python's :py:func:`csv.reader`, you already know how to
-use it.
-
-Here is a trivial example that reads all rows from a valid CSV file::
+Now that we know how our data are supposed to look, we want to validate and
+optionally process them. The easiest way to do so are two simple functions
+called :py:func:`cutplace.validate` and :py:func:`cutplace.rows`.
+Both of them take to parameters: the path to a CID and the path to the data
+to validate or read. For example::
 
     >>> valid_data_path = os.path.join(os.pardir, 'tests', 'data', 'valid_customers.csv')
-    >>> for row in cutplace.Reader(cid, valid_data_path).rows():
-    ...   pass  # We could also do something useful with the data in ``row`` here.
+    >>> cutplace.validate(cid_path, valid_data_path)
 
-In this case we only validate the data, but we could easily extend the loop
-body to process them in any meaningful way such as inserting them in a
-database.
+If the data are valid, :py:func:`cutplace.validate` seemingly does nothing.
+For broken data, it raises :py:exc:`cutplace.error.DataError`.
 
-Now what happens if the data do not conform with the interface? Let's take a
-look at it::
+To also process the data after each row has been validated, use::
+
+    >>> for row in cutplace.rows(cid_path, valid_data_path):
+    ...     pass  # We could also do something useful with the data in ``row`` here.
+
+We could easily extend the loop body to process the data in some meaningful
+way such as inserting them in a database.
+
+Instead of paths to files, both functions also take a
+:py:class:`cutplace.Cid` and / or filelike object ready to read::
+
+    >>> import io
+    >>> cid = cutplace.Cid(cid_path)
+    >>> with io.open(valid_data_path, 'r', encoding=cid.data_format.encoding, newline='') as data_stream:
+    ...     cutplace.validate(cid, data_stream)
+
+If you need more control over the validation or reading process, take a look
+at the :py:mod:`cutplace.Reader` class. It provides a simple generator function
+:py:func:`cutplace.Reader.rows` that returns all data rows. If you are familiar
+with Python's :py:func:`csv.reader`, you already know how to use it.
+
+
+Dealing with errors
+-------------------
+
+So far we only had to deal with valid data.  But what happens if the data do
+not conform to the CID? Let's take a look at it::
 
     >>> import cutplace.errors
     >>> broken_data_path = os.path.join(os.pardir, 'tests', 'data', 'broken_customers.csv')
-    >>> for row in cutplace.Reader(cid, broken_data_path).rows():
-    ...   pass
+    >>> cutplace.validate(cid, broken_data_path)
     Traceback (most recent call last):
         ...
-    cutplace.errors.FieldValueError: broken_customers.csv (R4C1): cannot accept field branch_id: value '12345' must match regular expression: '38\\d\\d\\d'
+    cutplace.errors.FieldValueError: broken_customers.csv (R4C1): cannot accept field 'branch_id': value '12345' must match regular expression: '38\\d\\d\\d'
 
-Apparently the first broken data item causes the reading to stop with an
+Apparently the first broken data item causes the validation to stop with an
 :py:exc:`cutplace.errors.FieldValueError`, which is a descendant of
 :py:exc:`cutplace.errors.CutplaceError`. In many cases this is what you want.
 
 Sometimes however the requirements for an application will state that all
 valid data should be processed and invalid data should be put aside for
 further examination, for example by writing them to a log file. This is
-easy to do by setting the optional parameter ``on_error='yield'``. With
-this enabled, the generator always returns a value even for broken rows. The
-difference however is that broken rows do not result in a list of values
-but in a result of type :py:exc:`cutplace.errors.DataError`. It is up to you to
-detect this and process the different kinds of results properly.
+easy to implement using :py:func:`cutplace.rows` with the optional
+parameter ``on_error='yield'``. With this enabled, the generator always
+returns a value even for broken rows. The difference however is that broken
+rows do not result in a list of values but in a result of type
+:py:exc:`cutplace.errors.DataError`. It is up to you to detect this and
+process the different kinds of results properly.
 
 Here is an example that prints any data related errors detected during
 validation::
 
     >>> broken_data_path = os.path.join(os.pardir, 'tests', 'data', 'broken_customers.csv')
-    >>> with cutplace.Reader(cid, broken_data_path) as reader:
-    ...     for row_or_error in reader.rows(on_error='yield'):
-    ...         if isinstance(row_or_error, Exception):
-    ...             if isinstance(row_or_error, cutplace.errors.CutplaceError):
-    ...                 # Print data related error details and move on.
-    ...                 print(row_or_error)
-    ...             else:
-    ...                 # Let other, more severe errors terminate the validation.
-    ...                 raise row_or_error
+    >>> for row_or_error in cutplace.rows(cid, broken_data_path, on_error='yield'):
+    ...     if isinstance(row_or_error, Exception):
+    ...         if isinstance(row_or_error, cutplace.errors.CutplaceError):
+    ...             # Print data related error details and move on.
+    ...             print(row_or_error)
     ...         else:
-    ...             pass # We could also do something useful with the data in ``row`` here.
-    broken_customers.csv (R4C1): cannot accept field branch_id: value '12345' must match regular expression: '38\\d\\d\\d'
-    broken_customers.csv (R5C2): cannot accept field customer_id: value must be an integer number: 'XX'
-    broken_customers.csv (R6C6): cannot accept field date_of_birth: date must match format DD.MM.YYYY (%d.%m.%Y) but is: '30.02.1994' (day is out of range for month)
+    ...             # Let other, more severe errors terminate the validation.
+    ...             raise row_or_error
+    ...     else:
+    ...         pass  # We could also do something useful with the data in ``row`` here.
+    broken_customers.csv (R4C1): cannot accept field 'branch_id': value '12345' must match regular expression: '38\\d\\d\\d'
+    broken_customers.csv (R5C2): cannot accept field 'customer_id': value must be an integer number: 'XX'
+    broken_customers.csv (R6C6): cannot accept field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m.%Y) but is: '30.02.1994' (day is out of range for month)
 
 Note that it is possible for the reader to throw other exceptions, for example
 :py:exc:`IOError` in case the file cannot be read at all or :py:exc:`UnicodeError`
@@ -156,7 +177,7 @@ Now we can read the data just like before. Instead of a simple ``pass`` loop
 we obtain the first name from ``row`` and check if it starts with ``'J'``. If
 so, we compute the full name and print it::
 
-    >>> for row in cutplace.Reader(cid, valid_data_path).rows():
+    >>> for row in cutplace.rows(cid, valid_data_path):
     ...   first_name = row[first_name_index]
     ...   if first_name.startswith('J'):
     ...      surname = row[surname_index]
@@ -167,6 +188,34 @@ so, we compute the full name and print it::
 
 Of course nothing prevents you from doing more glamorous things here like
 inserting the data into a database or rendering them to a dynamic web page.
+
+
+Partial validation
+------------------
+
+If performance is an issue, validation of field formats and row checks can be
+limited to a specified number of rows using the parameter
+``validate_until``. Any integer value greater than 0 specifies the
+number of rows after which validation should stop. ``None`` means that the
+whole input should be validated (the default) while the number ``0``
+specifies that no row should be validated.
+
+Functions that support ``validate_until`` are:
+
+* :py:func:`cutplace.validate`
+* :py:func:`cutplace.rows`
+* :py:func:`cutplace.Reader.__init__`
+
+Pure validation functions such as :py:func:`cutplace.validate` completely
+stop processing the input after reaching the limit while reading functions
+such as :py:func:`cutplace.rows` keep producing rows - just without
+validating them.
+
+A typical use case would be enabling full validation during testing and
+reducing validation to the first 100 rows in the production environment.
+Ideally this would detect all errors during testing (when performance is less
+of an issue) and quickly process the data in production while still detecting
+errors early in the data.
 
 
 Putting it all together
@@ -185,7 +234,7 @@ validation code::
     >>> # Define the interface.
     >>> cid = Cid(cid_path)
     >>> # Validate the data.
-    >>> for row in Reader(cid, data_path).rows():
+    >>> for row in cutplace.rows(cid, data_path):
     ...   pass # We could also do something useful with the data in ``row`` here.
 
 In case you want to process the data, simply replace the ``pass`` inside the
@@ -593,8 +642,8 @@ anything here, we can omit it and keep inherit an empty implementation from
 
 .. _using-own-check-and-field-formats:
 
-Using your own checks and field format
---------------------------------------
+Using your own checks and field formats
+---------------------------------------
 
 Now that you know how to write our own checks and field formats, it would be
 nice to actually utilize them in a CID. For this purpose, cutplace lets you

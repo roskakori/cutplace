@@ -5,25 +5,35 @@ Revision history
 This chapter describes improvements compared to earlier versions of cutplace.
 
 
-Version 0.8.3, 2015-01-xx
+Version 0.8.3, 2015-01-31
 =========================
+
+* Added option :option:`--until` to increase performance by skipping
+  validation of field format and checks after a specified number of rows
+  (issue `#86 <https://github.com/roskakori/cutplace/issues/86>`_).
+
+* Fixed reading of Excel error cells.
 
 * Improved API:
 
   * Removed shortcuts for exceptions from :py:mod:`cutplace`. Use the
     originals in :py:mod:`cutplace.errors` instead.
+  * Added convenience function :py:func:`cutplace.validate` and
+    :py:func:`cutplace.rows` to validate and read data with a
+    single line of source code.
   * Added :py:class:`cutplace.Writer` for validated writing of delimited and
-    fixed data
-    (`issue #84 <https://github.com/roskakori/cutplace/issues/84>`_).
+    fixed data (issue
+    `#84 <https://github.com/roskakori/cutplace/issues/84>`_).
   * Improved API documentation.
+
 
 Version 0.8.2, 2015-01-19
 =========================
 
-* Changed syntax for ranges to prefer ellipsis (``...``) to colon (``:``)
+* Changed syntax for ranges to prefer ellipsis (``...``) over colon (``:``)
   because it expresses the intended meaning more clearly. The colon is still
-  supported so existing CID can remain the same, but the documentation and
-  examples use the new syntax.
+  supported so existing CIDs keep working, but the documentation and examples
+  use the new syntax.
 
 * Improved error reporting when parsing CIDs. In particular all errors
   related to the data format include a specific location, and some errors
@@ -150,7 +160,7 @@ Version 0.7.1, 2012-05-20
     (issue #45).
   * Added property ``example`` for ``*FieldFormat`` (issue #41).
 
-* Cleaned up build and the section on :ref:`jenkins` so that everything works
+* Cleaned up build and the section on "Jenkins" so that everything works
   as described even if Jenkins runs as deamon with MacPorts.
 
 Version 0.7.0, 2012-01-09
@@ -169,7 +179,7 @@ Version 0.7.0, 2012-01-09
   cores.
 
 * Cleaned up developer reports (Ticket #40). Most of the reports are now
-  built using Jenkins as described in :ref:`jenkins`, the only exception
+  built using Jenkins as described in "Jenkins", the only exception
   being the profiler report to monitor performance. Also changed build
   instructions to favor ``ant`` over ``setup.py``.
 
