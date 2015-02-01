@@ -27,10 +27,12 @@ import io
 import token
 import tokenize
 
+import six
+
 from cutplace import _compat
 
 
-# Mapping for value of --log to logging level.
+#: Mapping for value of :option:`--log` to logging level.
 LOG_LEVEL_NAME_TO_LEVEL_MAP = {
     "debug": logging.DEBUG,
     "info": logging.INFO,
@@ -39,29 +41,30 @@ LOG_LEVEL_NAME_TO_LEVEL_MAP = {
     "critical": logging.CRITICAL
 }
 
-NUMBER_DECIMAL_COMMA = "decimalComma"
-NUMBER_DECIMAL_POINT = "decimalPoint"
-NUMBER_INTEGER = "integer"
-
 
 def mkdirs(folder):
     """
-    Like ``os.mkdirs()`` but does not raise an `OSError` if ``folder`` already exists.
+    Like :py:func:`os.mkdirs()` but does not raise an :py:exc:`OSError` if
+    ``folder`` already exists.
     """
     assert folder is not None
 
-    try:
-        os.makedirs(folder)
-    except OSError as error:
-        if error.errno != errno.EEXIST:
-            raise
+    if six.PY2:
+        try:
+            os.makedirs(folder)
+        except OSError as error:
+            if error.errno != errno.EEXIST:
+                raise
+    else:
+        os.makedirs(folder, exist_ok=True)
 
 
 def validated_python_name(name, value):
     """
-    Validated and cleaned up `value` that represents a Python name with any whitespace removed.
-    If validation fails, raise `NameError` with mentioning ``name`` as the name under which
-    ``value`` is known to the user.
+    Validated and cleaned up ``value`` that represents a Python name with any
+    whitespace removed. If validation fails, raise :py:exc:`NameError` with
+    mentioning ``name`` as the name under which ``value`` is known to the
+    user.
     """
     assert name
     assert value is not None
@@ -85,8 +88,9 @@ def validated_python_name(name, value):
 
 def human_readable_list(items, final_separator='or'):
     """
-    All values in `items` in a human readable form. This is meant to be used in error messages, where
-    dumping "%r" to the user does not cut it.
+    All values in ``items`` in a human readable form. This is meant to be
+    used in error messages, where dumping ``"%r"`` to the user does not cut
+    it.
     """
     assert items is not None
     assert final_separator is not None
@@ -133,7 +137,7 @@ def token_text(toky):
 
 def is_eof_token(some_token):
     """
-    True if `someToken` is a token that represents an "end of file".
+    True if ``some_token`` is a token that represents an "end of file".
     """
     assert some_token is not None
     return tokenize.ISEOF(some_token[0])
@@ -141,7 +145,7 @@ def is_eof_token(some_token):
 
 def is_comma_token(some_token):
     """
-    True if `someToken` is a token that represents a comma (,).
+    True if ``some_token`` is a token that represents a comma (,).
     """
     assert some_token
     return (some_token[0] == token.OP) and (some_token[1] == ",")
@@ -149,7 +153,7 @@ def is_comma_token(some_token):
 
 def with_suffix(path, suffix=''):
     """
-    Same as `path` but with suffix changed to `suffix`.
+    Same as ``path`` but with suffix changed to ``suffix``.
 
     Examples:
 
@@ -157,7 +161,7 @@ def with_suffix(path, suffix=''):
     'eggs.rst'
     >>> with_suffix("eggs.txt", "")
     'eggs'
-    >>> with_suffix(os.path.join("spam", "eggs.txt"), ".rst")
+    >>> with_suffix(os.path.join("spam", "eggs.txt"), ".rst").replace(os.sep, '/')
     'spam/eggs.rst'
     """
     assert path is not None

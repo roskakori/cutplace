@@ -5,43 +5,7 @@ Setup for cutplace.
 
 This file was generated with PyScaffold 1.3.1, a tool that easily
 puts up a scaffold for your new Python project. Learn more under:
-http://pyscaffold.readthedocs.org/
-
-Developer cheat sheet
----------------------
-
-Run locally from console::
-
-  $ export PYTHONPATH=`pwd`:`pwd`/cutplace:`pwd`/tests
-  $ python -m cutplace.applications --version
-
-Create the installer archive::
-
-  $ python setup.py sdist --formats=zip
-  $ python setup.py bdist_wheel
-
-Test that the distribution archive can be installed and run in a fresh
-terminal session::
-
-  $ ant sdist
-  $ virtualenv-3.4 /tmp/cpt
-  $ source /tmp/cpt/bin/activate
-  $ pip install ~/workspace/cutplace/dist/cutplace-0.8.x.zip
-  $ cutplace --version
-  $ cd
-  $ rm -rf /tmp/cpt
-  $ ^D
-
-Tag a release::
-
-  $ git tag -a -m "Tagged version 0.8.x." v0.8.x
-  $ git push --tags
-
-Upload release to PyPI::
-
-  $ ant flake8 test docs
-  $ python setup.py sdist --formats=zip upload
-  $ python setup.py bdist_wheel upload
+http://pyscaffold.readthedocs.org/.
 """
 # Copyright (C) 2009-2015 Thomas Aglassinger
 #

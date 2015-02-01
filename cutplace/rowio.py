@@ -84,35 +84,40 @@ if six.PY2:
 
 def _excel_cell_value(cell, datemode):
     """
-    The value of ``cell`` as text taking into account the way excel encodes dates and times.
+    The value of ``cell`` as text taking into account the way excel encodes
+    dates and times.
 
-    Numeric Excel types (Currency,  Fractional, Number, Percent, Scientific) simply yield the decimal number
-    without any special formatting.
+    Numeric Excel types (Currency,  Fractional, Number, Percent, Scientific)
+    simply return the decimal number without any special formatting.
 
-    Dates result in a text using the format "YYYY-MM-DD", times in a text using the format "hh:mm:ss".
+    Dates result in a text using the format "YYYY-MM-DD", times in a text
+    using the format "hh:mm:ss".
 
-    Boolean yields "0" or "1".
+    Boolean results in "0" or "1".
 
-    Formulas are evaluated and yield the respective result.
+    Formulas are evaluated and return the respective result.
+
+    :param str datemode: the datemode from the workbook the cell was read \
+      from; refer to the :py:mod:`xlrd` documentation for more details
     """
     assert cell is not None
 
     if cell.ctype == xlrd.XL_CELL_DATE:
         cell_tuple = xlrd.xldate_as_tuple(cell.value, datemode)
-        assert len(cell_tuple) == 6, "cellTuple=%r" % cell_tuple
+        assert len(cell_tuple) == 6, "cell_tuple=%r" % cell_tuple
         if cell_tuple[:3] == (0, 0, 0):
             time_tuple = cell_tuple[3:]
-            result = str(datetime.time(*time_tuple))
+            result = six.text_type(datetime.time(*time_tuple))
         else:
-            result = str(datetime.datetime(*cell_tuple))
+            result = six.text_type(datetime.datetime(*cell_tuple))
     elif cell.ctype == xlrd.XL_CELL_ERROR:
         default_error_text = xlrd.error_text_from_code[0x2a]  # same as "#N/A!"
         error_code = cell.value
-        result = str(xlrd.error_text_from_code.get(error_code, default_error_text), "ascii")
-    elif isinstance(cell.value, str):
+        result = six.text_type(xlrd.error_text_from_code.get(error_code, default_error_text))
+    elif isinstance(cell.value, six.text_type):
         result = cell.value
     else:
-        result = str(cell.value)
+        result = six.text_type(cell.value)
         if (cell.ctype == xlrd.XL_CELL_NUMBER) and (result.endswith(".0")):
             result = result[:-2]
 
@@ -120,6 +125,16 @@ def _excel_cell_value(cell, datemode):
 
 
 def excel_rows(source_path, sheet=1):
+    """
+    Rows read from an Excel document (both :file:`*.xls` and :file:`*.xlsx`
+    thanks to :py:mod:`xlrd`).
+
+    :param str source_path: path to the Excel file to be read
+    :param int sheet: the sheet in the file to be read
+    :return: sequence of lists with each list representing a row in the \
+      Excel file
+    :raises cutplace.errors.DataFormatError: in case the file cannot be read
+    """
     assert source_path is not None
     assert sheet >= 1, 'sheet=%r' % sheet
 
@@ -149,45 +164,56 @@ def _raise_delimited_data_format_error(delimited_path, reader, error):
     raise errors.DataFormatError('cannot parse delimited file: %s' % error, location)
 
 
+def _as_delimited_keywords(delimited_data_format):
+    assert delimited_data_format is not None
+    assert delimited_data_format.is_valid
+    assert delimited_data_format.format == data.FORMAT_DELIMITED
+
+    if delimited_data_format.escape_character == delimited_data_format.quote_character:
+        doublequote = True
+        escapechar = None
+    else:
+        doublequote = False
+        escapechar = delimited_data_format.escape_character
+    result = {
+        'delimiter': delimited_data_format.item_delimiter,
+        'doublequote': doublequote,
+        'escapechar': escapechar,
+        'quotechar': delimited_data_format.quote_character,
+        'skipinitialspace': delimited_data_format.skip_initial_space,
+        'strict': True,
+    }
+    return result
+
+
 def delimited_rows(delimited_source, data_format):
     """
     Rows in ``delimited_source`` with using ``data_format``. In case
     ``data_source`` is a string, it is considered a path to file which
     is automatically opened and closed in oder to retrieve the data.
-    Otherwise ``data_source`` is considered to be a filelike object that
+    Otherwise ``data_source`` is assumed to be a filelike object that
     can be read directly and is be opened and closed by the caller.
-    """
-    if data_format.escape_character == data_format.quote_character:
-        doublequote = True
-        escapechar = None
-    else:
-        doublequote = False
-        escapechar = data_format.escape_character
 
+    :raises cutplace.errors.DataFormatError: if ``delimited`` source is not
+      a valid delimited file
+    """
     if isinstance(delimited_source, six.string_types):
-        is_opened = True
-        delimited_file = io.open(delimited_source, 'r', newline='', encoding=data_format.encoding)
+        delimited_stream = io.open(delimited_source, 'r', newline='', encoding=data_format.encoding)
+        has_opened_delimited_stream = True
     else:
-        is_opened = False
-        delimited_file = delimited_source
-    keywords = {
-        'delimiter': data_format.item_delimiter,
-        'doublequote': doublequote,
-        'escapechar': escapechar,
-        'quotechar': data_format.quote_character,
-        'skipinitialspace': data_format.skip_initial_space,
-        'strict': True,
-    }
+        delimited_stream = delimited_source
+        has_opened_delimited_stream = False
+    keywords = _as_delimited_keywords(data_format)
     try:
-        delimited_reader = _compat.csv_reader(delimited_file, **keywords)
+        delimited_reader = _compat.csv_reader(delimited_stream, **keywords)
         try:
             for row in delimited_reader:
                 yield row
         except csv.Error as error:
             _raise_delimited_data_format_error(delimited_source, delimited_reader, error)
     finally:
-        if is_opened:
-            delimited_file.close()
+        if has_opened_delimited_stream:
+            delimited_stream.close()
 
 
 def _findall(element, xpath, namespaces):
@@ -204,6 +230,9 @@ def _findall(element, xpath, namespaces):
 def ods_rows(source_ods_path, sheet=1):
     """
     Rows stored in ODS document ``source_ods_path`` in ``sheet``.
+
+    :raises cutplace.errors.DataFormarError: if ``source_ods_path`` is not \
+      a valid ODS file.
     """
     assert sheet >= 1
 
@@ -428,3 +457,168 @@ def auto_rows(source):
         result = delimited_rows(source, delimited_format)
 
     return result
+
+
+class AbstractRowWriter(object):
+    """
+    Base class for writers that can write rows to ``target`` using a certain
+    :py:class:`~cutplace.data.DataFormat`.
+
+    :param target: :py:class:`str` or filelike object to write to; a \
+      :py:class:`str` is assumed to be a path to a file which is \
+      automatically opened during in the constructor and closed with \
+      :py:meth:`~.cutplace.rowio.AbstractRowWriter.close` or by using the \
+      ``with`` statement
+    :param cutplace.data.DataFormat: data format to use for writing
+    """
+    def __init__(self, target, data_format):
+        assert target is not None
+        assert data_format is not None
+        assert data_format.is_valid
+
+        self._data_format = data_format
+        self._has_opened_target_stream = False
+        if isinstance(target, six.string_types):
+            self._target_path = target
+            self._target_stream = io.open(self._target_path, 'w', encoding=data_format.encoding, newline='')
+            self._has_opened_target_stream = True
+        else:
+            try:
+                self._target_path = target.name
+            except AttributeError:
+                self._target_path = '<io>'
+            self._target_stream = target
+        self._location = errors.Location(self.target_path, has_cell=True)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self._has_opened_target_stream:
+            assert self.target_stream is not None
+            self.close()
+
+    @property
+    def data_format(self):
+        return self._data_format
+
+    @property
+    def location(self):
+        """
+        The :py:class:`cutplace.errors.Location` to write the next row to.
+        This is automatically advanced by
+        :py:meth:`~.cutplace.rowio.AbstractRowWriter.write_row`.
+        """
+        return self._location
+
+    @property
+    def target_path(self):
+        return self._target_path
+
+    @property
+    def target_stream(self):
+        return self._target_stream
+
+    def write_row(self, rows_to_write):
+        raise NotImplementedError
+
+    def write_rows(self, rows_to_write):
+        assert self.target_stream is not None
+        assert rows_to_write is not None
+
+        for row_to_write in rows_to_write:
+            self.write_row(row_to_write)
+
+    def close(self):
+        if self._has_opened_target_stream:
+            self._target_stream.close()
+            self._has_opened_target_stream = False
+        self._target_stream = None
+        self._target_path = None
+
+
+class DelimitedRowWriter(AbstractRowWriter):
+    def __init__(self, target, data_format):
+        assert target is not None
+        assert data_format is not None
+        assert data_format.format == data.FORMAT_DELIMITED
+        assert data_format.is_valid
+
+        super(DelimitedRowWriter, self).__init__(target, data_format)
+        keywords = _as_delimited_keywords(data_format)
+        self._delimited_writer = _compat.csv_writer(self._target_stream, **keywords)
+
+    def write_row(self, row_to_write):
+        try:
+            self._delimited_writer.writerow(row_to_write)
+        except UnicodeEncodeError as error:
+            raise errors.DataFormatError('cannot write data row: %s; row=%s' % (error, row_to_write), self.location)
+        self._location.advance_line()
+
+
+class FixedRowWriter(AbstractRowWriter):
+    def __init__(self, target, data_format, field_names_and_lengths):
+        assert target is not None
+        assert data_format is not None
+        assert data_format.format == data.FORMAT_FIXED
+        assert data_format.is_valid
+        assert field_names_and_lengths is not None
+        for field_name, field_length in field_names_and_lengths:
+            assert field_name is not None
+            assert field_length is not None
+            assert field_length >= 1, 'field_length=%r' % field_length
+
+        super(FixedRowWriter, self).__init__(target, data_format)
+        self._field_names_and_lengths = field_names_and_lengths
+        self._expected_row_item_count = len(self._field_names_and_lengths)
+        if self.data_format.line_delimiter == 'any':
+            if six.PY2:
+                self._line_separator = six.text_type(os.linesep)
+            else:
+                self._line_separator = os.linesep
+        else:
+            self._line_separator = self.data_format.line_delimiter
+
+    def write_row(self, row_to_write):
+        """
+        Write a row of fixed length strings.
+
+        :param list row_to_write: a list of str where each item must have \
+          exactly the same length as the corresponding entry in \
+          :py:attr:`~.field_lengths`
+        :raises AssertionError: if ``row_to_write`` is not a list of \
+          strings with each matching the corresponding ``field_lengths`` \
+          as specified to :py:meth:`~.__init__`.
+        """
+        assert row_to_write is not None
+
+        row_to_write_item_count = len(row_to_write)
+        if row_to_write_item_count != self._expected_row_item_count:
+            raise errors.DataFormatError(
+                'row must have %d items instead of %d: %s'
+                % (self._expected_row_item_count, row_to_write_item_count, row_to_write), self.location)
+        for field_index, field_value in enumerate(row_to_write):
+            self.location.set_cell(field_index)
+            field_name, expected_field_length = self._field_names_and_lengths[field_index]
+            if not isinstance(field_value, six.text_type):
+                raise errors.DataError(
+                    'field %s must be of type %s but is: %s (%s)'
+                    % (_compat.text_repr(field_name), six.text_type.__name__, field_value, type(field_value).__name__),
+                    self.location)
+            actual_field_length = len(field_value)
+            if actual_field_length != expected_field_length:
+                raise errors.DataError(
+                    'field %s must have exactly %d characters instead of %d: %s'
+                    % (_compat.text_repr(field_name), expected_field_length, actual_field_length,
+                       _compat.text_repr(field_value)),
+                    self.location)
+        self.location.set_cell(0)
+        try:
+            self._target_stream.write(''.join(row_to_write))
+        except UnicodeEncodeError as error:
+            raise errors.DataFormatError(
+                'cannot write data row: %s; row=%s'
+                % (error, row_to_write), self.location)
+        if self._line_separator is not None:
+            self._target_stream.write(self._line_separator)
+        self.location.advance_line()

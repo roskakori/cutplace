@@ -1,5 +1,5 @@
 """
-Test for `errors` module.
+Tests for :py:mod:`cutplace.errors` module.
 """
 # Copyright (C) 2009-2015 Thomas Aglassinger
 #
@@ -27,12 +27,9 @@ from cutplace import errors
 from tests import dev_test
 
 
-class ErrorsTest(unittest.TestCase):
-    """
-    TestCase for `errors` module.
-    """
-
+class LocationTest(unittest.TestCase):
     def test_can_work_with_location(self):
+        # TODO: Cleanup: split up in several tests with meaningful names.
         location = errors.Location("eggs.txt", has_column=True)
         self.assertEqual(location.line, 0)
         self.assertEqual(location.column, 0)
@@ -75,18 +72,32 @@ class ErrorsTest(unittest.TestCase):
         self.assertEqual(location.__eq__(location_other), True)
         self.assertEqual(location.__lt__(location_other), False)
 
-    def test_can_create_cutplace_error(self):
-        location = errors.Location("eggs.ods", has_cell=True, has_sheet=True)
-        base_error = errors.CutplaceError("It`s a test", location, "see also message", location, "cause")
-        self.assertEqual(base_error.location, location)
-        self.assertEqual(base_error.see_also_location, location)
-        self.assertEqual(base_error.cause, "cause")
-        self.assertEqual(base_error.__str__(), 'eggs.ods (Sheet1!R1C1): It`s a test (see also: eggs.ods (Sheet1!R1C1):'
-                                               ' see also message)')
-
     def test_can_create_caller_location(self):
         location = errors.create_caller_location()
         dev_test.assert_fnmatches(self, str(location), 'test_errors.py ([1-9]*)')
+
+
+class CutplaceErrorTest(unittest.TestCase):
+    def test_can_create_simple_cutplace_error(self):
+        location = errors.Location('eggs.ods', has_cell=True, has_sheet=True)
+        error = errors.CutplaceError('something must be something else', location)
+        self.assertEqual(error.location, location)
+        self.assertEqual(error.__str__(), 'eggs.ods (Sheet1!R1C1): something must be something else')
+
+    def test_can_create_cutplace_error_with_see_also_details(self):
+        location = errors.Location('eggs.ods', has_cell=True, has_sheet=True)
+        location.advance_line(3)
+        location.advance_cell(2)
+        location_of_cause = errors.Location('spam.ods', has_cell=True, has_sheet=True)
+        cause = errors.CutplaceError('something must be something else', location_of_cause)
+        error = errors.CutplaceError('cannot do something', location, cause.message, cause.location, cause)
+        self.assertEqual(error.location, location)
+        self.assertEqual(error.see_also_location, cause.location)
+        self.assertEqual(error.cause, cause)
+        self.assertEqual(
+            error.__str__(),
+            'eggs.ods (Sheet1!R4C3): cannot do something '
+            + '(see also: spam.ods (Sheet1!R1C1): something must be something else)')
 
 
 if __name__ == '__main__':

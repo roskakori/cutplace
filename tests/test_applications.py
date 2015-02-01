@@ -140,11 +140,11 @@ class CutplaceProcessTest(unittest.TestCase):
     #     validCsvFileNames = _tools.listdirMatching(testsInputFolder, VALID_PREFIX + '.*\\.csv', '.*with_head.*')
     #     validCsvPaths = list(os.path.join(testsInputFolder, fileName) for fileName in validCsvFileNames)
     #     for dataPath in validCsvPaths:
-    #         # Compute the base name of the related ICD.
+    #         # Compute the base name of the related CID.
     #         baseFileName = os.path.basename(dataPath)
     #         baseFileNameWithoutCsvSuffix = os.path.splitext(baseFileName)[0]
     #         baseFileNameWithoutValidPrefixAndCsvSuffix = baseFileNameWithoutCsvSuffix[len(VALID_PREFIX):]
-    #         # Compute the full path of the related ICD.
+    #         # Compute the full path of the related CID.
     #         icdBaseName = baseFileNameWithoutValidPrefixAndCsvSuffix.split('_')[0]
     #         icdPath = dev_test.path_to_test_cid(icdBaseName + '.csv')
     #         if not os.path.exists(icdPath):
