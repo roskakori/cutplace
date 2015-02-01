@@ -212,27 +212,28 @@ class DecimalRangeTest(unittest.TestCase):
 
         multi_range = ranges.DecimalRange("1.1...4.9, 7.1...9")
         multi_range.validate("x", 1.1)
-        multi_range.validate("x", 7.4)
+        multi_range.validate("x", 4.9)
+        multi_range.validate("x", 7.1)
         multi_range.validate("x", 9)
 
     def test_fails_on_validation_with_out_of_range_value(self):
         lower_and_upper_range = ranges.DecimalRange("-1.2...1.5")
-        self.assertRaises(errors.RangeValueError, lower_and_upper_range.validate, "x", - 2)
-        self.assertRaises(errors.RangeValueError, lower_and_upper_range.validate, "x", 2)
+        self.assertRaises(errors.RangeValueError, lower_and_upper_range.validate, "x", decimal.Decimal('-1.3'))
+        self.assertRaises(errors.RangeValueError, lower_and_upper_range.validate, "x", decimal.Decimal('1.6'))
 
         lower_range = ranges.DecimalRange("1.1...")
-        self.assertRaises(errors.RangeValueError, lower_range.validate, "x", 0)
+        self.assertRaises(errors.RangeValueError, lower_range.validate, "x", 1)
 
         upper_range = ranges.DecimalRange("...1.1")
-        self.assertRaises(errors.RangeValueError, upper_range.validate, "x", 2)
+        self.assertRaises(errors.RangeValueError, upper_range.validate, "x", decimal.Decimal('1.2'))
 
         multi_range = ranges.DecimalRange("1.1...4.9, 7.1...9")
-        self.assertRaises(errors.RangeValueError, multi_range.validate, "x", - 3)
-        self.assertRaises(errors.RangeValueError, multi_range.validate, "x", 0)
+        self.assertRaises(errors.RangeValueError, multi_range.validate, "x", 1)
         self.assertRaises(errors.RangeValueError, multi_range.validate, "x", 5)
-        self.assertRaises(errors.RangeValueError, multi_range.validate, "x", 6)
-        self.assertRaises(errors.RangeValueError, multi_range.validate, "x", 10)
-        self.assertRaises(errors.RangeValueError, multi_range.validate, "x", 723)
+        self.assertRaises(errors.RangeValueError, multi_range.validate, "x", 7)
+        self.assertRaises(errors.RangeValueError, multi_range.validate, "x", decimal.Decimal('9.1'))
+
+    #Todo: test real limits of decimal
 
     def _test_can_handle_empty_range(self, description):
         empty_range = ranges.DecimalRange(description)
@@ -245,10 +246,12 @@ class DecimalRangeTest(unittest.TestCase):
         self.assertIsNone(empty_range.validate("x", -1))
         self.assertIsNone(empty_range.validate("x", ranges.MAX_INTEGER + 1))
 
+
     def test_can_handle_empty_range(self):
         self._test_can_handle_empty_range(None)
         self._test_can_handle_empty_range('')
         self._test_can_handle_empty_range(' \t  ')
+
 
     def _test_fails_with_interface_error(self, description, anticipated_error_message_pattern):
         try:

@@ -600,7 +600,15 @@ class DecimalRange(Range):
         assert value is not None
 
         if not isinstance(value, decimal.Decimal):
-            value_d = decimal.Decimal(value)
+            try:
+                if six.PY2 and isinstance(value, float):
+                    value_d = decimal.Decimal().from_float(value)
+                else:
+                    value_d = decimal.Decimal(value)
+            except decimal.DecimalException:
+                raise errors.RangeValueError(
+                    "the value must be in an decimal syntax but is '%r'" % value
+                )
         else:
             value_d = value
 
