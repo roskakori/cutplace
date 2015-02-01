@@ -1,5 +1,5 @@
 """
-Ranges check if certain values are within it. This is used in several places of the ICD, in
+Ranges check if certain values are within it. This is used in several places of the CID, in
 particular to specify the length limits for field values and the characters allowed for a data
 format.
 """
@@ -118,7 +118,8 @@ def create_range_from_length(length_range):
     if length_range.items is not None:
         if any((i[0] is not None and i[0] < 0) or (i[1] is not None and i[1] < 1) for i in length_range.items):
             raise errors.RangeValueError(
-                "length must be a positive range and upper limit has to be greater than one, but is: %s" % length_range.description)
+                'length must be a positive range and upper limit has to be greater than one, but is: %s'
+                % length_range.description)
 
         for item in length_range.items:
             lower_length = item[0]
@@ -126,22 +127,22 @@ def create_range_from_length(length_range):
 
             if lower_length is None or lower_length == 0 or lower_length == 1:
                 if upper_length is None:
-                    range_rule_text += ','
+                    range_rule_text += ', '
                 elif upper_length == 1:
-                    range_rule_text += '0...9,'
+                    range_rule_text += '0...9, '
                 else:
-                    range_rule_text += ('-' + ('9' * (upper_length - 1)) + '...' + ('9' * upper_length)) + ','
+                    range_rule_text += ('-' + ('9' * (upper_length - 1)) + '...' + ('9' * upper_length)) + ', '
             elif lower_length == upper_length:
-                range_rule_text += ('-' + ('9' * (lower_length - 1)) + '...' + ('9' * upper_length)) + ','
+                range_rule_text += ('-' + ('9' * (lower_length - 1)) + '...' + ('9' * upper_length)) + ', '
             else:
                 if upper_length is None:
-                    range_rule_text += ('...-1' + ('0' * (lower_length-2)) + ',1' +
-                                        ('0' * (lower_length-1)) + '...,')
+                    range_rule_text += ('...-1' + ('0' * (lower_length - 2)) + ', 1' +
+                                        ('0' * (lower_length - 1)) + '..., ')
                 else:
-                    range_rule_text += ('-' + ('9' * (upper_length - 1)) + '...-1' + ('0' * (lower_length - 2))) + ',1' + \
-                                       (('0' * (lower_length - 1)) + '...' + ('9' * upper_length)) + ','
+                    range_rule_text += ('-' + ('9' * (upper_length - 1)) + '...-1' + ('0' * (lower_length - 2))) + ', 1' + \
+                                       (('0' * (lower_length - 1)) + '...' + ('9' * upper_length)) + ', '
 
-        range_rule_text = range_rule_text.rstrip(',')
+        range_rule_text = range_rule_text.rstrip(' ,')
     else:
         range_rule_text = ''
     return Range(range_rule_text)
@@ -155,13 +156,15 @@ class Range(object):
 
     def __init__(self, description, default=None):
         """
-        Setup a range as specified by ``text``.
+        Setup a range as specified by ``description``.
 
-        ``text`` must be of the form "lower...upper" or "limit". In case ``text`` is
-        empty (``''``), any value will be accepted by `validate()`. For example, "1...40"
-        accepts values between 1 and 40.
-
-        ``default`` is an alternative text to use in case ``text`` is ``None`` or empty.
+        :param str description: a range description of the form \
+          ``lower...upper`` or ``limit``. In case it is empty (``''``), any \
+          value will be accepted by \
+          :py:meth:`~cutplace.ranges.Range.validate()`. For example, \
+          ``1...40`` accepts values between 1 and 40.
+        :param str default: an alternative to use in case ``description`` is \
+          ``None`` or empty.
         """
         assert default is None or (default.strip() != ''), "default=%r" % default
 
@@ -187,7 +190,7 @@ class Range(object):
 
             name_for_code = 'range'
             location = None  # TODO: Add location where range is declared.
-            tokens = tokenize.generate_tokens(io.StringIO(self._description).readline)
+            tokens = _tools.tokenize_without_space(self._description)
             end_reached = False
             while not end_reached:
                 lower = None
@@ -309,23 +312,33 @@ class Range(object):
     @property
     def items(self):
         """
-        A list compiled from `description` for fast processing. Each item is represented by a
-        tuple ``(lower, upper)`` where either ``lower``or ``upper`` can be ``None``. For example,
-        "2...20" turns ``(2, 20)``, "...20" turns to ``(None, 20)`` and "2..." becomes ``(2, None)``.
+        A list derived from :py:attr:`~cutplace.ranges.Range.description` for
+        fast processing. Each item is represented by a tuple
+        ``(lower, upper)`` where both of ``lower`` or ``upper`` can be
+        ``None``. For example, ``'2...20'`` becomes ``(2, 20)``, ``'...20'``
+        becomes ``(None, 20)`` and ``'2...'`` becomes ``(2, None)``.
+
+        :rtype: list
         """
         return self._items
 
     @property
     def lower_limit(self):
         """
-        The minimum value of all items in the list
+        The minimum of :py:attr:`~cutplace.ranges.Range.items` or ``None`` if
+        any of them is ``None`` (meaning there is no lower bound).
+
+        :rtype: int
         """
         return self._lower_limit
 
     @property
     def upper_limit(self):
         """
-        The maximum value of all items in the list
+        The maximum of :py:attr:`~cutplace.ranges.Range.items` or ``None`` if
+        any of them is ``None`` (meaning there is no upper bound).
+
+        :rtype: int
         """
         return self._upper_limit
 
@@ -403,7 +416,14 @@ class Range(object):
 
     def validate(self, name, value, location=None):
         """
-        Validate that value is within the specified range and in case it is not, raise a `RangeValueError`.
+        Validate that ``value`` is within the specified range.
+
+        :param str name: the name of ``value`` known to the end user for \
+          usage in possible error messages
+        :param int value: the value to validate
+        :param cutplace.errors.Location location: the location to refer to \
+          in possible error messages
+        :raises cutplace.errors.RangeValueError: if ``value`` is out of range
         """
         assert name is not None
         assert name

@@ -28,6 +28,7 @@ import unittest
 from cutplace import data
 from cutplace import errors
 from cutplace import fields
+from cutplace import sql
 
 _ANY_FORMAT = data.DataFormat(data.FORMAT_DELIMITED)
 _FIXED_FORMAT = data.DataFormat(data.FORMAT_FIXED)
@@ -108,21 +109,21 @@ class DateTimeFieldFormatTest(unittest.TestCase):
 
     def test_can_output_sql_date(self):
         field_format = fields.DateTimeFieldFormat("x", True, None, "YYYY-MM-DD", _ANY_FORMAT)
-        self.assertEqual(field_format.as_sql(fields.MSSQL)[0], "x date")
+        self.assertEqual(field_format.as_sql(sql.MSSQL)[0], "x date")
 
     def test_can_output_sql_time(self):
         field_format = fields.DateTimeFieldFormat("x", True, None, "hh:mm:ss", _ANY_FORMAT)
-        self.assertEqual(field_format.as_sql(fields.MSSQL)[0], "x time")
+        self.assertEqual(field_format.as_sql(sql.MSSQL)[0], "x time")
 
     def test_can_output_sql_datetime(self):
         field_format = fields.DateTimeFieldFormat("x", True, None, "YYYY:MM:DD hh:mm:ss", _ANY_FORMAT)
-        self.assertEqual(field_format.as_sql(fields.MSSQL)[0], "x datetime")
+        self.assertEqual(field_format.as_sql(sql.MSSQL)[0], "x datetime")
         field_format = fields.DateTimeFieldFormat("x", True, None, "YY:MM:DD hh:mm:ss", _ANY_FORMAT)
-        self.assertEqual(field_format.as_sql(fields.MSSQL)[0], "x datetime")
+        self.assertEqual(field_format.as_sql(sql.MSSQL)[0], "x datetime")
 
     def test_can_output_sql_datetime_not_null(self):
         field_format = fields.DateTimeFieldFormat("x", False, None, "YYYY:MM:DD hh:mm:ss", _ANY_FORMAT)
-        self.assertEqual(field_format.as_sql(fields.MSSQL)[0], "x datetime not null")
+        self.assertEqual(field_format.as_sql(sql.MSSQL)[0], "x datetime not null")
 
 
 class DecimalFieldFormatTest(unittest.TestCase):
@@ -199,27 +200,20 @@ class IntegerFieldFormatTest(unittest.TestCase):
 
     def test_can_process_length_example(self):
         field_format = fields.IntegerFieldFormat("x", False, "1...3", "", _ANY_FORMAT)
-        self.assertEqual(field_format.validated("0"), 0)
-        self.assertEqual(field_format.validated("1"), 1)
-        self.assertEqual(field_format.validated("99"), 99)
         self.assertEqual(field_format.validated("999"), 999)
-        self.assertEqual(field_format.validated("-1"), -1)
         self.assertEqual(field_format.validated("-99"), -99)
         self.assertFalse(field_format.is_allowed_to_be_empty)
 
         self.assertRaises(errors.FieldValueError, field_format.validated, "-100")
-        self.assertRaises(errors.FieldValueError, field_format.validated, "9999")
+        self.assertRaises(errors.FieldValueError, field_format.validated, "1000")
 
-        """
         field_format = fields.IntegerFieldFormat("x", False, "2...2", "", _ANY_FORMAT)
-        self.assertEqual(field_format.validated("0"), 0)
+        self.assertEqual(field_format.validated("-9"), -9)
         self.assertEqual(field_format.validated("1"), 1)
         self.assertEqual(field_format.validated("99"), 99)
-        self.assertEqual(field_format.validated("-1"), -1)
 
         self.assertRaises(errors.FieldValueError, field_format.validated, "-10")
         self.assertRaises(errors.FieldValueError, field_format.validated, "100")
-        """
 
         field_format = fields.IntegerFieldFormat("x", False, "3...4, 10...", "", _ANY_FORMAT)
         self.assertEqual(field_format.validated("-999"), -999)
@@ -246,7 +240,6 @@ class IntegerFieldFormatTest(unittest.TestCase):
         self.assertEqual(field_format.validated("-1"), -1)
         self.assertEqual(field_format.validated("10"), 10)
         self.assertEqual(field_format.validated("-9"), -9)
-        self.assertEqual(field_format.validated("25"), 25)
         self.assertEqual(field_format.validated("10000"), 10000)
 
         self.assertRaises(errors.FieldValueError, field_format.validated, "-10")
@@ -325,25 +318,25 @@ class ChoiceFieldFormatTest(unittest.TestCase):
 
     def test_can_output_sql_varchar(self):
         field_format = fields.ChoiceFieldFormat("color", True, None, "red,grEEn, blue ", _ANY_FORMAT)
-        column_def, constraint = field_format.as_sql(fields.MSSQL)
+        column_def, constraint = field_format.as_sql(sql.MSSQL)
         self.assertEqual(column_def, "color varchar(255)")
         self.assertEqual(constraint, "constraint chk_rule_color check( color in ['red','grEEn','blue'] );")
 
     def test_can_output_sql_smallint(self):
         field_format = fields.ChoiceFieldFormat("color", True, None, "1,2, 3 ", _ANY_FORMAT)
-        column_def, constraint = field_format.as_sql(fields.MSSQL)
+        column_def, constraint = field_format.as_sql(sql.MSSQL)
         self.assertEqual(column_def, "color smallint")
         self.assertEqual(constraint, "constraint chk_rule_color check( color in [1,2,3] );")
 
     def test_can_output_sql_integer(self):
         field_format = fields.ChoiceFieldFormat("color", True, None, "1000000,2, 3 ", _ANY_FORMAT)
-        column_def, constraint = field_format.as_sql(fields.MSSQL)
+        column_def, constraint = field_format.as_sql(sql.MSSQL)
         self.assertEqual(column_def, "color integer")
         self.assertEqual(constraint, "constraint chk_rule_color check( color in [1000000,2,3] );")
 
     def test_can_output_sql_bigint(self):
         field_format = fields.ChoiceFieldFormat("color", True, None, "10000000000,2, 3 ", _ANY_FORMAT)
-        column_def, constraint = field_format.as_sql(fields.MSSQL)
+        column_def, constraint = field_format.as_sql(sql.MSSQL)
         self.assertEqual(column_def, "color bigint")
         self.assertEqual(constraint, "constraint chk_rule_color check( color in [10000000000,2,3] );")
 
@@ -365,7 +358,7 @@ class PatternFieldFormatTest(unittest.TestCase):
 
     def test_can_output_sql_without_range(self):
         field_format = fields.PatternFieldFormat("x", False, None, "h*g?", _ANY_FORMAT)
-        column_def, constraint = field_format.as_sql(fields.MSSQL)
+        column_def, constraint = field_format.as_sql(sql.MSSQL)
         self.assertEqual(column_def, "x varchar(255) not null")
         self.assertEqual(constraint, "constraint chk_rule_x check( x in ['h','g'] );")
 
