@@ -602,18 +602,18 @@ class DecimalRange(Range):
         if not isinstance(value, decimal.Decimal):
             try:
                 if six.PY2 and isinstance(value, float):
-                    value_d = decimal.Decimal().from_float(value)
+                    value_d = decimal.Decimal.from_float(value)
                 else:
                     value_d = decimal.Decimal(value)
             except decimal.DecimalException:
                 raise errors.RangeValueError(
-                    "the value must be in an decimal syntax but is '%r'" % value
-                )
+                    "the value must be in an decimal syntax but is '%r'" % value)
         else:
             value_d = value
 
         if isinstance(value, float):
-            value_d = round(value_d, len(str(value).split('.')[1]))
+            prec = len(str(value).split('.')[1]) - 1
+            value_d = value_d.quantize(decimal.Decimal('.'+'0'*prec+'1'), decimal.ROUND_HALF_UP)
 
         if self._items is not None:
             is_valid = False
