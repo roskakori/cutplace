@@ -5,6 +5,11 @@ Revision history
 This chapter describes improvements compared to earlier versions of cutplace.
 
 
+Version 0.8.4, 2015-02-xx
+=========================
+
+* Improved API documentation by adding a section on :ref:`writing-data`.
+
 Version 0.8.3, 2015-01-31
 =========================
 

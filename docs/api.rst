@@ -16,8 +16,8 @@ containing data about some customers. It also explains how to extend
 cutplace's fields formats and checks and implement your own.
 
 
-Set up logging
-==============
+Logging
+=======
 
 Cutplace uses Python's standard :py:mod:`logging` module. This provides a
 familiar and powerful way to watch what cutplace is doing. However, it also
@@ -244,44 +244,45 @@ In case you want to continue even if a row was rejected, use the optional
 parameter ``on_error='yield'`` as described earlier.
 
 
-.. #84: Add validated writing.
+.. _writing-data:
 
-    Writting data
-    -------------
+Writing data
+------------
 
-    To validate written data, use ``interface.Writer``. A ``Writer`` needs a CID
-    tovalidate against and an output to write to. The output can be any filelike
-    object such as a file or an :py:class:`io.StringIO`. For example::
+To validate written data, use :py:class`cutplace.Writer`. A ``Writer`` needs
+a CID to validate against and an output to write to. The output can be any
+filelike object such as a file or an :py:class:`io.StringIO`. For example::
 
-      ### import io
-      ### out = io.StringIO()
+    >>> import io
+    >>> out = io.StringIO()
 
-    Now you can create a writer and write a valid row to it::
+Now you can create a writer and write a valid row to it::
 
-      ### writer = interface.Writer(cid, out)
-      ### writer.writeRow(['38000', '234', 'John', 'Doe', 'male', '08.03.1957'])
+    >>> writer = cutplace.Writer(cid, out)
+    >>> writer.write_row(['38000', '234', 'John', 'Doe', 'male', '08.03.1957'])
 
-    Attempting to write broken data results in an ``Exception`` derived from
-    ``CutplaceError``::
+Attempting to write broken data results in an :py:exc:`Exception` derived
+from :py:exc:`cutplace.errors.CutplaceError`::
 
-      ### writer.writeRow(['38000', 'not a number', 'Jane', 'Miller', 'female', '04.10.1946']) #doctest: +IGNORE_EXCEPTION_DETAIL
-      Traceback (most recent call last):
-      FieldValueError: <io> (R1C2): field 'customer_id' must match format: value must be an integer number: 'not a number'
+    >>> writer.write_row(['38000', 'not a number', 'Jane', 'Miller', 'female', '04.10.1946']) #doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+    FieldValueError: <io> (R1C2): field 'customer_id' must match format: value must be an integer number: 'not a number'
 
-    Note that after a ``CutplaceError`` you can continue writing. For any other
-    ``Exception`` such as ``IOError`` it is recommended to stop writing and
-    consider it an unrecoverable situation.
+Note that after a :py:exc:`~.CutplaceError` you can continue writing. For any other
+:py:exc:`Exception` such as :py:exc:`IOError` it is recommended to stop writing and
+consider it an unrecoverable situation.
 
-    Once done, close both the writer and the output::
+Once done, close both the writer and the output::
 
-      ### writer.close()
-      ### out.close()
+    >>> writer.close()
+    >>> out.close()
 
-    As ``interface.Writer`` implements the context management protocoll, you can
-    also use the ``with`` statement to automatically ``close()`` it when done.
+As :py:class:`cutplace.Writer` implements the context manager protocol, you
+can also use the ``with`` statement to automatically
+:py:func:`~cutplace.Writer.close` it when done.
 
-    Note that ``Writer.close()`` performs cutplace checks and consequently can
-    raise a ``CheckError``.
+Note that :py:func:`cutplace.Writer.close` performs cutplace checks and
+consequently can raise a :py:exc:`cutplace.errors.CheckError`.
 
 
 Advanced usage
@@ -292,10 +293,10 @@ data using a few simple API calls. You also learned how to handle errors
 detected in the data.
 
 With this knowledge, you should be able to write your own small validation
-scripts that process the results in any meaningful way you want by adding your
-own code to log errors, send validation reports via email or automatically
-insert accepted rows in a data base. The Python standard library offers
-powerful modules for all these tasks.
+scripts that process the results. For instance, you could add your own code
+to log errors, send validation reports via email or automatically insert
+accepted rows in a data base. The Python standard library offers powerful
+modules for all these tasks.
 
 In case you are already happy and found everything you need, you can stop
 reading this chapter and move on with implementing your tasks.
@@ -366,8 +367,8 @@ For example::
     InterfaceError: <source> (R1C2): check row (marked with 'c') must contain at least 2 columns
 
 
-Writing field formats
----------------------
+Adding your own field formats
+-----------------------------
 
 Cutplace already ships with several field formats found in
 :py:mod:`cutplace.fields` module that should cover most needs. If
@@ -486,8 +487,8 @@ Let's give it a try::
     (0.0, 0.0, 0.0)
 
 
-Writing checks
---------------
+Adding your own checks
+----------------------
 
 Writing checks is quite similar to writing field formats. However, the
 interaction with the validation is more complex.
@@ -537,7 +538,7 @@ parameters:
   description of the check to refer to it in error messages
 * ``rule='...100'``, which describes what exactly the check
   should do. Each check can define its own syntax for the rule. In case of
-  ``FullNameLengthIsInRange`` the rule describes a
+  :py:class:`FullNameLengthIsInRange` the rule describes a
   :py:class:`cutplace.ranges.Range`.
 * ``available_field_names=['branch_id', 'customer_id', 'first_name',
   'last_name', 'gender', 'date_of_birth']`` (as defined in the CID and using
