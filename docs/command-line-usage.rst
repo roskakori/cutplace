@@ -79,7 +79,9 @@ Setting :option:`--until=-1` enables validation for all rows (which is the
 default) while :option:`--until=0` disables it for the whole file.
 
 
+.. index:: plugins
 .. index:: pair: command line option; --plugins
+.. _import-plugins:
 
 Import plugins
 ==============
@@ -97,24 +99,31 @@ which checks and field formats are actually recognized, also specify
 :option:`--log=info`.
 
 
+.. index:: exit code
+.. _exit-code:
+
 Dealing with errors
 ===================
 
-Roughly speaking cutplace can encounter the following kinds of errors when
-validating data:
+When :command:`cutplace` detects any errors in the CID or data or cannot
+validate them due external circumstances the logs an error messages and sets
+an exit code other than 0.
 
-* Errors that prevent cutplace from validating the data at all, such as non
-  existent data files, insufficient file access rights or broken CID's.
+The value of the exist code hints at what needs to be fixed:
 
-* Errors in the data format that prevent it from validating the whole file. For
-  example, the CID might specify a line separator "LF" (linefeed) but the data
-  file uses "CRLF" (carriage return and linefeed). In such a case, cutplace
-  will stop the validation once it encounters the wrong separator.
+* 1 - the syntax of the CID needs fixing or the data must be modified in
+  order to conform to the CID
 
-* Errors in the data that violate the rules specified in the CID for fields and
-  checks. For example, the CID might specify that a field is an integer number
-  but the data file contains letters in it.  In such a case, cutplace will
-  report the specific line and column of the field, and continue with the next
-  one.
+* 2 - the command line options must be fixed
 
-**TODO**: elaborate on dealing with errors, in particular exit code
+* 3 - a proper environment must be provided for :command:`cutplace` to do its
+  tasks. For example, the files containing the CID and data must actually
+  exist and be accessible.
+
+* 4 - cutplace (or one of the plugins provided to it) did not expect a
+  certain error condition and must be fixed. Unlike previous exit codes,
+  these errors also include a Python stack trace pointing to the relevant
+  locations in the source code. If you did not provide any plugins (as
+  described in :ref:`import-plugins`) or you are certain that the error
+  is unrelated to one of your own plugins, file a bug report as described
+  in :doc:`support`.
