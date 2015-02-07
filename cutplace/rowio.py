@@ -591,28 +591,25 @@ class FixedRowWriter(AbstractRowWriter):
           as specified to :py:meth:`~.__init__`.
         """
         assert row_to_write is not None
-
         row_to_write_item_count = len(row_to_write)
-        if row_to_write_item_count != self._expected_row_item_count:
-            raise errors.DataFormatError(
-                'row must have %d items instead of %d: %s'
-                % (self._expected_row_item_count, row_to_write_item_count, row_to_write), self.location)
-        for field_index, field_value in enumerate(row_to_write):
-            self.location.set_cell(field_index)
-            field_name, expected_field_length = self._field_names_and_lengths[field_index]
-            if not isinstance(field_value, six.text_type):
-                raise errors.DataError(
-                    'field %s must be of type %s but is: %s (%s)'
-                    % (_compat.text_repr(field_name), six.text_type.__name__, field_value, type(field_value).__name__),
-                    self.location)
-            actual_field_length = len(field_value)
-            if actual_field_length != expected_field_length:
-                raise errors.DataError(
-                    'field %s must have exactly %d characters instead of %d: %s'
-                    % (_compat.text_repr(field_name), expected_field_length, actual_field_length,
-                       _compat.text_repr(field_value)),
-                    self.location)
-        self.location.set_cell(0)
+        assert row_to_write_item_count == self._expected_row_item_count, \
+            '%s: row must have %d items instead of %d: %s' \
+            % (self.location, self._expected_row_item_count, row_to_write_item_count, row_to_write)
+        if __debug__:
+            for field_index, field_value in enumerate(row_to_write):
+                self.location.set_cell(field_index)
+                field_name, expected_field_length = self._field_names_and_lengths[field_index]
+                assert isinstance(field_value, six.text_type), \
+                    '%s: field %s must be of type %s instead of %s: %r' \
+                    % (self.location, _compat.text_repr(field_name), six.text_type.__name__, type(field_value).__name__,
+                       field_value)
+                actual_field_length = len(field_value)
+                assert actual_field_length == expected_field_length, \
+                    '%s: field %s must have exactly %d characters instead of %d: %r' \
+                    % (self.location, _compat.text_repr(field_name), expected_field_length, actual_field_length,
+                       field_value)
+            self.location.set_cell(0)
+
         try:
             self._target_stream.write(''.join(row_to_write))
         except UnicodeEncodeError as error:

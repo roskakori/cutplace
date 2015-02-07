@@ -406,4 +406,4 @@ class Range(object):
                 item_index += 1
             if not is_valid:
                 raise errors.RangeValueError(
-                    "%s is %r but must be within range: %r" % (name, value, self), location)
+                    "%s is %r but must be within range: %s" % (name, value, self), location)

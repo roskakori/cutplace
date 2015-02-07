@@ -10,6 +10,13 @@ Version 0.8.4, 2015-02-xx
 
 * Improved documentation: cleaned up section on :ref:`exit-code`.
 * Improved API documentation: added a section on :ref:`writing-data`.
+* Improved API: changed validation of length for fixed field values:
+  :py:class:`cutplace.Writer` rejects too long values with a
+  :py:exc:`~cutplace.errors.FieldValueError` and automatically pads too short
+  values with trailing blanks while the low level
+  :py:class:`cutplace.rowio.FixedRowWriter` rejects both cases with an
+  :py:exc:`AssertionError`. Furthermore the length of fixed values is now
+  checked before validating it against the field format rule.
 
 
 Version 0.8.3, 2015-01-31
