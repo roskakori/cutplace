@@ -8,6 +8,7 @@ This chapter describes improvements compared to earlier versions of cutplace.
 Version 0.8.4, 2015-02-xx
 =========================
 
+* Fixed reading of non ASCII values from ODS under Python 2.
 * Improved documentation: cleaned up section on :ref:`exit-code`.
 * Improved API documentation: added a section on :ref:`writing-data`.
 * Improved API: changed validation of length for fixed field values:

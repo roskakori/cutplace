@@ -136,7 +136,7 @@ class BaseValidator(object):
                 if not isinstance(field_value, six.text_type):
                     raise errors.FieldValueError(
                         'type must be %s instead of %s: %s'
-                        % (six.text_type.__name__, type(field_value).__name__), _compat.text_repr(field_value))
+                        % (six.text_type.__name__, type(field_value).__name__, _compat.text_repr(field_value)))
                 field_to_validate.validated(field_value)
             except errors.FieldValueError as error:
                 error.prepend_message(
