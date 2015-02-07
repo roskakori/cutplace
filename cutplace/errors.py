@@ -342,12 +342,12 @@ class CutplaceError(Exception):
         """
         result = ''
         if self._location:
-            result += str(self.location) + ': '
+            result += six.text_type(self.location) + ': '
         result += self._message
         if self.see_also_message is not None:
             result += ' (see also: '
             if self.see_also_location:
-                result += str(self.see_also_location) + ': '
+                result += six.text_type(self.see_also_location) + ': '
             result += self.see_also_message + ')'
         return result
 

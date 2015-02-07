@@ -374,7 +374,7 @@ class IntegerFieldFormat(AbstractFieldFormat):
         try:
             self.valid_range.validate("value", value_as_int)
         except errors.RangeValueError as error:
-            raise errors.FieldValueError(str(error))
+            raise errors.FieldValueError(six.text_type(error))
         return value_as_int
 
     def as_sql(self, db):

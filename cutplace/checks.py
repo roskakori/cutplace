@@ -23,6 +23,8 @@ from __future__ import unicode_literals
 import copy
 import tokenize
 
+import six
+
 from cutplace import fields
 from cutplace import errors
 from cutplace import _compat
@@ -190,7 +192,7 @@ class IsUniqueCheck(AbstractCheck):
                             self.location_of_rule)
                     unique_field_names.add(token_value)
                 except errors.InterfaceError as error:
-                    raise errors.InterfaceError(str(error))
+                    raise errors.InterfaceError(six.text_type(error))
                 self._field_names_to_check.append(token_value)
             elif not _tools.is_comma_token(next_token):
                 raise errors.InterfaceError(
