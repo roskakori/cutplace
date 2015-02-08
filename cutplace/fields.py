@@ -318,8 +318,8 @@ class DecimalFieldFormat(AbstractFieldFormat):
         # if rule.strip() != '':
         #    raise errors.InterfaceError("decimal rule must be empty")
         assert rule is not None, 'to specify "no rule" use "" instead of None'
-        self.decimalSeparator = data_format.decimal_separator
-        self.thousandsSeparator = data_format.thousands_separator
+        self.decimal_separator = data_format.decimal_separator
+        self.thousands_separator = data_format.thousands_separator
         self.valid_range = ranges.DecimalRange(rule, ranges.DEFAULT_INTEGER_RANGE_TEXT)
         self._length = ranges.DecimalRange(length_text)
         if self._length is not None and self._length.items is not None and len(self._length.items) == 1 \
@@ -330,12 +330,12 @@ class DecimalFieldFormat(AbstractFieldFormat):
             self._precision = None
             self._scale = None
 
-        pattern_scale_part = '*' if self._scale is None else '{0,%d}' % self._scale
-        pattern_precision_part = '*' if self._precision is None else '{0,%d}' % self._precision
+        pattern_before_decimal_separator_part = '*' if self._scale is None else '{0,%d}' % self._scale
+        pattern_after_decimal_separator_part = '*' if self._precision is None else '{0,%d}' % self._precision
 
-        pattern = r'^((-?\d'+pattern_scale_part+')|(-?\d'+pattern_scale_part+'\\'+self.decimalSeparator + \
-                  '-?\d'+pattern_precision_part+'))$'
-        # pattern = '^-?\d'+pattern_scale_part+'\.?-?\d'+pattern_precision_part+'$'
+        pattern = r'^((-?\d' + pattern_before_decimal_separator_part + ')|(-?\d' + pattern_before_decimal_separator_part + '\\'\
+                  + self.decimal_separator + '-?\d' + pattern_after_decimal_separator_part + '))$'
+
         self._regex = re.compile(pattern)
 
     def validated_value(self, value):
@@ -345,19 +345,19 @@ class DecimalFieldFormat(AbstractFieldFormat):
         found_decimal_separator = False
         for valueIndex in range(len(value)):
             character_to_process = value[valueIndex]
-            if character_to_process == self.decimalSeparator:
+            if character_to_process == self.decimal_separator:
                 if found_decimal_separator:
                     raise errors.FieldValueError(
                         "decimal field must contain only one decimal separator (%s): %s"
-                        % (_compat.text_repr(self.decimalSeparator), _compat.text_repr(value)))
+                        % (_compat.text_repr(self.decimal_separator), _compat.text_repr(value)))
                 translated_value += "."
                 found_decimal_separator = True
-            elif self.thousandsSeparator and (character_to_process == self.thousandsSeparator):
+            elif self.thousands_separator and (character_to_process == self.thousands_separator):
                 if found_decimal_separator:
                     raise errors.FieldValueError(
                         "decimal field must contain thousands separator (%r) only before "
                         "decimal separator (%r): %r (position %d)"
-                        % (self.thousandsSeparator, self.decimalSeparator, value, valueIndex + 1))
+                        % (self.thousands_separator, self.decimal_separator, value, valueIndex + 1))
             else:
                 translated_value += character_to_process
 
@@ -383,14 +383,12 @@ class DecimalFieldFormat(AbstractFieldFormat):
         :raises cutplace.errors.FieldValueError: if ``value`` is too short \
           or too long
         """
-        intern_value = value.replace(self.thousandsSeparator, '')
+        intern_value = value.replace(self.thousands_separator, '')
         if self.length is not None and not (self.is_allowed_to_be_empty and intern_value == ""):
-            scale_text = '*' if self._scale is None else str(self._scale)
-            precision_text = '*' if self._precision is None else str(self._precision)
             if self._regex.match(intern_value) is None:  # or value == self.decimalSeparator:
                 raise errors.FieldValueError(
-                    "the scale must be within range 0...%r and the precision must be within range 0...%r but is %r"
-                    % (scale_text, precision_text, intern_value))
+                    "must be a decimal number using %r as decimal delimiter but is: %r"
+                    % (self.decimal_separator, intern_value))
 
 
 class IntegerFieldFormat(AbstractFieldFormat):

@@ -236,8 +236,6 @@ class DecimalRangeTest(unittest.TestCase):
         self.assertRaises(errors.RangeValueError, multi_range.validate, "x", 7)
         self.assertRaises(errors.RangeValueError, multi_range.validate, "x", decimal.Decimal('9.1'))
 
-    #Todo: test real limits of decimal
-
     def _test_can_handle_empty_range(self, description):
         empty_range = ranges.DecimalRange(description)
         self.assertEquals(empty_range.items, None)
@@ -249,12 +247,10 @@ class DecimalRangeTest(unittest.TestCase):
         self.assertIsNone(empty_range.validate("x", -1))
         self.assertIsNone(empty_range.validate("x", ranges.MAX_INTEGER + 1))
 
-
     def test_can_handle_empty_range(self):
         self._test_can_handle_empty_range(None)
         self._test_can_handle_empty_range('')
         self._test_can_handle_empty_range(' \t  ')
-
 
     def _test_fails_with_interface_error(self, description, anticipated_error_message_pattern):
         try:
