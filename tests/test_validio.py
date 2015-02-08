@@ -230,22 +230,17 @@ class WriterTest(unittest.TestCase):
                 except errors.DataError as anticipated_error:
                     dev_test.assert_fnmatches(
                         self, str(anticipated_error),
-                        "* (R2C2): field 'height' must have exactly 3 characters instead of 5: '16789'")
+                        "* (R2C2): cannot accept field 'height': fixed format field must have at most 3 characters "
+                        + "instead of 5: '16789'")
 
-    def test_fails_on_writing_too_short_fixed_field(self):
+    def test_can_write_too_short_fixed_field(self):
         with io.StringIO() as fixed_stream:
             with validio.Writer(self._standard_fixed_cid, fixed_stream) as fixed_writer:
                 broken_rows_to_write = [
                     ['Miller    ', '173', '1967-05-23'],
                     ['Webster   ', '7', '1983-11-02'],
                 ]
-                try:
-                    fixed_writer.write_rows(broken_rows_to_write)
-                    self.fail()
-                except errors.DataError as anticipated_error:
-                    dev_test.assert_fnmatches(
-                        self, str(anticipated_error),
-                        "* (R2C2): field 'height' must have exactly 3 characters instead of 1: '7'")
+                fixed_writer.write_rows(broken_rows_to_write)
 
     def test_fails_on_writing_fixed_integer_field_with_non_numeric_value(self):
         with io.StringIO() as fixed_stream:

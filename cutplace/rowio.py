@@ -16,6 +16,11 @@ format but not any :py:mod:`cutplace.fields` or :py:mod:`cutplace.checks`.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import csv
 import datetime
 import io
@@ -296,6 +301,17 @@ def ods_rows(source_ods_path, sheet=1):
                 cell_value = ''
             else:
                 cell_value = text_p.text
+                if six.PY2:
+                    # HACK: It seems that under Python 2 ElementTree.find() returns a unicode string only of the value
+                    # actually contains non ASCII characters, and otherwise a binary string. To work around this we
+                    # check the result for binary strings and possibly convert them to uncicode strings assuming UTF-8
+                    # to be the internal encoding for the XML file. Ideally we would parse the XML header for the
+                    # encoding. Considering that Python 2 is on the way out, this just doesn't seem to be worth the
+                    # trouble right now.
+                    if isinstance(cell_value, six.binary_type):
+                        cell_value = six.text_type(cell_value, 'utf-8')
+                    else:
+                        assert isinstance(cell_value, six.text_type), 'cell_value=%r' % cell_value
             row.extend([cell_value] * repeated_count)
             location.advance_cell(repeated_count)
         yield row
@@ -591,28 +607,25 @@ class FixedRowWriter(AbstractRowWriter):
           as specified to :py:meth:`~.__init__`.
         """
         assert row_to_write is not None
-
         row_to_write_item_count = len(row_to_write)
-        if row_to_write_item_count != self._expected_row_item_count:
-            raise errors.DataFormatError(
-                'row must have %d items instead of %d: %s'
-                % (self._expected_row_item_count, row_to_write_item_count, row_to_write), self.location)
-        for field_index, field_value in enumerate(row_to_write):
-            self.location.set_cell(field_index)
-            field_name, expected_field_length = self._field_names_and_lengths[field_index]
-            if not isinstance(field_value, six.text_type):
-                raise errors.DataError(
-                    'field %s must be of type %s but is: %s (%s)'
-                    % (_compat.text_repr(field_name), six.text_type.__name__, field_value, type(field_value).__name__),
-                    self.location)
-            actual_field_length = len(field_value)
-            if actual_field_length != expected_field_length:
-                raise errors.DataError(
-                    'field %s must have exactly %d characters instead of %d: %s'
-                    % (_compat.text_repr(field_name), expected_field_length, actual_field_length,
-                       _compat.text_repr(field_value)),
-                    self.location)
-        self.location.set_cell(0)
+        assert row_to_write_item_count == self._expected_row_item_count, \
+            '%s: row must have %d items instead of %d: %s' \
+            % (self.location, self._expected_row_item_count, row_to_write_item_count, row_to_write)
+        if __debug__:
+            for field_index, field_value in enumerate(row_to_write):
+                self.location.set_cell(field_index)
+                field_name, expected_field_length = self._field_names_and_lengths[field_index]
+                assert isinstance(field_value, six.text_type), \
+                    '%s: field %s must be of type %s instead of %s: %r' \
+                    % (self.location, _compat.text_repr(field_name), six.text_type.__name__, type(field_value).__name__,
+                       field_value)
+                actual_field_length = len(field_value)
+                assert actual_field_length == expected_field_length, \
+                    '%s: field %s must have exactly %d characters instead of %d: %r' \
+                    % (self.location, _compat.text_repr(field_name), expected_field_length, actual_field_length,
+                       field_value)
+            self.location.set_cell(0)
+
         try:
             self._target_stream.write(''.join(row_to_write))
         except UnicodeEncodeError as error:

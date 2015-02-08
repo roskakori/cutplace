@@ -115,7 +115,7 @@ class RangeTest(unittest.TestCase):
         except errors.InterfaceError as anticipated_error:
             dev_test.assert_fnmatches(self, str(anticipated_error), anticipated_error_message_pattern)
 
-    def test_broken_ranges(self):
+    def test_fails_on_broken_ranges(self):
         self.assertRaises(errors.InterfaceError, ranges.Range, "x")
         self.assertRaises(errors.InterfaceError, ranges.Range, "...")
         self.assertRaises(errors.InterfaceError, ranges.Range, "-")
@@ -148,7 +148,7 @@ class RangeTest(unittest.TestCase):
     def test_fails_on_unterminated_string(self):
         self.assertRaises(errors.InterfaceError, ranges.Range, "\"\"")
 
-    def test_validate(self):
+    def test_can_validate_with_lower_and_upper_limit(self):
         lower_and_upper_range = ranges.Range("-1...1")
         lower_and_upper_range.validate("x", - 1)
         lower_and_upper_range.validate("x", 0)
@@ -156,18 +156,21 @@ class RangeTest(unittest.TestCase):
         self.assertRaises(errors.RangeValueError, lower_and_upper_range.validate, "x", - 2)
         self.assertRaises(errors.RangeValueError, lower_and_upper_range.validate, "x", 2)
 
+    def test_can_validate_with_lower_limit_only(self):
         lower_range = ranges.Range("1...")
         lower_range.validate("x", 1)
         lower_range.validate("x", 2)
         lower_range.validate("x", 2 ** 32)
         self.assertRaises(errors.RangeValueError, lower_range.validate, "x", 0)
 
+    def test_can_validate_with_upper_limit_only(self):
         upper_range = ranges.Range("...1")
         upper_range.validate("x", 1)
         upper_range.validate("x", - 2)
         upper_range.validate("x", - (2 ** 32) - 1)
         self.assertRaises(errors.RangeValueError, upper_range.validate, "x", 2)
 
+    def test_can_validate_with_multi_range(self):
         multi_range = ranges.Range("1...4, 7...9")
         multi_range.validate("x", 1)
         multi_range.validate("x", 7)

@@ -28,6 +28,8 @@ import string
 import sys
 import time
 
+import six
+
 from cutplace import data
 from cutplace import ranges
 from cutplace import errors
@@ -179,12 +181,24 @@ class AbstractFieldFormat(object):
         :raises cutplace.errors.FieldValueError: if ``value`` is too short \
           or too long
         """
-        if self.length is not None and not (self.is_allowed_to_be_empty and value == ""):
+        assert value is not None
+
+        if self.length is not None and not (self.is_allowed_to_be_empty and (value == '')):
             try:
-                self.length.validate(
-                    "length of '%s' with value %s" % (self.field_name, _compat.text_repr(value)), len(value))
+                if self.data_format.format == data.FORMAT_FIXED:
+                    # Length of fixed format is considered a maximum, fewer characters have to be padded later.
+                    value_length = len(value)
+                    fixed_length = self.length.lower_limit
+                    if value_length > fixed_length:
+                        raise errors.FieldValueError(
+                            'fixed format field must have at most %d characters instead of %d: %s'
+                            % (fixed_length, value_length, _compat.text_repr(value))
+                        )
+                else:
+                    self.length.validate(
+                        "length of '%s' with value %s" % (self.field_name, _compat.text_repr(value)), len(value))
             except errors.RangeValueError as error:
-                raise errors.FieldValueError(str(error))
+                raise errors.FieldValueError(six.text_type(error))
 
     def validated_value(self, value):
         """
@@ -212,16 +226,14 @@ class AbstractFieldFormat(object):
         :raises cutplace.errors.FieldValueError: if ``value`` is invalid
         """
         self.validate_characters(value)
+        self.validate_empty(value)
+        self.validate_length(value)
         if self.data_format.format == data.FORMAT_FIXED:
-            result = value.strip()
-            self.validate_empty(result)
-            # Note: No need to validate the length with fixed length items.
+            possibly_stripped_value = value.strip()
         else:
-            result = value
-            self.validate_empty(result)
-            self.validate_length(result)
-        if result:
-            result = self.validated_value(result)
+            possibly_stripped_value = value
+        if possibly_stripped_value:
+            result = self.validated_value(possibly_stripped_value)
         else:
             result = self.empty_value
         return result
@@ -403,7 +415,7 @@ class IntegerFieldFormat(AbstractFieldFormat):
         try:
             self.valid_range.validate("value", value_as_int)
         except errors.RangeValueError as error:
-            raise errors.FieldValueError(str(error))
+            raise errors.FieldValueError(six.text_type(error))
         return value_as_int
 
     def as_sql(self, db):

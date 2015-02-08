@@ -27,6 +27,8 @@ import io
 import logging
 import os.path
 
+import six
+
 from cutplace import data
 from cutplace import fields
 from cutplace import errors
@@ -346,7 +348,7 @@ class Cid(object):
                     field_type += _tools.validated_python_name("field type part", part)
                 assert field_type, "empty field type must be detected by validated_python_name()"
             except NameError as error:
-                raise errors.InterfaceError(str(error), self._location)
+                raise errors.InterfaceError(six.text_type(error), self._location)
         field_class = self._create_field_format_class(field_type)
         self._location.advance_cell()
         field_rule = items[5].strip()

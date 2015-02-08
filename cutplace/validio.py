@@ -133,6 +133,10 @@ class BaseValidator(object):
             self.location.set_cell(field_index)
             field_to_validate = self.cid.field_formats[field_index]
             try:
+                if not isinstance(field_value, six.text_type):
+                    raise errors.FieldValueError(
+                        'type must be %s instead of %s: %s'
+                        % (six.text_type.__name__, type(field_value).__name__, _compat.text_repr(field_value)))
                 field_to_validate.validated(field_value)
             except errors.FieldValueError as error:
                 error.prepend_message(
@@ -283,8 +287,8 @@ class Writer(BaseValidator):
         if data_format.format == data.FORMAT_DELIMITED:
             self._delegated_writer = rowio.DelimitedRowWriter(target, data_format)
         elif data_format.format == data.FORMAT_FIXED:
-            field_names_and_lengths = interface.field_names_and_lengths(self.cid)
-            self._delegated_writer = rowio.FixedRowWriter(target, data_format, field_names_and_lengths)
+            self._field_names_and_lengths = interface.field_names_and_lengths(self.cid)
+            self._delegated_writer = rowio.FixedRowWriter(target, data_format, self._field_names_and_lengths)
         else:
             raise NotImplementedError('data_format=%r' % data_format.format)
 
@@ -296,12 +300,31 @@ class Writer(BaseValidator):
         """
         return self._delegated_writer.location if self._delegated_writer is not None else None
 
+    def _padded_fixed_row(self, row):
+        """
+        Same as ``row`` but with items possibly padded with trailing blanks in order to fix fixed length.
+        """
+        assert row is not None
+        assert len(row) == len(self.cid.field_formats)
+        result = []
+        for field_index, field_value in enumerate(row):
+            field_value_length = len(field_value)
+            _, fixed_field_length = self._field_names_and_lengths[field_index]
+            if field_value_length < fixed_field_length:
+                field_value += ' ' * (fixed_field_length - field_value_length)
+            result.append(field_value)
+        return result
+
     def write_row(self, row_to_write):
         assert row_to_write is not None
         assert self._delegated_writer is not None
 
         self.validate_row(row_to_write)
-        self._delegated_writer.write_row(row_to_write)
+        if self.cid.data_format.format == data.FORMAT_FIXED:
+            actual_row_to_write = self._padded_fixed_row(row_to_write)
+        else:
+            actual_row_to_write = row_to_write
+        self._delegated_writer.write_row(actual_row_to_write)
 
     def write_rows(self, rows_to_write):
         assert rows_to_write is not None

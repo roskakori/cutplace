@@ -81,7 +81,7 @@ if six.PY2:
         delimiter=u';'. This quickly becomes an annoyance to the caller, in
         particular with `from __future__ import unicode_literals` enabled.
         """
-        return dict((key, value if not isinstance(value, six.text_type) else str(value))
+        return dict((key, value if not isinstance(value, six.text_type) else six.binary_type(value))
                     for key, value in key_to_value_map.items())
 
     class _UnicodeCsvWriter(object):

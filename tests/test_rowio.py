@@ -304,7 +304,7 @@ class DelimitedRowWriterTest(unittest.TestCase):
         delimited_data_format.set_property(data.KEY_ENCODING, 'utf-8')
         delimited_data_format.validate()
         delimited_path = dev_test.path_to_test_result('test_can_write_delimited_to_path.csv')
-        with io.open(delimited_path, 'w', encoding=delimited_data_format.encoding) as delimited_target_stream:
+        with io.open(delimited_path, 'w', newline='', encoding=delimited_data_format.encoding) as delimited_target_stream:
             with rowio.DelimitedRowWriter(delimited_target_stream, delimited_data_format) as delimited_writer:
                 delimited_writer.write_row(['a', 'b', _EURO_SIGN])
                 delimited_writer.write_row([])
@@ -319,7 +319,7 @@ class DelimitedRowWriterTest(unittest.TestCase):
         delimited_data_format.set_property(data.KEY_ENCODING, 'ascii')
         delimited_data_format.validate()
         delimited_path = dev_test.path_to_test_result('test_fails_on_unicode_error_during_delimited_write.csv')
-        with io.open(delimited_path, 'w', encoding=delimited_data_format.encoding) as delimited_target_stream:
+        with io.open(delimited_path, 'w', newline='', encoding=delimited_data_format.encoding) as delimited_target_stream:
             with rowio.DelimitedRowWriter(delimited_target_stream, delimited_data_format) as delimited_writer:
                 try:
                     delimited_writer.write_row(['a'])
