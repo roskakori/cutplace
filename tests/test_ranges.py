@@ -181,6 +181,31 @@ class RangeTest(unittest.TestCase):
         self.assertRaises(errors.RangeValueError, multi_range.validate, "x", 10)
         self.assertRaises(errors.RangeValueError, multi_range.validate, "x", 723)
 
+    def test_can_create_range_from_length(self):
+        self.assertEqual(ranges.create_range_from_length(ranges.Range("1...")).items, None)
+        self.assertEqual(ranges.create_range_from_length(ranges.Range("1...1")).items, [(0, 9)])
+        self.assertEqual(ranges.create_range_from_length(ranges.Range("1...3")).items, [(-99, 999)])
+        self.assertEqual(ranges.create_range_from_length(ranges.Range("0...")).items, None)
+        self.assertEqual(ranges.create_range_from_length(ranges.Range("0...1")).items, [(0, 9)])
+        self.assertEqual(ranges.create_range_from_length(ranges.Range("0...3")).items, [(-99, 999)])
+        self.assertEqual(ranges.create_range_from_length(ranges.Range("")).items, None)
+        self.assertEqual(ranges.create_range_from_length(ranges.Range("...1")).items, [(0, 9)])
+        self.assertEqual(ranges.create_range_from_length(ranges.Range("...3")).items, [(-99, 999)])
+        self.assertEqual(ranges.create_range_from_length(ranges.Range("2...2")).items, [(-9, -1), (10, 99)])
+        self.assertEqual(ranges.create_range_from_length(ranges.Range("2...5")).items, [(-9999, -1), (10, 99999)])
+        self.assertEqual(ranges.create_range_from_length(ranges.Range("3...8")).items, [(-9999999, -10), (100, 99999999)])
+        self.assertEqual(ranges.create_range_from_length(ranges.Range("2...")).items, [(None, -1), (10, None)])
+        self.assertEqual(ranges.create_range_from_length(ranges.Range("3...")).items, [(None, -10), (100, None)])
+        self.assertEqual(
+            ranges.create_range_from_length(
+                ranges.Range("3...4, 10...")).items, [(-999, -10), (100, 9999), (None, -100000000), (1000000000, None)])
+
+    def test_fails_on_create_range_from_negative_length(self):
+        self.assertRaises(errors.RangeValueError, ranges.create_range_from_length, ranges.Range("-19...-1"))
+        self.assertRaises(errors.RangeValueError, ranges.create_range_from_length, ranges.Range("-19...1"))
+        self.assertRaises(errors.RangeValueError, ranges.create_range_from_length, ranges.Range("-1...0"))
+        self.assertRaises(errors.RangeValueError, ranges.create_range_from_length, ranges.Range("0...0"))
+
 
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()

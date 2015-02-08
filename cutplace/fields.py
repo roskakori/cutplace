@@ -362,7 +362,38 @@ class IntegerFieldFormat(AbstractFieldFormat):
         # The default range is 32 bit. If the user wants a bigger range, he
         # has to specify it. Python's ``int`` scales to any range as long
         # there is enough memory available to represent it.
-        self.valid_range = ranges.Range(rule, ranges.DEFAULT_INTEGER_RANGE_TEXT)
+        has_length = (length_text is not None) and (length_text.strip() != '')
+        has_rule = (rule is not None) and (rule.strip() != '')
+
+        if has_length:
+            length = self._length
+            if data_format.format == data.FORMAT_FIXED and self._length.lower_limit == self._length.upper_limit:
+                length = ranges.Range('1...%d' % self._length.upper_limit)
+
+            length_range = ranges.create_range_from_length(length)
+
+            if length_range.lower_limit == 1:
+                self._is_allowed_to_be_empty = False
+
+            if has_rule:
+                rule_range = ranges.Range(rule)
+
+                if length_range.upper_limit is not None and rule_range.upper_limit is not None \
+                        and length_range.upper_limit < rule_range.upper_limit:
+                    raise errors.FieldValueError('length upper limit must be greater than the rule upper limit')
+
+                if length_range.lower_limit is not None and rule_range.lower_limit is not None \
+                        and length_range.lower_limit > rule_range.lower_limit:
+                    raise errors.FieldValueError('rule lower limit must be less than the length lower limit')
+
+                self.valid_range = rule_range
+            else:
+                self.valid_range = length_range
+        else:
+            if has_rule:
+                self.valid_range = ranges.Range(rule)
+            else:
+                self.valid_range = ranges.Range(ranges.DEFAULT_INTEGER_RANGE_TEXT)
 
     def validated_value(self, value):
         assert value

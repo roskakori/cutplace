@@ -165,6 +165,51 @@ class IntegerFieldFormatTest(unittest.TestCase):
         field_format = fields.IntegerFieldFormat("x", False, None, "123", _ANY_FORMAT)
         self.assertEquals(field_format.validated("123"), 123)
 
+    def test_can_set_range_from_length(self):
+        field_format = fields.IntegerFieldFormat("x", False, "1...3", '', _ANY_FORMAT)
+        self.assertEqual(field_format.valid_range.items, [(-99, 999)])
+
+    def test_can_validate_field_with_range_from_length(self):
+        field_format = fields.IntegerFieldFormat("x", False, "2...2", "", _ANY_FORMAT)
+        self.assertEqual(field_format.validated("-9"), -9)
+        self.assertEqual(field_format.validated("-1"), -1)
+        self.assertEqual(field_format.validated("10"), 10)
+        self.assertEqual(field_format.validated("99"), 99)
+        self.assertRaises(errors.FieldValueError, field_format.validated, "0")
+        self.assertRaises(errors.FieldValueError, field_format.validated, "9")
+        self.assertRaises(errors.FieldValueError, field_format.validated, "-10")
+        self.assertRaises(errors.FieldValueError, field_format.validated, "100")
+
+        field_format = fields.IntegerFieldFormat("x", False, "3...4, 10...", "", _ANY_FORMAT)
+        self.assertEqual(field_format.validated("-999"), -999)
+        self.assertEqual(field_format.validated("-10"), -10)
+        self.assertEqual(field_format.validated("100"), 100)
+        self.assertEqual(field_format.validated("9999"), 9999)
+        self.assertRaises(errors.FieldValueError, field_format.validated, "-1")
+        self.assertRaises(errors.FieldValueError, field_format.validated, "9")
+        self.assertRaises(errors.FieldValueError, field_format.validated, "10000")
+
+    def test_can_set_range_from_length_or_rule(self):
+        field_format = fields.IntegerFieldFormat("x", False, "1...", "3...5", _ANY_FORMAT)
+        self.assertEqual(field_format.validated("3"), 3)
+        self.assertEqual(field_format.validated("5"), 5)
+        self.assertRaises(errors.FieldValueError, field_format.validated, "2")
+        self.assertRaises(errors.FieldValueError, field_format.validated, "6")
+
+        field_format = fields.IntegerFieldFormat("x", False, "1...5", "-9...-1, 10...", _ANY_FORMAT)
+        self.assertEqual(field_format.validated("-1"), -1)
+        self.assertEqual(field_format.validated("-9"), -9)
+        self.assertEqual(field_format.validated("10"), 10)
+        self.assertRaises(errors.FieldValueError, field_format.validated, "-10")
+        self.assertRaises(errors.FieldValueError, field_format.validated, "0")
+        self.assertRaises(errors.FieldValueError, field_format.validated, "9")
+
+    def test_fails_on_set_range_from_length_or_rule(self):
+        self.assertRaises(errors.FieldValueError, fields.IntegerFieldFormat, "x", False, "1...2", "3...100", _ANY_FORMAT)
+        self.assertRaises(errors.FieldValueError, fields.IntegerFieldFormat, "x", False, "3...4", "3...10000", _ANY_FORMAT)
+        self.assertRaises(errors.FieldValueError, fields.IntegerFieldFormat, "x", False, "2...4", "-4000...100", _ANY_FORMAT)
+        self.assertRaises(errors.FieldValueError, fields.IntegerFieldFormat, "x", False, "3...4", "-1000...100", _ANY_FORMAT)
+
     def test_fails_on_too_small_number(self):
         field_format = fields.IntegerFieldFormat("x", False, None, "1...10", _ANY_FORMAT)
         self.assertRaises(errors.FieldValueError, field_format.validated, "0")
