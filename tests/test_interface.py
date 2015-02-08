@@ -474,7 +474,7 @@ class CidTest(unittest.TestCase):
             "\ndate_of_birth date not null,"
             "\nconstraint chk_customer_id check( ( customer_id between 0 and 99999 ) ),"
             "\nconstraint chk_length_surname check (length(surname >= 1) and length(surname <= 60)),"
-            "\nconstraint chk_rule_gender check( gender in ('male','female','unknown') ),\n);")
+            "\nconstraint chk_rule_gender check( gender in ('male','female','unknown') )\n);")
 
 
 if __name__ == '__main__':

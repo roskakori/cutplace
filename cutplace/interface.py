@@ -26,6 +26,7 @@ import inspect
 import io
 import logging
 import os.path
+import sqlite3 as lite
 
 import six
 
@@ -514,8 +515,6 @@ class Cid(object):
         create_table = "create table " + table_name[0] + " (\n"
         constraints = ""
 
-        # FIXME: check correctness of sql table names
-
         # get column definitions and constraints for all fields
         for field in self._field_formats:
             column_def, constraint = field.as_sql(dialect)
@@ -524,9 +523,28 @@ class Cid(object):
             if len(constraint) > 0:
                 constraints += constraint + ",\n"
 
+        constraints = constraints.rsplit(',', 1)[0]
+
         create_table += constraints
 
-        create_table += ");"
+        create_table += "\n);"
+
+        con = None
+
+        try:
+            con = lite.connect("database.db")
+            cur = con.cursor()
+            cur.execute(create_table)
+
+        except lite.Error as err:
+            return err
+
+        finally:
+            if con:
+                cur = con.cursor()
+                cur.execute("drop table "+table_name[0]+" ;")
+                con.close()
+
         return create_table
 
 
