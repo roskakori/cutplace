@@ -416,6 +416,9 @@ class DecimalRange(Range):
 
         assert default is None or (default.strip() != ''), "default=%r" % default
 
+        self._precision = 0
+        self._scale = 0
+
         if description is not None:
             if six.PY2:
                 # HACK: In Python 2.6, ``tokenize.generate_tokens()`` produces a token for leading white space.
@@ -433,11 +436,9 @@ class DecimalRange(Range):
             self._items = None
             self._lower_limit = None
             self._upper_limit = None
+            self._precision = 0
         else:
-            if '.' * 4 in description and not (description[-1].isdigit() or description[-2].isdigit()):
-                self._description = description.replace('....', ELLIPSIS)
-            else:
-                self._description = description.replace('...', ELLIPSIS)
+            self._description = description.replace('...', ELLIPSIS)
             self._items = []
             tokens = tokenize.generate_tokens(io.StringIO(self._description).readline)
             end_reached = False
@@ -454,9 +455,17 @@ class DecimalRange(Range):
                         if next_type == token.NUMBER:
                             try:
                                 decimal_value = decimal.Decimal(next_value)
+                                _, scale_tuple, precision = decimal_value.as_tuple()
+                                scale = len(str(scale_tuple[0]))
+                                if scale > self._scale:
+                                    self._scale = scale
+                                if abs(precision) > self._precision:
+                                    self._precision = abs(precision)
+
                             except decimal.DecimalException:
                                 raise errors.InterfaceError(
-                                    "number must be an decimal or integer but is: %s" % _compat.text_repr(next_value))
+                                    "number must be an decimal or integer but is: %s"
+                                    % _compat.text_repr(next_value), location)
                             if after_hyphen:
                                 decimal_value *= - 1
                                 after_hyphen = False
@@ -482,8 +491,8 @@ class DecimalRange(Range):
                     elif next_value in (ELLIPSIS, ':'):
                         ellipsis_found = True
                     else:
-                        message = "range must be specified using integer numbers, text, " \
-                                  "symbols and ellipsis (...) but found: %s [token type: %d]" \
+                        message = "range must be specified using integer numbers" \
+                                  " and ellipsis (...) but found: %s [token type: %d]" \
                                   % (_compat.text_repr(next_value), next_type)
                         raise errors.InterfaceError(message)
                     next_token = next(tokens)
@@ -544,6 +553,14 @@ class DecimalRange(Range):
                 elif (self._upper_limit is not None) and (upper_item > self._upper_limit):
                     self._upper_limit = upper_item
 
+    @property
+    def precision(self):
+        return self._precision
+
+    @property
+    def scale(self):
+        return self._scale
+
     def __repr__(self):
         """
         Human readable description of the range similar to a Python tuple.
@@ -593,7 +610,14 @@ class DecimalRange(Range):
 
     def validate(self, name, value, location=None):
         """
-        Validate that value is within the specified range and in case it is not, raise a `RangeValueError`.
+        Validate that ``value`` is within the specified range.
+
+        :param str name: the name of ``value`` known to the end user for \
+          usage in possible error messages
+        :param int value: the value to validate
+        :param cutplace.errors.Location location: the location to refer to \
+          in possible error messages
+        :raises cutplace.errors.RangeValueError: if ``value`` is out of range
         """
         assert name is not None
         assert name
@@ -601,19 +625,19 @@ class DecimalRange(Range):
 
         if not isinstance(value, decimal.Decimal):
             try:
-                if six.PY2 and isinstance(value, float):
-                    value_d = decimal.Decimal.from_float(value)
-                else:
-                    value_d = decimal.Decimal(value)
+                # if six.PY2 and isinstance(value, float):
+                #     value_as_decimal = decimal.Decimal.from_float(value)
+                # else:
+                value_as_decimal = decimal.Decimal(value)
             except decimal.DecimalException:
                 raise errors.RangeValueError(
-                    "the value must be in an decimal syntax but is '%r'" % value)
+                    "the value must be in an decimal syntax but is '%r'" % value, location)
         else:
-            value_d = value
+            value_as_decimal = value
 
-        if isinstance(value, float):
-            prec = len(str(value).split('.')[1]) - 1
-            value_d = value_d.quantize(decimal.Decimal('.'+'0'*prec+'1'), decimal.ROUND_HALF_UP)
+        # if isinstance(value, float):
+        #     prec = len(str(value).split('.')[1]) - 1
+        #     value_as_decimal = value_as_decimal.quantize(decimal.Decimal('.'+'0'*prec+'1'), decimal.ROUND_HALF_UP)
 
         if self._items is not None:
             is_valid = False
@@ -622,14 +646,14 @@ class DecimalRange(Range):
                 lower, upper = self._items[item_index]
                 if lower is None:
                     assert upper is not None
-                    if value_d <= upper:
+                    if value_as_decimal <= upper:
                         is_valid = True
                 elif upper is None:
-                    if value >= lower:
+                    if value_as_decimal >= lower:
                         is_valid = True
-                elif (value_d >= lower) and (value_d <= upper):
+                elif (value_as_decimal >= lower) and (value_as_decimal <= upper):
                     is_valid = True
                 item_index += 1
             if not is_valid:
                 raise errors.RangeValueError(
-                    "%s is %r but must be within range: %r" % (name, value_d, self), location)
+                    "%s is %r but must be within range: %r" % (name, value_as_decimal, self), location)

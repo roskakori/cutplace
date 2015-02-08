@@ -302,12 +302,29 @@ class DecimalFieldFormat(AbstractFieldFormat):
 
     def __init__(self, field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value=None):
         super(DecimalFieldFormat, self).__init__(
-            field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value)
+            field_name, is_allowed_to_be_empty, "", "", data_format, empty_value)
         # if rule.strip() != '':
         #    raise errors.InterfaceError("decimal rule must be empty")
+        assert rule is not None, 'to specify "no rule" use "" instead of None'
         self.decimalSeparator = data_format.decimal_separator
         self.thousandsSeparator = data_format.thousands_separator
         self.valid_range = ranges.DecimalRange(rule, ranges.DEFAULT_INTEGER_RANGE_TEXT)
+        self._length = ranges.DecimalRange(length_text)
+        if self._length is not None and self._length.items is not None and len(self._length.items) == 1 \
+                and self._length.upper_limit == self._length.lower_limit:
+            self._precision = self._length.precision
+            self._scale = self._length.scale
+        else:
+            self._precision = None
+            self._scale = None
+
+        pattern_scale_part = '*' if self._scale is None else '{0,%d}' % self._scale
+        pattern_precision_part = '*' if self._precision is None else '{0,%d}' % self._precision
+
+        pattern = r'^((-?\d'+pattern_scale_part+')|(-?\d'+pattern_scale_part+'\\'+self.decimalSeparator + \
+                  '-?\d'+pattern_precision_part+'))$'
+        # pattern = '^-?\d'+pattern_scale_part+'\.?-?\d'+pattern_precision_part+'$'
+        self._regex = re.compile(pattern)
 
     def validated_value(self, value):
         assert value
@@ -331,6 +348,7 @@ class DecimalFieldFormat(AbstractFieldFormat):
                         % (self.thousandsSeparator, self.decimalSeparator, value, valueIndex + 1))
             else:
                 translated_value += character_to_process
+
         try:
             result = decimal.Decimal(translated_value)
         except Exception as error:
@@ -344,6 +362,23 @@ class DecimalFieldFormat(AbstractFieldFormat):
             raise errors.FieldValueError(str(error))
 
         return result
+
+    def validate_length(self, value):
+        """
+        Validate that ``value`` conforms to
+        :py:attr:`~cutplace.fields.AbstractFieldFormat.length`.
+
+        :raises cutplace.errors.FieldValueError: if ``value`` is too short \
+          or too long
+        """
+        intern_value = value.replace(self.thousandsSeparator, '')
+        if self.length is not None and not (self.is_allowed_to_be_empty and intern_value == ""):
+            scale_text = '*' if self._scale is None else str(self._scale)
+            precision_text = '*' if self._precision is None else str(self._precision)
+            if self._regex.match(intern_value) is None:  # or value == self.decimalSeparator:
+                raise errors.FieldValueError(
+                    "the scale must be within range 0...%r and the precision must be within range 0...%r but is %r"
+                    % (scale_text, precision_text, intern_value))
 
 
 class IntegerFieldFormat(AbstractFieldFormat):
