@@ -45,6 +45,7 @@ MAX_DECIMAL_TEXT = '9999999999999999999.999999999999'
 MIN_DECIMAL_TEXT = '-' + MAX_DECIMAL_TEXT
 DEFAULT_DECIMAL_RANGE_TEXT = '%s...%s' % (MIN_DECIMAL_TEXT, MAX_DECIMAL_TEXT)
 
+
 def code_for_number_token(name, value, location):
     """
     The numeric code for text representing an :py:class:`int` in ``value``.

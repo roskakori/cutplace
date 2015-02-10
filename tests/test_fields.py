@@ -187,6 +187,7 @@ class DecimalFieldFormatTest(unittest.TestCase):
         self.assertEqual(field_format.valid_range.upper_limit, decimal.Decimal('9999999999999999999.999999999999'))
         self.assertEqual(field_format.valid_range.lower_limit, decimal.Decimal('-9999999999999999999.999999999999'))
 
+
 class IntegerFieldFormatTest(unittest.TestCase):
     """
     Tests  for py:class:`cutplace.fields.IntegerFieldFormat`.
