@@ -315,36 +315,25 @@ class DecimalFieldFormat(AbstractFieldFormat):
     def __init__(self, field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value=None):
         super(DecimalFieldFormat, self).__init__(
             field_name, is_allowed_to_be_empty, "", "", data_format, empty_value)
-        # if rule.strip() != '':
-        #    raise errors.InterfaceError("decimal rule must be empty")
         assert rule is not None, 'to specify "no rule" use "" instead of None'
         self.decimal_separator = data_format.decimal_separator
         self.thousands_separator = data_format.thousands_separator
-        self.valid_range = ranges.DecimalRange(rule, ranges.DEFAULT_INTEGER_RANGE_TEXT)
+        self.valid_range = ranges.DecimalRange(rule, ranges.DEFAULT_DECIMAL_RANGE_TEXT)
         self._length = ranges.DecimalRange(length_text)
-        if self._length is not None and self._length.items is not None and len(self._length.items) == 1 \
-                and self._length.upper_limit == self._length.lower_limit:
-            self._precision = self._length.precision
-            self._scale = self._length.scale
+
+        if self.valid_range is not None:
+            self._precision = self.valid_range.precision
+            self._scale = self.valid_range.scale
         else:
             self._precision = None
             self._scale = None
-
-        pattern_before_decimal_separator_part = '*' if self._scale is None else '{0,%d}' % self._scale
-        pattern_after_decimal_separator_part = '*' if self._precision is None else '{0,%d}' % self._precision
-
-        pattern = r'^((-?\d' + pattern_before_decimal_separator_part + ')|(-?\d' + pattern_before_decimal_separator_part + '\\'\
-                  + self.decimal_separator + '-?\d' + pattern_after_decimal_separator_part + '))$'
-
-        self._regex = re.compile(pattern)
 
     def validated_value(self, value):
         assert value
 
         translated_value = ""
         found_decimal_separator = False
-        for valueIndex in range(len(value)):
-            character_to_process = value[valueIndex]
+        for character_to_process in value:
             if character_to_process == self.decimal_separator:
                 if found_decimal_separator:
                     raise errors.FieldValueError(
@@ -356,8 +345,8 @@ class DecimalFieldFormat(AbstractFieldFormat):
                 if found_decimal_separator:
                     raise errors.FieldValueError(
                         "decimal field must contain thousands separator (%r) only before "
-                        "decimal separator (%r): %r (position %d)"
-                        % (self.thousands_separator, self.decimal_separator, value, valueIndex + 1))
+                        "decimal separator (%r): %r "
+                        % (self.thousands_separator, self.decimal_separator, value))
             else:
                 translated_value += character_to_process
 
@@ -369,26 +358,11 @@ class DecimalFieldFormat(AbstractFieldFormat):
             raise errors.FieldValueError(message)
 
         try:
-            self.valid_range.validate("value", result)
+            self.valid_range.validate(self._field_name, result)
         except errors.RangeValueError as error:
             raise errors.FieldValueError(str(error))
 
         return result
-
-    def validate_length(self, value):
-        """
-        Validate that ``value`` conforms to
-        :py:attr:`~cutplace.fields.AbstractFieldFormat.length`.
-
-        :raises cutplace.errors.FieldValueError: if ``value`` is too short \
-          or too long
-        """
-        intern_value = value.replace(self.thousands_separator, '')
-        if self.length is not None and not (self.is_allowed_to_be_empty and intern_value == ""):
-            if self._regex.match(intern_value) is None:  # or value == self.decimalSeparator:
-                raise errors.FieldValueError(
-                    "must be a decimal number using %r as decimal delimiter but is: %r"
-                    % (self.decimal_separator, intern_value))
 
 
 class IntegerFieldFormat(AbstractFieldFormat):

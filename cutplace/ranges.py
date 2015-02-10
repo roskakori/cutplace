@@ -41,6 +41,9 @@ MIN_INTEGER = -2 ** 31
 
 DEFAULT_INTEGER_RANGE_TEXT = '%d...%d' % (MIN_INTEGER, MAX_INTEGER)
 
+MAX_DECIMAL_TEXT = '9999999999999999999.999999999999'
+MIN_DECIMAL_TEXT = '-' + MAX_DECIMAL_TEXT
+DEFAULT_DECIMAL_RANGE_TEXT = '%s...%s' % (MIN_DECIMAL_TEXT, MAX_DECIMAL_TEXT)
 
 def code_for_number_token(name, value, location):
     """
@@ -320,7 +323,7 @@ class Range(object):
             else:
                 result += "%s...%s" % (lower, upper)
         else:
-            result = str(None)
+            result = six.text_type(None)
         return result
 
     def __repr__(self):
@@ -343,7 +346,7 @@ class Range(object):
                     result += ", "
                 result += self._repr_item(item)
         else:
-            result = str(None)
+            result = six.text_type(None)
         return result
 
     def _items_overlap(self, some, other):
@@ -456,7 +459,8 @@ class DecimalRange(Range):
                             try:
                                 decimal_value = decimal.Decimal(next_value)
                                 _, scale_tuple, precision = decimal_value.as_tuple()
-                                scale = len(str(scale_tuple[0]))
+                                scale = len(str(scale_tuple[0])) \
+                                    + 0 if len(scale_tuple) < 2 else len(str(scale_tuple[1]))
                                 if scale > self._scale:
                                     self._scale = scale
                                 if abs(precision) > self._precision:
@@ -467,7 +471,7 @@ class DecimalRange(Range):
                                     "number must be an decimal or integer but is: %s"
                                     % _compat.text_repr(next_value), location)
                             if after_hyphen:
-                                decimal_value *= - 1
+                                decimal_value = decimal_value.copy_negate()
                                 after_hyphen = False
 
                         if ellipsis_found:
@@ -625,19 +629,12 @@ class DecimalRange(Range):
 
         if not isinstance(value, decimal.Decimal):
             try:
-                # if six.PY2 and isinstance(value, float):
-                #     value_as_decimal = decimal.Decimal.from_float(value)
-                # else:
                 value_as_decimal = decimal.Decimal(value)
             except decimal.DecimalException:
                 raise errors.RangeValueError(
-                    "the value must be in an decimal syntax but is '%r'" % value, location)
+                    "value must be decimal but is %s" % _compat.text_repr(value), location)
         else:
             value_as_decimal = value
-
-        # if isinstance(value, float):
-        #     prec = len(str(value).split('.')[1]) - 1
-        #     value_as_decimal = value_as_decimal.quantize(decimal.Decimal('.'+'0'*prec+'1'), decimal.ROUND_HALF_UP)
 
         if self._items is not None:
             is_valid = False
