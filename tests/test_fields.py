@@ -30,6 +30,8 @@ from cutplace import errors
 from cutplace import fields
 from cutplace import sql
 
+from tests import dev_test
+
 _ANY_FORMAT = data.DataFormat(data.FORMAT_DELIMITED)
 _FIXED_FORMAT = data.DataFormat(data.FORMAT_FIXED)
 
@@ -86,7 +88,7 @@ class DateTimeFieldFormatTest(unittest.TestCase):
 
     def test_can_accept_empty_date(self):
         field_format = fields.DateTimeFieldFormat("x", True, None, "YYYY-MM-DD", _ANY_FORMAT)
-        self.assertEquals(field_format.validated(""), None)
+        self.assertEqual(field_format.validated(""), None)
         self.assertNotEquals(field_format.validated("2000-01-01"), None)
 
     def test_fails_on_broken_dates(self):
@@ -199,11 +201,89 @@ class IntegerFieldFormatTest(unittest.TestCase):
 
     def test_can_validate_field_with_range(self):
         field_format = fields.IntegerFieldFormat("x", False, None, "1...10", _ANY_FORMAT)
-        self.assertEquals(field_format.validated("1"), 1)
-        self.assertEquals(field_format.validated("7"), 7)
-        self.assertEquals(field_format.validated("10"), 10)
+        self.assertEqual(field_format.validated("1"), 1)
+        self.assertEqual(field_format.validated("7"), 7)
+        self.assertEqual(field_format.validated("10"), 10)
         field_format = fields.IntegerFieldFormat("x", False, None, "123", _ANY_FORMAT)
-        self.assertEquals(field_format.validated("123"), 123)
+        self.assertEqual(field_format.validated("123"), 123)
+
+    def test_can_set_range_from_length(self):
+        field_format = fields.IntegerFieldFormat("x", False, "1...3", '', _ANY_FORMAT)
+        self.assertEqual(field_format.valid_range.items, [(-99, 999)])
+
+    def test_can_validate_field_with_range_from_length(self):
+        field_format = fields.IntegerFieldFormat("x", False, "2...2", "", _ANY_FORMAT)
+        self.assertEqual(field_format.validated("-9"), -9)
+        self.assertEqual(field_format.validated("-1"), -1)
+        self.assertEqual(field_format.validated("10"), 10)
+        self.assertEqual(field_format.validated("99"), 99)
+        self.assertRaises(errors.FieldValueError, field_format.validated, "0")
+        self.assertRaises(errors.FieldValueError, field_format.validated, "9")
+        self.assertRaises(errors.FieldValueError, field_format.validated, "-10")
+        self.assertRaises(errors.FieldValueError, field_format.validated, "100")
+
+        field_format = fields.IntegerFieldFormat("x", False, "3...4, 10...", "", _ANY_FORMAT)
+        self.assertEqual(field_format.validated("-999"), -999)
+        self.assertEqual(field_format.validated("-10"), -10)
+        self.assertEqual(field_format.validated("100"), 100)
+        self.assertEqual(field_format.validated("9999"), 9999)
+        self.assertRaises(errors.FieldValueError, field_format.validated, "-1")
+        self.assertRaises(errors.FieldValueError, field_format.validated, "9")
+        self.assertRaises(errors.FieldValueError, field_format.validated, "10000")
+
+    def test_can_validate_empty_value_with_range_from_length(self):
+        field_format = fields.IntegerFieldFormat('x', True, '2...3, 5...', '', _ANY_FORMAT)
+        self.assertEqual(field_format.validated('10'), 10)
+        self.assertEqual(field_format.validated('10000'), 10000)
+        self.assertEqual(field_format.validated(''), None)
+        self.assertRaises(errors.FieldValueError, field_format.validated, '1')
+
+    def test_can_validate_fixed_format_with_length_and_rule(self):
+        field_format = fields.IntegerFieldFormat('x', False, '3', '12...789', _FIXED_FORMAT)
+        self.assertEqual(field_format.validated('100'), 100)
+        self.assertEqual(field_format.validated('12'), 12)
+        self.assertEqual(field_format.validated(' 12'), 12)
+        self.assertEqual(field_format.validated('12 '), 12)
+        self.assertEqual(field_format.validated('012'), 12)
+
+    def test_fails_on_inconsistent_fixed_length_and_rule(self):
+        try:
+            fields.IntegerFieldFormat('x', False, '3', '...1234', _FIXED_FORMAT)
+            self.fail()
+        except errors.InterfaceError as anticipated_error:
+            dev_test.assert_error_fnmatches(
+                self, anticipated_error,
+                "length must be consistent with rule: "
+                "length of partial rule limit '1234' is 4 but must be within range: 1...3")
+        try:
+            fields.IntegerFieldFormat('x', False, '3', '123...456, 1234...', _FIXED_FORMAT)
+            self.fail()
+        except errors.InterfaceError as anticipated_error:
+            dev_test.assert_error_fnmatches(
+                self, anticipated_error,
+                "length must be consistent with rule: "
+                "length of partial rule limit '1234' is 4 but must be within range: 1...3")
+
+    def test_can_set_range_from_length_or_rule(self):
+        field_format = fields.IntegerFieldFormat("x", False, "1...", "3...5", _ANY_FORMAT)
+        self.assertEqual(field_format.validated("3"), 3)
+        self.assertEqual(field_format.validated("5"), 5)
+        self.assertRaises(errors.FieldValueError, field_format.validated, "2")
+        self.assertRaises(errors.FieldValueError, field_format.validated, "6")
+
+        field_format = fields.IntegerFieldFormat("x", False, "1...5", "-9...-1, 10...", _ANY_FORMAT)
+        self.assertEqual(field_format.validated("-1"), -1)
+        self.assertEqual(field_format.validated("-9"), -9)
+        self.assertEqual(field_format.validated("10"), 10)
+        self.assertRaises(errors.FieldValueError, field_format.validated, "-10")
+        self.assertRaises(errors.FieldValueError, field_format.validated, "0")
+        self.assertRaises(errors.FieldValueError, field_format.validated, "9")
+
+    def test_fails_on_inconsistent_length_and_rule(self):
+        self.assertRaises(errors.InterfaceError, fields.IntegerFieldFormat, "x", False, "1...2", "3...100", _ANY_FORMAT)
+        self.assertRaises(errors.InterfaceError, fields.IntegerFieldFormat, "x", False, "3...4", "3...10000", _ANY_FORMAT)
+        self.assertRaises(errors.InterfaceError, fields.IntegerFieldFormat, "x", False, "2...4", "-4000...100", _ANY_FORMAT)
+        self.assertRaises(errors.InterfaceError, fields.IntegerFieldFormat, "x", False, "3...4", "-1000...100", _ANY_FORMAT)
 
     def test_fails_on_too_small_number(self):
         field_format = fields.IntegerFieldFormat("x", False, None, "1...10", _ANY_FORMAT)
@@ -238,7 +318,7 @@ class RegExFieldFormatTest(unittest.TestCase):
     """
     def test_can_accept_matching_value(self):
         field_format = fields.RegExFieldFormat("x", False, None, r"a.*", _ANY_FORMAT)
-        self.assertEquals(field_format.validated("abc"), "abc")
+        self.assertEqual(field_format.validated("abc"), "abc")
 
     def test_fails_on_unmatched_value(self):
         field_format = fields.RegExFieldFormat("x", False, None, r"a.*", _ANY_FORMAT)
@@ -261,9 +341,9 @@ class ChoiceFieldFormatTest(unittest.TestCase):
     """
     def test_can_match_choice(self):
         field_format = fields.ChoiceFieldFormat("color", False, None, "red,grEEn,blue", _ANY_FORMAT)
-        self.assertEquals(field_format.validated("red"), "red")
-        self.assertEquals(field_format.validated("grEEn"), "grEEn")
-        self.assertEquals(field_format.validated("blue"), "blue")
+        self.assertEqual(field_format.validated("red"), "red")
+        self.assertEqual(field_format.validated("grEEn"), "grEEn")
+        self.assertEqual(field_format.validated("blue"), "blue")
 
     def test_fails_on_empty_choice(self):
         field_format = fields.ChoiceFieldFormat("color", False, None, "red,green,blue", _ANY_FORMAT)
@@ -271,11 +351,11 @@ class ChoiceFieldFormatTest(unittest.TestCase):
 
     def test_can_match_rule_embedded_in_blanks(self):
         field_format = fields.ChoiceFieldFormat("color", False, None, "red, green ,blue ", _ANY_FORMAT)
-        self.assertEquals(field_format.validated("green"), "green")
+        self.assertEqual(field_format.validated("green"), "green")
 
     def test_fails_on_wrong_case(self):
         field_format = fields.ChoiceFieldFormat("color", False, None, "red,grEEn,blue", _ANY_FORMAT)
-        self.assertEquals(field_format.validated("grEEn"), "grEEn")
+        self.assertEqual(field_format.validated("grEEn"), "grEEn")
         self.assertRaises(errors.FieldValueError, field_format.validated, "green")
         self.assertRaises(errors.FieldValueError, field_format.validated, "blUE")
 
@@ -285,17 +365,17 @@ class ChoiceFieldFormatTest(unittest.TestCase):
 
     def test_can_match_only_choice(self):
         field_format = fields.ChoiceFieldFormat("color", False, None, "red", _ANY_FORMAT)
-        self.assertEquals(field_format.validated("red"), "red")
+        self.assertEqual(field_format.validated("red"), "red")
 
     def test_can_match_non_ascii_choice(self):
         field_format = fields.ChoiceFieldFormat("geschlecht", False, None, "\"männlich\", \"weiblich\"", _ANY_FORMAT)
-        self.assertEquals(field_format.validated("männlich"), "männlich")
+        self.assertEqual(field_format.validated("männlich"), "männlich")
         self.assertRaises(errors.FieldValueError, field_format.validated, "unbekannt")
 
     def test_can_match_possibly_empty_field_with_length(self):
         field_format = fields.ChoiceFieldFormat("optional_color", True, ":5", "red, green, blue", _ANY_FORMAT)
-        self.assertEquals(field_format.validated("red"), "red")
-        self.assertEquals(field_format.validated(""), "")
+        self.assertEqual(field_format.validated("red"), "red")
+        self.assertEqual(field_format.validated(""), "")
 
     def test_fails_on_empty_rule(self):
         self.assertRaises(errors.InterfaceError, fields.ChoiceFieldFormat, "color", False, None, "", _ANY_FORMAT)
@@ -338,9 +418,9 @@ class PatternFieldFormatTest(unittest.TestCase):
     """
     def test_can_accept_value_matching_pattern(self):
         field_format = fields.PatternFieldFormat("x", False, None, "h*g?", _ANY_FORMAT)
-        self.assertEquals(field_format.validated("hgo"), "hgo")
-        self.assertEquals(field_format.validated("hugo"), "hugo")
-        self.assertEquals(field_format.validated("huuuuga"), "huuuuga")
+        self.assertEqual(field_format.validated("hgo"), "hgo")
+        self.assertEqual(field_format.validated("hugo"), "hugo")
+        self.assertEqual(field_format.validated("huuuuga"), "huuuuga")
 
     def test_fails_on_value_not_matching_pattern(self):
         field_format = fields.PatternFieldFormat("x", False, None, "h*g?", _ANY_FORMAT)

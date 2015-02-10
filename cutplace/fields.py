@@ -353,7 +353,7 @@ class DecimalFieldFormat(AbstractFieldFormat):
         try:
             result = decimal.Decimal(translated_value)
         except Exception as error:
-            # TODO: limite exception handler to decimal exception or whatever decimal.Decimal raises.
+            # TODO: limit exception handler to decimal exception or whatever decimal.Decimal raises.
             message = "value is %r but must be a decimal number: %s" % (value, error)
             raise errors.FieldValueError(message)
 
@@ -370,12 +370,59 @@ class IntegerFieldFormat(AbstractFieldFormat):
     Field format accepting numeric integer values (without fractional part).
     """
     def __init__(self, field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value=None):
-        super(IntegerFieldFormat, self).__init__(field_name, is_allowed_to_be_empty, length_text, rule, data_format,
-                                                 empty_value)
-        # The default range is 32 bit. If the user wants a bigger range, he
-        # has to specify it. Python's ``int`` scales to any range as long
-        # there is enough memory available to represent it.
-        self.valid_range = ranges.Range(rule, ranges.DEFAULT_INTEGER_RANGE_TEXT)
+        super(IntegerFieldFormat, self).__init__(
+            field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value)
+
+        is_fixed_format = (data_format.format == data.FORMAT_FIXED)
+        has_length = (length_text is not None) and (length_text.strip() != '')
+        if has_length:
+            length = self.length
+            if is_fixed_format:
+                # For fixed data format, use an implicit range starting from
+                # 1 to take into account that leading and trailing blanks
+                # might be missing from the rule parts.
+                assert self.length.lower_limit == self.length.upper_limit
+                length = ranges.Range('1...%d' % self.length.upper_limit)
+            length_range = ranges.create_range_from_length(length)
+
+        has_rule = (rule is not None) and (rule.strip() != '')
+        if has_rule:
+            rule_range = ranges.Range(rule)
+
+        if has_length:
+            if has_rule:
+                # Both a length and a rule have been specified: check if all
+                # non ``None`` parts of each item of the rule fit within the
+                # range of the length. Then use the rule as valid range.
+                for rule_item in rule_range.items:
+                    partial_rule_limits = [
+                        partial_rule_limit for partial_rule_limit in rule_item if partial_rule_limit is not None
+                    ]
+                    for partial_rule_limit in partial_rule_limits:
+                        length_of_partial_rule_limit = _tools.length_of_int(partial_rule_limit)
+                        try:
+                            length.validate(
+                                "length of partial rule limit '%d'" % partial_rule_limit, length_of_partial_rule_limit)
+                        except errors.RangeValueError as error:
+                            message = "length must be consistent with rule: %s" % error
+                            raise errors.InterfaceError(message)
+                self.valid_range = rule_range
+            else:
+                # A length but no rule has been specified: derive a valid
+                # range from the length.
+                self.valid_range = length_range
+        else:
+            if has_rule:
+                # No length but a rule has been specified: use the rule as
+                # valid range.
+                self.valid_range = rule_range
+            else:
+                # No length and no rule has been specified: use a default
+                # range of signed 32 bit integer. If the user wants a bigger
+                # range, he has to specify it. Python's ``int`` scales to any
+                # range as long as there is enough memory available to
+                # represent it.
+                self.valid_range = ranges.Range(ranges.DEFAULT_INTEGER_RANGE_TEXT)
 
     def validated_value(self, value):
         assert value

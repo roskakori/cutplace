@@ -170,3 +170,10 @@ def with_suffix(path, suffix=''):
     if suffix:
         result += suffix
     return result
+
+
+def length_of_int(int_value):
+    assert int_value is not None
+    assert isinstance(int_value, six.integer_types), 'value=%r' % int_value
+
+    return len(six.text_type(int_value))

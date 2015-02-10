@@ -34,22 +34,22 @@ class RangeTest(unittest.TestCase):
     Test cases for :py:class:`cutplace.ranges.Range`.
     """
     def test_can_parse_proper_ranges(self):
-        self.assertEquals(ranges.Range("1").items, [(1, 1)])
-        self.assertEquals(ranges.Range("1...").items, [(1, None)])
-        self.assertEquals(ranges.Range("...1").items, [(None, 1)])
-        self.assertEquals(ranges.Range("1" + "\u2026" + "2").items, [(1, 2)])
-        self.assertEquals(ranges.Range("-1...2").items, [(-1, 2)])
+        self.assertEqual(ranges.Range("1").items, [(1, 1)])
+        self.assertEqual(ranges.Range("1...").items, [(1, None)])
+        self.assertEqual(ranges.Range("...1").items, [(None, 1)])
+        self.assertEqual(ranges.Range("1" + "\u2026" + "2").items, [(1, 2)])
+        self.assertEqual(ranges.Range("-1...2").items, [(-1, 2)])
 
-        self.assertEquals(ranges.Range("1:").items, [(1, None)])
-        self.assertEquals(ranges.Range(":1").items, [(None, 1)])
-        self.assertEquals(ranges.Range("1:2").items, [(1, 2)])
-        self.assertEquals(ranges.Range("-1:2").items, [(-1, 2)])
+        self.assertEqual(ranges.Range("1:").items, [(1, None)])
+        self.assertEqual(ranges.Range(":1").items, [(None, 1)])
+        self.assertEqual(ranges.Range("1:2").items, [(1, 2)])
+        self.assertEqual(ranges.Range("-1:2").items, [(-1, 2)])
 
     def _test_can_handle_empty_range(self, description):
         empty_range = ranges.Range(description)
-        self.assertEquals(empty_range.items, None)
-        self.assertEquals(empty_range.lower_limit, None)
-        self.assertEquals(empty_range.upper_limit, None)
+        self.assertEqual(empty_range.items, None)
+        self.assertEqual(empty_range.lower_limit, None)
+        self.assertEqual(empty_range.upper_limit, None)
         self.assertIsNone(empty_range.validate("x", ranges.MIN_INTEGER - 1))
         self.assertIsNone(empty_range.validate("x", 1))
         self.assertIsNone(empty_range.validate("x", 0))
@@ -62,43 +62,43 @@ class RangeTest(unittest.TestCase):
         self._test_can_handle_empty_range(' \t  ')
 
     def test_can_parse_hex_range(self):
-        self.assertEquals(ranges.Range("0x7f").items, [(127, 127)])
-        self.assertEquals(ranges.Range("0x7F").items, [(127, 127)])
+        self.assertEqual(ranges.Range("0x7f").items, [(127, 127)])
+        self.assertEqual(ranges.Range("0x7F").items, [(127, 127)])
 
     def test_can_parse_multiple_ranges(self):
-        self.assertEquals(ranges.Range("1, 3").items, [(1, 1), (3, 3)])
-        self.assertEquals(ranges.Range("1...2, 5...").items, [(1, 2), (5, None)])
+        self.assertEqual(ranges.Range("1, 3").items, [(1, 1), (3, 3)])
+        self.assertEqual(ranges.Range("1...2, 5...").items, [(1, 2), (5, None)])
 
     def test_can_parse_symbolic_range(self):
-        self.assertEquals(ranges.Range("TAB").items, [(9, 9)])
-        self.assertEquals(ranges.Range("vt").items, [(11, 11)])
-        self.assertEquals(ranges.Range("Tab...Vt").items, [(9, 11)])
-        self.assertEquals(ranges.Range("Tab...11").items, [(9, 11)])
+        self.assertEqual(ranges.Range("TAB").items, [(9, 9)])
+        self.assertEqual(ranges.Range("vt").items, [(11, 11)])
+        self.assertEqual(ranges.Range("Tab...Vt").items, [(9, 11)])
+        self.assertEqual(ranges.Range("Tab...11").items, [(9, 11)])
 
     def test_can_parse_text_range(self):
-        self.assertEquals(ranges.Range("\"a\"").items, [(97, 97)])
+        self.assertEqual(ranges.Range("\"a\"").items, [(97, 97)])
 
     def test_can_use_default_range(self):
-        self.assertEquals(ranges.Range("", "2...3").items, [(2, 3)])
+        self.assertEqual(ranges.Range("", "2...3").items, [(2, 3)])
 
     def test_can_override_default_range(self):
-        self.assertEquals(ranges.Range("1...2", "2...3").items, [(1, 2)])
+        self.assertEqual(ranges.Range("1...2", "2...3").items, [(1, 2)])
 
     def test_can_get_lower_limit(self):
-        self.assertEquals(ranges.Range("5...9").lower_limit, 5)
-        self.assertEquals(ranges.Range("0...").lower_limit, 0)
-        self.assertEquals(ranges.Range("...0").lower_limit, None)
-        self.assertEquals(ranges.Range("...1, 3...").lower_limit, None)
-        self.assertEquals(ranges.Range("5...9").lower_limit, 5)
-        self.assertEquals(ranges.Range("1...2, 5...9").lower_limit, 1)
-        self.assertEquals(ranges.Range("5...9, 1...2").lower_limit, 1)
+        self.assertEqual(ranges.Range("5...9").lower_limit, 5)
+        self.assertEqual(ranges.Range("0...").lower_limit, 0)
+        self.assertEqual(ranges.Range("...0").lower_limit, None)
+        self.assertEqual(ranges.Range("...1, 3...").lower_limit, None)
+        self.assertEqual(ranges.Range("5...9").lower_limit, 5)
+        self.assertEqual(ranges.Range("1...2, 5...9").lower_limit, 1)
+        self.assertEqual(ranges.Range("5...9, 1...2").lower_limit, 1)
 
     def test_can_get_upper_limit(self):
-        self.assertEquals(ranges.Range("1...2").upper_limit, 2)
-        self.assertEquals(ranges.Range("0...").upper_limit, None)
-        self.assertEquals(ranges.Range("...0").upper_limit, 0)
-        self.assertEquals(ranges.Range("...1, 3...").upper_limit, None)
-        self.assertEquals(ranges.Range("1...2, 5...9").upper_limit, 9)
+        self.assertEqual(ranges.Range("1...2").upper_limit, 2)
+        self.assertEqual(ranges.Range("0...").upper_limit, None)
+        self.assertEqual(ranges.Range("...0").upper_limit, 0)
+        self.assertEqual(ranges.Range("...1, 3...").upper_limit, None)
+        self.assertEqual(ranges.Range("1...2, 5...9").upper_limit, 9)
 
     def test_fails_on_inconsistent_overlapping_multi_range(self):
         self.assertRaises(errors.InterfaceError, ranges.Range, "1...5, 2...3")
@@ -181,6 +181,31 @@ class RangeTest(unittest.TestCase):
         self.assertRaises(errors.RangeValueError, multi_range.validate, "x", 6)
         self.assertRaises(errors.RangeValueError, multi_range.validate, "x", 10)
         self.assertRaises(errors.RangeValueError, multi_range.validate, "x", 723)
+
+    def test_can_create_range_from_length(self):
+        self.assertEqual(ranges.create_range_from_length(ranges.Range("1...")).items, None)
+        self.assertEqual(ranges.create_range_from_length(ranges.Range("1...1")).items, [(0, 9)])
+        self.assertEqual(ranges.create_range_from_length(ranges.Range("1...3")).items, [(-99, 999)])
+        self.assertEqual(ranges.create_range_from_length(ranges.Range("0...")).items, None)
+        self.assertEqual(ranges.create_range_from_length(ranges.Range("0...1")).items, [(0, 9)])
+        self.assertEqual(ranges.create_range_from_length(ranges.Range("0...3")).items, [(-99, 999)])
+        self.assertEqual(ranges.create_range_from_length(ranges.Range("")).items, None)
+        self.assertEqual(ranges.create_range_from_length(ranges.Range("...1")).items, [(0, 9)])
+        self.assertEqual(ranges.create_range_from_length(ranges.Range("...3")).items, [(-99, 999)])
+        self.assertEqual(ranges.create_range_from_length(ranges.Range("2...2")).items, [(-9, -1), (10, 99)])
+        self.assertEqual(ranges.create_range_from_length(ranges.Range("2...5")).items, [(-9999, -1), (10, 99999)])
+        self.assertEqual(ranges.create_range_from_length(ranges.Range("3...8")).items, [(-9999999, -10), (100, 99999999)])
+        self.assertEqual(ranges.create_range_from_length(ranges.Range("2...")).items, [(None, -1), (10, None)])
+        self.assertEqual(ranges.create_range_from_length(ranges.Range("3...")).items, [(None, -10), (100, None)])
+        self.assertEqual(
+            ranges.create_range_from_length(
+                ranges.Range("3...4, 10...")).items, [(-999, -10), (100, 9999), (None, -100000000), (1000000000, None)])
+
+    def test_fails_on_create_range_from_negative_length(self):
+        self.assertRaises(errors.RangeValueError, ranges.create_range_from_length, ranges.Range("-19...-1"))
+        self.assertRaises(errors.RangeValueError, ranges.create_range_from_length, ranges.Range("-19...1"))
+        self.assertRaises(errors.RangeValueError, ranges.create_range_from_length, ranges.Range("-1...0"))
+        self.assertRaises(errors.RangeValueError, ranges.create_range_from_length, ranges.Range("0...0"))
 
 
 class DecimalRangeTest(unittest.TestCase):
