@@ -33,22 +33,22 @@ class RangeTest(unittest.TestCase):
     Test cases for :py:class:`cutplace.ranges.Range`.
     """
     def test_can_parse_proper_ranges(self):
-        self.assertEquals(ranges.Range("1").items, [(1, 1)])
-        self.assertEquals(ranges.Range("1...").items, [(1, None)])
-        self.assertEquals(ranges.Range("...1").items, [(None, 1)])
-        self.assertEquals(ranges.Range("1" + "\u2026" + "2").items, [(1, 2)])
-        self.assertEquals(ranges.Range("-1...2").items, [(-1, 2)])
+        self.assertEqual(ranges.Range("1").items, [(1, 1)])
+        self.assertEqual(ranges.Range("1...").items, [(1, None)])
+        self.assertEqual(ranges.Range("...1").items, [(None, 1)])
+        self.assertEqual(ranges.Range("1" + "\u2026" + "2").items, [(1, 2)])
+        self.assertEqual(ranges.Range("-1...2").items, [(-1, 2)])
 
-        self.assertEquals(ranges.Range("1:").items, [(1, None)])
-        self.assertEquals(ranges.Range(":1").items, [(None, 1)])
-        self.assertEquals(ranges.Range("1:2").items, [(1, 2)])
-        self.assertEquals(ranges.Range("-1:2").items, [(-1, 2)])
+        self.assertEqual(ranges.Range("1:").items, [(1, None)])
+        self.assertEqual(ranges.Range(":1").items, [(None, 1)])
+        self.assertEqual(ranges.Range("1:2").items, [(1, 2)])
+        self.assertEqual(ranges.Range("-1:2").items, [(-1, 2)])
 
     def _test_can_handle_empty_range(self, description):
         empty_range = ranges.Range(description)
-        self.assertEquals(empty_range.items, None)
-        self.assertEquals(empty_range.lower_limit, None)
-        self.assertEquals(empty_range.upper_limit, None)
+        self.assertEqual(empty_range.items, None)
+        self.assertEqual(empty_range.lower_limit, None)
+        self.assertEqual(empty_range.upper_limit, None)
         self.assertIsNone(empty_range.validate("x", ranges.MIN_INTEGER - 1))
         self.assertIsNone(empty_range.validate("x", 1))
         self.assertIsNone(empty_range.validate("x", 0))
@@ -61,43 +61,43 @@ class RangeTest(unittest.TestCase):
         self._test_can_handle_empty_range(' \t  ')
 
     def test_can_parse_hex_range(self):
-        self.assertEquals(ranges.Range("0x7f").items, [(127, 127)])
-        self.assertEquals(ranges.Range("0x7F").items, [(127, 127)])
+        self.assertEqual(ranges.Range("0x7f").items, [(127, 127)])
+        self.assertEqual(ranges.Range("0x7F").items, [(127, 127)])
 
     def test_can_parse_multiple_ranges(self):
-        self.assertEquals(ranges.Range("1, 3").items, [(1, 1), (3, 3)])
-        self.assertEquals(ranges.Range("1...2, 5...").items, [(1, 2), (5, None)])
+        self.assertEqual(ranges.Range("1, 3").items, [(1, 1), (3, 3)])
+        self.assertEqual(ranges.Range("1...2, 5...").items, [(1, 2), (5, None)])
 
     def test_can_parse_symbolic_range(self):
-        self.assertEquals(ranges.Range("TAB").items, [(9, 9)])
-        self.assertEquals(ranges.Range("vt").items, [(11, 11)])
-        self.assertEquals(ranges.Range("Tab...Vt").items, [(9, 11)])
-        self.assertEquals(ranges.Range("Tab...11").items, [(9, 11)])
+        self.assertEqual(ranges.Range("TAB").items, [(9, 9)])
+        self.assertEqual(ranges.Range("vt").items, [(11, 11)])
+        self.assertEqual(ranges.Range("Tab...Vt").items, [(9, 11)])
+        self.assertEqual(ranges.Range("Tab...11").items, [(9, 11)])
 
     def test_can_parse_text_range(self):
-        self.assertEquals(ranges.Range("\"a\"").items, [(97, 97)])
+        self.assertEqual(ranges.Range("\"a\"").items, [(97, 97)])
 
     def test_can_use_default_range(self):
-        self.assertEquals(ranges.Range("", "2...3").items, [(2, 3)])
+        self.assertEqual(ranges.Range("", "2...3").items, [(2, 3)])
 
     def test_can_override_default_range(self):
-        self.assertEquals(ranges.Range("1...2", "2...3").items, [(1, 2)])
+        self.assertEqual(ranges.Range("1...2", "2...3").items, [(1, 2)])
 
     def test_can_get_lower_limit(self):
-        self.assertEquals(ranges.Range("5...9").lower_limit, 5)
-        self.assertEquals(ranges.Range("0...").lower_limit, 0)
-        self.assertEquals(ranges.Range("...0").lower_limit, None)
-        self.assertEquals(ranges.Range("...1, 3...").lower_limit, None)
-        self.assertEquals(ranges.Range("5...9").lower_limit, 5)
-        self.assertEquals(ranges.Range("1...2, 5...9").lower_limit, 1)
-        self.assertEquals(ranges.Range("5...9, 1...2").lower_limit, 1)
+        self.assertEqual(ranges.Range("5...9").lower_limit, 5)
+        self.assertEqual(ranges.Range("0...").lower_limit, 0)
+        self.assertEqual(ranges.Range("...0").lower_limit, None)
+        self.assertEqual(ranges.Range("...1, 3...").lower_limit, None)
+        self.assertEqual(ranges.Range("5...9").lower_limit, 5)
+        self.assertEqual(ranges.Range("1...2, 5...9").lower_limit, 1)
+        self.assertEqual(ranges.Range("5...9, 1...2").lower_limit, 1)
 
     def test_can_get_upper_limit(self):
-        self.assertEquals(ranges.Range("1...2").upper_limit, 2)
-        self.assertEquals(ranges.Range("0...").upper_limit, None)
-        self.assertEquals(ranges.Range("...0").upper_limit, 0)
-        self.assertEquals(ranges.Range("...1, 3...").upper_limit, None)
-        self.assertEquals(ranges.Range("1...2, 5...9").upper_limit, 9)
+        self.assertEqual(ranges.Range("1...2").upper_limit, 2)
+        self.assertEqual(ranges.Range("0...").upper_limit, None)
+        self.assertEqual(ranges.Range("...0").upper_limit, 0)
+        self.assertEqual(ranges.Range("...1, 3...").upper_limit, None)
+        self.assertEqual(ranges.Range("1...2, 5...9").upper_limit, 9)
 
     def test_fails_on_inconsistent_overlapping_multi_range(self):
         self.assertRaises(errors.InterfaceError, ranges.Range, "1...5, 2...3")
