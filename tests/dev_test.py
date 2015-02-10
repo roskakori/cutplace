@@ -250,6 +250,16 @@ def assert_fnmatches(test_case, actual_value, expected_pattern):
         test_case.fail('%r must match pattern %r' % (actual_value, expected_pattern))
 
 
+def assert_error_fnmatches(test_case, actual_error, expected_message_pattern):
+    assert test_case is not None
+    assert actual_error is not None
+    assert isinstance(actual_error, Exception)
+    assert expected_message_pattern is not None
+
+    actual_message = six.text_type(actual_error)
+    assert_fnmatches(test_case, actual_message, expected_message_pattern)
+
+
 def unified_newlines(text):
     """
     Same as ``text`` but with newline sequences unified to ``'\n'``.

@@ -74,6 +74,13 @@ class ToolsTest(unittest.TestCase):
     def test_fails_on_mkdirs_with_empty_path(self):
         self.assertRaises(OSError, _tools.mkdirs, '')
 
+    def test_can_compute_length_of_int(self):
+        self.assertEqual(3, _tools.length_of_int(123))
+        self.assertEqual(1, _tools.length_of_int(0))
+        self.assertEqual(1, _tools.length_of_int(9))
+        self.assertEqual(2, _tools.length_of_int(-1))
+        self.assertEqual(155, _tools.length_of_int(2 ** 512))
+
 
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()

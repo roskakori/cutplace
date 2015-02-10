@@ -30,6 +30,8 @@ from cutplace import errors
 from cutplace import fields
 from cutplace import sql
 
+from tests import dev_test
+
 _ANY_FORMAT = data.DataFormat(data.FORMAT_DELIMITED)
 _FIXED_FORMAT = data.DataFormat(data.FORMAT_FIXED)
 
@@ -189,6 +191,39 @@ class IntegerFieldFormatTest(unittest.TestCase):
         self.assertRaises(errors.FieldValueError, field_format.validated, "9")
         self.assertRaises(errors.FieldValueError, field_format.validated, "10000")
 
+    def test_can_validate_empty_value_with_range_from_length(self):
+        field_format = fields.IntegerFieldFormat('x', True, '2...3, 5...', '', _ANY_FORMAT)
+        self.assertEqual(field_format.validated('10'), 10)
+        self.assertEqual(field_format.validated('10000'), 10000)
+        self.assertEqual(field_format.validated(''), None)
+        self.assertRaises(errors.FieldValueError, field_format.validated, '1')
+
+    def test_can_validate_fixed_format_with_length_and_rule(self):
+        field_format = fields.IntegerFieldFormat('x', False, '3', '12...789', _FIXED_FORMAT)
+        self.assertEqual(field_format.validated('100'), 100)
+        self.assertEqual(field_format.validated('12'), 12)
+        self.assertEqual(field_format.validated(' 12'), 12)
+        self.assertEqual(field_format.validated('12 '), 12)
+        self.assertEqual(field_format.validated('012'), 12)
+
+    def test_fails_on_inconsistent_fixed_length_and_rule(self):
+        try:
+            fields.IntegerFieldFormat('x', False, '3', '...1234', _FIXED_FORMAT)
+            self.fail()
+        except errors.InterfaceError as anticipated_error:
+            dev_test.assert_error_fnmatches(
+                self, anticipated_error,
+                "length must be consistent with rule: "
+                "length of partial rule limit '1234' is 4 but must be within range: 1...3")
+        try:
+            fields.IntegerFieldFormat('x', False, '3', '123...456, 1234...', _FIXED_FORMAT)
+            self.fail()
+        except errors.InterfaceError as anticipated_error:
+            dev_test.assert_error_fnmatches(
+                self, anticipated_error,
+                "length must be consistent with rule: "
+                "length of partial rule limit '1234' is 4 but must be within range: 1...3")
+
     def test_can_set_range_from_length_or_rule(self):
         field_format = fields.IntegerFieldFormat("x", False, "1...", "3...5", _ANY_FORMAT)
         self.assertEqual(field_format.validated("3"), 3)
@@ -204,11 +239,11 @@ class IntegerFieldFormatTest(unittest.TestCase):
         self.assertRaises(errors.FieldValueError, field_format.validated, "0")
         self.assertRaises(errors.FieldValueError, field_format.validated, "9")
 
-    def test_fails_on_set_range_from_length_or_rule(self):
-        self.assertRaises(errors.FieldValueError, fields.IntegerFieldFormat, "x", False, "1...2", "3...100", _ANY_FORMAT)
-        self.assertRaises(errors.FieldValueError, fields.IntegerFieldFormat, "x", False, "3...4", "3...10000", _ANY_FORMAT)
-        self.assertRaises(errors.FieldValueError, fields.IntegerFieldFormat, "x", False, "2...4", "-4000...100", _ANY_FORMAT)
-        self.assertRaises(errors.FieldValueError, fields.IntegerFieldFormat, "x", False, "3...4", "-1000...100", _ANY_FORMAT)
+    def test_fails_on_inconsistent_length_and_rule(self):
+        self.assertRaises(errors.InterfaceError, fields.IntegerFieldFormat, "x", False, "1...2", "3...100", _ANY_FORMAT)
+        self.assertRaises(errors.InterfaceError, fields.IntegerFieldFormat, "x", False, "3...4", "3...10000", _ANY_FORMAT)
+        self.assertRaises(errors.InterfaceError, fields.IntegerFieldFormat, "x", False, "2...4", "-4000...100", _ANY_FORMAT)
+        self.assertRaises(errors.InterfaceError, fields.IntegerFieldFormat, "x", False, "3...4", "-1000...100", _ANY_FORMAT)
 
     def test_fails_on_too_small_number(self):
         field_format = fields.IntegerFieldFormat("x", False, None, "1...10", _ANY_FORMAT)
