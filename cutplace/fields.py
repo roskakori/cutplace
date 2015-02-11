@@ -337,17 +337,17 @@ class DecimalFieldFormat(AbstractFieldFormat):
             elif self.thousandsSeparator and (character_to_process == self.thousandsSeparator):
                 if found_decimal_separator:
                     raise errors.FieldValueError(
-                        "decimal field must contain thousands separator (%r) only before "
-                        "decimal separator (%r): %r (position %d)"
-                        % (self.thousandsSeparator, self.decimalSeparator, value, valueIndex + 1))
+                        "decimal field must contain thousands separator (%s) only before "
+                        "decimal separator (%s): %r (position %d)"
+                        % (_compat.text_repr(self.thousandsSeparator), _compat.text_repr(self.decimalSeparator),
+                           value, valueIndex + 1))
             else:
                 translated_value += character_to_process
         try:
             result = decimal.Decimal(translated_value)
-        except Exception as error:
-            # TODO: limit exception handler to decimal exception or whatever decimal.Decimal raises.
-            message = "value is %r but must be a decimal number: %s" % (value, error)
-            raise errors.FieldValueError(message)
+        except decimal.DecimalException as error:
+            raise errors.FieldValueError(
+                "value is %s but must be a decimal number: %s" % (_compat.text_repr(value), error))
 
         return result
 
