@@ -25,6 +25,8 @@ import decimal
 import logging
 import unittest
 
+import six
+
 from cutplace import data
 from cutplace import errors
 from cutplace import fields
@@ -71,6 +73,23 @@ class AbstractFieldFormatTest(unittest.TestCase):
     def test_can_create_empty_field_with_length_limit(self):
         field_format = fields.AbstractFieldFormat("x", True, "3...5", "", _ANY_FORMAT)
         field_format.validate_length("")
+
+    def test_can_clear_example(self):
+        field_format = fields.AbstractFieldFormat('x', False, '3...5', '', _ANY_FORMAT)
+        field_format.example = None
+
+    def test_fails_on_invalid_character(self):
+        data_format = data.DataFormat(data.FORMAT_DELIMITED)
+        data_format.set_property(data.KEY_ALLOWED_CHARACTERS, '"a"..."c"')
+        field_format = fields.AbstractFieldFormat('something', False, '3...5', '', data_format)
+        field_format.validate_characters('cba')
+        try:
+            field_format.validate_characters('abxba')
+            self.fail()
+        except errors.FieldValueError as anticipated_error:
+            self.assertEqual(
+                "character 'x' (code point U+0078, decimal 120) in field 'something' at column 3 must be an allowed"
+                " character: 97...99", six.text_type(anticipated_error))
 
 
 class DateTimeFieldFormatTest(unittest.TestCase):

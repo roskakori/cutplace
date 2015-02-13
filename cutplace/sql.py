@@ -40,6 +40,10 @@ MYSQL = "mysql"
 ORACLE = "oracle"
 
 
+def assert_is_valid_dialect(dialect):
+    assert dialect in (ANSI, DB2, MSSQL, MYSQL, ORACLE), 'dialect=%r' % dialect
+
+
 def generate_choices(rule):
     choices = []
 
