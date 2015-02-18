@@ -22,6 +22,7 @@ from __future__ import unicode_literals
 
 import unittest
 import decimal
+import six
 
 from cutplace import errors
 from cutplace import ranges
@@ -113,7 +114,7 @@ class RangeTest(unittest.TestCase):
             ranges.Range(description)
             self.fail("test must fail with InterfaceError")
         except errors.InterfaceError as anticipated_error:
-            dev_test.assert_fnmatches(self, str(anticipated_error), anticipated_error_message_pattern)
+            dev_test.assert_fnmatches(self, six.text_type(anticipated_error), anticipated_error_message_pattern)
 
     def test_fails_on_broken_ranges(self):
         self.assertRaises(errors.InterfaceError, ranges.Range, "x")
@@ -249,7 +250,7 @@ class DecimalRangeTest(unittest.TestCase):
         try:
             lower_and_upper_range.validate("x", '-1.3')
         except errors.RangeValueError as error:
-            self.assertEqual(str(error), "x is Decimal('-1.3') but must be within range: '-1.2...1.5'")
+            self.assertEqual(six.text_type(error), "x is Decimal('-1.3') but must be within range: '-1.2...1.5'")
         self.assertRaises(errors.RangeValueError, lower_and_upper_range.validate, "x", decimal.Decimal('1.6'))
 
         lower_range = ranges.DecimalRange("1.1...")
@@ -285,7 +286,7 @@ class DecimalRangeTest(unittest.TestCase):
             ranges.DecimalRange(description)
             self.fail("test must fail with InterfaceError")
         except errors.InterfaceError as anticipated_error:
-            dev_test.assert_fnmatches(self, str(anticipated_error), anticipated_error_message_pattern)
+            dev_test.assert_fnmatches(self, six.text_type(anticipated_error), anticipated_error_message_pattern)
 
     def test_fails_on_broken_ranges(self):
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "x")
@@ -308,7 +309,7 @@ class DecimalRangeTest(unittest.TestCase):
         try:
             ranges.DecimalRange("0x7f")
         except errors.InterfaceError as error:
-            self.assertEqual(str(error), "number must be an decimal or integer but is: '0x7f'")
+            self.assertEqual(six.text_type(error), "number must be an decimal or integer but is: '0x7f'")
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "0x7F")
 
     def test_can_parse_multiple_ranges(self):
@@ -320,7 +321,7 @@ class DecimalRangeTest(unittest.TestCase):
             ranges.DecimalRange("TAB")
         except errors.InterfaceError as error:
             self.assertEqual(
-                str(error),
+                six.text_type(error),
                 "range must be specified using decimal or integer numbers and ellipsis (...) but found: 'TAB' [token type: 1]")
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "vt")
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "Tab...Vt")
@@ -363,7 +364,10 @@ class DecimalRangeTest(unittest.TestCase):
         try:
             ranges.DecimalRange("1...2.4, 2.3...3.4")
         except errors.InterfaceError as error:
-            self.assertEqual(str(error), "range items must not overlap: '1.0...2.4' and '2.3...3.4'")
+            if six.PY2:
+                self.assertEqual(six.text_type(error), "range items must not overlap: u'1.0...2.4' and u'2.3...3.4'")
+            else:
+                self.assertEqual(six.text_type(error), "range items must not overlap: '1.0...2.4' and '2.3...3.4'")
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "1...2.4, 2.3...3.4")
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "1..., 2...3.1")
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "...5.9, 2...3")
