@@ -123,25 +123,6 @@ class DateTimeFieldFormatTest(unittest.TestCase):
         field_format = fields.DateTimeFieldFormat("x", False, None, "%YYYY-MM-DD", _ANY_FORMAT)
         field_format.validated("%2000-01-01")
 
-    # TODO: Move SQL test to test_sql.
-    def test_can_output_sql_date(self):
-        field_format = fields.DateTimeFieldFormat("x", True, None, "YYYY-MM-DD", _ANY_FORMAT)
-        self.assertEqual(field_format.as_sql(sql.MSSQL)[0], "x date")
-
-    def test_can_output_sql_time(self):
-        field_format = fields.DateTimeFieldFormat("x", True, None, "hh:mm:ss", _ANY_FORMAT)
-        self.assertEqual(field_format.as_sql(sql.MSSQL)[0], "x time")
-
-    def test_can_output_sql_datetime(self):
-        field_format = fields.DateTimeFieldFormat("x", True, None, "YYYY:MM:DD hh:mm:ss", _ANY_FORMAT)
-        self.assertEqual(field_format.as_sql(sql.MSSQL)[0], "x datetime")
-        field_format = fields.DateTimeFieldFormat("x", True, None, "YY:MM:DD hh:mm:ss", _ANY_FORMAT)
-        self.assertEqual(field_format.as_sql(sql.MSSQL)[0], "x datetime")
-
-    def test_can_output_sql_datetime_not_null(self):
-        field_format = fields.DateTimeFieldFormat("x", False, None, "YYYY:MM:DD hh:mm:ss", _ANY_FORMAT)
-        self.assertEqual(field_format.as_sql(sql.MSSQL)[0], "x datetime not null")
-
 
 class DecimalFieldFormatTest(unittest.TestCase):
     """
@@ -365,31 +346,6 @@ class ChoiceFieldFormatTest(unittest.TestCase):
         self.assertRaises(errors.InterfaceError, fields.ChoiceFieldFormat, "color", False, None, ",red", _ANY_FORMAT)
         self.assertRaises(errors.InterfaceError, fields.ChoiceFieldFormat, "color", False, None, "red,,green", _ANY_FORMAT)
 
-    # TODO: Move to test_sql.
-    def test_can_output_sql_varchar(self):
-        field_format = fields.ChoiceFieldFormat("color", True, None, "red,grEEn, blue ", _ANY_FORMAT)
-        column_def, constraint = field_format.as_sql(sql.MSSQL)
-        self.assertEqual(column_def, "color varchar(255)")
-        self.assertEqual(constraint, "constraint chk_rule_color check( color in ('red','grEEn','blue') )")
-
-    def test_can_output_sql_smallint(self):
-        field_format = fields.ChoiceFieldFormat("color", True, None, "1,2, 3 ", _ANY_FORMAT)
-        column_def, constraint = field_format.as_sql(sql.MSSQL)
-        self.assertEqual(column_def, "color smallint")
-        self.assertEqual(constraint, "constraint chk_rule_color check( color in (1,2,3) )")
-
-    def test_can_output_sql_integer(self):
-        field_format = fields.ChoiceFieldFormat("color", True, None, "1000000,2, 3 ", _ANY_FORMAT)
-        column_def, constraint = field_format.as_sql(sql.MSSQL)
-        self.assertEqual(column_def, "color integer")
-        self.assertEqual(constraint, "constraint chk_rule_color check( color in (1000000,2,3) )")
-
-    def test_can_output_sql_bigint(self):
-        field_format = fields.ChoiceFieldFormat("color", True, None, "10000000000,2, 3 ", _ANY_FORMAT)
-        column_def, constraint = field_format.as_sql(sql.MSSQL)
-        self.assertEqual(column_def, "color bigint")
-        self.assertEqual(constraint, "constraint chk_rule_color check( color in (10000000000,2,3) )")
-
 
 class PatternFieldFormatTest(unittest.TestCase):
     """
@@ -405,13 +361,6 @@ class PatternFieldFormatTest(unittest.TestCase):
         field_format = fields.PatternFieldFormat("x", False, None, "h*g?", _ANY_FORMAT)
         self.assertRaises(errors.FieldValueError, field_format.validated, "")
         self.assertRaises(errors.FieldValueError, field_format.validated, "hang")
-
-    # TODO: Move to test_sql.
-    def test_can_output_sql_without_range(self):
-        field_format = fields.PatternFieldFormat("x", False, None, "h*g?", _ANY_FORMAT)
-        column_def, constraint = field_format.as_sql(sql.MSSQL)
-        self.assertEqual(column_def, "x varchar(255) not null")
-        self.assertEqual(constraint, "")
 
 
 if __name__ == '__main__':  # pragma: no cover
