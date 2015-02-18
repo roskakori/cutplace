@@ -217,16 +217,16 @@ class DecimalRangeTest(unittest.TestCase):
         self.assertEquals(ranges.DecimalRange("1.1" + "\u2026" + "2.1").items, [(decimal.Decimal('1.1'), decimal.Decimal('2.1'))])
         self.assertEquals(ranges.DecimalRange("-1.1...2").items, [(decimal.Decimal('-1.1'), 2)])
 
-        self.assertEquals(ranges.DecimalRange("1.1:").items, [(decimal.Decimal('1.1'), None)])
-        self.assertEquals(ranges.DecimalRange(":1.1").items, [(None, decimal.Decimal('1.1'))])
-        self.assertEquals(ranges.DecimalRange("1.1:2.1").items, [(decimal.Decimal('1.1'), decimal.Decimal('2.1'))])
-        self.assertEquals(ranges.DecimalRange("-1.1:2.1").items, [(decimal.Decimal('-1.1'), decimal.Decimal('2.1'))])
+        self.assertEquals(ranges.DecimalRange("1.1...").items, [(decimal.Decimal('1.1'), None)])
+        self.assertEquals(ranges.DecimalRange("...1.1").items, [(None, decimal.Decimal('1.1'))])
+        self.assertEquals(ranges.DecimalRange("1.1...2.1").items, [(decimal.Decimal('1.1'), decimal.Decimal('2.1'))])
+        self.assertEquals(ranges.DecimalRange("-1.1...2.1").items, [(decimal.Decimal('-1.1'), decimal.Decimal('2.1'))])
 
     def test_can_validate_values(self):
         lower_and_upper_range = ranges.DecimalRange("-1.2...1.5")
-        lower_and_upper_range.validate("x", '-1.1')
+        lower_and_upper_range.validate("x", '-1.2')
         lower_and_upper_range.validate("x", 0)
-        lower_and_upper_range.validate("x", 1)
+        lower_and_upper_range.validate("x", '1.5')
 
         lower_range = ranges.DecimalRange("1.1...")
         lower_range.validate("x", '1.1')
@@ -244,9 +244,12 @@ class DecimalRangeTest(unittest.TestCase):
         multi_range.validate("x", '7.1')
         multi_range.validate("x", 9)
 
-    def test_fails_on_validation_with_out_of_range_value(self):
+    def test_fails_on_value_out_of_range(self):
         lower_and_upper_range = ranges.DecimalRange("-1.2...1.5")
-        self.assertRaises(errors.RangeValueError, lower_and_upper_range.validate, "x", decimal.Decimal('-1.3'))
+        try:
+            lower_and_upper_range.validate("x", '-1.3')
+        except errors.RangeValueError as error:
+            self.assertEqual(str(error), "x is Decimal('-1.3') but must be within range: '-1.2...1.5'")
         self.assertRaises(errors.RangeValueError, lower_and_upper_range.validate, "x", decimal.Decimal('1.6'))
 
         lower_range = ranges.DecimalRange("1.1...")
@@ -284,7 +287,7 @@ class DecimalRangeTest(unittest.TestCase):
         except errors.InterfaceError as anticipated_error:
             dev_test.assert_fnmatches(self, str(anticipated_error), anticipated_error_message_pattern)
 
-    def test_broken_ranges(self):
+    def test_fails_on_broken_ranges(self):
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "x")
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "...")
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "-")
@@ -299,10 +302,13 @@ class DecimalRangeTest(unittest.TestCase):
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "2.2...-3.3")
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "-1.2...-3.4")
         self._test_fails_with_interface_error(
-            '?', "range must be specified using integer numbers and ellipsis (...) but found: '?'*")
+            '?', "range must be specified using decimal or integer numbers and ellipsis (...) but found: '?'*")
 
     def test_fails_on_parse_hex_range(self):
-        self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "0x7f")
+        try:
+            ranges.DecimalRange("0x7f")
+        except errors.InterfaceError as error:
+            self.assertEqual(str(error), "number must be an decimal or integer but is: '0x7f'")
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "0x7F")
 
     def test_can_parse_multiple_ranges(self):
@@ -310,13 +316,23 @@ class DecimalRangeTest(unittest.TestCase):
         self.assertEquals(ranges.DecimalRange("1...2.3, 5...").items, [(1, decimal.Decimal('2.3')), (5, None)])
 
     def test_fails_on_parse_symbolic_range(self):
-        self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "TAB")
+        try:
+            ranges.DecimalRange("TAB")
+        except errors.InterfaceError as error:
+            self.assertEqual(
+                str(error),
+                "range must be specified using decimal or integer numbers and ellipsis (...) but found: 'TAB' [token type: 1]")
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "vt")
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "Tab...Vt")
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "Tab...11")
 
     def test_fails_on_parse_text_range(self):
-        self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "\"a\"")
+        try:
+            ranges.DecimalRange("a")
+        except errors.InterfaceError as error:
+            self.assertEqual(
+                str(error),
+                "range must be specified using decimal or integer numbers and ellipsis (...) but found: 'a' [token type: 1]")
 
     def test_can_use_default_range(self):
         self.assertEquals(ranges.DecimalRange("", "2.1...3").items, [(decimal.Decimal('2.1'), 3)])
@@ -344,6 +360,10 @@ class DecimalRangeTest(unittest.TestCase):
         self.assertEqual(ranges.DecimalRange("").items, None)
 
     def test_fails_on_inconsistent_overlapping_multi_range(self):
+        try:
+            ranges.DecimalRange("1...2.4, 2.3...3.4")
+        except errors.InterfaceError as error:
+            self.assertEqual(str(error), "range items must not overlap: '1.0...2.4' and '2.3...3.4'")
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "1...2.4, 2.3...3.4")
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "1..., 2...3.1")
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "...5.9, 2...3")

@@ -460,6 +460,10 @@ class DecimalRange(Range):
         self._precision = 0
         self._scale = 0
 
+        # set the default string placeholder to format the output of values
+        self._string_placeholder = None
+        self._use_default_placeholder = True
+
         if description is not None:
             if six.PY2:
                 # HACK: In Python 2.6, ``tokenize.generate_tokens()`` produces a token for leading white space.
@@ -477,6 +481,7 @@ class DecimalRange(Range):
             self._items = None
             self._lower_limit = None
             self._upper_limit = None
+            self._scale = 0
             self._precision = 0
         else:
             self._description = description.replace('...', ELLIPSIS)
@@ -497,12 +502,12 @@ class DecimalRange(Range):
                             try:
                                 decimal_value = decimal.Decimal(next_value)
                                 _, scale_tuple, precision = decimal_value.as_tuple()
-                                scale = len(str(scale_tuple[0])) \
-                                    + 0 if len(scale_tuple) < 2 else len(str(scale_tuple[1]))
+                                scale = len(six.text_type(scale_tuple[0])) + abs(precision)
                                 if scale > self._scale:
                                     self._scale = scale
                                 if abs(precision) > self._precision:
                                     self._precision = abs(precision)
+                                self._use_default_placeholder = False
 
                             except decimal.DecimalException:
                                 raise errors.InterfaceError(
@@ -533,7 +538,7 @@ class DecimalRange(Range):
                     elif next_value in (ELLIPSIS, ':'):
                         ellipsis_found = True
                     else:
-                        message = "range must be specified using integer numbers" \
+                        message = "range must be specified using decimal or integer numbers" \
                                   " and ellipsis (...) but found: %s [token type: %d]" \
                                   % (_compat.text_repr(next_value), next_type)
                         raise errors.InterfaceError(message)
@@ -577,6 +582,9 @@ class DecimalRange(Range):
             self._lower_limit = None
             self._upper_limit = None
 
+            self._string_placeholder = "%" + six.text_type(self._scale - self._precision) + "." \
+                + six.text_type(self._precision) + "f"
+
             is_first_item = True
 
             for lower_item, upper_item in self._items:
@@ -602,6 +610,18 @@ class DecimalRange(Range):
     @property
     def scale(self):
         return self._scale
+
+    @property
+    def string_placeholder(self):
+        # generate a string placeholder for the decimal values within the range
+        if self._string_placeholder is None and self._use_default_placeholder:
+            string_placeholder = "%19.12f"
+        elif self._string_placeholder is None and not self._use_default_placeholder:
+            string_placeholder = "%" + six.text_type(self._scale - self._precision) + "." \
+                + six.text_type(self._precision) + "f"
+        else:
+            string_placeholder = self._string_placeholder
+        return string_placeholder
 
     def __repr__(self):
         """
@@ -639,13 +659,13 @@ class DecimalRange(Range):
             (lower, upper) = item
             if lower is None:
                 assert upper is not None
-                result += ":%s" % upper.to_eng_string()
+                result += self.string_placeholder % upper
             elif upper is None:
-                result += "%s:" % lower.to_eng_string()
+                result += self.string_placeholder % lower
             elif lower == upper:
-                result += "%s" % lower.to_eng_string()
+                result += self.string_placeholder % lower
             else:
-                result += "%s:%s" % (lower.to_eng_string(), upper.to_eng_string())
+                result += (self.string_placeholder + "..." + self.string_placeholder) % (lower, upper)
         else:
             result = str(None)
         return result
