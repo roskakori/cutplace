@@ -145,21 +145,58 @@ class DataFormat(object):
     def encoding(self):
         return self._encoding
 
+    @encoding.setter
+    def encoding(self, encoding):
+        assert encoding is not None
+        try:
+            codecs.lookup(encoding)
+        except LookupError:
+            assert False, 'encoding=%r' % encoding
+
+        self._encoding = encoding
+
     @property
     def allowed_characters(self):
         return self._allowed_characters
+
+    @allowed_characters.setter
+    def allowed_characters(self, new_allowed_characters):
+        assert (new_allowed_characters is None) or isinstance(new_allowed_characters, ranges.Range)
+
+        self._allowed_characters = new_allowed_characters
 
     @property
     def escape_character(self):
         return self._escape_character
 
+    @escape_character.setter
+    def escape_character(self, new_escape_character):
+        assert self.format == FORMAT_DELIMITED
+        assert new_escape_character in _VALID_ESCAPE_CHARACTERS
+
+        self._escape_character = new_escape_character
+
     @property
     def header(self):
         return self._header
 
+    @header.setter
+    def header(self, new_header):
+        assert new_header >= 0
+
+        self._header = new_header
+
     @property
     def item_delimiter(self):
         return self._item_delimiter
+
+    @item_delimiter.setter
+    def item_delimiter(self, item_delimiter):
+        assert self.format == FORMAT_DELIMITED
+        assert item_delimiter is not None
+        assert len(item_delimiter) == 1
+
+        self._item_delimiter = item_delimiter
 
     @property
     def is_valid(self):
@@ -174,25 +211,68 @@ class DataFormat(object):
     def line_delimiter(self):
         return self._line_delimiter
 
+    @line_delimiter.setter
+    def line_delimiter(self, new_line_delimiter):
+        assert self.format in (FORMAT_DELIMITED, FORMAT_FIXED)
+        assert new_line_delimiter in LINE_DELIMITER_TO_TEXT_MAP, 'new_line_delimiter=%r' % new_line_delimiter
+        assert (new_line_delimiter is not None) or (self.format == FORMAT_FIXED), 'format=%r' % self.format
+
+        self._line_delimiter = new_line_delimiter
+
     @property
     def quote_character(self):
         return self._quote_character
+
+    @quote_character.setter
+    def quote_character(self, new_quote_character):
+        assert self.format in (FORMAT_DELIMITED, FORMAT_FIXED)
+        assert new_quote_character in _VALID_QUOTE_CHARACTERS
+
+        self._quote_character = new_quote_character
 
     @property
     def sheet(self):
         return self._sheet
 
+    @sheet.setter
+    def sheet(self, new_sheet):
+        assert self.format in (FORMAT_EXCEL, FORMAT_ODS)
+        assert new_sheet >= 1
+
+        self._sheet == new_sheet
+
     @property
     def skip_initial_space(self):
         return self._skip_initial_space
+
+    @skip_initial_space.setter
+    def skip_initial_space(self, new_skip_initial_space):
+        assert self.format == FORMAT_DELIMITED
+        assert new_skip_initial_space in (False, True)
+
+        self._skip_initial_space = new_skip_initial_space
 
     @property
     def decimal_separator(self):
         return self._decimal_separator
 
+    @decimal_separator.setter
+    def decimal_separator(self, new_decimal_separator):
+        assert self.format in (FORMAT_DELIMITED, FORMAT_FIXED)
+        assert new_decimal_separator in _VALID_DECIMAL_SEPARATORS
+
+        self._decimal_separator = new_decimal_separator
+
     @property
     def thousands_separator(self):
         return self._thousands_separator
+
+    @thousands_separator.setter
+    def thousands_separator(self, new_thousands_separator):
+        assert self.format in (FORMAT_DELIMITED, FORMAT_FIXED)
+        assert new_thousands_separator in _VALID_THOUSANDS_SEPARATORS
+
+        self._thousands_separator = new_thousands_separator
 
     def set_property(self, name, value, location=None):
         r"""
@@ -229,9 +309,9 @@ class DataFormat(object):
                 raise errors.InterfaceError(
                     'value for data format property %s is %s but must be a valid encoding'
                     % (_compat.text_repr(KEY_ENCODING), _compat.text_repr(self.encoding)), location)
-            self._encoding = value
+            self.encoding = value
         elif name == KEY_HEADER:
-            self._header = DataFormat._validated_int_at_least_0(name, value, location)
+            self.header = DataFormat._validated_int_at_least_0(name, value, location)
         elif name == KEY_ALLOWED_CHARACTERS:
             try:
                 self._allowed_characters = ranges.Range(value)
@@ -240,30 +320,30 @@ class DataFormat(object):
                     'data format property %s must be a valid range: %s'
                     % (_compat.text_repr(KEY_ALLOWED_CHARACTERS), error), location)
         elif name == KEY_DECIMAL_SEPARATOR:
-            self._decimal_separator = DataFormat._validated_choice(
+            self.decimal_separator = DataFormat._validated_choice(
                 KEY_DECIMAL_SEPARATOR, value, _VALID_DECIMAL_SEPARATORS, location)
         elif name == KEY_ESCAPE_CHARACTER:
-            self._escape_character = DataFormat._validated_choice(
+            self.escape_character = DataFormat._validated_choice(
                 KEY_ESCAPE_CHARACTER, value, _VALID_ESCAPE_CHARACTERS, location)
         elif name == KEY_ITEM_DELIMITER:
-            self._item_delimiter = DataFormat._validated_character(KEY_ITEM_DELIMITER, value, location)
+            self.item_delimiter = DataFormat._validated_character(KEY_ITEM_DELIMITER, value, location)
         elif name == KEY_LINE_DELIMITER:
             try:
-                self._line_delimiter = _TEXT_TO_LINE_DELIMITER_MAP[value]
+                self.line_delimiter = _TEXT_TO_LINE_DELIMITER_MAP[value]
             except KeyError:
                 raise errors.InterfaceError(
                     'line delimiter %s must be changed to one of: %s'
                     % (_compat.text_repr(value), _tools.human_readable_list(self._VALID_LINE_DELIMITER_TEXTS)),
                     location)
         elif name == KEY_QUOTE_CHARACTER:
-            self._quote_character = DataFormat._validated_choice(
+            self.quote_character = DataFormat._validated_choice(
                 KEY_QUOTE_CHARACTER, value, _VALID_QUOTE_CHARACTERS, location)
         elif name == KEY_SHEET:
-            self._sheet = DataFormat._validated_int_at_least_0(KEY_SHEET, value, location)
+            self.sheet = DataFormat._validated_int_at_least_0(KEY_SHEET, value, location)
         elif name == KEY_SKIP_INITIAL_SPACE:
-            self._skip_initial_space = DataFormat._validated_bool(KEY_SKIP_INITIAL_SPACE, value, location)
+            self.skip_initial_space = DataFormat._validated_bool(KEY_SKIP_INITIAL_SPACE, value, location)
         elif name == KEY_THOUSANDS_SEPARATOR:
-            self._thousands_separator = DataFormat._validated_choice(
+            self.thousands_separator = DataFormat._validated_choice(
                 KEY_THOUSANDS_SEPARATOR, value, _VALID_THOUSANDS_SEPARATORS, location)
         else:
             assert False, 'name=%r' % name
