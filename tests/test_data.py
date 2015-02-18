@@ -26,7 +26,6 @@ import unittest
 
 from cutplace import data
 from cutplace import errors
-from cutplace import ranges
 
 
 class DataFormatTest(unittest.TestCase):
@@ -135,10 +134,12 @@ class DataFormatTest(unittest.TestCase):
         fixed_format = data.DataFormat(data.FORMAT_FIXED)
         self.assertRaises(errors.InterfaceError, fixed_format.set_property, data.KEY_HEADER, '-1')
 
-    def test_can_set_allowed_characters(self):
+    def test_can_validate_allowed_characters(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
-        delimited_format.set_property(data.KEY_ALLOWED_CHARACTERS, '3...5')
-        self.assertEqual([(3, 5)], ranges.Range('3...5').items)
+        delimited_format.set_property(data.KEY_ALLOWED_CHARACTERS, '"a"..."z"')
+        self.assertEqual([(97, 122)], delimited_format.allowed_characters.items)
+        delimited_format.allowed_characters.validate('x', ord('a'))
+        self.assertRaises(errors.RangeValueError, delimited_format.allowed_characters.validate, 'x', ord('*'))
 
     def test_fails_on_invalid_allowed_characters(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)

@@ -237,7 +237,7 @@ class DataFormat(object):
                 self._allowed_characters = ranges.Range(value)
             except errors.InterfaceError as error:
                 raise errors.InterfaceError(
-                    'value for data format property %s must be a valid range: %s'
+                    'data format property %s must be a valid range: %s'
                     % (_compat.text_repr(KEY_ALLOWED_CHARACTERS), error), location)
         elif name == KEY_DECIMAL_SEPARATOR:
             self._decimal_separator = DataFormat._validated_choice(
