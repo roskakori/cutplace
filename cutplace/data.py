@@ -123,7 +123,7 @@ class DataFormat(object):
             self._quote_character = '"'
             self._skip_initial_space = False
         if self.format in (FORMAT_DELIMITED, FORMAT_FIXED):
-            self._decimal_separator = ','
+            self._decimal_separator = '.'
             self._line_delimiter = ANY
             self._thousands_separator = ''
         elif self.format in (FORMAT_EXCEL, FORMAT_ODS):
