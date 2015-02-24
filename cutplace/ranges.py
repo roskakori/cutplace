@@ -474,6 +474,7 @@ class Range(object):
                     "%s is %r but must be within range: %s" % (name, value, self), location)
 
 
+@python_2_unicode_compatible
 class DecimalRange(Range):
 
     def __init__(self, description, default=None, location=None):
