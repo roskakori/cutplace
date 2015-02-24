@@ -223,6 +223,31 @@ class DecimalRangeTest(unittest.TestCase):
         self.assertEquals(ranges.DecimalRange("1.1...2.1").items, [(decimal.Decimal('1.1'), decimal.Decimal('2.1'))])
         self.assertEquals(ranges.DecimalRange("-1.1...2.1").items, [(decimal.Decimal('-1.1'), decimal.Decimal('2.1'))])
 
+    def test_can_set_precision_and_scale(self):
+        empty_range = ranges.DecimalRange('')
+        self.assertEqual(empty_range.precision, ranges.DEFAULT_PRECISION)
+        self.assertEqual(empty_range.scale, ranges.DEFAULT_SCALE)
+
+        range_without_digits_after_dot = ranges.DecimalRange('123')
+        self.assertEqual(range_without_digits_after_dot.precision, 0)
+        self.assertEqual(range_without_digits_after_dot.scale, 3)
+
+        single_range = ranges.DecimalRange('123.45')
+        self.assertEqual(single_range.precision, 2)
+        self.assertEqual(single_range.scale, 5)
+
+        negative_range = ranges.DecimalRange('-123.45')
+        self.assertEqual(negative_range.precision, 2)
+        self.assertEqual(negative_range.scale, 5)
+
+        lower_and_upper_range = ranges.DecimalRange('123.45...5432.1')
+        self.assertEqual(lower_and_upper_range.precision, 2)
+        self.assertEqual(lower_and_upper_range.scale, 6)
+
+        multi_range = ranges.DecimalRange('1.2...45.678, 56.7...1234')
+        self.assertEqual(multi_range.precision, 3)
+        self.assertEqual(multi_range.scale, 7)
+
     def test_can_validate_values(self):
         lower_and_upper_range = ranges.DecimalRange("-1.2...1.5")
         lower_and_upper_range.validate("x", '-1.2')
@@ -362,18 +387,23 @@ class DecimalRangeTest(unittest.TestCase):
 
     def test_fails_on_inconsistent_overlapping_multi_range(self):
         try:
-            ranges.DecimalRange("1...2.4, 2.3...3.4")
+            ranges.DecimalRange("1...2.4, 9...10, 2.3...3.4")
+            self.fail()
         except errors.InterfaceError as error:
-            if six.PY2:
-                self.assertEqual(six.text_type(error), "range items must not overlap: u'1.0...2.4' and u'2.3...3.4'")
-            else:
-                self.assertEqual(six.text_type(error), "range items must not overlap: '1.0...2.4' and '2.3...3.4'")
+            dev_test.assert_error_fnmatches(
+                self, error, "overlapping parts in decimal range must be cleaned up: '1.0...2.4' and '2.3...3.4'")
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "1...2.4, 2.3...3.4")
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "1..., 2...3.1")
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "...5.9, 2...3")
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "...5, ...4.9")
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "...5, 1...")
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "...5, 2")
+
+    def test_can_handle_scientific_notation(self):
+            decimal_range = ranges.DecimalRange('1.23...1e4')
+            self.assertEqual(7, decimal_range.scale)
+            self.assertEqual(2, decimal_range.precision)
+
 
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()

@@ -34,16 +34,31 @@ from cutplace import _compat
 from cutplace import _tools
 from cutplace._compat import python_2_unicode_compatible
 
-ELLIPSIS = '\u2026'  # '...' as single character.
+#: '...' as single character.
+ELLIPSIS = '\u2026'
 
 MAX_INTEGER = 2 ** 31 - 1
 MIN_INTEGER = -2 ** 31
 
 DEFAULT_INTEGER_RANGE_TEXT = '%d...%d' % (MIN_INTEGER, MAX_INTEGER)
 
+#: Text to describe the upper limit of the default decimal range. 31 digits
+#: are the maximum scale of IBM DB2 decimals, which seems to be the smallest
+#: limit for currently practically relevant databases. Using 12 of these digits
+#: for the precision is an arbitrary decision intended to cover most
+#: practically relevant ranges.
 MAX_DECIMAL_TEXT = '9999999999999999999.999999999999'
+assert MAX_DECIMAL_TEXT.replace('9', '').replace('.', '') == ''
 MIN_DECIMAL_TEXT = '-' + MAX_DECIMAL_TEXT
 DEFAULT_DECIMAL_RANGE_TEXT = '%s...%s' % (MIN_DECIMAL_TEXT, MAX_DECIMAL_TEXT)
+
+#: Precision (number of digits after the dot) to use for decimal numbers if
+#: no range is specified.
+DEFAULT_PRECISION = len(MAX_DECIMAL_TEXT.split('.')[1])
+
+#: Scale (total number of digits) to use for decimal numbers if no range is
+#: specified.
+DEFAULT_SCALE = len(MAX_DECIMAL_TEXT) - 1
 
 
 def code_for_number_token(name, value, location):
@@ -150,6 +165,17 @@ def create_range_from_length(length_range):
     return Range(range_rule_text)
 
 
+def _decimal_as_text(decimal_value, precision=DEFAULT_PRECISION):
+    """
+    Decimal value formatted as text always using a ``#.###`` format because
+    ``str()`` might use scientific notation with values smaller than 1e-8.
+    """
+    assert isinstance(decimal_value, decimal.Decimal)
+    assert precision >= 0
+
+    return '%.*f' % (precision, decimal_value)
+
+
 @python_2_unicode_compatible
 class Range(object):
     """
@@ -170,10 +196,6 @@ class Range(object):
         """
         assert default is None or (default.strip() != ''), "default=%r" % default
 
-        if description is not None:
-            if six.PY2:
-                # HACK: In Python 2.6, ``tokenize.generate_tokens()`` produces a token for leading white space.
-                description = description.strip()
         # Find out if a `text` has been specified and if not, use optional `default` instead.
         has_description = (description is not None) and (description.strip() != '')
         if not has_description and default is not None:
@@ -277,10 +299,11 @@ class Range(object):
                 if result is not None:
                     for item in self._items:
                         if self._items_overlap(item, result):
-                            # TODO: use _repr_item() or something to display item in error message.
+                            item_text = _compat.text_repr(self._repr_item(item))
+                            result_text = _compat.text_repr(self._repr_item(result))
                             raise errors.InterfaceError(
-                                "range items must not overlap: %s and %s"
-                                % (self._repr_item(item), self._repr_item(result)), location)
+                                "overlapping parts in range must be cleaned up: %s and %s"
+                                % (item_text, result_text), location)
                     self._items.append(result)
                 if _tools.is_eof_token(next_token):
                     end_reached = True
@@ -457,17 +480,8 @@ class DecimalRange(Range):
 
         assert default is None or (default.strip() != ''), "default=%r" % default
 
-        self._precision = 0
-        self._scale = 0
-
-        # set the default string placeholder to format the output of values
-        self._string_placeholder = None
-        self._use_default_placeholder = True
-
-        if description is not None:
-            if six.PY2:
-                # HACK: In Python 2.6, ``tokenize.generate_tokens()`` produces a token for leading white space.
-                description = description.strip()
+        self._precision = DEFAULT_PRECISION
+        self._scale = DEFAULT_SCALE
 
         # Find out if a `text` has been specified and if not, use optional `default` instead.
         has_description = (description is not None) and (description.strip() != '')
@@ -481,13 +495,13 @@ class DecimalRange(Range):
             self._items = None
             self._lower_limit = None
             self._upper_limit = None
-            self._scale = 0
-            self._precision = 0
         else:
             self._description = description.replace('...', ELLIPSIS)
             self._items = []
-            tokens = tokenize.generate_tokens(io.StringIO(self._description).readline)
+            tokens = _tools.tokenize_without_space(self._description)
             end_reached = False
+            max_digits_after_dot = 0
+            max_digits_before_dot = 0
             while not end_reached:
                 lower = None
                 upper = None
@@ -501,14 +515,13 @@ class DecimalRange(Range):
                         if next_type == token.NUMBER:
                             try:
                                 decimal_value = decimal.Decimal(next_value)
-                                _, scale_tuple, precision = decimal_value.as_tuple()
-                                scale = len(six.text_type(scale_tuple[0])) + abs(precision)
-                                if scale > self._scale:
-                                    self._scale = scale
-                                if abs(precision) > self._precision:
-                                    self._precision = abs(precision)
-                                self._use_default_placeholder = False
-
+                                _, digits, exponent = decimal_value.as_tuple()
+                                digits_after_dot = max(0, -exponent)
+                                if digits_after_dot > max_digits_after_dot:
+                                    max_digits_after_dot = digits_after_dot
+                                digits_before_dot = len(digits) + exponent
+                                if digits_before_dot > max_digits_before_dot:
+                                    max_digits_before_dot = digits_before_dot
                             except decimal.DecimalException:
                                 raise errors.InterfaceError(
                                     "number must be an decimal or integer but is: %s"
@@ -548,8 +561,8 @@ class DecimalRange(Range):
                     raise errors.InterfaceError("hyphen (-) at end must be followed by number")
 
                 # Decide upon the result.
-                if (lower is None):
-                    if (upper is None):
+                if lower is None:
+                    if upper is None:
                         if ellipsis_found:
                             # Handle "...".
                             # TODO: Handle "..." same as ""?
@@ -558,35 +571,37 @@ class DecimalRange(Range):
                     else:
                         assert ellipsis_found
                         # Handle "...y".
-                        result = (None, upper)
+                        range_item = (None, upper)
                 elif ellipsis_found:
                     # Handle "x..." and "x...y".
                     if (upper is not None) and (lower > upper):
                         raise errors.InterfaceError(
-                            "lower range %d must be greater or equal than upper range %d" % (lower, upper))
-                    result = (lower, upper)
+                            "lower limit %s must be less or equal than upper limit %s"
+                            % (_decimal_as_text(lower, self.precision), _decimal_as_text(upper, self.precision)))
+                    range_item = (lower, upper)
                 else:
                     # Handle "x".
-                    result = (lower, lower)
-                if result is not None:
+                    range_item = (lower, lower)
+                if range_item is not None:
+                    self._precision = max_digits_after_dot
+                    self._scale = max_digits_before_dot + max_digits_after_dot
                     for item in self._items:
-                        if self._items_overlap(item, result):
-                            # TODO: use _repr_item() or something to display item in error message.
+                        if self._items_overlap(item, range_item):
+                            item_text = _compat.text_repr(self._repr_item(item))
+                            result_text = _compat.text_repr(self._repr_item(range_item))
                             raise errors.InterfaceError(
-                                "range items must not overlap: %r and %r"
-                                % (self._repr_item(item), self._repr_item(result)))
-                    self._items.append(result)
+                                "overlapping parts in decimal range must be cleaned up: %s and %s"
+                                % (item_text, result_text), location)
+                    self._items.append(range_item)
                 if _tools.is_eof_token(next_token):
                     end_reached = True
 
+            assert self.precision >= 0
+            assert self.scale >= self.precision
+
             self._lower_limit = None
             self._upper_limit = None
-
-            self._string_placeholder = "%" + six.text_type(self._scale - self._precision) + "." \
-                + six.text_type(self._precision) + "f"
-
             is_first_item = True
-
             for lower_item, upper_item in self._items:
                 if is_first_item:
                     self._lower_limit = lower_item
@@ -610,18 +625,6 @@ class DecimalRange(Range):
     @property
     def scale(self):
         return self._scale
-
-    @property
-    def string_placeholder(self):
-        # generate a string placeholder for the decimal values within the range
-        if self._string_placeholder is None and self._use_default_placeholder:
-            string_placeholder = "%19.12f"
-        elif self._string_placeholder is None and not self._use_default_placeholder:
-            string_placeholder = "%" + six.text_type(self._scale - self._precision) + "." \
-                + six.text_type(self._precision) + "f"
-        else:
-            string_placeholder = self._string_placeholder
-        return string_placeholder
 
     def __repr__(self):
         """
@@ -659,15 +662,13 @@ class DecimalRange(Range):
             (lower, upper) = item
             if lower is None:
                 assert upper is not None
-                result += self.string_placeholder % upper
-            elif upper is None:
-                result += self.string_placeholder % lower
-            elif lower == upper:
-                result += self.string_placeholder % lower
+                result += _decimal_as_text(upper, self.precision)
             else:
-                result += (self.string_placeholder + "..." + self.string_placeholder) % (lower, upper)
+                result += _decimal_as_text(lower, self.precision)
+                if upper is not None:
+                    result += "..." + _decimal_as_text(upper, self.precision)
         else:
-            result = str(None)
+            result = six.text_type(None)
         return result
 
     def validate(self, name, value, location=None):
