@@ -236,6 +236,10 @@ class DecimalRangeTest(unittest.TestCase):
         self.assertEqual(single_range.precision, 2)
         self.assertEqual(single_range.scale, 5)
 
+        trailing_zeroes_range = ranges.DecimalRange('123.00')
+        self.assertEqual(trailing_zeroes_range.precision, 2)
+        self.assertEqual(trailing_zeroes_range.scale, 5)
+
         negative_range = ranges.DecimalRange('-123.45')
         self.assertEqual(negative_range.precision, 2)
         self.assertEqual(negative_range.scale, 5)

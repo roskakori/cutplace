@@ -17,7 +17,7 @@ field at a certain column must be the same for each row. For example, once you
 declare the field in column 3 to be a time, row 17 can not store the street
 address in column 3 without violating the requirements for time fields.
 
-1. The Data format: The general format for data files, such as line separator,
+1. The data format: The general format for data files, such as line separator,
    character encoding, quote character and so on. These properties concern the
    whole file and each data item in it.
 
@@ -410,29 +410,39 @@ Decimal
 -------
 
 The Decimal type describes a field that can contain decimal numbers
-including a fractional part. Currently the rule has to be empty.
+including a fractional part. Similar to Integer, the rule allows to
+specify a range and implicitely a precision
 
 Examples for Decimal fields
 
-==  ======  =======  =====  ======  =======  =======
-..  Name    Example  Empty  Length  Type     Rule
-==  ======  =======  =====  ======  =======  =======
-F   amount  17.3                    Decimal
-F   size    28.34                   Decimal
-==  ======  =======  =====  ======  =======  =======
+==  ==========  =======  =====  ======  =======  ====================  =================================
+..  Name        Example  Empty  Length  Type     Rule                  Note
+==  ==========  =======  =====  ======  =======  ====================  =================================
+F   balance     -123.45                 Decimal  -99999.99...99999.99
+F   percentage  17.23                   Decimal  0...100.00
+F   size        28.34                   Decimal  1...7.33, 8.4...10    same as 1.00...7.33, 8.40...10.00
+F   something                           Decimal                        use default (see below)
+==  ==========  =======  =====  ======  =======  ====================  =================================
+
+
+In case no rule is specified (as with the example field "something"), a
+default range between 9999999999999999999.999999999999 and
+-9999999999999999999.999999999999 is assumed, meaning a scale of 31 digits
+with a precision of 12 digits.
+
+Technically the number of digits is limited only by the available memory.
+
+.. index:: decimal separator
 
 In case the numbers use a comma (",") or any other character to separate the
 fractional part, set the data format property
-decimal separator accordingly.
+:ref:`decimal separator <decimal-separator>` accordingly.
 
-..
-  TODO: Get this working: :ref:`decimal separator decimal-separator`
+.. index:: thousands separator
 
 In case the numbers use an additional separator to group digits, set the data
-format property decimal separator accordingly.
+format property :ref:`thousands separator <thousands-separator>` accordingly.
 
-..
-  TODO: Get this working: :ref:`thousands separator thousands-separator`
 
 .. index:: double: field format; Choice
 
