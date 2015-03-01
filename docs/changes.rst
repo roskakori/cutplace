@@ -8,6 +8,8 @@ This chapter describes improvements compared to earlier versions of cutplace.
 Version 0.8.4, 2015-03-01
 =========================
 
+* Fixed validated writing of header rows by disabling validation of
+  the header.
 * Fixed reading of non ASCII values from ODS under Python 2.
 * Fixed default decimal separator, which now is dot (``.``) instead of
   comma (``,``). Interestingly enough in practice this never really mattered

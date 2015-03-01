@@ -197,6 +197,20 @@ class WriterTest(unittest.TestCase):
             data_written = dev_test.unified_newlines(delimited_stream.getvalue())
         self.assertEqual('%r' % 'Miller,173,1967-05-23\nWebster,167,1983-11-02\n', '%r' % data_written)
 
+    def test_can_write_delimited_header(self):
+        cid_with_header_text = '\n'.join([
+            'd,format,delimited',
+            'd,header,2',
+            ' ,name   ,,empty,length,type,rule',
+            'f,height ,,     ,      ,Integer',
+        ])
+        cid_with_header = interface.create_cid_from_string(cid_with_header_text)
+        with io.StringIO() as delimited_stream:
+            with validio.Writer(cid_with_header, delimited_stream) as delimited_writer:
+                delimited_writer.write_row(['some', 'header', 'columns'])
+                delimited_writer.write_row(['height'])
+                delimited_writer.write_row(['173'])
+
     def test_fails_on_writing_broken_field(self):
         with io.StringIO() as delimited_stream:
             with validio.Writer(self._standard_delimited_cid, delimited_stream) as delimited_writer:
@@ -207,6 +221,20 @@ class WriterTest(unittest.TestCase):
                     dev_test.assert_fnmatches(
                         self, str(anticipated_error),
                         "* (R2C2): cannot accept field 'height': value must be an integer number: *'not_a_number'")
+
+    def test_fails_on_error_after_header(self):
+        cid_with_header_text = '\n'.join([
+            'd,format,delimited',
+            'd,header,2',
+            ' ,name   ,,empty,length,type,rule',
+            'f,height ,,     ,      ,Integer',
+        ])
+        cid_with_header = interface.create_cid_from_string(cid_with_header_text)
+        with io.StringIO() as delimited_stream:
+            with validio.Writer(cid_with_header, delimited_stream) as delimited_writer:
+                delimited_writer.write_row(['some', 'header', 'columns'])
+                delimited_writer.write_row(['height'])
+                self.assertRaises(errors.FieldValueError, delimited_writer.write_row, ['abc'])
 
     def test_can_write_fixed_multiple_rows(self):
         with io.StringIO() as fixed_stream:
