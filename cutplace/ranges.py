@@ -213,12 +213,16 @@ class Range(object):
                                 after_hyphen = False
                         elif next_type == token.STRING:
                             value_as_int = code_for_string_token(name_for_code, next_value, location)
+
+                        # Maybe unnecessary code
                         elif (len(next_value) == 1) and not _tools.is_eof_token(next_token):
                             value_as_int = ord(next_value)
                         else:
                             raise errors.InterfaceError(
                                 'value for %s must a number, a single character or a symbolic name but is: %s'
                                 % (name_for_code, _compat.text_repr(next_value)), location)
+                        #---
+
                         if ellipsis_found:
                             if upper is None:
                                 upper = value_as_int
@@ -257,7 +261,7 @@ class Range(object):
                             # Handle "...".
                             raise errors.InterfaceError(
                                 'ellipsis (...) must be preceded and/or succeeded by number', location)
-                        else:
+                        else:  # maybe useless?!
                             # Handle "".
                             result = None
                     else:
@@ -402,7 +406,7 @@ class Range(object):
             lower = item[0]
             upper = item[1]
             if lower is None:
-                if upper is None:
+                if upper is None:  # ??
                     # Handle ""
                     result = True
                 else:

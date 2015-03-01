@@ -327,12 +327,8 @@ class DecimalFieldFormat(AbstractFieldFormat):
         self.valid_range = ranges.DecimalRange(rule, ranges.DEFAULT_DECIMAL_RANGE_TEXT)
         self._length = ranges.DecimalRange(length_text)
 
-        if self.valid_range is not None:
-            self._precision = self.valid_range.precision
-            self._scale = self.valid_range.scale
-        else:
-            self._precision = None
-            self._scale = None
+        self._precision = self.valid_range.precision
+        self._scale = self.valid_range.scale
 
     def validated_value(self, value):
         assert value
