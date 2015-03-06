@@ -30,7 +30,6 @@ import six
 from cutplace import data
 from cutplace import errors
 from cutplace import fields
-from cutplace import sql
 
 from tests import dev_test
 
@@ -386,6 +385,78 @@ class ChoiceFieldFormatTest(unittest.TestCase):
         self.assertRaises(errors.InterfaceError, fields.ChoiceFieldFormat, "color", False, None, "red,", _ANY_FORMAT)
         self.assertRaises(errors.InterfaceError, fields.ChoiceFieldFormat, "color", False, None, ",red", _ANY_FORMAT)
         self.assertRaises(errors.InterfaceError, fields.ChoiceFieldFormat, "color", False, None, "red,,green", _ANY_FORMAT)
+
+
+class ConstantFieldFormatTest(unittest.TestCase):
+    """
+    Tests  for `ConstantFieldFormat`.
+    """
+    def setUp(self):
+        self._constant_format = fields.ConstantFieldFormat('constant', False, None, 'some', _ANY_FORMAT)
+
+    def test_can_match_constant_name(self):
+        self.assertEqual(self._constant_format.validated('some'), 'some')
+
+    def test_can_match_constant_string(self):
+        self._constant_format = fields.ConstantFieldFormat('constant', False, None, '"some"', _ANY_FORMAT)
+        self.assertEqual(self._constant_format.validated('some'), 'some')
+
+    def test_can_match_constant_integer(self):
+        self._constant_format = fields.ConstantFieldFormat('constant', False, None, '3', _ANY_FORMAT)
+        self.assertEqual(self._constant_format.validated('3'), '3')
+
+    def test_can_match_constant_float(self):
+        self._constant_format = fields.ConstantFieldFormat('constant', False, None, '3.1', _ANY_FORMAT)
+        self.assertEqual(self._constant_format.validated('3.1'), '3.1')
+
+    def test_fails_on_other_value(self):
+        try:
+            self._constant_format.validated('other')
+            self.fail()
+        except errors.FieldValueError as anticipated_error:
+            dev_test.assert_error_fnmatches(self, anticipated_error, "value is 'other' but must be constant: 'some'")
+
+    def test_fails_on_empty_value(self):
+        self.assertRaises(errors.FieldValueError, self._constant_format.validated, '')
+
+    def test_can_match_empty_constant(self):
+        always_empty_format = fields.ConstantFieldFormat('constant', True, None, '', _ANY_FORMAT)
+        self.assertEqual(always_empty_format.validated(''), '')
+
+    def test_fails_on_empty_constant_with_non_empty_rule(self):
+        try:
+            fields.ConstantFieldFormat('broken_empty', True, None, 'some', _ANY_FORMAT)
+            self.fail()
+        except errors.InterfaceError as anticipated_error:
+            dev_test.assert_error_fnmatches(
+                self, anticipated_error,
+                'to describe a Constant that can be empty, use a Choice field with a single choice')
+
+    def test_fails_on_missing_empty_flag_with_empty_rule(self):
+        try:
+            fields.ConstantFieldFormat('broken_empty', False, None, '', _ANY_FORMAT)
+            self.fail()
+        except errors.InterfaceError as anticipated_error:
+            dev_test.assert_error_fnmatches(
+                self, anticipated_error,
+                'field must be marked as empty to describe a constant empty value')
+
+    def test_fails_on_multiple_tokens_in_rule(self):
+        try:
+            fields.ConstantFieldFormat('multiple_tokens', False, None, '"x";', _ANY_FORMAT)
+            self.fail()
+        except errors.InterfaceError as anticipated_error:
+            dev_test.assert_error_fnmatches(
+                self, anticipated_error,
+                "constant rule must be a single Python token but also found: ';'")
+
+    def test_fails_on_inconsistent_length(self):
+        try:
+            fields.ConstantFieldFormat('inconsistent_length', False, '2', '"a"', _ANY_FORMAT)
+            self.fail()
+        except errors.InterfaceError as anticipated_error:
+            dev_test.assert_error_fnmatches(
+                self, anticipated_error, "length is 2 but must be 1 to match constant 'a'")
 
 
 class PatternFieldFormatTest(unittest.TestCase):

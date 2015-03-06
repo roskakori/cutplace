@@ -411,19 +411,24 @@ Decimal
 
 The Decimal type describes a field that can contain decimal numbers
 including a fractional part. Similar to Integer, the rule allows to
-specify a range and implicitely a precision
+specify a range and implicitely a precision.
 
 Examples for Decimal fields
 
-==  ==========  =======  =====  ======  =======  ====================  =================================
+==  ==========  =======  =====  ======  =======  ====================  ==================================
 ..  Name        Example  Empty  Length  Type     Rule                  Note
-==  ==========  =======  =====  ======  =======  ====================  =================================
+==  ==========  =======  =====  ======  =======  ====================  ==================================
 F   balance     -123.45                 Decimal  -99999.99...99999.99
 F   percentage  17.23                   Decimal  0...100.00
-F   size        28.34                   Decimal  1...7.33, 8.4...10    same as 1.00...7.33, 8.40...10.00
+F   size        28.34                   Decimal  1...7.33, 8.4...183   same as 1.00...7.33, 8.40...183.00
 F   something                           Decimal                        use default (see below)
-==  ==========  =======  =====  ======  =======  ====================  =================================
+==  ==========  =======  =====  ======  =======  ====================  ==================================
 
+In case the various parts of the range differ in their scale and precision,
+the respective maximum is used for the collected scale and precision. The
+example field can have 3 digits before the dot (due the value ``183`) and
+and 2 digits after the dot (due the value ``7.33``), resulting in a scale
+of 5 digits with a precision of 2 digits.
 
 In case no rule is specified (as with the example field "something"), a
 default range between 9999999999999999999.999999999999 and
@@ -443,8 +448,8 @@ fractional part, set the data format property
 In case the numbers use an additional separator to group digits, set the data
 format property :ref:`thousands separator <thousands-separator>` accordingly.
 
-
 .. index:: double: field format; Choice
+.. _choice-field:
 
 Choice
 ------
@@ -461,6 +466,38 @@ F   color       red                     Choice  "red", "green", "blue"
 F   iso_gender  male                    Choice  "male", "female", "unknown", "other"
 F   department  sales                   Choice  "accounting", "development", "sales", "shipping"
 ==  ==========  =======  =====  ======  ======  ================================================
+
+.. index:: double: field format; Constant
+
+Constant
+--------
+
+The Constant type describes a field that can contain a specific value - and
+nothing else. The rule is a single Python token describing the expected value
+as string or number.
+
+Examples for Constant fields
+
+==  ============  =======  =====  ======  ========  =======
+..  Name          Example  Empty  Length  Type      Rule
+==  ============  =======  =====  ======  ========  =======
+F   department    sales                   Constant  "sales"
+F   always_empty           X              Constant  
+F   kind_id                               Constant  3
+F   size                                  Constant  1.23
+==  ============  =======  =====  ======  ========  =======
+
+The mark in the *Empty* flag must be set only if the constant value is empty.
+To describe a field that can contain a constant value but might also be empty
+use a :ref:`choice-field` field:
+
+Example optional constant using Choice
+
+==  ==========  =======  =====  ======  ==========  =======
+..  Name        Example  Empty  Length  Type        Rule
+==  ==========  =======  =====  ======  ==========  =======
+F   department  sales    **X**          **Choice**  "sales"
+==  ==========  =======  =====  ======  ==========  =======
 
 .. index:: double: field format; DateTime
 

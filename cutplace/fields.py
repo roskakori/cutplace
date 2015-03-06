@@ -311,6 +311,58 @@ class ChoiceFieldFormat(AbstractFieldFormat):
                                self._empty_value, dialect)
 
 
+class ConstantFieldFormat(AbstractFieldFormat):
+    """
+    Field format accepting only values from a pool of choices.
+    """
+    def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format):
+        super(ConstantFieldFormat, self).__init__(
+            field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value='')
+
+        # Extract constant from rule tokens.
+        tokens = _tools.tokenize_without_space(rule)
+        toky = next(tokens)
+        if _tools.is_eof_token(toky):
+            # No rule means that the field must always be empty.
+            self._constant = ''
+        else:
+            self._constant = _tools.token_text(toky)
+            toky = next(tokens)
+            if not _tools.is_eof_token(toky):
+                raise errors.InterfaceError(
+                    'constant rule must be a single Python token but also found: %s'
+                    % _compat.text_repr(_tools.token_text(toky)))
+        has_empty_rule = (rule == '')
+        if self.is_allowed_to_be_empty and not has_empty_rule:
+            raise errors.InterfaceError(
+                'to describe a Constant that can be empty, use a Choice field with a single choice')
+        if not self.is_allowed_to_be_empty and has_empty_rule:
+            raise errors.InterfaceError(
+                'field must be marked as empty to describe a constant empty value')
+        try:
+            self.length.validate(
+                'rule of constant field %s' % _compat.text_repr(self.field_name), len(self._constant))
+        except errors.RangeValueError:
+            raise errors.InterfaceError(
+                'length is %s but must be %d to match constant %s'
+                % (self.length, len(self._constant), _compat.text_repr(self._constant)))
+
+    def validated_value(self, value):
+        assert value
+
+        if value != self._constant:
+            raise errors.FieldValueError(
+                "value is %s but must be constant: %s"
+                % (_compat.text_repr(value), _compat.text_repr(self._constant)))
+        return value
+
+    def as_sql(self, dialect='ansi'):
+        sql.assert_is_valid_dialect(dialect)
+        # TODO: Add constraint that value matches constant.
+        return sql.as_sql_text(self._field_name, self._is_allowed_to_be_empty, self._length, self._rule,
+                               self._empty_value, dialect)
+
+
 class DecimalFieldFormat(AbstractFieldFormat):
     """
     Field format accepting decimal numeric values, taking the data format
