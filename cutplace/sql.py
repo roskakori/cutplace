@@ -203,7 +203,7 @@ def as_sql_create_table(cid, dialect='ansi'):
     finally:
         if temp_database:
             cursor = temp_database.cursor()
-            cursor.execute("drop table "+table_name[0]+" ;")
+            cursor.execute("drop table " + table_name[0] + " ;")
             cursor.close()
 
     return result
