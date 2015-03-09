@@ -222,9 +222,17 @@ F   Header    2
 F   Sheet     5
 ==  ========  =====
 
+.. index:: pair: data format property; header
+
+.. _header:
+
 The property *header* describes how many rows should be skipped before the data
 to validate start. It is optional and defaults to 0, meaning there is no header
 and the first row already contains data.
+
+.. index:: pair: data format property; sheet
+
+.. _sheet:
 
 The property *sheet* specifies from which sheet the data should be read. It is
 only required in case a workbook contains more than one sheet and the data to
