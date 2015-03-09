@@ -130,7 +130,7 @@ class ReaderTest(unittest.TestCase):
         cid_text = '\n'.join([
             'd,format,delimited',
             'd,encoding,ascii',
-            'f,some_number,,,,Integer'
+            'f,some_number,,,,Integer',
         ])
         cid = interface.create_cid_from_string(cid_text)
         with io.StringIO('1\nabc\n3') as partially_broken_data:
@@ -139,6 +139,35 @@ class ReaderTest(unittest.TestCase):
         expected_row_count = 2
         self.assertEqual(expected_row_count, len(rows), 'expected %d rows but got: %s' % (expected_row_count, rows))
         self.assertEqual([['1'], ['3']], rows)
+
+    def test_can_skip_header(self):
+        cid_text = '\n'.join([
+            'd,format,delimited',
+            'd,header,1',
+            'f,some_number,,,,Integer',
+        ])
+        cid = interface.create_cid_from_string(cid_text)
+        with io.StringIO('some_number\n1\n2\n3') as data:
+            with validio.Reader(cid, data) as reader:
+                rows = list(reader.rows())
+        self.assertEqual([['some_number'], ['1'], ['2'], ['3']], rows)
+
+    def test_fails_on_error_in_first_non_header_row(self):
+        cid_text = '\n'.join([
+            'd,format,delimited',
+            'd,header,1',
+            'f,some_number,,,,Integer',
+        ])
+        cid = interface.create_cid_from_string(cid_text)
+        with io.StringIO('some_number\nabc\n') as broken_data:
+            with validio.Reader(cid, broken_data) as reader:
+                try:
+                    list(reader.rows())
+                    self.fail()
+                except errors.FieldValueError as anticipated_error:
+                    dev_test.assert_fnmatches(
+                        self, str(anticipated_error),
+                        "* (R2C1): cannot accept field 'some_number': value must be an integer number: 'abc'")
 
     def test_can_skip_whole_validation(self):
         data_with_row_3_broken = '1\n2\na\n'

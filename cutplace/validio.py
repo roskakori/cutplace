@@ -243,9 +243,12 @@ class Reader(BaseValidator):
         self.rejected_rows_count = 0
         for check in self.cid.check_map.values():
             check.reset()
+        header_row_count = self._cid.data_format.header
         for row_count, row in enumerate(self._raw_rows(), 1):
             try:
-                if (self._validate_until is None) or (row_count <= self._validate_until):
+                is_after_header_row = (row_count > header_row_count)
+                is_before_validate_until = (self._validate_until is None) or (row_count <= self._validate_until)
+                if is_after_header_row and is_before_validate_until:
                     self.validate_row(row)
                 self.accepted_rows_count += 1
                 yield row
