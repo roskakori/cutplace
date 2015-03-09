@@ -476,6 +476,7 @@ F   department  sales                   Choice  "accounting", "development", "sa
 ==  ==========  =======  =====  ======  ======  ================================================
 
 .. index:: double: field format; Constant
+.. _constant-field:
 
 Constant
 --------

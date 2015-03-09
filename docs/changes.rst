@@ -8,8 +8,10 @@ This chapter describes improvements compared to earlier versions of cutplace.
 Version 0.8.5, 2015-03-09
 =========================
 
-* Fixed data format property :ref:`header`, which was ignored (issue
+* Fixed data format property :ref:`header <header>`, which was ignored (issue
   `#93 <https://github.com/roskakori/cutplace/issues/93>`_).
+* Added :ref:`constant-field` field format (issue
+  `#92 <https://github.com/roskakori/cutplace/issues/92>`_).
 
 
 Version 0.8.4, 2015-03-01
