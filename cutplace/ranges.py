@@ -227,15 +227,19 @@ class Range(object):
                     next_value = next_token[1]
                     if next_type in (token.NAME, token.NUMBER, token.STRING):
                         if next_type == token.NAME:
+                            # Symbolic names, e.g. ``tab``.
                             value_as_int = code_for_symbolic_token(name_for_code, next_value, location)
                         elif next_type == token.NUMBER:
+                            # Numbers, e.g. ``123``.
                             value_as_int = code_for_number_token(name_for_code, next_value, location)
                             if after_hyphen:
                                 value_as_int *= - 1
                                 after_hyphen = False
                         elif next_type == token.STRING:
+                            # Python strings, e.g. ``'abc'`` or ``"""abc"""``.
                             value_as_int = code_for_string_token(name_for_code, next_value, location)
                         elif (len(next_value) == 1) and not _tools.is_eof_token(next_token):
+                            # Other single characters, e.g. ``,``; this is particular useful with delimiter properties.
                             value_as_int = ord(next_value)
                         else:
                             raise errors.InterfaceError(
