@@ -207,7 +207,7 @@ Minimal example for Excel data
 ==  ========  =====
 ..  Property  Value
 ==  ========  =====
-F   Format    Excel
+D   Format    Excel
 ==  ========  =====
 
 Additionally there are a couple of optional properties.
@@ -217,9 +217,9 @@ A more advanced example for Excel data
 ==  ========  =====
 ..  Property  Value
 ==  ========  =====
-F   Format    Excel
-F   Header    2
-F   Sheet     5
+D   Format    Excel
+D   Header    2
+D   Sheet     5
 ==  ========  =====
 
 .. index:: pair: data format property; header
@@ -491,7 +491,7 @@ Examples for Constant fields
 ..  Name          Example  Empty  Length  Type      Rule
 ==  ============  =======  =====  ======  ========  =======
 F   department    sales                   Constant  "sales"
-F   always_empty           X              Constant  
+F   always_empty           X              Constant
 F   kind_id                               Constant  3
 F   size                                  Constant  1.23
 ==  ============  =======  =====  ======  ========  =======
