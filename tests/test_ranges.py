@@ -424,9 +424,8 @@ class DecimalRangeTest(unittest.TestCase):
             self.assertEqual(7, decimal_range.scale)
             self.assertEqual(2, decimal_range.precision)
 
-
     def test_can_display_lower_is_upper_length(self):
-        self.assertEqual(six.text_type(ranges.DecimalRange("9.9...9.9")), "9.9")
+        self.assertEqual(six.text_type(ranges.DecimalRange("9.9...9.9")), "9.9...9.9")
 
     def test_can_display_multi_range(self):
         self.assertEqual(six.text_type(ranges.DecimalRange("9.1...10.9, 11...13")), "9.1...10.9, 11.0...13.0")
