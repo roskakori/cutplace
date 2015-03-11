@@ -21,6 +21,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import os.path
+import six
 import sqlite3
 
 from cutplace import _tools
@@ -177,7 +178,7 @@ def as_sql_create_table(cid, dialect='ansi'):
     constraints = ""
 
     # get column definitions and constraints for all fields
-    for field in cid._field_formats:
+    for field in cid.field_formats:
         column_def, constraint = field.as_sql(dialect)
         result += column_def + ",\n"
 
@@ -207,3 +208,27 @@ def as_sql_create_table(cid, dialect='ansi'):
             cursor.close()
 
     return result
+
+
+def as_sql_create_inserts(cid, source_data_reader):
+    """
+    :param Cid cid:
+    :param validio.Reader source_data_reader:
+    :return:
+    """
+    assert cid
+    assert source_data_reader
+
+    file_name = os.path.basename(cid._cid_path)
+    table_name = file_name.split('.')[0]
+
+    for row in source_data_reader.rows():
+        for i in range(len(row)):
+
+            # HACK: can't use isinstance() function because of circular dependency when importing fields module
+            fiel_type = six.text_type((cid.field_formats[i]).__class__.__name__)
+            if fiel_type not in ('IntegerFieldFormat', 'DecimalFieldFormat'):
+                row[i] = "'" + row[i] + "'"
+
+        result = "insert into %s(%s) values (%s);" % (table_name, ', '.join(cid.field_names), ', '.join(row))
+        yield result

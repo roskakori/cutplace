@@ -25,6 +25,8 @@ from cutplace import data
 from cutplace import fields
 from cutplace import interface
 from cutplace import sql
+from cutplace import validio
+from tests import dev_test
 
 import unittest
 
@@ -116,3 +118,14 @@ class SQLTest(unittest.TestCase):
             "\nconstraint chk_customer_id check( ( customer_id between 0 and 99999 ) ),"
             "\nconstraint chk_length_surname check (length(surname >= 1) and length(surname <= 60)),"
             "\nconstraint chk_rule_gender check( gender in ('male','female','unknown') )\n);")
+
+        # check if create insert statements works
+        with validio.Reader(cid_reader, dev_test.path_to_test_data("valid_customers.csv")) as reader:
+            self.assertEqual(
+                list(sql.as_sql_create_inserts(cid_reader, reader)),
+                ["insert into customers(branch_id, customer_id, first_name, surname, gender, date_of_birth) "
+                 "values ('38000', 23, 'John', 'Doe', 'male', '08.03.1957');",
+                 "insert into customers(branch_id, customer_id, first_name, surname, gender, date_of_birth) "
+                 "values ('38000', 59, 'Jane', 'Miller', 'female', '04.10.1946');",
+                 "insert into customers(branch_id, customer_id, first_name, surname, gender, date_of_birth) "
+                 "values ('38053', 17, 'Mike', 'Webster', 'male', '23.12.1974');"])
