@@ -25,12 +25,14 @@ from __future__ import unicode_literals
 
 import argparse
 import logging
+import os
 import sys
 
 from cutplace import interface
 from cutplace import errors
 from cutplace import validio
 from cutplace import rowio
+from cutplace import sql
 from cutplace import _tools
 from cutplace import __version__
 
@@ -55,6 +57,7 @@ class CutplaceApp(object):
         self.cid_encoding = DEFAULT_CID_ENCODING
         self.cid_path = None
         self.is_gui = False
+        self.is_create_sql = False
         self.data_paths = None
         self.last_validation_was_ok = False
         self.all_validations_were_ok = True
@@ -88,9 +91,13 @@ class CutplaceApp(object):
             'cid_path', metavar='CID-FILE', help='file containing a cutplace interface definition (CID)')
         parser.add_argument(
             'data_paths', metavar='DATA-FILE', nargs=argparse.REMAINDER, help='data file(s) to validate')
+        parser.add_argument(
+            '--create', '--C', action='store_true', dest='is_create_sql',
+            help='write SQL statement to create a table representing CID-FILE')
         args = parser.parse_args(argv[1:])
 
         self._log.setLevel(_tools.LOG_LEVEL_NAME_TO_LEVEL_MAP[args.log_level])
+        self.is_create_sql = args.is_create_sql
         # TODO #77: self.is_gui = args.is_gui
 
         if args.validate_until is not None:
@@ -165,6 +172,20 @@ def process(argv=None):
     if cutplace_app.is_gui:
         # TODO #77: Open graphical user interface.
         raise NotImplementedError
+    elif cutplace_app.is_create_sql:
+        cid_reader = interface.Cid()
+        cid_reader.read(cutplace_app.cid_path, rowio.excel_rows(cutplace_app.cid_path))
+
+        file_name = os.path.basename(cutplace_app.cid_path)
+        table_name = file_name.split('.')
+
+        outfile_name = table_name[0] + "_create.sql"
+
+        file = open(outfile_name, 'w')
+        file.write(sql.as_sql_create_table(cid_reader, sql.MYSQL))
+        file.close()
+
+        _log.info('write SQL-creates to "%s"', outfile_name)
     elif cutplace_app.data_paths:
         for data_path in cutplace_app.data_paths:
             try:
@@ -174,7 +195,6 @@ def process(argv=None):
         if not cutplace_app.all_validations_were_ok:
             result = 1
     return result
-
 
 def main(argv=None):
     """
