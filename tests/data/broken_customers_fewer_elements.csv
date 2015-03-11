@@ -1,3 +1,4 @@
+"branch_id","customer_id","first_name","surname","gender","date_of_birth"
 38000,23,"John","Doe"
 38000,59,"Jane","Miller","female","04.10.1946"
 38053,17,"Mike","Webster","male","23.12.1974"

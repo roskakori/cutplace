@@ -5,10 +5,30 @@ Revision history
 This chapter describes improvements compared to earlier versions of cutplace.
 
 
-Version 0.8.4, 2015-02-xx
+Version 0.8.5, 2015-03-09
 =========================
 
+* Fixed data format property :ref:`header <header>`, which was ignored (issue
+  `#93 <https://github.com/roskakori/cutplace/issues/93>`_).
+* Added :ref:`constant-field` field format (issue
+  `#92 <https://github.com/roskakori/cutplace/issues/92>`_).
+
+
+Version 0.8.4, 2015-03-01
+=========================
+
+* Fixed validated writing of header rows by disabling validation of
+  the header.
 * Fixed reading of non ASCII values from ODS under Python 2.
+* Fixed default decimal separator, which now is dot (``.``) instead of
+  comma (``,``). Interestingly enough in practice this never really mattered
+  as long as there was no thousands separator (the default), in which case a
+  decimal value using a dot as actual decimal separator simply preserved it
+  and got accepted anyway.
+* Added rule to :ref:`field-format-decimal` fields which allows to specify a
+  range and precision (issue
+  `#10 <https://github.com/roskakori/cutplace/issues/10>`_, contributed by
+  Patrick Heuberger).
 * Improved documentation: cleaned up section on :ref:`exit-code`.
 * Improved API documentation: added a section on :ref:`writing-data`.
 * Improved API: changed validation of length for fixed field values:

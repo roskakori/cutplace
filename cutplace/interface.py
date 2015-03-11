@@ -26,7 +26,6 @@ import inspect
 import io
 import logging
 import os.path
-import sqlite3
 
 import six
 
@@ -35,7 +34,6 @@ from cutplace import fields
 from cutplace import errors
 from cutplace import checks
 from cutplace import rowio
-from cutplace import sql
 from cutplace import _compat
 from cutplace import _tools
 from cutplace._compat import python_2_unicode_compatible
