@@ -236,8 +236,6 @@ class Range(object):
                         elif next_type == token.STRING:
                             # Python strings, e.g. ``'abc'`` or ``"""abc"""``.
                             value_as_int = code_for_string_token(name_for_code, next_value, location)
-
-                        # Maybe unnecessary code
                         elif (len(next_value) == 1) and not _tools.is_eof_token(next_token):
                             # Other single characters, e.g. ``,``; this is particular useful with delimiter properties.
                             value_as_int = ord(next_value)
@@ -245,7 +243,6 @@ class Range(object):
                             raise errors.InterfaceError(
                                 'value for %s must a number, a single character or a symbolic name but is: %s'
                                 % (name_for_code, _compat.text_repr(next_value)), location)
-                        #---
 
                         if ellipsis_found:
                             if upper is None:
