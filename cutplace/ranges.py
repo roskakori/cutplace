@@ -414,25 +414,28 @@ class Range(object):
 
     def _items_overlap(self, some, other):
         assert some is not None
+        assert len(some) == 2
+        assert some != (None, None)
         assert other is not None
-        lower = other[0]
-        upper = other[1]
+        assert len(other) == 2
+        assert other != (None, None)
+
+        lower, upper = other
         result = self._item_contains(some, lower) or self._item_contains(some, upper)
         return result
 
     def _item_contains(self, item, value):
         assert item is not None
+        assert len(item) == 2
+        assert item != (None, None)
+
         result = False
         if value is not None:
-            lower = item[0]
-            upper = item[1]
+            lower, upper = item
             if lower is None:
-                if upper is None:
-                    # Handle ""
-                    result = True
-                else:
-                    # Handle "...y"
-                    result = (value <= upper)
+                assert upper is not None
+                # Handle "...y"
+                result = (value <= upper)
             elif upper is None:
                 # Handle "x..."
                 result = (value >= lower)
