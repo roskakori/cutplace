@@ -25,6 +25,7 @@ from __future__ import unicode_literals
 
 import argparse
 import logging
+import io
 import os
 import sys
 
@@ -174,18 +175,7 @@ def process(argv=None):
         raise NotImplementedError
     elif cutplace_app.is_create_sql:
         cid_reader = interface.Cid()
-        cid_reader.read(cutplace_app.cid_path, rowio.excel_rows(cutplace_app.cid_path))
-
-        file_name = os.path.basename(cutplace_app.cid_path)
-        table_name = file_name.split('.')
-
-        outfile_name = table_name[0] + "_create.sql"
-
-        file = open(outfile_name, 'w')
-        file.write(sql.as_sql_create_table(cid_reader, sql.MYSQL))
-        file.close()
-
-        _log.info('write SQL-creates to "%s"', outfile_name)
+        sql.write_create(cutplace_app.cid_path, cid_reader)
     elif cutplace_app.data_paths:
         for data_path in cutplace_app.data_paths:
             try:
