@@ -25,8 +25,6 @@ from __future__ import unicode_literals
 
 import argparse
 import logging
-import io
-import os
 import sys
 
 from cutplace import interface
@@ -185,6 +183,7 @@ def process(argv=None):
         if not cutplace_app.all_validations_were_ok:
             result = 1
     return result
+
 
 def main(argv=None):
     """
