@@ -1,5 +1,5 @@
 """
-Methods to create sql statements from existing fields.
+A graphical user interface to set CID-FILE and DATA-FILE.
 """
 # Copyright (C) 2009-2013 Thomas Aglassinger
 #

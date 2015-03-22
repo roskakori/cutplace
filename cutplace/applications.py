@@ -34,6 +34,7 @@ from cutplace import rowio
 from cutplace import sql
 from cutplace import _tools
 from cutplace import __version__
+from cutplace import gui
 
 DEFAULT_CID_ENCODING = 'utf-8'
 DEFAULT_LOG_LEVEL = 'info'
@@ -72,10 +73,9 @@ class CutplaceApp(object):
         version = '%(prog)s ' + __version__
 
         parser = argparse.ArgumentParser(description=description)
-        # TODO #77: Activate option --gui.
-        # parser.add_argument(
-        #    '--gui', '--g', action='store_true', dest='is_gui',
-        #    help='provide a graphical user interface to set CID-FILE and DATA-FILE')
+        parser.add_argument(
+            '--gui', '--g', action='store_true', dest='is_gui',
+            help='provide a graphical user interface to set CID-FILE and DATA-FILE')
         parser.add_argument(
             '--log', metavar='LEVEL', choices=sorted(_tools.LOG_LEVEL_NAME_TO_LEVEL_MAP.keys()), dest='log_level',
             default=DEFAULT_LOG_LEVEL, help='set log level to LEVEL (default: %s)' % DEFAULT_LOG_LEVEL)
@@ -97,7 +97,7 @@ class CutplaceApp(object):
 
         self._log.setLevel(_tools.LOG_LEVEL_NAME_TO_LEVEL_MAP[args.log_level])
         self.is_create_sql = args.is_create_sql
-        # TODO #77: self.is_gui = args.is_gui
+        self.is_gui = args.is_gui
 
         if args.validate_until is not None:
             if args.validate_until == -1:
@@ -169,8 +169,7 @@ def process(argv=None):
     cutplace_app = CutplaceApp()
     cutplace_app.set_options(argv)
     if cutplace_app.is_gui:
-        # TODO #77: Open graphical user interface.
-        raise NotImplementedError
+        gui.open_gui()
     elif cutplace_app.is_create_sql:
         cid_reader = interface.Cid()
         sql.write_create(cutplace_app.cid_path, cid_reader)
