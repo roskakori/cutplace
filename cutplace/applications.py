@@ -87,9 +87,9 @@ class CutplaceApp(object):
             help='maximum number of rows to validate; -1=all, 0=none (default: %d)' % DEFAULT_VALIDATE_UNTIL)
         parser.add_argument('--version', action='version', version=version)
         parser.add_argument(
-            'cid_path', metavar='CID-FILE', help='file containing a cutplace interface definition (CID)')
+            'cid_path', metavar='CID-FILE', nargs='?', help='file containing a cutplace interface definition (CID)')
         parser.add_argument(
-            'data_paths', metavar='DATA-FILE', nargs=argparse.REMAINDER, help='data file(s) to validate')
+            'data_paths', metavar='DATA-FILE', nargs='*', help='data file(s) to validate')
         parser.add_argument(
             '--create', '--C', action='store_true', dest='is_create_sql',
             help='write SQL statement to create a table representing CID-FILE')
@@ -110,6 +110,8 @@ class CutplaceApp(object):
             interface.import_plugins(args.plugins_folder)
         if args.cid_path is not None:
             self.set_cid_from_path(args.cid_path)
+        elif not args.is_gui:
+            parser.error('CID_PATH or --gui must be specified')
         if args.data_paths is not None:
             self.data_paths = args.data_paths
 
