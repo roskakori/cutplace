@@ -27,14 +27,14 @@ import argparse
 import logging
 import sys
 
-from cutplace import interface
 from cutplace import errors
+from cutplace import gui
+from cutplace import interface
 from cutplace import validio
 from cutplace import rowio
 from cutplace import sql
 from cutplace import _tools
 from cutplace import __version__
-from cutplace import gui
 
 DEFAULT_CID_ENCODING = 'utf-8'
 DEFAULT_LOG_LEVEL = 'info'

@@ -22,11 +22,14 @@ if six.PY3:
     from tkinter import *
     from tkinter.filedialog import askopenfilename
     from tkinter.filedialog import asksaveasfilename
-    from tkinter import messagebox
+    from tkinter.messagebox import showerror
+    from tkinter.messagebox import showinfo
 else:
     from Tkinter import *
-    from Tkinter.filedialog import *
-    import tkMessageBox
+    from tkFileDialog import askopenfilename
+    from tkFileDialog import asksaveasfilename
+    from tkMessageBox import showerror
+    from tkMessageBox import showinfo
 
 from cutplace import errors
 from cutplace import validio
@@ -111,12 +114,7 @@ class Gui:
             with io.open(filename, 'w', encoding='utf-8') as output_file:
                 output_file.write(output)
 
-            title = 'Info'
-            message = 'Log was successfully written to file.'
-            if six.PY3:
-                messagebox.showinfo(title, message)
-            else:
-                tkMessageBox.showinfo(title, message)
+            showinfo('Info', 'Log was successfully written to file.')
 
     def cid_open_file_dialog(self):
         filename = askopenfilename(
@@ -149,13 +147,7 @@ class Gui:
     def validate_cid(self):
         self.clear_log_text()
         if self.cid_filename.get() == '' or self.data_filename.get() == '':
-
-            title = 'Error'
-            message = 'Please choose a CID-FILE and a DATA-FILE.'
-            if six.PY3:
-                messagebox.showerror(title, message)
-            else:
-                tkMessageBox.showerror(title, message)
+            showerror('Error', 'Please choose a CID-FILE and a DATA-FILE.')
         else:
             try:
                 for row_or_error in validio.rows(self.cid_filename.get(), self.data_filename.get(), on_error='yield'):
@@ -165,12 +157,7 @@ class Gui:
                         if not isinstance(row_or_error, errors.CutplaceError):
                             raise row_or_error
 
-                title = 'Info'
-                message = 'Validation finished'
-                if six.PY3:
-                    messagebox.showerror(title, message)
-                else:
-                    tkMessageBox.showerror(title, message)
+                showerror('Info', 'Validation finished')
             except FileNotFoundError as error:
                 self.add_log_text(error)
 
