@@ -32,7 +32,7 @@ _ANY_FORMAT = data.DataFormat(data.FORMAT_DELIMITED)
 _FIXED_FORMAT = data.DataFormat(data.FORMAT_FIXED)
 
 
-class SQLTest(unittest.TestCase):
+class SqlTest(unittest.TestCase):
 
     """
     Tests for sql module
@@ -57,17 +57,29 @@ class SQLTest(unittest.TestCase):
         field_format = fields.DateTimeFieldFormat("x", False, None, "YYYY:MM:DD hh:mm:ss", _ANY_FORMAT)
         self.assertEqual(field_format.as_sql(sql.MSSQL)[0], "x datetime not null")
 
-    def test_can_output_sql_varchar(self):
+    def test_can_output_sql_varchar_choice(self):
         field_format = fields.ChoiceFieldFormat("color", True, None, "red,grEEn, blue ", _ANY_FORMAT)
         column_def, constraint = field_format.as_sql(sql.MSSQL)
         self.assertEqual(column_def, "color varchar(255)")
         self.assertEqual(constraint, "constraint chk_rule_color check( color in ('red','grEEn','blue') )")
 
-    def test_can_output_sql_smallint(self):
+    def test_can_output_sql_smallint_choice(self):
         field_format = fields.ChoiceFieldFormat("color", True, None, "1,2, 3 ", _ANY_FORMAT)
         column_def, constraint = field_format.as_sql(sql.MSSQL)
         self.assertEqual(column_def, "color smallint")
         self.assertEqual(constraint, "constraint chk_rule_color check( color in (1,2,3) )")
+
+    # TODO: def test_can_represent_string_constant_as_sql(self):
+    #     field_format = fields.ConstantFieldFormat('fixed', False, None, 'some', _ANY_FORMAT)
+    #     column_def, constraint = field_format.as_sql(sql.MSSQL)
+    #     self.assertEqual(column_def, 'TODO')
+    #     self.assertEqual(constraint, 'TODO')
+
+    # TODO: def test_can_represent_integer_constant_as_sql(self):
+    #     field_format = fields.ConstantFieldFormat('fixed', False, None, '1', _ANY_FORMAT)
+    #     column_def, constraint = field_format.as_sql(sql.MSSQL)
+    #     self.assertEqual(column_def, 'TODO')
+    #     self.assertEqual(constraint, 'TODO')
 
     def test_can_output_sql_integer(self):
         field_format = fields.ChoiceFieldFormat("color", True, None, "1000000,2, 3 ", _ANY_FORMAT)
