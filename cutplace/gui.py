@@ -157,8 +157,8 @@ class Gui:
                         if not isinstance(row_or_error, errors.CutplaceError):
                             raise row_or_error
 
-                showerror('Info', 'Validation finished')
-            except FileNotFoundError as error:
+                showinfo('Info', 'Validation finished')
+            except Exception as error:
                 self.add_log_text(error)
 
             self.choose_button.config(state='normal')
