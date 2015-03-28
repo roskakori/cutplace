@@ -82,13 +82,12 @@ class AbstractFieldFormatTest(unittest.TestCase):
         data_format.set_property(data.KEY_ALLOWED_CHARACTERS, '"a"..."c"')
         field_format = fields.AbstractFieldFormat('something', False, '3...5', '', data_format)
         field_format.validate_characters('cba')
-        try:
-            field_format.validate_characters('abxba')
-            self.fail()
-        except errors.FieldValueError as anticipated_error:
-            self.assertEqual(
-                "character 'x' (code point U+0078, decimal 120) in field 'something' at column 3 must be an allowed"
-                " character: 97...99", six.text_type(anticipated_error))
+        dev_test.assert_raises_and_fnmatches(
+            self, errors.FieldValueError,
+            "character 'x' (code point U+0078, decimal 120) in field 'something' at column 3 "
+            + "must be an allowed character: 97...99",
+            field_format.validate_characters, 'abxba'
+        )
 
 
 class DateTimeFieldFormatTest(unittest.TestCase):
@@ -247,22 +246,18 @@ class IntegerFieldFormatTest(unittest.TestCase):
         self.assertEqual(field_format.validated('012'), 12)
 
     def test_fails_on_inconsistent_fixed_length_and_rule(self):
-        try:
-            fields.IntegerFieldFormat('x', False, '3', '...1234', _FIXED_FORMAT)
-            self.fail()
-        except errors.InterfaceError as anticipated_error:
-            dev_test.assert_error_fnmatches(
-                self, anticipated_error,
-                "length must be consistent with rule: "
-                "length of partial rule limit '1234' is 4 but must be within range: 1...3")
-        try:
-            fields.IntegerFieldFormat('x', False, '3', '123...456, 1234...', _FIXED_FORMAT)
-            self.fail()
-        except errors.InterfaceError as anticipated_error:
-            dev_test.assert_error_fnmatches(
-                self, anticipated_error,
-                "length must be consistent with rule: "
-                "length of partial rule limit '1234' is 4 but must be within range: 1...3")
+        dev_test.assert_raises_and_fnmatches(
+            self, errors.InterfaceError,
+            "length must be consistent with rule: "
+            "length of partial rule limit '1234' is 4 but must be within range: 1...3",
+            fields.IntegerFieldFormat, 'x', False, '3', '...1234', _FIXED_FORMAT
+        )
+        dev_test.assert_raises_and_fnmatches(
+            self, errors.InterfaceError,
+            "length must be consistent with rule: "
+            "length of partial rule limit '1234' is 4 but must be within range: 1...3",
+            fields.IntegerFieldFormat, 'x', False, '3', '123...456, 1234...', _FIXED_FORMAT
+        )
 
     def test_can_set_range_from_length_or_rule(self):
         field_format = fields.IntegerFieldFormat("x", False, "1...", "3...5", _ANY_FORMAT)
@@ -305,11 +300,13 @@ class IntegerFieldFormatTest(unittest.TestCase):
     def test_fails_on_invalid_example(self):
         field_format = fields.IntegerFieldFormat("x", False, None, "1:10", _ANY_FORMAT)
         try:
+            # NOTE: We cannot use dev_info.assert_raises_and_fnmatches() here
+            # because the failing statement is an assignment, not a function
+            # call.
             field_format.example = "11"
             self.fail()
-        except errors.FieldValueError:
-            # Ignore expected error.
-            pass
+        except errors.FieldValueError as anticipated_error:
+            self.assertEqual('value is 11 but must be within range: 1...10', six.text_type(anticipated_error))
 
 
 class RegExFieldFormatTest(unittest.TestCase):
@@ -410,11 +407,10 @@ class ConstantFieldFormatTest(unittest.TestCase):
         self.assertEqual(self._constant_format.validated('3.1'), '3.1')
 
     def test_fails_on_other_value(self):
-        try:
-            self._constant_format.validated('other')
-            self.fail()
-        except errors.FieldValueError as anticipated_error:
-            dev_test.assert_error_fnmatches(self, anticipated_error, "value is 'other' but must be constant: 'some'")
+        dev_test.assert_raises_and_fnmatches(
+            self, errors.FieldValueError, "value is 'other' but must be constant: 'some'",
+            self._constant_format.validated, 'other'
+        )
 
     def test_fails_on_empty_value(self):
         self.assertRaises(errors.FieldValueError, self._constant_format.validated, '')
@@ -424,31 +420,21 @@ class ConstantFieldFormatTest(unittest.TestCase):
         self.assertEqual(always_empty_format.validated(''), '')
 
     def test_fails_on_empty_constant_with_non_empty_rule(self):
-        try:
-            fields.ConstantFieldFormat('broken_empty', True, None, 'some', _ANY_FORMAT)
-            self.fail()
-        except errors.InterfaceError as anticipated_error:
-            dev_test.assert_error_fnmatches(
-                self, anticipated_error,
-                'to describe a Constant that can be empty, use a Choice field with a single choice')
+        dev_test.assert_raises_and_fnmatches(
+            self, errors.InterfaceError,
+            'to describe a Constant that can be empty, use a Choice field with a single choice',
+            fields.ConstantFieldFormat, 'broken_empty', True, None, 'some', _ANY_FORMAT
+        )
 
     def test_fails_on_missing_empty_flag_with_empty_rule(self):
-        try:
-            fields.ConstantFieldFormat('broken_empty', False, None, '', _ANY_FORMAT)
-            self.fail()
-        except errors.InterfaceError as anticipated_error:
-            dev_test.assert_error_fnmatches(
-                self, anticipated_error,
-                'field must be marked as empty to describe a constant empty value')
+        dev_test.assert_raises_and_fnmatches(
+            self, errors.InterfaceError, 'field must be marked as empty to describe a constant empty value',
+            fields.ConstantFieldFormat, 'broken_empty', False, None, '', _ANY_FORMAT)
 
     def test_fails_on_multiple_tokens_in_rule(self):
-        try:
-            fields.ConstantFieldFormat('multiple_tokens', False, None, '"x";', _ANY_FORMAT)
-            self.fail()
-        except errors.InterfaceError as anticipated_error:
-            dev_test.assert_error_fnmatches(
-                self, anticipated_error,
-                "constant rule must be a single Python token but also found: ';'")
+        dev_test.assert_raises_and_fnmatches(
+            self, errors.InterfaceError, "constant rule must be a single Python token but also found: ';'",
+            fields.ConstantFieldFormat, 'multiple_tokens', False, None, '"x";', _ANY_FORMAT)
 
     def test_fails_on_inconsistent_length(self):
         try:

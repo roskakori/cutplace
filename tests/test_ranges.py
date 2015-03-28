@@ -22,7 +22,6 @@ from __future__ import unicode_literals
 
 import unittest
 import decimal
-import six
 
 from cutplace import errors
 from cutplace import ranges
@@ -110,11 +109,9 @@ class RangeTest(unittest.TestCase):
         self.assertRaises(errors.InterfaceError, ranges.Range, "...5, 2")
 
     def _test_fails_with_interface_error(self, description, anticipated_error_message_pattern):
-        try:
-            ranges.Range(description)
-            self.fail("test must fail with InterfaceError")
-        except errors.InterfaceError as anticipated_error:
-            dev_test.assert_fnmatches(self, six.text_type(anticipated_error), anticipated_error_message_pattern)
+        dev_test.assert_raises_and_fnmatches(
+            self, errors.InterfaceError, anticipated_error_message_pattern, ranges.Range, description
+        )
 
     def test_fails_on_broken_ranges(self):
         self.assertRaises(errors.InterfaceError, ranges.Range, "x")
@@ -276,10 +273,9 @@ class DecimalRangeTest(unittest.TestCase):
 
     def test_fails_on_value_out_of_range(self):
         lower_and_upper_range = ranges.DecimalRange("-1.2...1.5")
-        try:
-            lower_and_upper_range.validate("x", '-1.3')
-        except errors.RangeValueError as error:
-            self.assertEqual(six.text_type(error), "x is Decimal('-1.3') but must be within range: '-1.2...1.5'")
+        dev_test.assert_raises_and_fnmatches(
+            self, errors.RangeValueError, "x is Decimal('-1.3') but must be within range: '-1.2...1.5'",
+            lower_and_upper_range.validate, "x", '-1.3')
         self.assertRaises(errors.RangeValueError, lower_and_upper_range.validate, "x", decimal.Decimal('1.6'))
 
         lower_range = ranges.DecimalRange("1.1...")
@@ -311,11 +307,9 @@ class DecimalRangeTest(unittest.TestCase):
         self._test_can_handle_empty_range(' \t  ')
 
     def _test_fails_with_interface_error(self, description, anticipated_error_message_pattern):
-        try:
-            ranges.DecimalRange(description)
-            self.fail("test must fail with InterfaceError")
-        except errors.InterfaceError as anticipated_error:
-            dev_test.assert_fnmatches(self, six.text_type(anticipated_error), anticipated_error_message_pattern)
+        dev_test.assert_raises_and_fnmatches(
+            self, errors.InterfaceError, anticipated_error_message_pattern,
+            ranges.DecimalRange, description)
 
     def test_fails_on_broken_ranges(self):
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "x")
@@ -335,10 +329,9 @@ class DecimalRangeTest(unittest.TestCase):
             '?', "range must be specified using decimal or integer numbers and ellipsis (...) but found: '?'*")
 
     def test_fails_on_parse_hex_range(self):
-        try:
-            ranges.DecimalRange("0x7f")
-        except errors.InterfaceError as error:
-            self.assertEqual(six.text_type(error), "number must be an decimal or integer but is: '0x7f'")
+        dev_test.assert_raises_and_fnmatches(
+            self, errors.InterfaceError, "number must be an decimal or integer but is: '0x7f'",
+            ranges.DecimalRange, '0x7f')
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "0x7F")
 
     def test_can_parse_multiple_ranges(self):
@@ -346,23 +339,19 @@ class DecimalRangeTest(unittest.TestCase):
         self.assertEquals(ranges.DecimalRange("1...2.3, 5...").items, [(1, decimal.Decimal('2.3')), (5, None)])
 
     def test_fails_on_parse_symbolic_range(self):
-        try:
-            ranges.DecimalRange("TAB")
-        except errors.InterfaceError as error:
-            self.assertEqual(
-                six.text_type(error),
-                "range must be specified using decimal or integer numbers and ellipsis (...) but found: 'TAB' [token type: 1]")
+        dev_test.assert_raises_and_fnmatches(
+            self, errors.InterfaceError,
+            "range must be specified using decimal or integer numbers and ellipsis (...) but found: 'TAB'*",
+            ranges.DecimalRange, "TAB")
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "vt")
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "Tab...Vt")
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "Tab...11")
 
     def test_fails_on_parse_text_range(self):
-        try:
-            ranges.DecimalRange("a")
-        except errors.InterfaceError as error:
-            self.assertEqual(
-                str(error),
-                "range must be specified using decimal or integer numbers and ellipsis (...) but found: 'a' [token type: 1]")
+        dev_test.assert_raises_and_fnmatches(
+            self, errors.InterfaceError,
+            "range must be specified using decimal or integer numbers and ellipsis (...) but found: 'a'*",
+            ranges.DecimalRange, "a")
 
     def test_can_use_default_range(self):
         self.assertEquals(ranges.DecimalRange("", "2.1...3").items, [(decimal.Decimal('2.1'), 3)])
@@ -390,12 +379,10 @@ class DecimalRangeTest(unittest.TestCase):
         self.assertEqual(ranges.DecimalRange("").items, None)
 
     def test_fails_on_inconsistent_overlapping_multi_range(self):
-        try:
-            ranges.DecimalRange("1...2.4, 9...10, 2.3...3.4")
-            self.fail()
-        except errors.InterfaceError as error:
-            dev_test.assert_error_fnmatches(
-                self, error, "overlapping parts in decimal range must be cleaned up: '1.0...2.4' and '2.3...3.4'")
+        dev_test.assert_raises_and_fnmatches(
+            self, errors.InterfaceError,
+            "overlapping parts in decimal range must be cleaned up: '1.0...2.4' and '2.3...3.4'",
+            ranges.DecimalRange, '1...2.4, 9...10, 2.3...3.4')
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "1...2.4, 2.3...3.4")
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "1..., 2...3.1")
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "...5.9, 2...3")
@@ -404,9 +391,9 @@ class DecimalRangeTest(unittest.TestCase):
         self.assertRaises(errors.InterfaceError, ranges.DecimalRange, "...5, 2")
 
     def test_can_handle_scientific_notation(self):
-            decimal_range = ranges.DecimalRange('1.23...1e4')
-            self.assertEqual(7, decimal_range.scale)
-            self.assertEqual(2, decimal_range.precision)
+        decimal_range = ranges.DecimalRange('1.23...1e4')
+        self.assertEqual(7, decimal_range.scale)
+        self.assertEqual(2, decimal_range.precision)
 
 
 if __name__ == "__main__":  # pragma: no cover
