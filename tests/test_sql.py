@@ -128,3 +128,88 @@ class SqlTest(unittest.TestCase):
             "\nconstraint chk_customer_id check( ( customer_id between 0 and 99999 ) ),"
             "\nconstraint chk_length_surname check (length(surname >= 1) and length(surname <= 60)),"
             "\nconstraint chk_rule_gender check( gender in ('male','female','unknown') )\n);")
+
+
+class SqlFactoryTest(unittest.TestCase):
+
+    """
+    Tests for sql factory
+    """
+    _TEST_ENCODING = "cp1252"
+
+    def test_can_create_sql_factory(self):
+        cid = interface.Cid()
+        cid.read('customers', [
+            ['D', 'Format', 'delimited'],
+            ['D', 'Line delimiter', 'any'],
+            ['D', 'Item delimiter', ','],
+            ['D', 'Quote character', '"'],
+            ['D', 'Escape character', '\\'],
+            ['D', 'Encoding', 'ISO-8859-1'],
+            ['D', 'Allowed characters', '32:'],
+            ['F', 'branch_id', '38123', '', '', 'RegEx'],
+            ['F', 'customer_id', '12345', '', '', 'Integer', '0...99999'],
+            ['F', 'first_name', 'John', 'X', '', 'Text'],
+            ['F', 'surname', 'Doe', '', '1...60', 'Text'],
+            ['F', 'gender', 'male', '', '', 'Choice', 'male, female, unknown'],
+            ['F', 'date_of_birth', '03.11.1969', '', '', 'DateTime', 'DD.MM.YYYY'],
+        ])
+
+        sql_factory = sql.SqlFactory(cid, 'customers', sql.ANSI)
+        self.assertEqual(cid.field_names, sql_factory.cid._field_names)
+
+    def test_can_create_sql_create_statement(self):
+        cid = interface.Cid()
+        cid.read('customers', [
+            ['D', 'Format', 'delimited'],
+            ['D', 'Line delimiter', 'any'],
+            ['D', 'Item delimiter', ','],
+            ['D', 'Quote character', '"'],
+            ['D', 'Escape character', '\\'],
+            ['D', 'Encoding', 'ISO-8859-1'],
+            ['D', 'Allowed characters', '32:'],
+            ['F', 'branch_id', '38123', '', '', 'RegEx'],
+            ['F', 'customer_id', '12345', '', '', 'Integer', '0...99999'],
+            ['F', 'first_name', 'John', 'X', '', 'Text'],
+            ['F', 'surname', 'Doe', '', '1...60', 'Text'],
+            ['F', 'gender', 'male', '', '', 'Choice', 'male, female, unknown'],
+            ['F', 'date_of_birth', '03.11.1969', '', '', 'DateTime', 'DD.MM.YYYY'],
+        ])
+
+        sql_factory = sql.SqlFactory(cid, 'customers', sql.ANSI)
+        self.maxDiff = None
+        self.assertEqual(
+            sql_factory.create_table_statement(),
+            "create table customers (\nbranch_id varchar(255) not null,"
+            "\ncustomer_id integer not null,\nfirst_name varchar(255),"
+            "\nsurname varchar(60) not null,\ngender varchar(255) not null,"
+            "\ndate_of_birth date not null,"
+            "\nconstraint chk_customer_id check( ( customer_id between 0 and 99999 ) ),"
+            "\nconstraint chk_length_surname check (length(surname >= 1) and length(surname <= 60)),"
+            "\nconstraint chk_rule_gender check( gender in ('male','female','unknown') )\n);")
+
+    def test_can_create_sql_constraints(self):
+        cid = interface.Cid()
+        cid.read('customers', [
+            ['D', 'Format', 'delimited'],
+            ['D', 'Line delimiter', 'any'],
+            ['D', 'Item delimiter', ','],
+            ['D', 'Quote character', '"'],
+            ['D', 'Escape character', '\\'],
+            ['D', 'Encoding', 'ISO-8859-1'],
+            ['D', 'Allowed characters', '32:'],
+            ['F', 'branch_id', '38123', '', '', 'RegEx'],
+            ['F', 'customer_id', '12345', '', '', 'Integer', '0...99999'],
+            ['F', 'first_name', 'John', 'X', '', 'Text'],
+            ['F', 'surname', 'Doe', '', '1...60', 'Text'],
+            ['F', 'gender', 'male', '', '', 'Choice', 'male, female, unknown'],
+            ['F', 'date_of_birth', '03.11.1969', '', '', 'DateTime', 'DD.MM.YYYY'],
+        ])
+
+        sql_factory = sql.SqlFactory(cid, 'customers', sql.ANSI)
+        self.maxDiff = None
+        self.assertEqual(
+            sql_factory.create_constraint_statements(),
+            "constraint chk_customer_id check( ( customer_id between 0 and 99999 ) ),"
+            "\nconstraint chk_length_surname check (length(surname >= 1) and length(surname <= 60)),"
+            "\nconstraint chk_rule_gender check( gender in ('male','female','unknown') )")

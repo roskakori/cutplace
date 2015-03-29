@@ -224,3 +224,73 @@ def write_create(cid_path, cid_reader):
         # TODO: Add option for encoding.
         create_file.write(as_sql_create_table(cid_reader, MYSQL))
         # TODO: Add option for target SQL dialect
+
+
+class SqlFactory(object):
+    def __init__(self, cid, table, dialect=ANSI):
+        self._cid = cid
+        self._table = table
+        self._dialect = dialect
+
+        assert_is_valid_dialect(self._dialect)
+
+    @property
+    def cid(self):
+        return self._cid
+
+    def sql_fields(self):
+        """
+        Tuples `(field_name, field_type, length, precision, is_not_null, default_value)`
+        """
+        for field in self._cid.field_formats:
+            row = (field.field_name, field.sql_ansi_type()[0], field.length.description, field.rule, field.is_allowed_to_be_empty,
+                   field.empty_value)
+            yield row
+
+    def create_table_statement(self):
+        result = "create table " + self._table + " (\n"
+
+        # get column definitions for all fields
+        for field in self._cid.field_formats:
+            column_def, constraint = field.as_sql(self._dialect)
+            result += column_def + ",\n"
+
+        result += self.create_constraint_statements()
+
+        result += "\n);"
+
+        temp_database = None
+
+        try:
+            temp_database = sqlite3.connect(":memory:")
+            cursor = temp_database.cursor()
+            cursor.execute(result)
+
+        except sqlite3.Error as err:
+            return err
+
+        finally:
+            if temp_database:
+                cursor = temp_database.cursor()
+                cursor.execute("drop table " + self._table + " ;")
+                cursor.close()
+
+        return result
+
+    def create_index_statements(self):
+        pass
+
+    def create_constraint_statements(self):
+        constraints = ""
+
+        # get constraints for all fields
+        for field in self._cid.field_formats:
+            column_def, constraint = field.as_sql(self._dialect)
+
+            if len(constraint) > 0:
+                constraints += constraint + ",\n"
+
+        if len(constraints) > 0:
+            constraints = constraints.rsplit(',', 1)[0]
+
+        return constraints

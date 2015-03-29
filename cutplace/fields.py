@@ -143,6 +143,9 @@ class AbstractFieldFormat(object):
 
     example = property(_get__example, _set_example, doc="Example value or ``None`` if no example is provided.")
 
+    def sql_ansi_type(self):
+        return ['varchar', None if self.length is None else self.length.upper_limit]
+
     def validate_characters(self, value):
         """
         Validate that all characters in ``value`` are within
@@ -386,6 +389,9 @@ class DecimalFieldFormat(AbstractFieldFormat):
             self._precision = None
             self._scale = None
 
+    def sql_ansi_type(self):
+        return ['decimal', None if self.length is None else self.length.upper_limit]
+
     def validated_value(self, value):
         assert value
 
@@ -482,6 +488,9 @@ class IntegerFieldFormat(AbstractFieldFormat):
                 # represent it.
                 self.valid_range = ranges.Range(ranges.DEFAULT_INTEGER_RANGE_TEXT)
 
+    def sql_ansi_type(self):
+        return ['integer', None if self.length is None else self.length.upper_limit]
+
     def validated_value(self, value):
         assert value
 
@@ -520,6 +529,9 @@ class DateTimeFieldFormat(AbstractFieldFormat):
             (key, value) = patternKeyValue.split(":")
             strptime_format = strptime_format.replace(key, value)
         self.strptimeFormat = strptime_format
+
+    def sql_ansi_type(self):
+        return ['date', None if self.length is None else self.length.upper_limit]
 
     def validated_value(self, value):
         assert value
