@@ -105,8 +105,6 @@ class SQLTest(unittest.TestCase):
             ['F', 'surname', 'Doe', '', '1...60', 'Text'],
             ['F', 'gender', 'male', '', '', 'Choice', 'male, female, unknown'],
             ['F', 'date_of_birth', '03.11.1969', '', '', 'DateTime', 'DD.MM.YYYY'],
-
-
         ])
         self.maxDiff = None
         self.assertEqual(
@@ -119,8 +117,11 @@ class SQLTest(unittest.TestCase):
             "\nconstraint chk_length_surname check (length(surname >= 1) and length(surname <= 60)),"
             "\nconstraint chk_rule_gender check( gender in ('male','female','unknown') )\n);")
 
+        print(sql.as_sql_create_table(cid_reader, sql.MYSQL))
+
         # check if create insert statements works
         with validio.Reader(cid_reader, dev_test.path_to_test_data("valid_customers.csv")) as reader:
+            print('\n'.join(list(sql.as_sql_create_inserts(cid_reader, reader))))
             self.assertEqual(
                 list(sql.as_sql_create_inserts(cid_reader, reader)),
                 ["insert into customers(branch_id, customer_id, first_name, surname, gender, date_of_birth) "
