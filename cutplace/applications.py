@@ -27,10 +27,12 @@ import argparse
 import logging
 import sys
 
-from cutplace import interface
 from cutplace import errors
+from cutplace import gui
+from cutplace import interface
 from cutplace import validio
 from cutplace import rowio
+from cutplace import sql
 from cutplace import _tools
 from cutplace import __version__
 
@@ -55,6 +57,7 @@ class CutplaceApp(object):
         self.cid_encoding = DEFAULT_CID_ENCODING
         self.cid_path = None
         self.is_gui = False
+        self.is_create_sql = False
         self.data_paths = None
         self.last_validation_was_ok = False
         self.all_validations_were_ok = True
@@ -70,10 +73,9 @@ class CutplaceApp(object):
         version = '%(prog)s ' + __version__
 
         parser = argparse.ArgumentParser(description=description)
-        # TODO #77: Activate option --gui.
-        # parser.add_argument(
-        #    '--gui', '--g', action='store_true', dest='is_gui',
-        #    help='provide a graphical user interface to set CID-FILE and DATA-FILE')
+        parser.add_argument(
+            '--gui', '--g', action='store_true', dest='is_gui',
+            help='provide a graphical user interface to set CID-FILE and DATA-FILE')
         parser.add_argument(
             '--log', metavar='LEVEL', choices=sorted(_tools.LOG_LEVEL_NAME_TO_LEVEL_MAP.keys()), dest='log_level',
             default=DEFAULT_LOG_LEVEL, help='set log level to LEVEL (default: %s)' % DEFAULT_LOG_LEVEL)
@@ -85,13 +87,17 @@ class CutplaceApp(object):
             help='maximum number of rows to validate; -1=all, 0=none (default: %d)' % DEFAULT_VALIDATE_UNTIL)
         parser.add_argument('--version', action='version', version=version)
         parser.add_argument(
-            'cid_path', metavar='CID-FILE', help='file containing a cutplace interface definition (CID)')
+            'cid_path', metavar='CID-FILE', nargs='?', help='file containing a cutplace interface definition (CID)')
         parser.add_argument(
-            'data_paths', metavar='DATA-FILE', nargs=argparse.REMAINDER, help='data file(s) to validate')
+            'data_paths', metavar='DATA-FILE', nargs='*', help='data file(s) to validate')
+        parser.add_argument(
+            '--create', '--C', action='store_true', dest='is_create_sql',
+            help='write SQL statement to create a table representing CID-FILE')
         args = parser.parse_args(argv[1:])
 
         self._log.setLevel(_tools.LOG_LEVEL_NAME_TO_LEVEL_MAP[args.log_level])
-        # TODO #77: self.is_gui = args.is_gui
+        self.is_create_sql = args.is_create_sql
+        self.is_gui = args.is_gui
 
         if args.validate_until is not None:
             if args.validate_until == -1:
@@ -104,6 +110,8 @@ class CutplaceApp(object):
             interface.import_plugins(args.plugins_folder)
         if args.cid_path is not None:
             self.set_cid_from_path(args.cid_path)
+        elif not args.is_gui:
+            parser.error('CID_PATH or --gui must be specified')
         if args.data_paths is not None:
             self.data_paths = args.data_paths
 
@@ -163,8 +171,10 @@ def process(argv=None):
     cutplace_app = CutplaceApp()
     cutplace_app.set_options(argv)
     if cutplace_app.is_gui:
-        # TODO #77: Open graphical user interface.
-        raise NotImplementedError
+        gui.open_gui()
+    elif cutplace_app.is_create_sql:
+        cid_reader = interface.Cid()
+        sql.write_create(cutplace_app.cid_path, cid_reader)
     elif cutplace_app.data_paths:
         for data_path in cutplace_app.data_paths:
             try:

@@ -311,6 +311,58 @@ class ChoiceFieldFormat(AbstractFieldFormat):
                                self._empty_value, dialect)
 
 
+class ConstantFieldFormat(AbstractFieldFormat):
+    """
+    Field format accepting only values from a pool of choices.
+    """
+    def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format):
+        super(ConstantFieldFormat, self).__init__(
+            field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value='')
+
+        # Extract constant from rule tokens.
+        tokens = _tools.tokenize_without_space(rule)
+        toky = next(tokens)
+        if _tools.is_eof_token(toky):
+            # No rule means that the field must always be empty.
+            self._constant = ''
+        else:
+            self._constant = _tools.token_text(toky)
+            toky = next(tokens)
+            if not _tools.is_eof_token(toky):
+                raise errors.InterfaceError(
+                    'constant rule must be a single Python token but also found: %s'
+                    % _compat.text_repr(_tools.token_text(toky)))
+        has_empty_rule = (rule == '')
+        if self.is_allowed_to_be_empty and not has_empty_rule:
+            raise errors.InterfaceError(
+                'to describe a Constant that can be empty, use a Choice field with a single choice')
+        if not self.is_allowed_to_be_empty and has_empty_rule:
+            raise errors.InterfaceError(
+                'field must be marked as empty to describe a constant empty value')
+        try:
+            self.length.validate(
+                'rule of constant field %s' % _compat.text_repr(self.field_name), len(self._constant))
+        except errors.RangeValueError:
+            raise errors.InterfaceError(
+                'length is %s but must be %d to match constant %s'
+                % (self.length, len(self._constant), _compat.text_repr(self._constant)))
+
+    def validated_value(self, value):
+        assert value
+
+        if value != self._constant:
+            raise errors.FieldValueError(
+                "value is %s but must be constant: %s"
+                % (_compat.text_repr(value), _compat.text_repr(self._constant)))
+        return value
+
+    def as_sql(self, dialect='ansi'):
+        sql.assert_is_valid_dialect(dialect)
+        # TODO: Add constraint that value matches constant.
+        return sql.as_sql_text(self._field_name, self._is_allowed_to_be_empty, self._length, self._rule,
+                               self._empty_value, dialect)
+
+
 class DecimalFieldFormat(AbstractFieldFormat):
     """
     Field format accepting decimal numeric values, taking the data format
@@ -320,40 +372,53 @@ class DecimalFieldFormat(AbstractFieldFormat):
 
     def __init__(self, field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value=None):
         super(DecimalFieldFormat, self).__init__(
-            field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value)
-        if rule.strip() != '':
-            raise errors.InterfaceError("decimal rule must be empty")
-        self.decimalSeparator = data_format.decimal_separator
-        self.thousandsSeparator = data_format.thousands_separator
+            field_name, is_allowed_to_be_empty, "", "", data_format, empty_value)
+        assert rule is not None, 'to specify "no rule" use "" instead of None'
+        self.decimal_separator = data_format.decimal_separator
+        self.thousands_separator = data_format.thousands_separator
+        self.valid_range = ranges.DecimalRange(rule, ranges.DEFAULT_DECIMAL_RANGE_TEXT)
+        self._length = ranges.DecimalRange(length_text)
+
+        if self.valid_range is not None:
+            self._precision = self.valid_range.precision
+            self._scale = self.valid_range.scale
+        else:
+            self._precision = None
+            self._scale = None
 
     def validated_value(self, value):
         assert value
 
         translated_value = ""
         found_decimal_separator = False
-        for valueIndex in range(len(value)):
-            character_to_process = value[valueIndex]
-            if character_to_process == self.decimalSeparator:
+        for character_to_process in value:
+            if character_to_process == self.decimal_separator:
                 if found_decimal_separator:
                     raise errors.FieldValueError(
                         "decimal field must contain only one decimal separator (%s): %s"
-                        % (_compat.text_repr(self.decimalSeparator), _compat.text_repr(value)))
+                        % (_compat.text_repr(self.decimal_separator), _compat.text_repr(value)))
                 translated_value += "."
                 found_decimal_separator = True
-            elif self.thousandsSeparator and (character_to_process == self.thousandsSeparator):
+            elif self.thousands_separator and (character_to_process == self.thousands_separator):
                 if found_decimal_separator:
                     raise errors.FieldValueError(
-                        "decimal field must contain thousands separator (%s) only before "
-                        "decimal separator (%s): %s (position %d)"
-                        % (_compat.text_repr(self.thousandsSeparator), _compat.text_repr(self.decimalSeparator),
-                           _compat.text_repr(value), valueIndex + 1))
+                        "decimal field must contain thousands separator (%r) only before "
+                        "decimal separator (%r): %r "
+                        % (self.thousands_separator, self.decimal_separator, value))
             else:
                 translated_value += character_to_process
+
         try:
             result = decimal.Decimal(translated_value)
-        except decimal.DecimalException as error:
-            raise errors.FieldValueError(
-                "value is %s but must be a decimal number: %s" % (_compat.text_repr(value), error))
+        except Exception as error:
+            # TODO: limit exception handler to decimal exception or whatever decimal.Decimal raises.
+            message = "value is %r but must be a decimal number: %s" % (value, error)
+            raise errors.FieldValueError(message)
+
+        try:
+            self.valid_range.validate(self._field_name, result)
+        except errors.RangeValueError as error:
+            raise errors.FieldValueError(str(error))
 
         return result
 

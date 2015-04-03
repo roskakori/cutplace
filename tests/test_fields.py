@@ -30,7 +30,6 @@ import six
 from cutplace import data
 from cutplace import errors
 from cutplace import fields
-from cutplace import sql
 
 from tests import dev_test
 
@@ -83,13 +82,12 @@ class AbstractFieldFormatTest(unittest.TestCase):
         data_format.set_property(data.KEY_ALLOWED_CHARACTERS, '"a"..."c"')
         field_format = fields.AbstractFieldFormat('something', False, '3...5', '', data_format)
         field_format.validate_characters('cba')
-        try:
-            field_format.validate_characters('abxba')
-            self.fail()
-        except errors.FieldValueError as anticipated_error:
-            self.assertEqual(
-                "character 'x' (code point U+0078, decimal 120) in field 'something' at column 3 must be an allowed"
-                " character: 97...99", six.text_type(anticipated_error))
+        dev_test.assert_raises_and_fnmatches(
+            self, errors.FieldValueError,
+            "character 'x' (code point U+0078, decimal 120) in field 'something' at column 3 "
+            + "must be an allowed character: 97...99",
+            field_format.validate_characters, 'abxba'
+        )
 
 
 class DateTimeFieldFormatTest(unittest.TestCase):
@@ -123,25 +121,6 @@ class DateTimeFieldFormatTest(unittest.TestCase):
         field_format = fields.DateTimeFieldFormat("x", False, None, "%YYYY-MM-DD", _ANY_FORMAT)
         field_format.validated("%2000-01-01")
 
-    # TODO: Move SQL test to test_sql.
-    def test_can_output_sql_date(self):
-        field_format = fields.DateTimeFieldFormat("x", True, None, "YYYY-MM-DD", _ANY_FORMAT)
-        self.assertEqual(field_format.as_sql(sql.MSSQL)[0], "x date")
-
-    def test_can_output_sql_time(self):
-        field_format = fields.DateTimeFieldFormat("x", True, None, "hh:mm:ss", _ANY_FORMAT)
-        self.assertEqual(field_format.as_sql(sql.MSSQL)[0], "x time")
-
-    def test_can_output_sql_datetime(self):
-        field_format = fields.DateTimeFieldFormat("x", True, None, "YYYY:MM:DD hh:mm:ss", _ANY_FORMAT)
-        self.assertEqual(field_format.as_sql(sql.MSSQL)[0], "x datetime")
-        field_format = fields.DateTimeFieldFormat("x", True, None, "YY:MM:DD hh:mm:ss", _ANY_FORMAT)
-        self.assertEqual(field_format.as_sql(sql.MSSQL)[0], "x datetime")
-
-    def test_can_output_sql_datetime_not_null(self):
-        field_format = fields.DateTimeFieldFormat("x", False, None, "YYYY:MM:DD hh:mm:ss", _ANY_FORMAT)
-        self.assertEqual(field_format.as_sql(sql.MSSQL)[0], "x datetime not null")
-
 
 class DecimalFieldFormatTest(unittest.TestCase):
     """
@@ -161,9 +140,50 @@ class DecimalFieldFormatTest(unittest.TestCase):
         self.assertEqual(decimal.Decimal("12345678"), german_decimal_field_format.validated("12.345.678"))
         self.assertEqual(decimal.Decimal("171234567.89"), german_decimal_field_format.validated("171.234.567,89"))
 
-    def test_fails_on_broken_decimal(self):
-        field_format = fields.DecimalFieldFormat('x', False, None, '', _ANY_FORMAT)
-        self.assertRaises(errors.FieldValueError, field_format.validated, 'abc')
+    def test_can_validate_rule_for_field_format(self):
+        field_format = fields.DecimalFieldFormat("x", False, None, "3.2...4.2", _ANY_FORMAT)
+        self.assertEqual(decimal.Decimal('3.2'), field_format.validated('3.2'))
+        self.assertEqual(decimal.Decimal('3.5'), field_format.validated('3.5'))
+        self.assertEqual(decimal.Decimal('4.2'), field_format.validated('4.2'))
+
+        field_format = fields.DecimalFieldFormat("x", False, None, "3.2...", _ANY_FORMAT)
+        self.assertEqual(decimal.Decimal('3.2'), field_format.validated('3.2'))
+        self.assertEqual(decimal.Decimal('3.5'), field_format.validated('3.5'))
+        self.assertEqual(decimal.Decimal('333.5'), field_format.validated('333.5'))
+
+        field_format = fields.DecimalFieldFormat("x", False, None, "...4.2", _ANY_FORMAT)
+        self.assertEqual(decimal.Decimal('4.2'), field_format.validated('4.2'))
+        self.assertEqual(decimal.Decimal('-333.5'), field_format.validated('-333.5'))
+
+    def test_fails_on_outer_range_for_field_rule(self):
+        field_format = fields.DecimalFieldFormat("x", False, None, "3.2...4.2", _ANY_FORMAT)
+        self.assertRaises(errors.FieldValueError, field_format.validated, '4.3')
+        self.assertRaises(errors.FieldValueError, field_format.validated, '3.1')
+
+        field_format = fields.DecimalFieldFormat("x", False, None, "3.2...", _ANY_FORMAT)
+        self.assertRaises(errors.FieldValueError, field_format.validated, '3.1')
+
+        field_format = fields.DecimalFieldFormat("x", False, None, "...4.2", _ANY_FORMAT)
+        self.assertRaises(errors.FieldValueError, field_format.validated, '4.3')
+
+    def test_fails_on_no_numeric_value(self):
+        field_format = fields.DecimalFieldFormat("x", False, None, "3.2...4.2", _ANY_FORMAT)
+        self.assertRaises(errors.FieldValueError, field_format.validated, "abc")
+
+    def test_fails_on_double_decimal_separator(self):
+        field_format = fields.DecimalFieldFormat("x", False, None, "3.2...4.2", _ANY_FORMAT)
+        self.assertRaises(errors.FieldValueError, field_format.validated, "3..3")
+
+    def test_fails_on_thousand_separator_after_decimal_separator(self):
+        field_format = fields.DecimalFieldFormat("x", False, None, "3000.2...4000.2", _ANY_FORMAT)
+        field_format.thousands_separator = "."
+        field_format.decimal_separator = ","
+        self.assertRaises(errors.FieldValueError, field_format.validated, "3000,300.234")
+
+    def test_can_use_default_rule(self):
+        field_format = fields.DecimalFieldFormat("x", False, None, "", _ANY_FORMAT)
+        self.assertEqual(field_format.valid_range.upper_limit, decimal.Decimal('9999999999999999999.999999999999'))
+        self.assertEqual(field_format.valid_range.lower_limit, decimal.Decimal('-9999999999999999999.999999999999'))
 
 
 class IntegerFieldFormatTest(unittest.TestCase):
@@ -226,22 +246,18 @@ class IntegerFieldFormatTest(unittest.TestCase):
         self.assertEqual(field_format.validated('012'), 12)
 
     def test_fails_on_inconsistent_fixed_length_and_rule(self):
-        try:
-            fields.IntegerFieldFormat('x', False, '3', '...1234', _FIXED_FORMAT)
-            self.fail()
-        except errors.InterfaceError as anticipated_error:
-            dev_test.assert_error_fnmatches(
-                self, anticipated_error,
-                "length must be consistent with rule: "
-                "length of partial rule limit '1234' is 4 but must be within range: 1...3")
-        try:
-            fields.IntegerFieldFormat('x', False, '3', '123...456, 1234...', _FIXED_FORMAT)
-            self.fail()
-        except errors.InterfaceError as anticipated_error:
-            dev_test.assert_error_fnmatches(
-                self, anticipated_error,
-                "length must be consistent with rule: "
-                "length of partial rule limit '1234' is 4 but must be within range: 1...3")
+        dev_test.assert_raises_and_fnmatches(
+            self, errors.InterfaceError,
+            "length must be consistent with rule: "
+            "length of partial rule limit '1234' is 4 but must be within range: 1...3",
+            fields.IntegerFieldFormat, 'x', False, '3', '...1234', _FIXED_FORMAT
+        )
+        dev_test.assert_raises_and_fnmatches(
+            self, errors.InterfaceError,
+            "length must be consistent with rule: "
+            "length of partial rule limit '1234' is 4 but must be within range: 1...3",
+            fields.IntegerFieldFormat, 'x', False, '3', '123...456, 1234...', _FIXED_FORMAT
+        )
 
     def test_can_set_range_from_length_or_rule(self):
         field_format = fields.IntegerFieldFormat("x", False, "1...", "3...5", _ANY_FORMAT)
@@ -284,11 +300,13 @@ class IntegerFieldFormatTest(unittest.TestCase):
     def test_fails_on_invalid_example(self):
         field_format = fields.IntegerFieldFormat("x", False, None, "1:10", _ANY_FORMAT)
         try:
+            # NOTE: We cannot use dev_info.assert_raises_and_fnmatches() here
+            # because the failing statement is an assignment, not a function
+            # call.
             field_format.example = "11"
             self.fail()
-        except errors.FieldValueError:
-            # Ignore expected error.
-            pass
+        except errors.FieldValueError as anticipated_error:
+            self.assertEqual('value is 11 but must be within range: 1...10', six.text_type(anticipated_error))
 
 
 class RegExFieldFormatTest(unittest.TestCase):
@@ -365,30 +383,66 @@ class ChoiceFieldFormatTest(unittest.TestCase):
         self.assertRaises(errors.InterfaceError, fields.ChoiceFieldFormat, "color", False, None, ",red", _ANY_FORMAT)
         self.assertRaises(errors.InterfaceError, fields.ChoiceFieldFormat, "color", False, None, "red,,green", _ANY_FORMAT)
 
-    # TODO: Move to test_sql.
-    def test_can_output_sql_varchar(self):
-        field_format = fields.ChoiceFieldFormat("color", True, None, "red,grEEn, blue ", _ANY_FORMAT)
-        column_def, constraint = field_format.as_sql(sql.MSSQL)
-        self.assertEqual(column_def, "color varchar(255)")
-        self.assertEqual(constraint, "constraint chk_rule_color check( color in ('red','grEEn','blue') )")
 
-    def test_can_output_sql_smallint(self):
-        field_format = fields.ChoiceFieldFormat("color", True, None, "1,2, 3 ", _ANY_FORMAT)
-        column_def, constraint = field_format.as_sql(sql.MSSQL)
-        self.assertEqual(column_def, "color smallint")
-        self.assertEqual(constraint, "constraint chk_rule_color check( color in (1,2,3) )")
+class ConstantFieldFormatTest(unittest.TestCase):
+    """
+    Tests  for `ConstantFieldFormat`.
+    """
+    def setUp(self):
+        self._constant_format = fields.ConstantFieldFormat('constant', False, None, 'some', _ANY_FORMAT)
 
-    def test_can_output_sql_integer(self):
-        field_format = fields.ChoiceFieldFormat("color", True, None, "1000000,2, 3 ", _ANY_FORMAT)
-        column_def, constraint = field_format.as_sql(sql.MSSQL)
-        self.assertEqual(column_def, "color integer")
-        self.assertEqual(constraint, "constraint chk_rule_color check( color in (1000000,2,3) )")
+    def test_can_match_constant_name(self):
+        self.assertEqual(self._constant_format.validated('some'), 'some')
 
-    def test_can_output_sql_bigint(self):
-        field_format = fields.ChoiceFieldFormat("color", True, None, "10000000000,2, 3 ", _ANY_FORMAT)
-        column_def, constraint = field_format.as_sql(sql.MSSQL)
-        self.assertEqual(column_def, "color bigint")
-        self.assertEqual(constraint, "constraint chk_rule_color check( color in (10000000000,2,3) )")
+    def test_can_match_constant_string(self):
+        self._constant_format = fields.ConstantFieldFormat('constant', False, None, '"some"', _ANY_FORMAT)
+        self.assertEqual(self._constant_format.validated('some'), 'some')
+
+    def test_can_match_constant_integer(self):
+        self._constant_format = fields.ConstantFieldFormat('constant', False, None, '3', _ANY_FORMAT)
+        self.assertEqual(self._constant_format.validated('3'), '3')
+
+    def test_can_match_constant_float(self):
+        self._constant_format = fields.ConstantFieldFormat('constant', False, None, '3.1', _ANY_FORMAT)
+        self.assertEqual(self._constant_format.validated('3.1'), '3.1')
+
+    def test_fails_on_other_value(self):
+        dev_test.assert_raises_and_fnmatches(
+            self, errors.FieldValueError, "value is 'other' but must be constant: 'some'",
+            self._constant_format.validated, 'other'
+        )
+
+    def test_fails_on_empty_value(self):
+        self.assertRaises(errors.FieldValueError, self._constant_format.validated, '')
+
+    def test_can_match_empty_constant(self):
+        always_empty_format = fields.ConstantFieldFormat('constant', True, None, '', _ANY_FORMAT)
+        self.assertEqual(always_empty_format.validated(''), '')
+
+    def test_fails_on_empty_constant_with_non_empty_rule(self):
+        dev_test.assert_raises_and_fnmatches(
+            self, errors.InterfaceError,
+            'to describe a Constant that can be empty, use a Choice field with a single choice',
+            fields.ConstantFieldFormat, 'broken_empty', True, None, 'some', _ANY_FORMAT
+        )
+
+    def test_fails_on_missing_empty_flag_with_empty_rule(self):
+        dev_test.assert_raises_and_fnmatches(
+            self, errors.InterfaceError, 'field must be marked as empty to describe a constant empty value',
+            fields.ConstantFieldFormat, 'broken_empty', False, None, '', _ANY_FORMAT)
+
+    def test_fails_on_multiple_tokens_in_rule(self):
+        dev_test.assert_raises_and_fnmatches(
+            self, errors.InterfaceError, "constant rule must be a single Python token but also found: ';'",
+            fields.ConstantFieldFormat, 'multiple_tokens', False, None, '"x";', _ANY_FORMAT)
+
+    def test_fails_on_inconsistent_length(self):
+        try:
+            fields.ConstantFieldFormat('inconsistent_length', False, '2', '"a"', _ANY_FORMAT)
+            self.fail()
+        except errors.InterfaceError as anticipated_error:
+            dev_test.assert_error_fnmatches(
+                self, anticipated_error, "length is 2 but must be 1 to match constant 'a'")
 
 
 class PatternFieldFormatTest(unittest.TestCase):
@@ -405,13 +459,6 @@ class PatternFieldFormatTest(unittest.TestCase):
         field_format = fields.PatternFieldFormat("x", False, None, "h*g?", _ANY_FORMAT)
         self.assertRaises(errors.FieldValueError, field_format.validated, "")
         self.assertRaises(errors.FieldValueError, field_format.validated, "hang")
-
-    # TODO: Move to test_sql.
-    def test_can_output_sql_without_range(self):
-        field_format = fields.PatternFieldFormat("x", False, None, "h*g?", _ANY_FORMAT)
-        column_def, constraint = field_format.as_sql(sql.MSSQL)
-        self.assertEqual(column_def, "x varchar(255) not null")
-        self.assertEqual(constraint, "")
 
 
 if __name__ == '__main__':  # pragma: no cover

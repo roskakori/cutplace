@@ -507,28 +507,6 @@ class Cid(object):
         assert check_name is not None
         return self._check_name_to_check_map[check_name]
 
-    def as_sql_create_table(self, dialect='ansi'):
-        file_name = os.path.basename(self._cid_path)
-        table_name = file_name.split('.')
-
-        create_table = "create table " + table_name[0] + " (\n"
-        constraints = ""
-
-        # FIXME: check correctness of sql table names
-
-        # get column definitions and constraints for all fields
-        for field in self._field_formats:
-            column_def, constraint = field.as_sql(dialect)
-            create_table += column_def + ",\n"
-
-            if len(constraint) > 0:
-                constraints += constraint + ",\n"
-
-        create_table += constraints
-
-        create_table += ");"
-        return create_table
-
 
 def create_cid_from_string(cid_text):
     """

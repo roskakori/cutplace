@@ -20,8 +20,14 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import io
+import logging
+import os.path
+import sqlite3
+
 from cutplace import _tools
 from cutplace import ranges
+from cutplace import rowio
 
 # TODO: Move to module ``ranges``.
 MAX_SMALLINT = 2 ** 15 - 1
@@ -38,6 +44,8 @@ MSSQL = "mssql"
 MYSQL = "mysql"
 #: SQL dialect: Oracle
 ORACLE = "oracle"
+
+_log = logging.getLogger("cutplace")
 
 
 def assert_is_valid_dialect(dialect):
@@ -162,3 +170,57 @@ def as_sql_date(field_name, field_is_allowed_to_be_empty, human_readable_format,
         column_def += " not null"
 
     return [column_def, constraint]
+
+
+def as_sql_create_table(cid, dialect='ansi'):
+    assert_is_valid_dialect(dialect)
+
+    file_name = os.path.basename(cid._cid_path)
+    table_name = file_name.split('.')
+
+    result = "create table " + table_name[0] + " (\n"
+    constraints = ""
+
+    # get column definitions and constraints for all fields
+    for field in cid._field_formats:
+        column_def, constraint = field.as_sql(dialect)
+        result += column_def + ",\n"
+
+        if len(constraint) > 0:
+            constraints += constraint + ",\n"
+
+    constraints = constraints.rsplit(',', 1)[0]
+
+    result += constraints
+
+    result += "\n);"
+
+    temp_database = None
+
+    try:
+        temp_database = sqlite3.connect(":memory:")
+        cursor = temp_database.cursor()
+        cursor.execute(result)
+
+    except sqlite3.Error as err:
+        return err
+
+    finally:
+        if temp_database:
+            cursor = temp_database.cursor()
+            cursor.execute("drop table " + table_name[0] + " ;")
+            cursor.close()
+
+    return result
+
+
+def write_create(cid_path, cid_reader):
+    cid_reader.read(cid_path, rowio.excel_rows(cid_path))
+
+    create_path = os.path.splitext(cid_path)[0] + '_create.sql'
+    # TODO: Add option to specify target folder for SQL files.
+    _log.info('write SQL create statements to "%s"', create_path)
+    with io.open(create_path, 'w', encoding='utf-8') as create_file:
+        # TODO: Add option for encoding.
+        create_file.write(as_sql_create_table(cid_reader, MYSQL))
+        # TODO: Add option for target SQL dialect
