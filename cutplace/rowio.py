@@ -667,6 +667,9 @@ class XlsxRowWriter(AbstractRowWriter):
         self._workbook = xlsxwriter.Workbook(self.target_path)
         self._worksheet = self._workbook.add_worksheet()
 
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
     @property
     def workbook(self):
         """
