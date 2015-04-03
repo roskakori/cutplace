@@ -18,24 +18,30 @@ A graphical user interface to set CID-FILE and DATA-FILE.
 import io
 import six
 
-if six.PY3:
-    from tkinter import *
-    from tkinter.filedialog import askopenfilename
-    from tkinter.filedialog import asksaveasfilename
-    from tkinter.messagebox import showerror
-    from tkinter.messagebox import showinfo
-else:
-    from Tkinter import *
-    from tkFileDialog import askopenfilename
-    from tkFileDialog import asksaveasfilename
-    from tkMessageBox import showerror
-    from tkMessageBox import showinfo
+try:
+    if six.PY2:
+        from Tkinter import *
+        from tkFileDialog import askopenfilename
+        from tkFileDialog import asksaveasfilename
+        from tkMessageBox import showerror
+        from tkMessageBox import showinfo
+    else:
+        from tkinter import *
+        from tkinter.filedialog import askopenfilename
+        from tkinter.filedialog import asksaveasfilename
+        from tkinter.messagebox import showerror
+        from tkinter.messagebox import showinfo
+    has_tk = True
+except ImportError:
+    has_tk = False
 
 from cutplace import errors
 from cutplace import validio
 
 
 def open_gui():
+    assert has_tk
+
     root = Tk()
     root.title('cutplace')
     root.geometry('600x450+650+150')
@@ -46,6 +52,8 @@ def open_gui():
 
 class Gui:
     def __init__(self, master):
+        assert has_tk
+
         # cid
         self.cid_message = Message(master)
         self.cid_message.place(

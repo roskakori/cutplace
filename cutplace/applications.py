@@ -114,6 +114,8 @@ class CutplaceApp(object):
             parser.error('CID_PATH or --gui must be specified')
         if args.data_paths is not None:
             self.data_paths = args.data_paths
+        if args.is_gui and not gui.has_tk:
+            parser.error('tkinter package must be installed in order for --gui to work')
 
         self._log.debug('cutplace %s', __version__)
         self._log.debug('arguments=%s', args)
