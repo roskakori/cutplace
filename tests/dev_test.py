@@ -260,6 +260,14 @@ def assert_error_fnmatches(test_case, actual_error, expected_message_pattern):
     assert_fnmatches(test_case, actual_message, expected_message_pattern)
 
 
+def assert_raises_and_fnmatches(test_case, expected_error, expected_message_pattern, function, *arguments):
+    try:
+        function(*arguments)
+        test_case.fail('function ' + function.__name__ + '() must fail with ' + expected_error.__name__)
+    except expected_error as error:
+        assert_error_fnmatches(test_case, error, expected_message_pattern)
+
+
 def unified_newlines(text):
     """
     Same as ``text`` but with newline sequences unified to ``'\n'``.

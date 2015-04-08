@@ -28,6 +28,7 @@ import os
 import re
 import six
 import xlrd
+import xlsxwriter
 import zipfile
 from contextlib import closing
 from xml.etree import ElementTree
@@ -635,3 +636,85 @@ class FixedRowWriter(AbstractRowWriter):
         if self._line_separator is not None:
             self._target_stream.write(self._line_separator)
         self.location.advance_line()
+
+
+class XlsxRowWriter(AbstractRowWriter):
+    """
+    A writer for Excel 2007+ (:file:`*.xlsx`) documents.
+
+    Additionally to the common interface provided by
+    :py:class:`~.AbstractRowWriter` the internal :py:attr:`~.workbook` and
+    :py:attr:`~.worksheet` can be accessed and modified before calling
+    :py:meth:`cutplace.rowio.XlsxRowWriter.close` in order to add for
+    instance formatting or charts using the operations provided by
+    :py:class:`xlsxwriter.XlsxWriter`.
+    """
+    def __init__(self, target_path):
+        """
+        Set up a writer that stores the data in ``target_path``, which has to
+        be a string. Unlike with some other writers, this can not be stream.
+
+        Internally data are written to a worksheet first and written to a
+        file during :py:meth:`cutplace.rowio.XlsxRowWriter.close`.
+        """
+        assert target_path is not None
+        assert isinstance(target_path, six.string_types), 'target_path must be a string but is: %s' % type(target_path)
+
+        self._target_path = target_path
+        self._target_stream = None
+        self._has_opened_target_stream = False
+        self._location = errors.Location(self.target_path, has_cell=True)
+        self._workbook = xlsxwriter.Workbook(self.target_path)
+        self._worksheet = self._workbook.add_worksheet()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    @property
+    def workbook(self):
+        """
+        The Excel workbook with the :py:attr:`~.worksheet` the written data
+        are stored in.
+
+        After :py:meth:`cutplace.rowio.XlsxWriter.close` this is ``None``.
+        """
+        return self._workbook
+
+    @property
+    def worksheet(self):
+        """
+        The sole Excel worksheet the written data are stored in.
+
+        After :py:meth:`cutplace.rowio.XlsxWriter.close` this is ``None``.
+
+        :rtype: xlsxwriter.Worksheet
+        """
+        return self._worksheet
+
+    def write_row(self, row_to_write):
+        assert row_to_write is not None
+
+        row_index = self.location.line
+        for item in row_to_write:
+            assert item is not None
+            assert not isinstance(item, six.binary_type), 'item must be a (unicode) string: %r' % item
+            column_index = self.location.cell
+            if isinstance(item, six.text_type):
+                # Write strings as explicit strings to prevent strings starting with '=' from being converted to
+                # formulas.
+                self.worksheet.write_string(row_index, column_index, item)
+            else:
+                self.worksheet.write(row_index, column_index, item)
+            self.location.advance_cell()
+        self.location.advance_line()
+
+    def close(self):
+        """
+        Close :py:attr:`~.workbook` and physically write it to
+        :py:attr:`~cutplace.rowio.XlsxWriter.target_path`.
+        """
+        if self.workbook is not None:
+            self.workbook.close()
+            self._workbook = None
+            self._worksheet = None
+            self._target_path = None

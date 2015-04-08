@@ -31,7 +31,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
 
 elif [[ "$DISTRIB" == "ubuntu" ]]; then
     # Use standard ubuntu packages in their default version
-    sudo apt-get install -qq python-pip
+    sudo apt-get install -qq python-pip python-tk
     
     # Ensure that we have reasonably modern setuptools.
     pip install setuptools>=6.0

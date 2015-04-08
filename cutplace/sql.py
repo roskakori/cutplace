@@ -20,12 +20,15 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import io
+import logging
 import os.path
 import six
 import sqlite3
 
 from cutplace import _tools
 from cutplace import ranges
+from cutplace import rowio
 
 # TODO: Move to module ``ranges``.
 MAX_SMALLINT = 2 ** 15 - 1
@@ -43,6 +46,7 @@ MYSQL = "mysql"
 #: SQL dialect: Oracle
 ORACLE = "oracle"
 
+_log = logging.getLogger("cutplace")
 
 class AnsiSqlDialect():
     def __init__(self):
@@ -268,6 +272,18 @@ def as_sql_create_table(cid, dialect='ansi'):
             cursor.close()
 
     return result
+
+
+def write_create(cid_path, cid_reader):
+    cid_reader.read(cid_path, rowio.excel_rows(cid_path))
+
+    create_path = os.path.splitext(cid_path)[0] + '_create.sql'
+    # TODO: Add option to specify target folder for SQL files.
+    _log.info('write SQL create statements to "%s"', create_path)
+    with io.open(create_path, 'w', encoding='utf-8') as create_file:
+        # TODO: Add option for encoding.
+        create_file.write(as_sql_create_table(cid_reader, MYSQL))
+        # TODO: Add option for target SQL dialect
 
 
 def as_sql_create_inserts(cid, source_data_reader):

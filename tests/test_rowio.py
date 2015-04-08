@@ -21,12 +21,16 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import io
+import os
 import unittest
+
+import six
 
 from cutplace import data
 from cutplace import interface
 from cutplace import errors
 from cutplace import rowio
+from cutplace import _tools
 from tests import dev_test
 
 _EURO_SIGN = '\u20ac'
@@ -368,6 +372,23 @@ class FixedRowWriterTest(unittest.TestCase):
                 anticipated_error_message = str(anticipated_error)
                 dev_test.assert_fnmatches(
                     self, anticipated_error_message, "*.txt (R2C1): cannot write data row: *; row=*")
+
+
+class XlsxRowWriterTest(unittest.TestCase):
+    def test_can_write_xlsx(self):
+        rows_to_write = (
+            ('a', 'b', 'c'),
+            (1, 2, 3),
+        )
+        test_build_folder = dev_test.path_to_test_folder('build')
+        _tools.mkdirs(test_build_folder)
+        xlsx_path = os.path.join(test_build_folder, 'test_can_write_xlsx.xlsx')
+        with rowio.XlsxRowWriter(xlsx_path) as xlsx_writer:
+            for row_to_write in rows_to_write:
+                xlsx_writer.write_row(row_to_write)
+        for row_index, row_read in enumerate(rowio.excel_rows(xlsx_path)):
+            string_row_written = [six.text_type(item) for item in rows_to_write[row_index]]
+            self.assertEqual(string_row_written, row_read)
 
 
 if __name__ == "__main__":  # pragma: no cover
