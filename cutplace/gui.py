@@ -16,7 +16,9 @@ A graphical user interface to set CID-FILE and DATA-FILE.
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import io
+import os
 import six
+import time
 
 try:
     if six.PY2:
@@ -35,35 +37,42 @@ try:
 except ImportError:
     has_tk = False
 
+from cutplace import __version__
 from cutplace import errors
 from cutplace import validio
 
 
-def open_gui():
+def open_gui(cid_path='', data_path=''):
     assert has_tk
 
     root = Tk()
-    root.title('cutplace')
+    root.title('cutplace %s' % __version__)
     root.geometry('600x450+650+150')
     root.minsize('600', '450')
-    Gui(root)
+    Gui(root, cid_path, data_path)
     root.mainloop()
 
 
 class Gui:
-    def __init__(self, master):
+    def __init__(self, master, cid_path, data_path):
         assert has_tk
+
+        self.master = master
+        self.processed_lines = 0
+        self.cid_directory = '.'
+        self.data_directory = '.'
 
         # cid
         self.cid_message = Message(master)
         self.cid_message.place(
             relx=0.00, rely=0.05,
             relheight=0.05, relwidth=0.1)
-        self.cid_message.configure(text='Cid:')
+        self.cid_message.configure(text='CID:')
         self.cid_message.configure(width=30)
 
         self.cid_filename = Entry(master)
         self.cid_filename.place(relx=0.1, rely=0.05, relheight=0.05, relwidth=0.40)
+        self.cid_filename.insert(0, cid_path)
 
         self.cid_button = Button(master, command=self.cid_open_file_dialog)
         self.cid_button.place(relx=0.52, rely=0.04, relheight=0.07, relwidth=0.10)
@@ -80,6 +89,7 @@ class Gui:
 
         self.data_filename = Entry(master)
         self.data_filename.place(relx=0.1, rely=0.15, relheight=0.05, relwidth=0.40)
+        self.data_filename.insert(0, data_path)
 
         self.data_button = Button(master, command=self.data_open_file_dialog)
         self.data_button.place(relx=0.52, rely=0.14, relheight=0.07, relwidth=0.10)
@@ -89,6 +99,11 @@ class Gui:
         self.check_button = Button(master, command=self.validate_cid)
         self.check_button.place(relx=0.05, rely=0.24, relheight=0.07, relwidth=0.10)
         self.check_button.configure(text='Validate')
+
+        self.status_text = StringVar()
+
+        self.status_label = Label(master, textvariable=self.status_text)
+        self.status_label.place(relx=0.18, rely=0.25, relwidth=0.5)
 
         # log
         self.label_frame = LabelFrame(master)
@@ -113,32 +128,46 @@ class Gui:
 
     def choose_file_dialog(self):
         filename = asksaveasfilename(
+            defaultextension='.txt',
             filetypes=[('Txt files', '*.txt')])
 
         if filename:
-            if '.' not in filename:
-                filename = filename + '.txt'
             output = self.log_text.get(1.0, END)
             with io.open(filename, 'w', encoding='utf-8') as output_file:
                 output_file.write(output)
 
-            showinfo('Info', 'Log was successfully written to file.')
+            self.show_status_text('Log was successfully written to file.')
 
     def cid_open_file_dialog(self):
         filename = askopenfilename(
+            initialdir=self.cid_directory,
             filetypes=[('Cid files', '*.csv;*.ods;*.xls;*.xlsx')])
 
         if filename:
+            self.cid_directory = os.path.dirname(filename)
             self.cid_filename.delete(0, END)
             self.cid_filename.insert(0, filename)
 
     def data_open_file_dialog(self):
         filename = askopenfilename(
+            initialdir=self.data_directory,
             filetypes=[('Data files', '*.txt;*.csv;*.ods;*.xls;*.xlsx')])
 
         if filename:
+            self.data_directory = os.path.dirname(filename)
             self.data_filename.delete(0, END)
             self.data_filename.insert(0, filename)
+
+    def show_status_text(self, text):
+        self.status_text.set(text)
+
+    def show_processed_lines(self):
+        if self.processed_lines == 1:
+            self.show_status_text('...validated %d line' % self.processed_lines)
+        else:
+            self.show_status_text('...validated %d lines' % self.processed_lines)
+
+        self.master.update()
 
     def add_log_text(self, text):
         self.log_text.configure(state='normal')
@@ -155,18 +184,29 @@ class Gui:
     def validate_cid(self):
         self.clear_log_text()
         if self.cid_filename.get() == '' or self.data_filename.get() == '':
-            showerror('Error', 'Please choose a CID-FILE and a DATA-FILE.')
+            showerror('Error', 'CID-PATH and DATA-PATH must be specified.')
         else:
             try:
+                self.show_status_text('Validation started')
+                self.processed_lines = 0
+                last_time = time.time()
+                self.show_processed_lines()
                 for row_or_error in validio.rows(self.cid_filename.get(), self.data_filename.get(), on_error='yield'):
+                    self.processed_lines += 1
+                    now = time.time()
+                    if (now - last_time) > 3:
+                        last_time = now
+                        self.show_processed_lines()
                     if isinstance(row_or_error, Exception):
                         self.add_log_text(row_or_error)
 
                         if not isinstance(row_or_error, errors.CutplaceError):
                             raise row_or_error
 
-                showinfo('Info', 'Validation finished')
+                self.show_processed_lines()
+                self.show_status_text('Validation finished')
             except Exception as error:
+                self.show_status_text('Error occurred')
                 self.add_log_text(error)
 
             self.choose_button.config(state='normal')

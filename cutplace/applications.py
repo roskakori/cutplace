@@ -173,7 +173,15 @@ def process(argv=None):
     cutplace_app = CutplaceApp()
     cutplace_app.set_options(argv)
     if cutplace_app.is_gui:
-        gui.open_gui()
+        cid_path = ''
+        if cutplace_app.cid_path is not None:
+            cid_path = cutplace_app.cid_path
+
+        data_path = ''
+        if cutplace_app.data_paths is not None and len(cutplace_app.data_paths) > 0:
+            data_path = cutplace_app.data_paths[0]
+
+        gui.open_gui(cid_path, data_path)
     elif cutplace_app.is_create_sql:
         cid_reader = interface.Cid()
         sql.write_create(cutplace_app.cid_path, cid_reader)
