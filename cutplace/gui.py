@@ -51,8 +51,10 @@ _SAVE_ROW = 4
 class CutplaceFrame(Frame):
     def __init__(self, master, cid_path=None, data_path=None, config=dict(), **keywords):
         assert has_tk
-
-        super(CutplaceFrame, self).__init__(master, config, **keywords)
+        if six.PY2:
+            Frame.__init__(self, master, config, **keywords)
+        else:
+            super().__init__(master, config, **keywords)
 
         # Define basic layout.
         self.grid(padx=_PADDING, pady=_PADDING)
@@ -116,7 +118,10 @@ class CutplaceFrame(Frame):
 
     def enable_usable_widgets(self):
         def set_state(widget_to_set_state_for, possibly_empty_text):
-            state = 'normal' if possibly_empty_text.rstrip() != '' else 'disabled'
+            if (possibly_empty_text is not None) and (possibly_empty_text.rstrip() != ''):
+                state = 'normal'
+            else:
+                state = 'disabled'
             widget_to_set_state_for.config(state=state)
 
         set_state(self._validate_button, self.cid_path)
