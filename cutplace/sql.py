@@ -52,6 +52,7 @@ def assert_is_valid_dialect(dialect):
 
 
 def write_create(cid_path, cid_reader):
+    #TODO: add option for different cid types
     cid_reader.read(cid_path, rowio.excel_rows(cid_path))
 
     create_path = os.path.splitext(cid_path)[0] + '_create.sql'
@@ -93,21 +94,21 @@ class SqlFactory(object):
         first_field = True
 
         # get column definitions for all fields
-        for field in self.sql_fields():
+        for field_name, field_type, length, precision, is_not_null, default_value in self.sql_fields():
             if not first_field:
                 result += ",\n"
 
-            column_def = field[0] + " " + field[1]
-            if field[2] is not None and field[3] is None:
-                column_def += "(" + str(field[2]) + ")"
-            elif field[2] is not None and field[3] is not None:
-                column_def += "(" + str(field[2]) + ", " + str(field[3]) + ")"
+            column_def = field_name + " " + field_type
+            if length is not None and precision is None:
+                column_def += "(" + str(length) + ")"
+            elif length is not None and precision is not None:
+                column_def += "(" + str(length) + ", " + str(precision) + ")"
 
-            if not field[4]:
+            if not is_not_null:
                 column_def += " not null"
 
-            if field[5] is not None and len(field[5]) > 0:
-                column_def += " default " + str(field[5])
+            if default_value is not None and len(default_value) > 0:
+                column_def += " default " + str(default_value)
 
             result += column_def
 
