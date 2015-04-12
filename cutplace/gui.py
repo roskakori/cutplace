@@ -168,15 +168,11 @@ class CutplaceFrame(Frame):
             self._enable_usable_widgets()
 
     def save_log_as(self):
-<<<<<<< HEAD
         """
         Open a dialog to set specify where the validation results should be
         stored and write to this file.
         """
-        validation_result_path =self._save_log_as_dialog.show()
-=======
         validation_result_path = self._save_log_as_dialog.show()
->>>>>>> 155dee216b5f1e36947c9767defab06fe0ce5d54
         if validation_result_path != '':
             try:
                 with io.open(validation_result_path, 'w', encoding='utf-8') as validation_result_file:
