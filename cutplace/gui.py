@@ -1,7 +1,7 @@
 """
 A graphical user interface to set CID-FILE and DATA-FILE.
 """
-# Copyright (C) 2009-2013 Thomas Aglassinger
+# Copyright (C) 2009-2015 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
@@ -15,198 +15,220 @@ A graphical user interface to set CID-FILE and DATA-FILE.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import six
+
 import io
 import os
-import six
-import time
-
 try:
-    if six.PY2:
-        from Tkinter import *
-        from tkFileDialog import askopenfilename
-        from tkFileDialog import asksaveasfilename
-        from tkMessageBox import showerror
-        from tkMessageBox import showinfo
-    else:
+    if six.PY3:
         from tkinter import *
-        from tkinter.filedialog import askopenfilename
-        from tkinter.filedialog import asksaveasfilename
+        from tkinter.filedialog import Open
+        from tkinter.filedialog import SaveAs
         from tkinter.messagebox import showerror
-        from tkinter.messagebox import showinfo
+    else:
+        from Tkinter import *
+        from tkFileDialog import Open
+        from tkFileDialog import SaveAs
+        from tkMessageBox import showerror
     has_tk = True
 except ImportError:
     has_tk = False
 
-from cutplace import __version__
 from cutplace import errors
+from cutplace import interface
 from cutplace import validio
+from cutplace import __version__
+
+_PADDING = 4
+
+_CID_ROW = 0
+_DATA_ROW = 1
+_VALIDATE_BUTTON_ROW = 2
+_VALIDATION_RESULT_ROW = 3
+_SAVE_ROW = 4
 
 
-def open_gui(cid_path='', data_path=''):
+class CutplaceFrame(Frame):
+    def __init__(self, master, cid_path=None, data_path=None, config=dict(), **keywords):
+        assert has_tk
+        if six.PY2:
+            Frame.__init__(self, master, config, **keywords)
+        else:
+            super().__init__(master, config, **keywords)
+
+        # Define basic layout.
+        self.grid(padx=_PADDING, pady=_PADDING)
+        # self.grid_columnconfigure(1, weight=1)
+        self.grid_rowconfigure(_VALIDATION_RESULT_ROW, weight=1)
+
+        # Choose CID.
+        self._cid_label = Label(self, text='CID:')
+        self._cid_label.grid(row=_CID_ROW, column=0, sticky=E)
+        self._cid_path_entry = Entry(self, width=55)
+        self._cid_path_entry.grid(row=_CID_ROW, column=1, sticky=E+W)
+        self._choose_cid_button = Button(self, command=self.choose_cid, text='Choose...')
+        self._choose_cid_button.grid(row=_CID_ROW, column=2)
+        self.cid_path = cid_path
+
+        # Choose data.
+        self._data_label = Label(self, text='Data:')
+        self._data_label.grid(row=_DATA_ROW, column=0, sticky=E)
+        self._data_path_entry = Entry(self, width=55)
+        self._data_path_entry.grid(row=_DATA_ROW, column=1, sticky=E+W)
+        self._choose_data_button = Button(self, command=self.choose_data, text='Choose...')
+        self._choose_data_button.grid(row=_DATA_ROW, column=2)
+        self.data_path = data_path
+
+        # Validate.
+        self._validate_button = Button(self, command=self.validate, text='Validate')
+        self._validate_button.grid(row=_VALIDATE_BUTTON_ROW, column=1)
+
+        # Validation result.
+        validation_result_frame = LabelFrame(self, text='Validation result')
+        validation_result_frame.grid(row=_VALIDATION_RESULT_ROW, columnspan=3, sticky=E+N+S+W)
+        validation_result_frame.grid_columnconfigure(0, weight=1)
+        validation_result_frame.grid_rowconfigure(0, weight=1)
+        self._validation_result_text = Text(validation_result_frame)
+        self._validation_result_text.grid(column=0, row=0, sticky=E+N+S)
+        _validation_result_scrollbar = Scrollbar(validation_result_frame)
+        _validation_result_scrollbar.grid(column=1, row=0, sticky=N+S+W)
+        _validation_result_scrollbar.config(command=self._validation_result_text.yview)
+        self._validation_result_text.config(yscrollcommand=_validation_result_scrollbar.set)
+
+        # "Save validation result as" button.
+        self._save_log_button = Button(self, command=self.save_log_as, text='Save validation result as...')
+        self._save_log_button.grid(row=_SAVE_ROW, column=1, columnspan=2, sticky=E+S)
+
+        # Set up file dialogs.
+        self._choose_cid_dialog = Open(
+            initialfile=self.cid_path,
+            title='Choose CID',
+        )
+        self._choose_data_dialog = Open(
+            initialfile=self.data_path,
+            title='Choose data',
+        )
+        self._save_log_as_dialog = SaveAs(
+            defaultextension='.log',
+            initialfile='cutplace.log',
+            title='Save validation result',
+        )
+
+        self.enable_usable_widgets()
+
+    def enable_usable_widgets(self):
+        def set_state(widget_to_set_state_for, possibly_empty_text):
+            if (possibly_empty_text is not None) and (possibly_empty_text.rstrip() != ''):
+                state = 'normal'
+            else:
+                state = 'disabled'
+            widget_to_set_state_for.config(state=state)
+
+        set_state(self._validate_button, self.cid_path)
+        set_state(self._validation_result_text, self.validation_result)
+        set_state(self._save_log_button, self.validation_result)
+
+    def choose_cid(self):
+        cid_path = self._choose_cid_dialog.show()
+        if cid_path != '':
+            self.cid_path = cid_path
+            self.enable_usable_widgets()
+
+    def choose_data(self):
+        data_path = self._choose_data_dialog.show()
+        if data_path != '':
+            self.data_path = data_path
+            self.enable_usable_widgets()
+
+    def save_log_as(self):
+        validation_result_path =self._save_log_as_dialog.show()
+        if validation_result_path != '':
+            try:
+                with io.open(validation_result_path, 'w', encoding='utf-8') as validation_result_file:
+                    validation_result_file.write(self._validation_result_text.get(1.0, END))
+            except Exception as error:
+                showerror('Cutplace error', 'Cannot save validation results:\n%s' % error)
+
+    def clear_validation_result_text(self):
+        self._validation_result_text.configure(state='normal')
+        self._validation_result_text.delete(1.0, END)
+        self._validation_result_text.see(END)
+        self._validation_result_text.configure(state='disabled')
+
+    def _cid_path(self):
+        return self._cid_path_entry.get()
+
+    def _set_cid_path(self, value):
+        self._cid_path_entry.delete(0, END)
+        if value is not None:
+            self._cid_path_entry.insert(0, value)
+
+    cid_path = property(_cid_path, _set_cid_path, None, 'Path of the CID to use for validation')
+
+    def _data_path(self):
+        return self._data_path_entry.get()
+
+    def _set_data_path(self, value):
+        self._data_path_entry.delete(0, END)
+        if value is not None:
+            self._data_path_entry.insert(0, value)
+
+    data_path = property(_data_path, _set_data_path, None, 'Path of the data to validate')
+
+    @property
+    def validation_result(self):
+        return self._validation_result_text.get(0.0, END)
+
+    def validate(self):
+        def add_log_line(line):
+            self._validation_result_text.config(state=NORMAL)
+            try:
+                self._validation_result_text.insert(END, line + '\n')
+                self._validation_result_text.see(END)
+            finally:
+                self._validation_result_text.config(state=DISABLED)
+
+        def add_log_error_line(line):
+            add_log_line('ERROR: ' + line)
+
+        assert self.cid_path != ''
+
+        cid_name = os.path.basename(self.cid_path)
+        self.clear_validation_result_text()
+        add_log_line('%s: validating' % cid_name)
+        self.enable_usable_widgets()
+        cid = None
+        try:
+            cid = interface.Cid(self.cid_path)
+            add_log_line('%s: ok' % cid_name)
+        except errors.InterfaceError as error:
+            add_log_error_line(error)
+        except Exception as error:
+            add_log_error_line('cannot read CID: %s' % error)
+
+        if (cid is not None) and (self.data_path != ''):
+            try:
+                data_name = os.path.basename(self.data_path)
+                add_log_line('%s: validating' % data_name)
+                validator = validio.Reader(cid, self.data_path, on_error='yield')
+                for row_or_error in validator.rows():
+                    if isinstance(row_or_error, errors.DataError):
+                        add_log_error_line(row_or_error)
+                add_log_line(
+                    '%s: %d rows accepted, %d rows rejected'
+                    % (data_name, validator.accepted_rows_count, validator.rejected_rows_count))
+            except Exception as error:
+                add_log_error_line('cannot validate data: %s' % error)
+
+
+def open_gui(cid_path=None, data_path=None):
     assert has_tk
 
     root = Tk()
-    root.title('cutplace %s' % __version__)
-    root.geometry('600x450+650+150')
-    root.minsize('600', '450')
-    Gui(root, cid_path, data_path)
+    root.columnconfigure(0, weight=1)
+    root.rowconfigure(0, weight=1)
+    # TODO: Make GUI scale on resized window.
+    root.resizable(width=False, height=False)
+    root.title('Cutplace v' + __version__)
+    CutplaceFrame(root, cid_path, data_path)
     root.mainloop()
-
-
-class Gui:
-    def __init__(self, master, cid_path, data_path):
-        assert has_tk
-
-        self.master = master
-        self.processed_lines = 0
-        self.cid_directory = '.'
-        self.data_directory = '.'
-
-        # cid
-        self.cid_message = Message(master)
-        self.cid_message.place(
-            relx=0.00, rely=0.05,
-            relheight=0.05, relwidth=0.1)
-        self.cid_message.configure(text='CID:')
-        self.cid_message.configure(width=30)
-
-        self.cid_filename = Entry(master)
-        self.cid_filename.place(relx=0.1, rely=0.05, relheight=0.05, relwidth=0.40)
-        self.cid_filename.insert(0, cid_path)
-
-        self.cid_button = Button(master, command=self.cid_open_file_dialog)
-        self.cid_button.place(relx=0.52, rely=0.04, relheight=0.07, relwidth=0.10)
-        self.cid_button.configure(text='Open...')
-
-        # data
-        self.data_message = Message(master)
-        self.data_message.place(
-            relx=0.00, rely=0.15,
-            relheight=0.05, relwidth=0.1)
-        self.data_message.configure(text='Data:')
-
-        self.data_message.configure(width=30)
-
-        self.data_filename = Entry(master)
-        self.data_filename.place(relx=0.1, rely=0.15, relheight=0.05, relwidth=0.40)
-        self.data_filename.insert(0, data_path)
-
-        self.data_button = Button(master, command=self.data_open_file_dialog)
-        self.data_button.place(relx=0.52, rely=0.14, relheight=0.07, relwidth=0.10)
-        self.data_button.configure(text='Open...')
-
-        # validate
-        self.check_button = Button(master, command=self.validate_cid)
-        self.check_button.place(relx=0.05, rely=0.24, relheight=0.07, relwidth=0.10)
-        self.check_button.configure(text='Validate')
-
-        self.status_text = StringVar()
-
-        self.status_label = Label(master, textvariable=self.status_text)
-        self.status_label.place(relx=0.18, rely=0.25, relwidth=0.5)
-
-        # log
-        self.label_frame = LabelFrame(master)
-        self.label_frame.place(
-            relx=0.01, rely=0.33, relheight=0.56, relwidth=0.98)
-        self.label_frame.configure(text='Log')
-
-        self.log_text = Text(self.label_frame)
-        self.scrollbar = Scrollbar(self.label_frame)
-
-        self.scrollbar.pack(side=RIGHT, fill=Y)
-        self.log_text.pack(side=LEFT, fill=BOTH, expand=True)
-
-        self.scrollbar.config(command=self.log_text.yview)
-        self.log_text.config(yscrollcommand=self.scrollbar.set)
-        self.log_text.config(state='disabled')
-
-        # log into file
-        self.choose_button = Button(master, command=self.choose_file_dialog)
-        self.choose_button.place(relx=0.88, rely=0.91, relheight=0.07, relwidth=0.10)
-        self.choose_button.configure(text='Save As...', state='disabled')
-
-    def choose_file_dialog(self):
-        filename = asksaveasfilename(
-            defaultextension='.txt',
-            filetypes=[('Txt files', '*.txt')])
-
-        if filename:
-            output = self.log_text.get(1.0, END)
-            with io.open(filename, 'w', encoding='utf-8') as output_file:
-                output_file.write(output)
-
-            self.show_status_text('Log was successfully written to file.')
-
-    def cid_open_file_dialog(self):
-        filename = askopenfilename(
-            initialdir=self.cid_directory,
-            filetypes=[('Cid files', '*.csv;*.ods;*.xls;*.xlsx')])
-
-        if filename:
-            self.cid_directory = os.path.dirname(filename)
-            self.cid_filename.delete(0, END)
-            self.cid_filename.insert(0, filename)
-
-    def data_open_file_dialog(self):
-        filename = askopenfilename(
-            initialdir=self.data_directory,
-            filetypes=[('Data files', '*.txt;*.csv;*.ods;*.xls;*.xlsx')])
-
-        if filename:
-            self.data_directory = os.path.dirname(filename)
-            self.data_filename.delete(0, END)
-            self.data_filename.insert(0, filename)
-
-    def show_status_text(self, text):
-        self.status_text.set(text)
-
-    def show_processed_lines(self):
-        if self.processed_lines == 1:
-            self.show_status_text('...validated %d line' % self.processed_lines)
-        else:
-            self.show_status_text('...validated %d lines' % self.processed_lines)
-
-        self.master.update()
-
-    def add_log_text(self, text):
-        self.log_text.configure(state='normal')
-        self.log_text.insert(END, '%s\n' % text)
-        self.log_text.see(END)
-        self.log_text.configure(state='disabled')
-
-    def clear_log_text(self):
-        self.log_text.configure(state='normal')
-        self.log_text.delete(1.0, END)
-        self.log_text.see(END)
-        self.log_text.configure(state='disabled')
-
-    def validate_cid(self):
-        self.clear_log_text()
-        if self.cid_filename.get() == '' or self.data_filename.get() == '':
-            showerror('Error', 'CID-PATH and DATA-PATH must be specified.')
-        else:
-            try:
-                self.show_status_text('Validation started')
-                self.processed_lines = 0
-                last_time = time.time()
-                self.show_processed_lines()
-                for row_or_error in validio.rows(self.cid_filename.get(), self.data_filename.get(), on_error='yield'):
-                    self.processed_lines += 1
-                    now = time.time()
-                    if (now - last_time) > 3:
-                        last_time = now
-                        self.show_processed_lines()
-                    if isinstance(row_or_error, Exception):
-                        self.add_log_text(row_or_error)
-
-                        if not isinstance(row_or_error, errors.CutplaceError):
-                            raise row_or_error
-
-                self.show_processed_lines()
-                self.show_status_text('Validation finished')
-            except Exception as error:
-                self.show_status_text('Error occurred')
-                self.add_log_text(error)
-
-            self.choose_button.config(state='normal')

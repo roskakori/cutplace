@@ -5,6 +5,13 @@ Revision history
 This chapter describes improvements compared to earlier versions of cutplace.
 
 
+Version 0.9.0, 2015-04-xx
+=========================
+
+* Added command line option :option:`--gui` to open a graphical user
+  interface for validation (issue
+  `#77 <https://github.com/roskakori/cutplace/issues/77>`_).
+
 Version 0.8.5, 2015-03-09
 =========================
 

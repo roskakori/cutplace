@@ -99,8 +99,40 @@ which checks and field formats are actually recognized, also specify
 :option:`--log=info`.
 
 
+.. index:: pair: command line option; --gui
+.. _gui:
+
 .. index:: exit code
 .. _exit-code:
+
+Using the graphical user interface
+==================================
+
+If :option:`--gui` is specified, a graphical user interface opens to
+interactively specify CID and data, validate them, and view or save the
+results:
+
+.. figure:: /images/gui.png
+   :alt: screenshot of the graphical user interface
+
+   The graphical user interface.
+
+To validate the syntax of a CID, enter or choose a file for the
+:guilabel:`CID` field and click the :guilabel:`Validate` button.
+
+To validate that data conform to a CID, set the CID as described above.
+Next enter or choose a file for the :guilabel:`Data` field and click the
+:guilabel:`Validate` button.
+
+The results of the validation show up in the :guilabel:`Validation result`
+text area and can be saved to a file by clicking the
+:guilabel:`Save validation result as...` button.
+
+You can also preset the :guilabel:`CID` and :guilabel:`Data` field by
+specifying paths at the command line, for example::
+
+  cutplace --gui cid_customers.ods north_customers.csv
+
 
 Dealing with errors
 ===================
@@ -109,7 +141,7 @@ When :command:`cutplace` detects any errors in the CID or data or cannot
 validate them due external circumstances the logs an error messages and sets
 an exit code other than 0.
 
-The value of the exist code hints at what needs to be fixed:
+The value of the exit code hints at what needs to be fixed:
 
 * 1 - the syntax of the CID needs fixing or the data must be modified in
   order to conform to the CID
