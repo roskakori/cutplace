@@ -1,5 +1,5 @@
 """
-A graphical user interface to set CID-FILE and DATA-FILE.
+A graphical user interface to specify a CID and data file and validate them.
 """
 # Copyright (C) 2009-2015 Thomas Aglassinger
 #
@@ -49,9 +49,24 @@ _SAVE_ROW = 4
 
 
 class CutplaceFrame(Frame):
+    """
+    Tk frame to validate a CID and data file.
+    """
     def __init__(self, master, cid_path=None, data_path=None, config=dict(), **keywords):
+        """
+        Set up a frame with widgets to validate ``id_path`` and ``data_path``.
+
+        :param master: Tk master or root in which the frame should show up
+        :param cid_path: optional preset for :guilabel:`CID` widget
+        :type: str or None
+        :param data_path: optional preset for :guilabel:`Data` widget
+        :type: str or None
+        :param config: Tik configuration
+        :param keywords: Tk keywords
+        """
         assert has_tk
         if six.PY2:
+            # In Python 2, Frame is an old style class.
             Frame.__init__(self, master, config, **keywords)
         else:
             super().__init__(master, config, **keywords)
@@ -114,9 +129,9 @@ class CutplaceFrame(Frame):
             title='Save validation result',
         )
 
-        self.enable_usable_widgets()
+        self._enable_usable_widgets()
 
-    def enable_usable_widgets(self):
+    def _enable_usable_widgets(self):
         def set_state(widget_to_set_state_for, possibly_empty_text):
             if (possibly_empty_text is not None) and (possibly_empty_text.rstrip() != ''):
                 state = 'normal'
@@ -129,18 +144,28 @@ class CutplaceFrame(Frame):
         set_state(self._save_log_button, self.validation_result)
 
     def choose_cid(self):
+        """
+        Open a dialog to set the CID path.
+        """
         cid_path = self._choose_cid_dialog.show()
         if cid_path != '':
             self.cid_path = cid_path
-            self.enable_usable_widgets()
+            self._enable_usable_widgets()
 
     def choose_data(self):
+        """
+        Open a dialog to set the data path.
+        """
         data_path = self._choose_data_dialog.show()
         if data_path != '':
             self.data_path = data_path
-            self.enable_usable_widgets()
+            self._enable_usable_widgets()
 
     def save_log_as(self):
+        """
+        Open a dialog to set specify where the validation results should be
+        stored and write to this file.
+        """
         validation_result_path =self._save_log_as_dialog.show()
         if validation_result_path != '':
             try:
@@ -150,6 +175,9 @@ class CutplaceFrame(Frame):
                 showerror('Cutplace error', 'Cannot save validation results:\n%s' % error)
 
     def clear_validation_result_text(self):
+        """
+        Clear the text area containing the validation results.
+        """
         self._validation_result_text.configure(state='normal')
         self._validation_result_text.delete(1.0, END)
         self._validation_result_text.see(END)
@@ -180,6 +208,13 @@ class CutplaceFrame(Frame):
         return self._validation_result_text.get(0.0, END)
 
     def validate(self):
+        """
+        Validate the CID and (if specified) data file and update the
+        :py:attr:`validation_result`. Show any errors unrelated to data in a
+        dialog.
+        """
+        assert self.cid_path != ''
+
         def add_log_line(line):
             self._validation_result_text.config(state=NORMAL)
             try:
@@ -196,7 +231,7 @@ class CutplaceFrame(Frame):
         cid_name = os.path.basename(self.cid_path)
         self.clear_validation_result_text()
         add_log_line('%s: validating' % cid_name)
-        self.enable_usable_widgets()
+        self._enable_usable_widgets()
         cid = None
         try:
             cid = interface.Cid(self.cid_path)
@@ -222,6 +257,14 @@ class CutplaceFrame(Frame):
 
 
 def open_gui(cid_path=None, data_path=None):
+    """
+    Open a new window with a user interface to validate a CID and data file.
+
+    :param cid_path: optional preset for :guilabel:`CID` widget
+    :type: str or None
+    :param data_path: optional preset for :guilabel:`Data` widget
+    :type: str or None
+    """
     assert has_tk
 
     root = Tk()
