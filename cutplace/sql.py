@@ -23,11 +23,7 @@ from __future__ import unicode_literals
 import io
 import logging
 import os.path
-import six
-import sqlite3
 
-from cutplace import _tools
-from cutplace import ranges
 from cutplace import rowio
 
 # TODO: Move to module ``ranges``.
@@ -218,7 +214,7 @@ def assert_is_valid_dialect(dialect):
 
 
 def write_create(cid_path, cid_reader):
-    #TODO: add option for different cid types
+    # TODO: add option for different cid types
     cid_reader.read(cid_path, rowio.excel_rows(cid_path))
 
     create_path = os.path.splitext(cid_path)[0] + '_create.sql'
@@ -232,7 +228,7 @@ def write_create(cid_path, cid_reader):
 
 
 class SqlFactory(object):
-    def __init__(self, cid, table, dialect=ANSI):
+    def __init__(self, cid, table, dialect=ANSI_SQL_DIALECT):
         self._cid = cid
         self._table = table
         self._dialect = dialect

@@ -22,11 +22,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from cutplace import data
-from cutplace import fields
 from cutplace import interface
 from cutplace import sql
-from cutplace import validio
-from tests import dev_test
 
 import sqlite3
 import unittest
@@ -152,7 +149,6 @@ class SqlFactoryTest(unittest.TestCase):
             ['D', 'Escape character', '\\'],
             ['D', 'Encoding', 'ISO-8859-1'],
             ['D', 'Allowed characters', '32:'],
-            ['F', 'branch_id', '38123', '', '', 'RegEx'],
             ['F', 'customer_id', '12345', '', '', 'Integer', '0...99999'],
         ])
 

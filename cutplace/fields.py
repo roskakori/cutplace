@@ -35,7 +35,6 @@ from cutplace import ranges
 from cutplace import errors
 from cutplace import _compat
 from cutplace import _tools
-from cutplace import sql
 
 from cutplace._compat import python_2_unicode_compatible
 
