@@ -100,6 +100,9 @@ class AnsiSqlDialect():
         assert word is not None
         return word.lower() in self.keywords
 
+    def __str__(self):
+        return ANSI
+
 
 class OracleSqlDialect(AnsiSqlDialect):
 
@@ -155,10 +158,13 @@ class OracleSqlDialect(AnsiSqlDialect):
 
         elif ansi_type == 'int':
             length = sql_ansi_type[1]
-            if length > 31:
+            if length > MAX_INTEGER:
                 result = ('number', length, 0)
 
         return result
+
+    def __str__(self):
+        return ORACLE
 
 
 class MSSqlDialect(AnsiSqlDialect):
@@ -194,23 +200,83 @@ class MSSqlDialect(AnsiSqlDialect):
         if ansi_type == 'int':
             length = sql_ansi_type[1]
 
-            if length <= 15:
+            if length <= MAX_SMALLINT:
                 result = ('smallint', length)
-            elif length <= 31:
+            elif length <= MAX_INTEGER or length is None:
                 result = ('int', length)
-            elif length <= 63:
+            elif length <= MAX_BIGINT:
                 result = ('bigint', length)
             else:
                 result = ('decimal', length, 0)
 
         return result
 
+    def __str__(self):
+        return MSSQL
+
+
+class DB2SqlDialect(AnsiSqlDialect):
+
+    def __init__(self):
+        keywords = [
+            'add', 'after', 'all', 'allocate', 'allow', 'alter', 'and', 'any', 'as', 'asensitive', 'associate', 'asutime',
+            'at', 'audit', 'aux', 'auxiliary', 'before', 'begin', 'between', 'bufferpool', 'by', 'call', 'capture',
+            'cascaded', 'case', 'cast', 'ccsid', 'char', 'character', 'check', 'clone', 'close', 'cluster', 'collection',
+            'collid', 'column', 'comment', 'commit', 'concat', 'condition', 'connect', 'connection', 'constraint',
+            'contains', 'content', 'continue', 'create', 'current', 'current_date', 'current_lc_ctype', 'current_path',
+            'current_schema', 'current_time', 'current_timestamp', 'currval1', 'cursor', 'data', 'database', 'day', 'days',
+            'dbinfo', 'declare', 'default', 'delete', 'descriptor', 'deterministic', 'disable', 'disallow', 'distinct',
+            'do', 'document', 'double', 'drop', 'dssize', 'dynamic', 'editproc', 'else', 'elseif', 'encoding', 'encryption',
+            'end', 'end-exec2', 'ending', 'erase', 'escape', 'except', 'exception', 'execute', 'exists', 'exit', 'explain',
+            'external', 'fenced', 'fetch', 'fieldproc', 'final', 'first1', 'for', 'free', 'from', 'full', 'function',
+            'generated', 'get', 'global', 'go', 'goto', 'grant', 'group', 'handler', 'having', 'hold', 'hour', 'hours',
+            'if', 'immediate', 'in', 'inclusive', 'index', 'inherit', 'inner', 'inout', 'insensitive', 'insert', 'intersect',
+            'into', 'is', 'isobid', 'iterate', 'jar', 'join', 'keep', 'key', 'label', 'language', 'last1', 'lc_ctype',
+            'leave', 'left', 'like', 'local', 'locale', 'locator', 'locators', 'lock', 'lockmax', 'locksize', 'long', 'loop',
+            'maintained', 'materialized', 'microsecond', 'microseconds', 'minute', 'minutes', 'modifies', 'month', 'months',
+            'next1', 'nextval', 'no', 'none', 'not', 'null', 'nulls', 'numparts', 'obid', 'of', 'old1', 'on', 'open',
+            'optimization', 'optimize', 'or', 'order', 'organization1', 'out', 'outer', 'package', 'padded', 'parameter',
+            'part', 'partition', 'partitioned', 'partitioning', 'path', 'period1', 'piecesize', 'plan', 'precision',
+            'prepare', 'prevval', 'prior1', 'priqty', 'privileges', 'procedure', 'program', 'psid', 'public', 'query',
+            'queryno', 'reads', 'references', 'refresh', 'release', 'rename', 'repeat', 'resignal', 'restrict', 'result',
+            'result_set_locator', 'return', 'returns', 'revoke', 'right', 'role', 'rollback', 'round_ceiling', 'round_down',
+            'round_floor', 'round_half_down', 'round_half_even', 'round_half_up', 'round_up', 'row', 'rowset', 'run',
+            'savepoint', 'schema', 'scratchpad', 'second', 'seconds', 'secqty', 'security', 'select', 'sensitive', 'sequence',
+            'session_user', 'set', 'signal', 'simple', 'some', 'source', 'specific', 'standard', 'statement', 'static', 'stay',
+            'stogroup', 'stores', 'style', 'summary', 'synonym', 'sysdate1', 'system', 'systimestamp1', 'table', 'tablespace',
+            'then', 'to', 'trigger', 'truncate', 'type', 'undo', 'union', 'unique', 'until', 'update', 'user', 'using',
+            'validproc', 'value', 'values', 'variable', 'variant', 'vcat', 'view', 'volatile', 'volumes', 'when', 'whenever',
+            'where', 'while', 'with', 'wlm', 'xmlcast', 'xmlexists', 'xmlnamespaces', 'year', 'years', 'zone']
+
+        self._keywords = set(keywords)
+
+    def sql_type(self, sql_ansi_type):
+        ansi_type = sql_ansi_type[0]
+        result = sql_ansi_type
+        if ansi_type == 'int':
+            length = sql_ansi_type[1]
+            if length <= MAX_SMALLINT:
+                result = ('smallint', length)
+            elif length <= MAX_INTEGER or length is None:
+                result = ('integer', length)
+            elif length <= MAX_BIGINT:
+                result = ('bigint', length)
+            else:
+                result = ('decimal', length)
+
+        return result
+
+    def __str__(self):
+        return DB2
 
 ANSI_SQL_DIALECT = AnsiSqlDialect()
+DB2_SQL_DIALECT = DB2SqlDialect()
+MS_SQL_DIALECT = MSSqlDialect()
+ORACLE_SQL_DIALECT = OracleSqlDialect()
 
 
 def assert_is_valid_dialect(dialect):
-    assert dialect in (ANSI, DB2, MSSQL, MYSQL, ORACLE), 'dialect=%r' % dialect
+    assert str(dialect) in (ANSI, DB2, MSSQL, MYSQL, ORACLE), 'dialect=%r' % dialect
 
 
 def write_create(cid_path, cid_reader):
@@ -246,7 +312,8 @@ class SqlFactory(object):
         for field in self._cid.field_formats:
             sql_type, sql_length, sql_precision = (field.sql_ansi_type() + (None, None))[:3]
             assert sql_type in ('varchar', 'decimal', 'int', 'date')
-
+            sql_type, sql_length, sql_precision = (
+                self._dialect.sql_type((sql_type, sql_length, sql_precision)) + (None, None))[:3]
             row = (field.field_name, sql_type, sql_length, sql_precision, field.is_allowed_to_be_empty,
                    field.empty_value)
             yield row
