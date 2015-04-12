@@ -217,169 +217,8 @@ def assert_is_valid_dialect(dialect):
     assert dialect in (ANSI, DB2, MSSQL, MYSQL, ORACLE), 'dialect=%r' % dialect
 
 
-def generate_choices(rule):
-    choices = []
-
-    # Split rule into tokens, ignoring white space.
-    tokens = _tools.tokenize_without_space(rule)
-
-    # Extract choices from rule tokens.
-    # TODO: Handle comma after comma without choice.
-    # previous_toky = None
-    toky = next(tokens)
-    while not _tools.is_eof_token(toky):
-        if _tools.is_comma_token(toky):
-            # TODO: Handle comma after comma without choice.
-            # if previous_toky:
-            #     previous_toky_text = previous_toky[1]
-            # else:
-            #     previous_toky_text = None
-            pass
-        choice = _tools.token_text(toky)
-        choices.append(choice)
-        toky = next(tokens)
-        if not _tools.is_eof_token(toky):
-            # Process next choice after comma.
-            toky = next(tokens)
-
-    return choices
-
-
-def as_sql_text(field_name, field_is_allowed_to_be_empty, field_length, field_rule, field_empty_value, db):
-    constraint = ""
-
-    if field_length.items is not None:
-        column_def = field_name + " varchar(" + str(field_length.upper_limit) + ")"
-        if field_length.lower_limit is not None and field_length.upper_limit is not None:
-            constraint = "constraint chk_length_" + field_name + " check (length(" + field_name + " >= " \
-                + str(field_length.lower_limit) + ") and length(" + field_name + " <= " \
-                + str(field_length.upper_limit) + "))"
-        elif field_length.lower_limit is not None:
-            constraint = "constraint chk_length_" + field_name + " check (length(" + field_name + " >= " \
-                + str(field_length.lower_limit) + "))"
-        elif field_length.upper_limit is not None:
-            constraint = "constraint chk_length_" + field_name + " check (length(" + field_name + " <= " \
-                + str(field_length.upper_limit) + "))"
-    else:
-        column_def = field_name + " varchar(255)"
-
-    if field_rule is not None:
-        choices = generate_choices(field_rule)
-
-        if all(choice.isnumeric() for choice in choices):
-            column_def = as_sql_number(field_name, field_is_allowed_to_be_empty, field_length, field_rule, None, db)[0]
-            constraint += "constraint chk_rule_" + field_name + " check( " + field_name + " in (" \
-                + ",".join(map(str, choices)) + ") )"
-        else:
-            constraint += "constraint chk_rule_" + field_name + " check( " + field_name + " in ('" \
-                + "','".join(map(str, choices)) + "') )"
-
-    if not field_is_allowed_to_be_empty:
-        column_def += " not null"
-
-    return [column_def, constraint]
-
-
-def as_sql_number(field_name, field_is_allowed_to_be_empty, field_length, field_rule, range_rule, db):
-    if range_rule is None:
-        range_rule = ranges.Range(field_rule, ranges.DEFAULT_INTEGER_RANGE_TEXT)
-
-    column_def = ""
-
-    if (field_rule == '') and (field_length.description is not None):
-        range_limit = 10 ** max([item[1] for item in field_length.items])  # get the highest integer of the range
-    else:
-        range_limit = max([rule[1] for rule in range_rule.items])  # get the highest integer of the range
-
-    if range_limit <= MAX_SMALLINT:
-        column_def = field_name + " smallint"
-    elif range_limit <= MAX_INTEGER:
-        column_def = field_name + " integer"
-    else:
-        if db in (MSSQL, DB2) and range_limit <= MAX_BIGINT:
-            column_def = field_name + " bigint"
-        else:
-            """column_def, _ = DecimalFieldFormat(self._field_name, self._is_allowed_to_be_empty,
-                                               self._length.description, self._rule, self._data_format,
-                                               self._empty_value).as_sql(db)"""
-
-    if not field_is_allowed_to_be_empty:
-        column_def += " not null"
-
-    constraint = ""
-    for i in range(len(range_rule.items)):
-        if i == 0:
-            constraint = "constraint chk_" + field_name + " check( "
-        constraint += "( " + field_name + " between " + str(range_rule.lower_limit) + " and " + \
-                      str(range_rule.upper_limit) + " )"
-        if i < len(range_rule.items) - 1:
-            constraint += " or "
-        else:
-            constraint += " )"
-
-    return [column_def, constraint]
-
-
-def as_sql_date(field_name, field_is_allowed_to_be_empty, human_readable_format, db):
-    column_def = ""
-    constraint = ""
-
-    if "hh" in human_readable_format and "YY" in human_readable_format:
-        column_def = field_name + " datetime"
-    elif "hh" in human_readable_format:
-        column_def = field_name + " time"
-    else:
-        column_def = field_name + " date"
-
-    if not field_is_allowed_to_be_empty:
-        column_def += " not null"
-
-    return [column_def, constraint]
-
-
-def as_sql_create_table(cid, dialect='ansi'):
-    assert_is_valid_dialect(dialect)
-
-    file_name = os.path.basename(cid._cid_path)
-    table_name = file_name.split('.')
-
-    result = "create table " + table_name[0] + " (\n"
-    constraints = ""
-
-    # get column definitions and constraints for all fields
-    for field in cid.field_formats:
-        column_def, constraint = field.as_sql(dialect)
-        result += column_def + ",\n"
-
-        if len(constraint) > 0:
-            constraints += constraint + ",\n"
-
-    constraints = constraints.rsplit(',', 1)[0]
-
-    result += constraints
-
-    result += "\n);"
-
-    temp_database = None
-
-    try:
-        temp_database = sqlite3.connect(":memory:")
-        cursor = temp_database.cursor()
-        cursor.execute(result)
-
-    except sqlite3.Error as err:
-        return err
-
-    finally:
-        if temp_database:
-            cursor = temp_database.cursor()
-            cursor.execute("drop table " + table_name[0] + " ;")
-            cursor.close()
-
-    return result
-
-
 def write_create(cid_path, cid_reader):
+    #TODO: add option for different cid types
     cid_reader.read(cid_path, rowio.excel_rows(cid_path))
 
     create_path = os.path.splitext(cid_path)[0] + '_create.sql'
@@ -387,29 +226,67 @@ def write_create(cid_path, cid_reader):
     _log.info('write SQL create statements to "%s"', create_path)
     with io.open(create_path, 'w', encoding='utf-8') as create_file:
         # TODO: Add option for encoding.
-        create_file.write(as_sql_create_table(cid_reader, MYSQL))
+        sql_factory = SqlFactory(cid_reader, os.path.splitext(cid_path)[0])
+        create_file.write(sql_factory.create_table_statement())
         # TODO: Add option for target SQL dialect
 
 
-def as_sql_create_inserts(cid, source_data_reader):
-    """
-    :param Cid cid:
-    :param validio.Reader source_data_reader:
-    :return:
-    """
-    assert cid
-    assert source_data_reader
+class SqlFactory(object):
+    def __init__(self, cid, table, dialect=ANSI):
+        self._cid = cid
+        self._table = table
+        self._dialect = dialect
 
-    file_name = os.path.basename(cid._cid_path)
-    table_name = file_name.split('.')[0]
+        assert_is_valid_dialect(self._dialect)
 
-    for row in source_data_reader.rows():
-        for i in range(len(row)):
+    @property
+    def cid(self):
+        return self._cid
 
-            # HACK: can't use isinstance() function because of circular dependency when importing fields module
-            fiel_type = six.text_type((cid.field_formats[i]).__class__.__name__)
-            if fiel_type not in ('IntegerFieldFormat', 'DecimalFieldFormat'):
-                row[i] = "'" + row[i] + "'"
+    def sql_fields(self):
+        """
+        Tuples `(field_name, field_type, length, precision, is_not_null, default_value)`
+        """
+        for field in self._cid.field_formats:
+            sql_type, sql_length, sql_precision = (field.sql_ansi_type() + (None, None))[:3]
+            assert sql_type in ('varchar', 'decimal', 'int', 'date')
 
-        result = "insert into %s(%s) values (%s);" % (table_name, ', '.join(cid.field_names), ', '.join(row))
-        yield result
+            row = (field.field_name, sql_type, sql_length, sql_precision, field.is_allowed_to_be_empty,
+                   field.empty_value)
+            yield row
+
+    def create_table_statement(self):
+        result = "create table " + self._table + " (\n"
+        first_field = True
+
+        # get column definitions for all fields
+        for field_name, field_type, length, precision, is_not_null, default_value in self.sql_fields():
+            if not first_field:
+                result += ",\n"
+
+            column_def = field_name + " " + field_type
+            if length is not None and precision is None:
+                column_def += "(" + str(length) + ")"
+            elif length is not None and precision is not None:
+                column_def += "(" + str(length) + ", " + str(precision) + ")"
+
+            if not is_not_null:
+                column_def += " not null"
+
+            if default_value is not None and len(default_value) > 0:
+                column_def += " default " + str(default_value)
+
+            result += column_def
+
+            if first_field:
+                first_field = False
+
+        result += ");"
+
+        return result
+
+    def create_index_statements(self):
+        pass
+
+    def create_constraint_statements(self):
+        pass

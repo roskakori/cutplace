@@ -143,6 +143,9 @@ class AbstractFieldFormat(object):
 
     example = property(_get__example, _set_example, doc="Example value or ``None`` if no example is provided.")
 
+    def sql_ansi_type(self):
+        return ('varchar', None if self.length is None else self.length.upper_limit)
+
     def validate_characters(self, value):
         """
         Validate that all characters in ``value`` are within
@@ -242,12 +245,6 @@ class AbstractFieldFormat(object):
             result = self.empty_value
         return result
 
-    def as_sql(self, dialect='ansi'):
-        """
-        (Work in progress, see https://github.com/roskakori/cutplace/issues/73)
-        """
-        raise NotImplementedError
-
     def __str__(self):
         return "%s(%s, %s, %s, %s)" % (
             self.__class__.__name__, _compat.text_repr(self.field_name), self.is_allowed_to_be_empty,
@@ -305,11 +302,6 @@ class ChoiceFieldFormat(AbstractFieldFormat):
                 % (_compat.text_repr(value), _tools.human_readable_list(self.choices)))
         return value
 
-    def as_sql(self, dialect='ansi'):
-        sql.assert_is_valid_dialect(dialect)
-        return sql.as_sql_text(self._field_name, self._is_allowed_to_be_empty, self._length, self._rule,
-                               self._empty_value, dialect)
-
 
 class ConstantFieldFormat(AbstractFieldFormat):
     """
@@ -356,12 +348,6 @@ class ConstantFieldFormat(AbstractFieldFormat):
                 % (_compat.text_repr(value), _compat.text_repr(self._constant)))
         return value
 
-    def as_sql(self, dialect='ansi'):
-        sql.assert_is_valid_dialect(dialect)
-        # TODO: Add constraint that value matches constant.
-        return sql.as_sql_text(self._field_name, self._is_allowed_to_be_empty, self._length, self._rule,
-                               self._empty_value, dialect)
-
 
 class DecimalFieldFormat(AbstractFieldFormat):
     """
@@ -381,6 +367,9 @@ class DecimalFieldFormat(AbstractFieldFormat):
 
         self._precision = self.valid_range.precision
         self._scale = self.valid_range.scale
+
+    def sql_ansi_type(self):
+        return ('decimal', self._scale, self._precision)
 
     def validated_value(self, value):
         assert value
@@ -478,6 +467,9 @@ class IntegerFieldFormat(AbstractFieldFormat):
                 # represent it.
                 self.valid_range = ranges.Range(ranges.DEFAULT_INTEGER_RANGE_TEXT)
 
+    def sql_ansi_type(self):
+        return ('int',)
+
     def validated_value(self, value):
         assert value
 
@@ -490,11 +482,6 @@ class IntegerFieldFormat(AbstractFieldFormat):
         except errors.RangeValueError as error:
             raise errors.FieldValueError(six.text_type(error))
         return value_as_int
-
-    def as_sql(self, dialect='ansi'):
-        sql.assert_is_valid_dialect(dialect)
-        return sql.as_sql_number(self._field_name, self._is_allowed_to_be_empty, self._length, self._rule,
-                                 self.valid_range, dialect)
 
 
 class DateTimeFieldFormat(AbstractFieldFormat):
@@ -517,6 +504,9 @@ class DateTimeFieldFormat(AbstractFieldFormat):
             strptime_format = strptime_format.replace(key, value)
         self.strptimeFormat = strptime_format
 
+    def sql_ansi_type(self):
+        return ('date',)
+
     def validated_value(self, value):
         assert value
 
@@ -527,10 +517,6 @@ class DateTimeFieldFormat(AbstractFieldFormat):
                 "date must match format %s (%s) but is: %s (%s)"
                 % (self.human_readable_format, self.strptimeFormat, _compat.text_repr(value), sys.exc_info()[1]))
         return result
-
-    def as_sql(self, dialect='ansi'):
-        sql.assert_is_valid_dialect(dialect)
-        return sql.as_sql_date(self._field_name, self._is_allowed_to_be_empty, self.human_readable_format, dialect)
 
 
 class RegExFieldFormat(AbstractFieldFormat):
@@ -550,11 +536,6 @@ class RegExFieldFormat(AbstractFieldFormat):
                 "value %s must match regular expression: %s"
                 % (_compat.text_repr(value), _compat.text_repr(self.rule)))
         return value
-
-    def as_sql(self, dialect='ansi'):
-        sql.assert_is_valid_dialect(dialect)
-        return sql.as_sql_text(self._field_name, self._is_allowed_to_be_empty, self._length, None,
-                               self._empty_value, dialect)
 
 
 class PatternFieldFormat(AbstractFieldFormat):
@@ -576,11 +557,6 @@ class PatternFieldFormat(AbstractFieldFormat):
                 % (_compat.text_repr(value), _compat.text_repr(self.rule), _compat.text_repr(self.pattern)))
         return value
 
-    def as_sql(self, dialect='ansi'):
-        sql.assert_is_valid_dialect(dialect)
-        return sql.as_sql_text(self._field_name, self._is_allowed_to_be_empty, self._length, None,
-                               self._empty_value, dialect)
-
 
 class TextFieldFormat(AbstractFieldFormat):
     """
@@ -594,11 +570,6 @@ class TextFieldFormat(AbstractFieldFormat):
         assert value
         # TODO: Validate Text with rules like: 32..., a...z and so on.
         return value
-
-    def as_sql(self, dialect='ansi'):
-        sql.assert_is_valid_dialect(dialect)
-        return sql.as_sql_text(self._field_name, self._is_allowed_to_be_empty, self._length, None,
-                               self._empty_value, dialect)
 
 
 def field_name_index(field_name_to_look_up, available_field_names, location):

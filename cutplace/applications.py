@@ -108,14 +108,15 @@ class CutplaceApp(object):
                 parser.error('option --until is %d but must be at least -1' % args.validate_until)
         if args.plugins_folder is not None:
             interface.import_plugins(args.plugins_folder)
+        if args.data_paths is not None:
+            self.data_paths = args.data_paths
+        if args.is_gui:
+            if not gui.has_tk:
+                parser.error('tkinter package must be installed in order for --gui to work')
         if args.cid_path is not None:
             self.set_cid_from_path(args.cid_path)
         elif not args.is_gui:
             parser.error('CID_PATH or --gui must be specified')
-        if args.data_paths is not None:
-            self.data_paths = args.data_paths
-        if args.is_gui and not gui.has_tk:
-            parser.error('tkinter package must be installed in order for --gui to work')
 
         self._log.debug('cutplace %s', __version__)
         self._log.debug('arguments=%s', args)
@@ -173,7 +174,8 @@ def process(argv=None):
     cutplace_app = CutplaceApp()
     cutplace_app.set_options(argv)
     if cutplace_app.is_gui:
-        gui.open_gui()
+        data_path = cutplace_app.data_paths[0] if len(cutplace_app.data_paths) >= 1 else None
+        gui.open_gui(cutplace_app.cid_path, data_path)
     elif cutplace_app.is_create_sql:
         cid_reader = interface.Cid()
         sql.write_create(cutplace_app.cid_path, cid_reader)
