@@ -89,6 +89,14 @@ class AbstractFieldFormatTest(unittest.TestCase):
             field_format.validate_characters, 'abxba'
         )
 
+    def test_can_raise_not_implemented_error(self):
+        field_format = fields.AbstractFieldFormat('x', False, '3...5', '', _ANY_FORMAT)
+        self.assertRaises(NotImplementedError, field_format.validated_value, 4)
+
+    def test_can_output_field_format_as_string(self):
+        field_format = fields.AbstractFieldFormat('x', False, '3...5', '', _ANY_FORMAT)
+        self.assertEqual(six.text_type(field_format), "AbstractFieldFormat('x', False, Range('3...5'), '')")
+
 
 class DateTimeFieldFormatTest(unittest.TestCase):
     """
@@ -459,6 +467,14 @@ class PatternFieldFormatTest(unittest.TestCase):
         field_format = fields.PatternFieldFormat("x", False, None, "h*g?", _ANY_FORMAT)
         self.assertRaises(errors.FieldValueError, field_format.validated, "")
         self.assertRaises(errors.FieldValueError, field_format.validated, "hang")
+
+
+class PublicFieldFunctionTest(unittest.TestCase):
+    """
+    Test for public functions in the fields module
+    """
+    def test_fails_on_non_ascii_character(self):
+        self.assertRaises(errors.InterfaceError, fields.validated_field_name, "aä")
 
 
 if __name__ == '__main__':  # pragma: no cover
