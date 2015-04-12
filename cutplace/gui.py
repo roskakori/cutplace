@@ -15,10 +15,11 @@ A graphical user interface to specify a CID and data file and validate them.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import six
-
 import io
 import os
+import six
+import time
+
 try:
     if six.PY3:
         from tkinter import *
@@ -80,7 +81,7 @@ class CutplaceFrame(Frame):
         self._cid_label = Label(self, text='CID:')
         self._cid_label.grid(row=_CID_ROW, column=0, sticky=E)
         self._cid_path_entry = Entry(self, width=55)
-        self._cid_path_entry.grid(row=_CID_ROW, column=1, sticky=E+W)
+        self._cid_path_entry.grid(row=_CID_ROW, column=1, sticky=E + W)
         self._choose_cid_button = Button(self, command=self.choose_cid, text='Choose...')
         self._choose_cid_button.grid(row=_CID_ROW, column=2)
         self.cid_path = cid_path
@@ -89,30 +90,35 @@ class CutplaceFrame(Frame):
         self._data_label = Label(self, text='Data:')
         self._data_label.grid(row=_DATA_ROW, column=0, sticky=E)
         self._data_path_entry = Entry(self, width=55)
-        self._data_path_entry.grid(row=_DATA_ROW, column=1, sticky=E+W)
+        self._data_path_entry.grid(row=_DATA_ROW, column=1, sticky=E + W)
         self._choose_data_button = Button(self, command=self.choose_data, text='Choose...')
         self._choose_data_button.grid(row=_DATA_ROW, column=2)
         self.data_path = data_path
 
         # Validate.
         self._validate_button = Button(self, command=self.validate, text='Validate')
-        self._validate_button.grid(row=_VALIDATE_BUTTON_ROW, column=1)
+        self._validate_button.grid(row=_VALIDATE_BUTTON_ROW, column=0, padx=_PADDING, pady=_PADDING)
+
+        # Validation status text.
+        self._validation_status_text = StringVar()
+        validation_status_label = Label(self, textvariable=self._validation_status_text)
+        validation_status_label.grid(row=_VALIDATE_BUTTON_ROW, column=1)
 
         # Validation result.
         validation_result_frame = LabelFrame(self, text='Validation result')
-        validation_result_frame.grid(row=_VALIDATION_RESULT_ROW, columnspan=3, sticky=E+N+S+W)
+        validation_result_frame.grid(row=_VALIDATION_RESULT_ROW, columnspan=3, sticky=E + N + S + W)
         validation_result_frame.grid_columnconfigure(0, weight=1)
         validation_result_frame.grid_rowconfigure(0, weight=1)
         self._validation_result_text = Text(validation_result_frame)
-        self._validation_result_text.grid(column=0, row=0, sticky=E+N+S)
+        self._validation_result_text.grid(column=0, row=0, sticky=E + N + S)
         _validation_result_scrollbar = Scrollbar(validation_result_frame)
-        _validation_result_scrollbar.grid(column=1, row=0, sticky=N+S+W)
+        _validation_result_scrollbar.grid(column=1, row=0, sticky=N + S + W)
         _validation_result_scrollbar.config(command=self._validation_result_text.yview)
         self._validation_result_text.config(yscrollcommand=_validation_result_scrollbar.set)
 
         # "Save validation result as" button.
         self._save_log_button = Button(self, command=self.save_log_as, text='Save validation result as...')
-        self._save_log_button.grid(row=_SAVE_ROW, column=1, columnspan=2, sticky=E+S)
+        self._save_log_button.grid(row=_SAVE_ROW, column=1, columnspan=2, sticky=E + S)
 
         # Set up file dialogs.
         self._choose_cid_dialog = Open(
@@ -162,11 +168,15 @@ class CutplaceFrame(Frame):
             self._enable_usable_widgets()
 
     def save_log_as(self):
+<<<<<<< HEAD
         """
         Open a dialog to set specify where the validation results should be
         stored and write to this file.
         """
         validation_result_path =self._save_log_as_dialog.show()
+=======
+        validation_result_path = self._save_log_as_dialog.show()
+>>>>>>> 155dee216b5f1e36947c9767defab06fe0ce5d54
         if validation_result_path != '':
             try:
                 with io.open(validation_result_path, 'w', encoding='utf-8') as validation_result_file:
@@ -224,7 +234,11 @@ class CutplaceFrame(Frame):
                 self._validation_result_text.config(state=DISABLED)
 
         def add_log_error_line(line):
-            add_log_line('ERROR: ' + line)
+            add_log_line('ERROR: %s' % line)
+
+        def show_status_line(line):
+            self._validation_status_text.set(line)
+            self.master.update()
 
         assert self.cid_path != ''
 
@@ -246,9 +260,18 @@ class CutplaceFrame(Frame):
                 data_name = os.path.basename(self.data_path)
                 add_log_line('%s: validating' % data_name)
                 validator = validio.Reader(cid, self.data_path, on_error='yield')
+                show_status_line('Validation started')
+                last_update_time = time.time()
                 for row_or_error in validator.rows():
-                    if isinstance(row_or_error, errors.DataError):
+                    now = time.time()
+                    if(now - last_update_time) > 3:
+                        last_update_time = now
+                        show_status_line(
+                            '%d rows validated' % (validator.accepted_rows_count + validator.rejected_rows_count))
+                    if isinstance(row_or_error, errors.CutplaceError):
                         add_log_error_line(row_or_error)
+                show_status_line(
+                    '%d rows validated - finished' % (validator.accepted_rows_count + validator.rejected_rows_count))
                 add_log_line(
                     '%s: %d rows accepted, %d rows rejected'
                     % (data_name, validator.accepted_rows_count, validator.rejected_rows_count))
