@@ -22,6 +22,7 @@ from __future__ import unicode_literals
 
 import unittest
 import decimal
+import six
 
 from cutplace import errors
 from cutplace import ranges
