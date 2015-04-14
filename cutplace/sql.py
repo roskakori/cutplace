@@ -24,8 +24,6 @@ import io
 import logging
 import os.path
 
-from cutplace import _tools
-from cutplace import ranges
 from cutplace import rowio
 
 # TODO: Move to module ``ranges``.
@@ -52,7 +50,7 @@ def assert_is_valid_dialect(dialect):
 
 
 def write_create(cid_path, cid_reader):
-    #TODO: add option for different cid types
+    # TODO: Add option for different cid types.
     cid_reader.read(cid_path, rowio.excel_rows(cid_path))
 
     create_path = os.path.splitext(cid_path)[0] + '_create.sql'

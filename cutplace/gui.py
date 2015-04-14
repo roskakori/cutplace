@@ -260,7 +260,7 @@ class CutplaceFrame(Frame):
                 last_update_time = time.time()
                 for row_or_error in validator.rows():
                     now = time.time()
-                    if(now - last_update_time) > 3:
+                    if (now - last_update_time) >= 3:
                         last_update_time = now
                         show_status_line(
                             '%d rows validated' % (validator.accepted_rows_count + validator.rejected_rows_count))

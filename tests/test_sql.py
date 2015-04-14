@@ -22,7 +22,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from cutplace import data
-from cutplace import fields
 from cutplace import interface
 from cutplace import sql
 
