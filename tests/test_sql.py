@@ -82,10 +82,10 @@ class SqlFactoryTest(unittest.TestCase):
         self.maxDiff = None
         self.assertEqual(
             sql_factory.create_table_statement(),
-            "create table customers (\nbranch_id varchar not null,"
-            "\ncustomer_id int not null,\nfirst_name varchar,"
-            "\nsurname varchar(60) not null,\ngender varchar not null,"
-            "\ndate_of_birth date not null);")
+            "create table customers (\n    branch_id varchar not null,"
+            "\n    customer_id int not null,\n    first_name varchar,"
+            "\n    surname varchar(60) not null,\n    gender varchar not null,"
+            "\n    date_of_birth date not null\n);")
 
     def test_can_create_sql_create_statement_for_sqlite(self):
         cid = interface.Cid()
