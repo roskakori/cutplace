@@ -21,12 +21,13 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import sqlite3
+import unittest
+from contextlib import closing
+
 from cutplace import data
 from cutplace import interface
 from cutplace import sql
-
-import sqlite3
-import unittest
 
 _ANY_FORMAT = data.DataFormat(data.FORMAT_DELIMITED)
 _FIXED_FORMAT = data.DataFormat(data.FORMAT_FIXED)
@@ -35,9 +36,18 @@ _FIXED_FORMAT = data.DataFormat(data.FORMAT_FIXED)
 class SqlFactoryTest(unittest.TestCase):
 
     """
-    Tests for sql factory
+    Tests for SqlFactory.
     """
     _TEST_ENCODING = "cp1252"
+
+    def _assert_is_valid_sqlite_statement(self, statement):
+        assert statement is not None
+        with closing(sqlite3.connect(':memory:')) as temp_database:
+            with closing(temp_database.cursor()) as temp_cursor:
+                try:
+                    temp_cursor.execute(statement)
+                except sqlite3.Error as error:
+                    self.fail('cannot run statement: %s; statement=%r' % (error, statement))
 
     def test_can_create_sql_factory(self):
         cid = interface.Cid()
@@ -106,18 +116,7 @@ class SqlFactoryTest(unittest.TestCase):
         ])
 
         sql_factory = sql.SqlFactory(cid, 'customers')
-
-        temp_database = None
-
-        try:
-            temp_database = sqlite3.connect(":memory:")
-            cursor = temp_database.cursor()
-
-            cursor.execute(sql_factory.create_table_statement())
-
-        except sqlite3.Error as err:
-            self.fail()
-            return err
+        self._assert_is_valid_sqlite_statement(sql_factory.create_table_statement())
 
     def test_can_create_char_field(self):
         cid = interface.Cid()
@@ -134,10 +133,10 @@ class SqlFactoryTest(unittest.TestCase):
 
         sql_factory = sql.SqlFactory(cid, 'customers')
 
-        for field in sql_factory.sql_fields():
-            self.assertEqual(field[1], 'varchar')
-            self.assertEqual(field[2], 60)
-            self.assertEqual(field[4], True)
+        for _, field_type, field_length, _, is_not_null, _ in sql_factory.sql_fields():
+            self.assertEqual(field_type, 'varchar')
+            self.assertEqual(field_length, 60)
+            self.assertEqual(is_not_null, True)
 
     def test_can_create_int_field(self):
         cid = interface.Cid()
@@ -154,9 +153,9 @@ class SqlFactoryTest(unittest.TestCase):
 
         sql_factory = sql.SqlFactory(cid, 'customers')
 
-        for field in sql_factory.sql_fields():
-            self.assertEqual(field[1], 'int')
-            self.assertEqual(field[4], False)
+        for _, field_type, _, _, is_not_null, _ in sql_factory.sql_fields():
+            self.assertEqual(field_type, 'int')
+            self.assertEqual(is_not_null, False)
 
     def test_can_create_date_field(self):
         cid = interface.Cid()
@@ -173,9 +172,9 @@ class SqlFactoryTest(unittest.TestCase):
 
         sql_factory = sql.SqlFactory(cid, 'customers')
 
-        for field in sql_factory.sql_fields():
-            self.assertEqual(field[1], 'date')
-            self.assertEqual(field[4], False)
+        for _, field_type, _, _, is_not_null, _ in sql_factory.sql_fields():
+            self.assertEqual(field_type, 'date')
+            self.assertEqual(is_not_null, False)
 
     def test_can_create_decimal_field(self):
         cid = interface.Cid()
@@ -192,6 +191,6 @@ class SqlFactoryTest(unittest.TestCase):
 
         sql_factory = sql.SqlFactory(cid, 'customers')
 
-        for field in sql_factory.sql_fields():
-            self.assertEqual(field[1], 'decimal')
-            self.assertEqual(field[4], False)
+        for _, field_type, _, _, is_not_null, _ in sql_factory.sql_fields():
+            self.assertEqual(field_type, 'decimal')
+            self.assertEqual(is_not_null, False)
