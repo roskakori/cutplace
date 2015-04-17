@@ -91,7 +91,7 @@ class CutplaceApp(object):
         parser.add_argument(
             'data_paths', metavar='DATA-FILE', nargs='*', help='data file(s) to validate')
         parser.add_argument(
-            '--create', '--C', action='store_true', dest='is_create_sql',
+            '--create', '-C', action='store_true', dest='is_create_sql',
             help='write SQL statement to create a table representing CID-FILE')
         args = parser.parse_args(argv[1:])
 

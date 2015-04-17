@@ -289,11 +289,11 @@ ORACLE_SQL_DIALECT = OracleSqlDialect()
 
 
 def assert_is_valid_dialect(dialect):
-    assert str(dialect) in (ANSI, DB2, MSSQL, MYSQL, ORACLE), 'dialect=%r' % dialect
+    assert dialect in (ANSI, DB2, MSSQL, MYSQL, ORACLE), 'dialect=%r' % dialect
 
 
 def write_create(cid_path, cid_reader):
-    # TODO: add option for different cid types
+    # TODO: Add option for different cid types.
     cid_reader.read(cid_path, rowio.excel_rows(cid_path))
 
     create_path = os.path.splitext(cid_path)[0] + '_create.sql'
@@ -301,7 +301,8 @@ def write_create(cid_path, cid_reader):
     _log.info('write SQL create statements to "%s"', create_path)
     with io.open(create_path, 'w', encoding='utf-8') as create_file:
         # TODO: Add option for encoding.
-        sql_factory = SqlFactory(cid_reader, os.path.splitext(cid_path)[0])
+        table = os.path.splitext(os.path.basename(cid_path))[0]
+        sql_factory = SqlFactory(cid_reader, table)
         create_file.write(sql_factory.create_table_statement())
         # TODO: Add option for target SQL dialect
 
@@ -311,6 +312,8 @@ class SqlFactory(object):
         self._cid = cid
         self._table = table
         self._dialect = dialect
+        # TODO: Add option to set SQL indent.
+        self._indent = '    '
 
         assert_is_valid_dialect(self._dialect)
 
@@ -343,7 +346,7 @@ class SqlFactory(object):
             if not first_field:
                 result += ",\n"
 
-            column_def = field_name + " " + field_type
+            column_def = self._indent + field_name + " " + field_type
             if field_type not in self._dialect.integer_types:
                 if length is not None and precision is None:
                     column_def += "(" + six.text_type(length) + ")"
@@ -361,7 +364,7 @@ class SqlFactory(object):
             if first_field:
                 first_field = False
 
-        result += ");"
+        result += "\n);"
 
         return result
 
