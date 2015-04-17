@@ -23,6 +23,7 @@ from __future__ import unicode_literals
 import io
 import logging
 import os.path
+import six
 
 from cutplace import rowio
 
@@ -84,9 +85,15 @@ class AnsiSqlDialect():
 
         self._keywords = set(keywords_as_list)
 
+        self._integer_types = ("int", )
+
     @property
     def keywords(self):
         return self._keywords
+
+    @property
+    def integer_types(self):
+        return self._integer_types
 
     def sql_type(self, sql_ansi_type):
         """Same kind of tuple as with py:meth`fields.AbstractFieldFormat.sql_ansi_type().`"""
@@ -140,6 +147,8 @@ class OracleSqlDialect(AnsiSqlDialect):
             'variance', 'varray', 'varying', 'view', 'views', 'void', 'when', 'where', 'while', 'with', 'work', 'wrapped',
             'write', 'year', 'zone']
 
+        self._integer_types = ("int", )
+
         self._keywords = set(keywords_as_list)
 
     def sql_type(self, sql_ansi_type):
@@ -190,6 +199,8 @@ class MSSqlDialect(AnsiSqlDialect):
             'to', 'top', 'tran', 'transaction', 'trigger', 'truncate', 'try_convert', 'tsequal', 'union', 'unique', 'unpivot',
             'update', 'updatetext', 'use', 'user', 'values', 'varying', 'view', 'waitfor', 'when', 'where', 'while', 'with',
             'withingroup', 'writetext']
+
+        self._integer_types = ("smallint", "int", "bigint")
 
         self._keywords = set(keywords)
 
@@ -249,6 +260,8 @@ class DB2SqlDialect(AnsiSqlDialect):
             'where', 'while', 'with', 'wlm', 'xmlcast', 'xmlexists', 'xmlnamespaces', 'year', 'years', 'zone']
 
         self._keywords = set(keywords)
+
+        self._integer_types = ("smallint", "integer", "bigint")
 
     def sql_type(self, sql_ansi_type):
         ansi_type = sql_ansi_type[0]
@@ -314,7 +327,10 @@ class SqlFactory(object):
             assert sql_type in ('varchar', 'decimal', 'int', 'date')
             sql_type, sql_length, sql_precision = (
                 self._dialect.sql_type((sql_type, sql_length, sql_precision)) + (None, None))[:3]
-            row = (field.field_name, sql_type, sql_length, sql_precision, field.is_allowed_to_be_empty,
+            field_name = field.field_name
+            if self._dialect.is_keyword(field_name):
+                field_name = self._dialect.sql_escaped(field_name)
+            row = (field_name, sql_type, sql_length, sql_precision, field.is_allowed_to_be_empty,
                    field.empty_value)
             yield row
 
@@ -328,16 +344,17 @@ class SqlFactory(object):
                 result += ",\n"
 
             column_def = field_name + " " + field_type
-            if length is not None and precision is None:
-                column_def += "(" + str(length) + ")"
-            elif length is not None and precision is not None:
-                column_def += "(" + str(length) + ", " + str(precision) + ")"
+            if field_type not in self._dialect.integer_types:
+                if length is not None and precision is None:
+                    column_def += "(" + six.text_type(length) + ")"
+                elif length is not None and precision is not None:
+                    column_def += "(" + six.text_type(length) + ", " + six.text_type(precision) + ")"
 
             if not is_not_null:
                 column_def += " not null"
 
             if default_value is not None and len(default_value) > 0:
-                column_def += " default " + str(default_value)
+                column_def += " default " + six.text_type(default_value)
 
             result += column_def
 

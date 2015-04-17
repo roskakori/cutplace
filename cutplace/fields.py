@@ -467,7 +467,7 @@ class IntegerFieldFormat(AbstractFieldFormat):
                 self.valid_range = ranges.Range(ranges.DEFAULT_INTEGER_RANGE_TEXT)
 
     def sql_ansi_type(self):
-        return ('int', None if self.length is None else self.length.upper_limit)
+        return ('int', None if self.valid_range is None else self.valid_range.upper_limit)
 
     def validated_value(self, value):
         assert value

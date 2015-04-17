@@ -23,8 +23,10 @@ from __future__ import unicode_literals
 
 from cutplace import data
 from cutplace import interface
+from cutplace import ranges
 from cutplace import sql
 
+import six
 import sqlite3
 import unittest
 
@@ -76,6 +78,7 @@ class SqlFactoryTest(unittest.TestCase):
             ['F', 'surname', 'Doe', '', '1...60', 'Text'],
             ['F', 'gender', 'male', '', '', 'Choice', 'male, female, unknown'],
             ['F', 'date_of_birth', '03.11.1969', '', '', 'DateTime', 'DD.MM.YYYY'],
+            ['F', 'latitude', '1.5853', '', '', 'Decimal'],
         ])
 
         sql_factory = sql.SqlFactory(cid, 'customers')
@@ -85,7 +88,8 @@ class SqlFactoryTest(unittest.TestCase):
             "create table customers (\nbranch_id varchar not null,"
             "\ncustomer_id int not null,\nfirst_name varchar,"
             "\nsurname varchar(60) not null,\ngender varchar not null,"
-            "\ndate_of_birth date not null);")
+            "\ndate_of_birth date not null,"
+            "\nlatitude decimal(31, 12) not null);")
 
     def test_can_create_sql_create_statement_for_sqlite(self):
         cid = interface.Cid()
@@ -196,7 +200,6 @@ class SqlFactoryTest(unittest.TestCase):
             self.assertEqual(field[1], 'decimal')
             self.assertEqual(field[4], False)
 
-    # TODO: find a way to test bigint
     def test_can_handle_db2_dialect(self):
         cid = interface.Cid()
         cid.read('customers', [
@@ -208,10 +211,10 @@ class SqlFactoryTest(unittest.TestCase):
             ['D', 'Encoding', 'ISO-8859-1'],
             ['D', 'Allowed characters', '32:'],
             ['F', 'latitude', '1.5853', '', '', 'Decimal'],
-            ['F', 'small', '1', '', '0...' + str(sql.MAX_SMALLINT - 1), 'Integer'],
-            ['F', 'int', '1', '', '0...' + str(sql.MAX_SMALLINT + 1), 'Integer'],
-            #['F', 'big', '1', '', '0...' + str(sql.MAX_INTEGER + 1), 'Integer'],
-            #['F', 'decimal', '1', '', '0...' + str(sql.MAX_BIGINT), 'Integer'],
+            ['F', 'small', '1', '', '', 'Integer', '0...%s' % six.text_type(sql.MAX_SMALLINT)],
+            ['F', 'int', '1', '', '', 'Integer', '0...%s' % six.text_type(sql.MAX_SMALLINT + 1)],
+            ['F', 'big', '1', '', '', 'Integer', '0...%s' % six.text_type(sql.MAX_INTEGER + 1)],
+            ['F', 'decimal', '1', '', '', 'Integer', '0...%s' % six.text_type(sql.MAX_BIGINT + 1)],
         ])
 
         sql_factory = sql.SqlFactory(cid, 'customers', sql.DB2_SQL_DIALECT)
@@ -223,10 +226,10 @@ class SqlFactoryTest(unittest.TestCase):
         self.assertEqual(sql_fields[1][4], False)
         self.assertEqual(sql_fields[2][1], 'integer')
         self.assertEqual(sql_fields[2][4], False)
-        #self.assertEqual(sql_fields[3][1], 'bigint')
-        #self.assertEqual(sql_fields[3][4], False)
-        #self.assertEqual(sql_fields[4][1], 'decimal')
-        #self.assertEqual(sql_fields[4][4], False)
+        self.assertEqual(sql_fields[3][1], 'bigint')
+        self.assertEqual(sql_fields[3][4], False)
+        self.assertEqual(sql_fields[4][1], 'decimal')
+        self.assertEqual(sql_fields[4][4], False)
 
     def test_can_handle_ms_sql_dialect(self):
         cid = interface.Cid()
@@ -239,10 +242,10 @@ class SqlFactoryTest(unittest.TestCase):
             ['D', 'Encoding', 'ISO-8859-1'],
             ['D', 'Allowed characters', '32:'],
             ['F', 'latitude', '1.5853', '', '', 'Decimal'],
-            ['F', 'small', '1', '', '0...' + str(sql.MAX_SMALLINT - 1), 'Integer'],
-            ['F', 'int', '1', '', '0...' + str(sql.MAX_SMALLINT + 1), 'Integer'],
-            #['F', 'big', '1', '', '0...' + str(sql.MAX_INTEGER + 1), 'Integer'],
-            #['F', 'decimal', '1', '', '0...' + str(sql.MAX_BIGINT), 'Integer'],
+            ['F', 'smallint', '1', '', '', 'Integer', '0...%s' % six.text_type(sql.MAX_SMALLINT)],
+            ['F', 'int', '1', '', '', 'Integer', '0...%s' % six.text_type(sql.MAX_SMALLINT + 1)],
+            ['F', 'big', '1', '', '', 'Integer', '0...%s' % six.text_type(sql.MAX_INTEGER + 1)],
+            ['F', 'decimal', '1', '', '', 'Integer', '0...%s' % six.text_type(sql.MAX_BIGINT + 1)],
         ])
 
         sql_factory = sql.SqlFactory(cid, 'customers', sql.MS_SQL_DIALECT)
@@ -254,10 +257,10 @@ class SqlFactoryTest(unittest.TestCase):
         self.assertEqual(sql_fields[1][4], False)
         self.assertEqual(sql_fields[2][1], 'int')
         self.assertEqual(sql_fields[2][4], False)
-        #self.assertEqual(sql_fields[3][1], 'bigint')
-        #self.assertEqual(sql_fields[3][4], False)
-        #self.assertEqual(sql_fields[4][1], 'decimal')
-        #self.assertEqual(sql_fields[4][4], False)
+        self.assertEqual(sql_fields[3][1], 'bigint')
+        self.assertEqual(sql_fields[3][4], False)
+        self.assertEqual(sql_fields[4][1], 'decimal')
+        self.assertEqual(sql_fields[4][4], False)
 
     def test_can_handle_oracle_sql_dialect(self):
         cid = interface.Cid()
@@ -270,10 +273,11 @@ class SqlFactoryTest(unittest.TestCase):
             ['D', 'Encoding', 'ISO-8859-1'],
             ['D', 'Allowed characters', '32:'],
             ['F', 'latitude', '1.5853', '', '', 'Decimal'],
-            ['F', 'small', '1', '', '0...' + str(sql.MAX_SMALLINT - 1), 'Integer'],
-            ['F', 'int', '1', '', '0...' + str(sql.MAX_SMALLINT + 1), 'Integer'],
-            #['F', 'big', '1', '', '0...' + str(sql.MAX_INTEGER + 1), 'Integer'],
-            #['F', 'decimal', '1', '', '0...' + str(sql.MAX_BIGINT), 'Integer'],
+            ['F', 'small', '1', '', '', 'Integer', '0...%s' % six.text_type(sql.MAX_SMALLINT)],
+            ['F', 'int', '1', '', '', 'Integer', '0...%s' % six.text_type(sql.MAX_SMALLINT + 1)],
+            ['F', 'big', '1', '', '', 'Integer', '0...%s' % six.text_type(sql.MAX_INTEGER + 1)],
+            ['F', 'decimal', '1', '', '', 'Integer', '0...%s' % six.text_type(sql.MAX_BIGINT + 1)],
+            ['F', 'surname', 'Doe', '', '1...60', 'Text'],
         ])
 
         sql_factory = sql.SqlFactory(cid, 'customers', sql.ORACLE_SQL_DIALECT)
@@ -285,7 +289,37 @@ class SqlFactoryTest(unittest.TestCase):
         self.assertEqual(sql_fields[1][4], False)
         self.assertEqual(sql_fields[2][1], 'int')
         self.assertEqual(sql_fields[2][4], False)
-        #self.assertEqual(sql_fields[3][1], 'bigint')
-        #self.assertEqual(sql_fields[3][4], False)
-        #self.assertEqual(sql_fields[4][1], 'decimal')
-        #self.assertEqual(sql_fields[4][4], False)
+        self.assertEqual(sql_fields[3][1], 'number')
+        self.assertEqual(sql_fields[3][4], False)
+        self.assertEqual(sql_fields[4][1], 'number')
+        self.assertEqual(sql_fields[4][4], False)
+        self.assertEqual(sql_fields[5][1], 'varchar2')
+
+    def test_can_escape_keywords(self):
+        cid = interface.Cid()
+        cid.read('customers', [
+            ['D', 'Format', 'delimited'],
+            ['D', 'Line delimiter', 'any'],
+            ['D', 'Item delimiter', ','],
+            ['D', 'Quote character', '"'],
+            ['D', 'Escape character', '\\'],
+            ['D', 'Encoding', 'ISO-8859-1'],
+            ['D', 'Allowed characters', '32:'],
+            ['F', 'add', '1.5853', '', '', 'Decimal'],
+        ])
+
+        sql_factory = sql.SqlFactory(cid, 'customers', sql.ORACLE_SQL_DIALECT)
+        sql_field_name = list(sql_factory.sql_fields())[0][0]
+        self.assertEqual(sql_field_name, "'add'")
+
+        sql_factory = sql.SqlFactory(cid, 'customers', sql.ANSI_SQL_DIALECT)
+        sql_field_name = list(sql_factory.sql_fields())[0][0]
+        self.assertEqual(sql_field_name, "'add'")
+
+        sql_factory = sql.SqlFactory(cid, 'customers', sql.MS_SQL_DIALECT)
+        sql_field_name = list(sql_factory.sql_fields())[0][0]
+        self.assertEqual(sql_field_name, "'add'")
+
+        sql_factory = sql.SqlFactory(cid, 'customers', sql.DB2_SQL_DIALECT)
+        sql_field_name = list(sql_factory.sql_fields())[0][0]
+        self.assertEqual(sql_field_name, "'add'")
