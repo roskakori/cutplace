@@ -289,7 +289,7 @@ ORACLE_SQL_DIALECT = OracleSqlDialect()
 
 
 def assert_is_valid_dialect(dialect):
-    assert dialect in (ANSI, DB2, MSSQL, MYSQL, ORACLE), 'dialect=%r' % dialect
+    assert six.text_type(dialect) in (ANSI, DB2, MSSQL, MYSQL, ORACLE), 'dialect=%r' % dialect
 
 
 def write_create(cid_path, cid_reader):
