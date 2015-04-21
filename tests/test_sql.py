@@ -25,21 +25,17 @@ import sqlite3
 import unittest
 from contextlib import closing
 
+import six
+
 from cutplace import data
 from cutplace import interface
-from cutplace import ranges
 from cutplace import sql
-
-import six
-import sqlite3
-import unittest
 
 _ANY_FORMAT = data.DataFormat(data.FORMAT_DELIMITED)
 _FIXED_FORMAT = data.DataFormat(data.FORMAT_FIXED)
 
 
 class SqlFactoryTest(unittest.TestCase):
-
     """
     Tests for SqlFactory.
     """
@@ -250,7 +246,7 @@ class SqlFactoryTest(unittest.TestCase):
             ['F', 'decimal', '1', '', '', 'Integer', '0...%s' % six.text_type(sql.MAX_BIGINT + 1)],
         ])
 
-        sql_factory = sql.SqlFactory(cid, 'customers', sql.MS_SQL_DIALECT)
+        sql_factory = sql.SqlFactory(cid, 'customers', sql.TRANSACT_SQL_DIALECT)
 
         sql_fields = list(sql_factory.sql_fields())
         self.assertEqual(sql_fields[0][1], 'decimal')
@@ -282,7 +278,7 @@ class SqlFactoryTest(unittest.TestCase):
             ['F', 'surname', 'Doe', '', '1...60', 'Text'],
         ])
 
-        sql_factory = sql.SqlFactory(cid, 'customers', sql.ORACLE_SQL_DIALECT)
+        sql_factory = sql.SqlFactory(cid, 'customers', sql.PL_SQL_DIALECT)
 
         sql_fields = list(sql_factory.sql_fields())
         self.assertEqual(sql_fields[0][1], 'number')
@@ -310,18 +306,18 @@ class SqlFactoryTest(unittest.TestCase):
             ['F', 'add', '1.5853', '', '', 'Decimal'],
         ])
 
-        sql_factory = sql.SqlFactory(cid, 'customers', sql.ORACLE_SQL_DIALECT)
+        sql_factory = sql.SqlFactory(cid, 'customers', sql.PL_SQL_DIALECT)
         sql_field_name = list(sql_factory.sql_fields())[0][0]
-        self.assertEqual(sql_field_name, "'add'")
+        self.assertEqual(sql_field_name, '"add"')
 
         sql_factory = sql.SqlFactory(cid, 'customers', sql.ANSI_SQL_DIALECT)
         sql_field_name = list(sql_factory.sql_fields())[0][0]
-        self.assertEqual(sql_field_name, "'add'")
+        self.assertEqual(sql_field_name, '"add"')
 
-        sql_factory = sql.SqlFactory(cid, 'customers', sql.MS_SQL_DIALECT)
+        sql_factory = sql.SqlFactory(cid, 'customers', sql.TRANSACT_SQL_DIALECT)
         sql_field_name = list(sql_factory.sql_fields())[0][0]
-        self.assertEqual(sql_field_name, "'add'")
+        self.assertEqual(sql_field_name, '"add"')
 
         sql_factory = sql.SqlFactory(cid, 'customers', sql.DB2_SQL_DIALECT)
         sql_field_name = list(sql_factory.sql_fields())[0][0]
-        self.assertEqual(sql_field_name, "'add'")
+        self.assertEqual(sql_field_name, '"add"')

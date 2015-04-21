@@ -23,30 +23,37 @@ from __future__ import unicode_literals
 import io
 import logging
 import os.path
+
 import six
 
 from cutplace import rowio
+from cutplace._compat import python_2_unicode_compatible
 
 # TODO: Move to module ``ranges``.
+MAX_TINYINT = 2 ** 7 - 1
 MAX_SMALLINT = 2 ** 15 - 1
 MAX_INTEGER = 2 ** 31 - 1
 MAX_BIGINT = 2 ** 63 - 1
 
-#: SQL dialect: ANSI SQL
-ANSI = 'ansi'
-#: SQL dialect: DB2 by IBM
-DB2 = "db2"
-#: SQL dialect: Microsoft SQL
-MSSQL = "mssql"
-#: SQL dialect: ANSI MySQL / MariaDB
-MYSQL = "mysql"
-#: SQL dialect: Oracle
-ORACLE = "oracle"
+#: SQL dialect name: ANSI SQL
+ANSI = 'ANSI'
+#: SQL dialect name: DB2 used by IBM
+DB2 = "DB2"
+#: SQL dialect name: Transact-SQL used by Microsoft SQL and Sybase
+TRANSACT = "Transact-SQL"
+#: SQL dialect name: PL/SQL used by Oracle
+PL = "PL/SQL"
+
+_INT_TYPES = set(['bigint', 'int', 'smallint', 'tinyint'])
 
 _log = logging.getLogger("cutplace")
 
 
+@python_2_unicode_compatible
 class AnsiSqlDialect():
+    """
+    ANSI SQL dialect basically but not really supported by several database vendors.
+    """
     def __init__(self):
         keywords_as_list = [
             'absolute', 'action', 'add', 'after', 'all', 'allocate', 'alter', 'and', 'any', 'are', 'array', 'as', 'asc',
@@ -82,24 +89,21 @@ class AnsiSqlDialect():
             'union', 'unique', 'unknown', 'unnest', 'until', 'update', 'upper', 'usage', 'user', 'using', 'value', 'values',
             'varchar', 'varying', 'view', 'when', 'whenever', 'where', 'while', 'window', 'with', 'within', 'without',
             'work', 'write', 'year', 'zone']
-
         self._keywords = set(keywords_as_list)
-
-        self._integer_types = ("int", )
 
     @property
     def keywords(self):
         return self._keywords
 
-    @property
-    def integer_types(self):
-        return self._integer_types
-
     def sql_type(self, sql_ansi_type):
-        """Same kind of tuple as with py:meth`fields.AbstractFieldFormat.sql_ansi_type().`"""
+        """
+        Same kind of tuple as with :py:meth:`fields.AbstractFieldFormat.sql_ansi_type().`
+        """
+        assert_is_valid_ansi_type(sql_ansi_type)
         return sql_ansi_type
 
-    def sql_escaped(self, text):
+    def sql_string_escaped(self, text):
+        assert text is not None
         # TODO: Escape characters < 32.
         return "'" + text.replace("'", "''") + "'"
 
@@ -111,8 +115,11 @@ class AnsiSqlDialect():
         return ANSI
 
 
-class OracleSqlDialect(AnsiSqlDialect):
-
+@python_2_unicode_compatible
+class PlSqlDialect(AnsiSqlDialect):
+    """
+    PL/SQL dialect used by Oracle.
+    """
     def __init__(self):
         keywords_as_list = [
             'a', 'add', 'agent', 'aggregate', 'all', 'alter', 'and', 'any', 'array', 'arrow', 'as',
@@ -146,9 +153,6 @@ class OracleSqlDialect(AnsiSqlDialect):
             'union', 'unique', 'unsigned', 'untrusted', 'update', 'use', 'using', 'valist', 'value', 'values', 'variable',
             'variance', 'varray', 'varying', 'view', 'views', 'void', 'when', 'where', 'while', 'with', 'work', 'wrapped',
             'write', 'year', 'zone']
-
-        self._integer_types = ("int", )
-
         self._keywords = set(keywords_as_list)
 
     def sql_type(self, sql_ansi_type):
@@ -173,11 +177,14 @@ class OracleSqlDialect(AnsiSqlDialect):
         return result
 
     def __str__(self):
-        return ORACLE
+        return PL
 
 
-class MSSqlDialect(AnsiSqlDialect):
-
+@python_2_unicode_compatible
+class TransactSqlDialect(AnsiSqlDialect):
+    """
+    Transact-SQL dialect used by Microsoft SQL Server and Sybase.
+    """
     def __init__(self):
         keywords = [
             'add', 'all', 'alter', 'and', 'any', 'as', 'asc', 'authorization', 'backup', 'begin', 'between', 'break',
@@ -199,35 +206,38 @@ class MSSqlDialect(AnsiSqlDialect):
             'to', 'top', 'tran', 'transaction', 'trigger', 'truncate', 'try_convert', 'tsequal', 'union', 'unique', 'unpivot',
             'update', 'updatetext', 'use', 'user', 'values', 'varying', 'view', 'waitfor', 'when', 'where', 'while', 'with',
             'withingroup', 'writetext']
-
-        self._integer_types = ("smallint", "int", "bigint")
-
         self._keywords = set(keywords)
 
     def sql_type(self, sql_ansi_type):
         ansi_type = sql_ansi_type[0]
-        result = sql_ansi_type
-
         if ansi_type == 'int':
-            length = sql_ansi_type[1]
+            limit = sql_ansi_type[1]
+            assert limit >= 0, 'length=%r' % limit
 
-            if length <= MAX_SMALLINT:
-                result = ('smallint', length)
-            elif length <= MAX_INTEGER or length is None:
-                result = ('int', length)
-            elif length <= MAX_BIGINT:
-                result = ('bigint', length)
+            if limit <= MAX_TINYINT:
+                result = ('tinyint', limit)
+            elif limit <= MAX_SMALLINT:
+                result = ('smallint', limit)
+            elif limit <= MAX_INTEGER or limit is None:
+                result = ('int', limit)
+            elif limit <= MAX_BIGINT:
+                result = ('bigint', limit)
             else:
-                result = ('decimal', length, 0)
+                result = ('decimal', limit, 0)
+        else:
+            result = sql_ansi_type
 
         return result
 
     def __str__(self):
-        return MSSQL
+        return TRANSACT
 
 
-class DB2SqlDialect(AnsiSqlDialect):
-
+@python_2_unicode_compatible
+class Db2SqlDialect(AnsiSqlDialect):
+    """
+    SQL dialect used by IBM DB2.
+    """
     def __init__(self):
         keywords = [
             'add', 'after', 'all', 'allocate', 'allow', 'alter', 'and', 'any', 'as', 'asensitive', 'associate', 'asutime',
@@ -258,10 +268,7 @@ class DB2SqlDialect(AnsiSqlDialect):
             'then', 'to', 'trigger', 'truncate', 'type', 'undo', 'union', 'unique', 'until', 'update', 'user', 'using',
             'validproc', 'value', 'values', 'variable', 'variant', 'vcat', 'view', 'volatile', 'volumes', 'when', 'whenever',
             'where', 'while', 'with', 'wlm', 'xmlcast', 'xmlexists', 'xmlnamespaces', 'year', 'years', 'zone']
-
         self._keywords = set(keywords)
-
-        self._integer_types = ("smallint", "integer", "bigint")
 
     def sql_type(self, sql_ansi_type):
         ansi_type = sql_ansi_type[0]
@@ -276,20 +283,59 @@ class DB2SqlDialect(AnsiSqlDialect):
                 result = ('bigint', length)
             else:
                 result = ('decimal', length)
-
         return result
 
     def __str__(self):
         return DB2
 
 ANSI_SQL_DIALECT = AnsiSqlDialect()
-DB2_SQL_DIALECT = DB2SqlDialect()
-MS_SQL_DIALECT = MSSqlDialect()
-ORACLE_SQL_DIALECT = OracleSqlDialect()
+DB2_SQL_DIALECT = Db2SqlDialect()
+TRANSACT_SQL_DIALECT = TransactSqlDialect()
+PL_SQL_DIALECT = PlSqlDialect()
+
+#: Mapping of names to SQL dialects.
+SQL_NAME_TO_DIALECT_MAP = {
+    ANSI: ANSI_SQL_DIALECT,
+    DB2: DB2_SQL_DIALECT,
+    TRANSACT: TRANSACT_SQL_DIALECT,
+    PL: PL_SQL_DIALECT
+}
+
+_VALID_ANSI_TYPE_NAMES = ('char', 'date', 'decimal', 'int', 'varchar')
 
 
 def assert_is_valid_dialect(dialect):
-    assert six.text_type(dialect) in (ANSI, DB2, MSSQL, MYSQL, ORACLE), 'dialect=%r' % dialect
+    assert six.text_type(dialect) in (ANSI, DB2, TRANSACT, PL), 'dialect=%r' % dialect
+
+
+def assert_is_valid_ansi_type(ansi_type):
+    """
+    Assert that ``ansi_type`` conforms to the format described at
+    :py:meth:`fields.AbstractFieldFormat.sql_ansi_type().`
+    """
+    assert ansi_type is not None
+    assert isinstance(ansi_type, tuple), 'type(ansi_type) must be a tuple but is: %s' % type(ansi_type)
+    ansi_type_items = list(ansi_type)
+    while (len(ansi_type_items) >= 2) and (ansi_type_items[-1] is None):
+        del ansi_type_items[-1]
+    tuple_count = len(ansi_type_items)
+    assert tuple_count >= 1
+    type_name = ansi_type[0]
+    if type_name in ('char', 'varchar'):
+        assert tuple_count <= 2, 'ansi_type=%s' % (ansi_type,)
+    elif type_name == 'date':
+        assert tuple_count == 1
+    elif type_name == 'decimal':
+        assert tuple_count <= 3
+    elif type_name == 'int':
+        assert tuple_count <= 2
+    else:
+        assert False, 'ansi_type.name=%r but must be one of %s' % (type_name, _VALID_ANSI_TYPE_NAMES)
+    for ansi_type_index, ansi_type_item in enumerate(ansi_type_items[1:], 1):
+        if ansi_type_item is not None:
+            assert isinstance(ansi_type_item, six.integer_types), \
+                'type(ansi_type[%d]) must be int but is %s' % (ansi_type_index, type(ansi_type[ansi_type_index]))
+            assert ansi_type_item >= 0, 'ansi_type[%d] = %d must be at least 0' % (ansi_type_index, ansi_type_item)
 
 
 def write_create(cid_path, cid_reader):
@@ -326,13 +372,13 @@ class SqlFactory(object):
         Tuples `(field_name, field_type, length, precision, is_not_null, default_value)`
         """
         for field in self._cid.field_formats:
+            assert_is_valid_ansi_type(field.sql_ansi_type())
             sql_type, sql_length, sql_precision = (field.sql_ansi_type() + (None, None))[:3]
-            assert sql_type in ('varchar', 'decimal', 'int', 'date')
             sql_type, sql_length, sql_precision = (
                 self._dialect.sql_type((sql_type, sql_length, sql_precision)) + (None, None))[:3]
             field_name = field.field_name
             if self._dialect.is_keyword(field_name):
-                field_name = self._dialect.sql_escaped(field_name)
+                field_name = '"' + field_name + '"'
             row = (field_name, sql_type, sql_length, sql_precision, field.is_allowed_to_be_empty,
                    field.empty_value)
             yield row
@@ -347,7 +393,7 @@ class SqlFactory(object):
                 result += ",\n"
 
             column_def = self._indent + field_name + " " + field_type
-            if field_type not in self._dialect.integer_types:
+            if field_type not in _INT_TYPES:
                 if length is not None and precision is None:
                     column_def += "(" + six.text_type(length) + ")"
                 elif length is not None and precision is not None:

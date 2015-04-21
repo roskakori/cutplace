@@ -143,6 +143,24 @@ class AbstractFieldFormat(object):
     example = property(_get__example, _set_example, doc="Example value or ``None`` if no example is provided.")
 
     def sql_ansi_type(self):
+        """
+        A tuple describing the ANSI SQL type and it size, which has to be one
+        of the following variants:
+
+        * ``('char', length)``: a string with a fixed amount of characters
+          with ``length`` indicating the number of characters.
+        * ``('datetime',)``: a date and/or time.
+        * ``('decimal', scale, precision)``: a decimal number.
+        * ``('varchar', length)``: a string with a variable amount of
+          characters with ``length`` indicating the number of characters.
+
+        The only required part of the tuple is the first item (the ANSI SQL
+        type name). If the others are omitted, reasonable defaults are used.
+
+        The default implementation is ``'varchar'`` with a maximum number of
+        characters derived from
+        :py:attr:`~cutplace.fields.AbstractFieldFormat.length`.
+        """
         return ('varchar', None if self.length is None else self.length.upper_limit)
 
     def validate_characters(self, value):
@@ -467,7 +485,26 @@ class IntegerFieldFormat(AbstractFieldFormat):
                 self.valid_range = ranges.Range(ranges.DEFAULT_INTEGER_RANGE_TEXT)
 
     def sql_ansi_type(self):
-        return ('int', None if self.valid_range is None else self.valid_range.upper_limit)
+        def sign_adjusted_limit(limit):
+            """
+            Similar to ``abs(limit)`` but increases negative values by 1 so
+            negative boundary values like -32768 result in the same amount of
+            bytes like to corresponding positive value 32767.
+            """
+            assert limit is not None
+            if limit >= 0:
+                result = limit
+            else:
+                result = -(limit + 1)
+            return result
+
+        if self.valid_range is None:
+            limit = None
+        else:
+            lower_limit = self.valid_range.lower_limit
+            upper_limit = self.valid_range.upper_limit
+            limit = max(sign_adjusted_limit(lower_limit), sign_adjusted_limit(upper_limit))
+        return ('int', limit)
 
     def validated_value(self, value):
         assert value
@@ -504,6 +541,7 @@ class DateTimeFieldFormat(AbstractFieldFormat):
         self.strptimeFormat = strptime_format
 
     def sql_ansi_type(self):
+        # FIXME: Use timestamp for ANSI, date, datetime and time for others.
         return ('date',)
 
     def validated_value(self, value):
