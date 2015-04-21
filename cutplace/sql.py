@@ -23,6 +23,7 @@ from __future__ import unicode_literals
 import io
 import logging
 import os.path
+import six
 
 from cutplace import rowio
 
@@ -45,8 +46,250 @@ ORACLE = "oracle"
 _log = logging.getLogger("cutplace")
 
 
+class AnsiSqlDialect():
+    def __init__(self):
+        keywords_as_list = [
+            'absolute', 'action', 'add', 'after', 'all', 'allocate', 'alter', 'and', 'any', 'are', 'array', 'as', 'asc',
+            'asensitive', 'assertion', 'asymmetric', 'at', 'atomic', 'authorization', 'avg', 'before', 'begin', 'between',
+            'bigint', 'binary', 'bit', 'bit_length', 'blob', 'boolean', 'both', 'breadth', 'by', 'call', 'called',
+            'cascade', 'cascaded', 'case', 'cast', 'catalog', 'char', 'character', 'character_length', 'char_length',
+            'check', 'clob', 'close', 'coalesce', 'collate', 'collation', 'column', 'commit', 'condition', 'connect',
+            'connection', 'constraint', 'constraints', 'constructor', 'contains', 'continue', 'convert', 'corresponding',
+            'count', 'create', 'cross', 'cube', 'current', 'current_date', 'current_default_transform_group', 'current_path',
+            'current_role', 'current_time', 'current_timestamp', 'current_transform_group_for_type', 'current_user',
+            'cursor', 'cycle', 'data', 'date', 'day', 'deallocate', 'dec', 'decimal', 'declare', 'default', 'deferrable',
+            'deferred', 'delete', 'depth', 'deref', 'desc', 'describe', 'descriptor', 'deterministic', 'diagnostics',
+            'disconnect', 'distinct', 'do', 'domain', 'double', 'drop', 'dynamic', 'each', 'element', 'else', 'elseif',
+            'end', 'equals', 'escape', 'except', 'exception', 'exec', 'execute', 'exists', 'exit', 'external', 'extract',
+            'false', 'fetch', 'filter', 'first', 'float', 'for', 'foreign', 'found', 'free', 'from', 'full', 'function',
+            'general', 'get', 'global', 'go', 'goto', 'grant', 'group', 'grouping', 'handler', 'having', 'hold', 'hour',
+            'identity', 'if', 'immediate', 'in', 'indicator', 'initially', 'inner', 'inout', 'input', 'insensitive', 'insert',
+            'int', 'integer', 'intersect', 'interval', 'into', 'is', 'isolation', 'iterate', 'join', 'key', 'language',
+            'large', 'last', 'lateral', 'leading', 'leave', 'left', 'level', 'like', 'local', 'localtime', 'localtimestamp',
+            'locator', 'loop', 'lower', 'map', 'match', 'max', 'member', 'merge', 'method', 'min', 'minute', 'modifies',
+            'module', 'month', 'multiset', 'names', 'national', 'natural', 'nchar', 'nclob', 'new', 'next', 'no', 'none',
+            'not', 'null', 'nullif', 'numeric', 'object', 'octet_length', 'of', 'old', 'on', 'only', 'open', 'option',
+            'or', 'order', 'ordinality', 'out', 'outer', 'output', 'over', 'overlaps', 'pad', 'parameter', 'partial',
+            'partition', 'path', 'position', 'precision', 'prepare', 'preserve', 'primary', 'prior', 'privileges',
+            'procedure', 'public', 'range', 'read', 'reads', 'real', 'recursive', 'ref', 'references', 'referencing',
+            'relative', 'release', 'repeat', 'resignal', 'restrict', 'result', 'return', 'returns', 'revoke', 'right',
+            'role', 'rollback', 'rollup', 'routine', 'row', 'rows', 'savepoint', 'schema', 'scope', 'scroll', 'search',
+            'second', 'section', 'select', 'sensitive', 'session', 'session_user', 'set', 'sets', 'signal', 'similar',
+            'size', 'smallint', 'some', 'space', 'specific', 'specifictype', 'sql', 'sqlcode', 'sqlerror', 'sqlexception',
+            'sqlstate', 'sqlwarning', 'start', 'state', 'static', 'submultiset', 'substring', 'sum', 'symmetric', 'system',
+            'system_user', 'table', 'tablesample', 'temporary', 'then', 'time', 'timestamp', 'timezone_hour', 'timezone_minute',
+            'to', 'trailing', 'transaction', 'translate', 'translation', 'treat', 'trigger', 'trim', 'true', 'under', 'undo',
+            'union', 'unique', 'unknown', 'unnest', 'until', 'update', 'upper', 'usage', 'user', 'using', 'value', 'values',
+            'varchar', 'varying', 'view', 'when', 'whenever', 'where', 'while', 'window', 'with', 'within', 'without',
+            'work', 'write', 'year', 'zone']
+
+        self._keywords = set(keywords_as_list)
+
+        self._integer_types = ("int", )
+
+    @property
+    def keywords(self):
+        return self._keywords
+
+    @property
+    def integer_types(self):
+        return self._integer_types
+
+    def sql_type(self, sql_ansi_type):
+        """Same kind of tuple as with py:meth`fields.AbstractFieldFormat.sql_ansi_type().`"""
+        return sql_ansi_type
+
+    def sql_escaped(self, text):
+        # TODO: Escape characters < 32.
+        return "'" + text.replace("'", "''") + "'"
+
+    def is_keyword(self, word):
+        assert word is not None
+        return word.lower() in self.keywords
+
+    def __str__(self):
+        return ANSI
+
+
+class OracleSqlDialect(AnsiSqlDialect):
+
+    def __init__(self):
+        keywords_as_list = [
+            'a', 'add', 'agent', 'aggregate', 'all', 'alter', 'and', 'any', 'array', 'arrow', 'as',
+            'asc', 'at', 'attribute', 'authid', 'avg', 'begin', 'between', 'bfile_base', 'binary', 'blob_base', 'block',
+            'body', 'both', 'bound', 'bulk', 'by', 'byte', 'c', 'call', 'calling', 'cascade', 'case', 'char', 'character',
+            'charset', 'charsetform', 'charsetid', 'char_base', 'check', 'clob_base', 'close', 'cluster', 'clusters',
+            'colauth', 'collect', 'columns', 'comment', 'commit', 'committed', 'compiled', 'compress', 'connect', 'constant',
+            'constructor', 'context', 'convert', 'count', 'crash', 'create', 'current', 'cursor', 'customdatum', 'dangling',
+            'data', 'date', 'date_base', 'day', 'decimal', 'declare', 'default', 'define', 'delete', 'desc', 'deterministic',
+            'distinct', 'double', 'drop', 'duration', 'element', 'else', 'elsif', 'empty', 'end', 'escape', 'except',
+            'exception', 'exceptions', 'exclusive', 'execute', 'exists', 'exit', 'external', 'fetch', 'final', 'fixed',
+            'float', 'for', 'forall', 'force', 'form', 'from', 'function', 'general', 'goto', 'grant', 'group', 'hash',
+            'having', 'heap', 'hidden', 'hour', 'identified', 'if', 'immediate', 'in', 'including', 'index', 'indexes',
+            'indicator', 'indices', 'infinite', 'insert', 'instantiable', 'int', 'interface', 'intersect', 'interval',
+            'into', 'invalidate', 'is', 'isolation', 'java', 'language', 'large', 'leading', 'length', 'level', 'library',
+            'like', 'like2', 'like4', 'likec', 'limit', 'limited', 'local', 'lock', 'long', 'loop', 'map', 'max', 'maxlen',
+            'member', 'merge', 'min', 'minus', 'minute', 'mod', 'mode', 'modify', 'month', 'multiset', 'name', 'nan',
+            'national', 'native', 'nchar', 'new', 'nocompress', 'nocopy', 'not', 'nowait', 'null', 'number_base', 'object',
+            'ocicoll', 'ocidate', 'ocidatetime', 'ociduration', 'ociinterval', 'ociloblocator', 'ocinumber', 'ociraw',
+            'ociref', 'ocirefcursor', 'ocirowid', 'ocistring', 'ocitype', 'of', 'on', 'only', 'opaque', 'open', 'operator',
+            'option', 'or', 'oracle', 'oradata', 'order,overlaps', 'organization', 'orlany', 'orlvary', 'others', 'out',
+            'overriding', 'package', 'parallel_enable', 'parameter', 'parameters', 'partition', 'pascal', 'pipe',
+            'pipelined', 'pragma', 'precision', 'prior', 'private', 'procedure', 'public', 'raise', 'range', 'raw', 'read',
+            'record', 'ref', 'reference', 'rem', 'remainder', 'rename', 'resource', 'result', 'return', 'returning',
+            'reverse', 'revoke', 'rollback', 'row', 'sample', 'save', 'savepoint', 'sb1', 'sb2', 'sb4', 'second', 'segment',
+            'select', 'self', 'separate', 'sequence', 'serializable', 'set', 'share', 'short', 'size', 'size_t', 'some',
+            'sparse', 'sql', 'sqlcode', 'sqldata', 'sqlname', 'sqlstate', 'standard', 'start', 'static', 'stddev', 'stored',
+            'string', 'struct', 'style', 'submultiset', 'subpartition', 'substitutable', 'subtype', 'sum', 'synonym',
+            'tabauth', 'table', 'tdo', 'the', 'then', 'time', 'timestamp', 'timezone_abbr', 'timezone_hour', 'timezone_minute',
+            'timezone_region', 'to', 'trailing', 'transac', 'transactional', 'trusted', 'type', 'ub1', 'ub2', 'ub4', 'under',
+            'union', 'unique', 'unsigned', 'untrusted', 'update', 'use', 'using', 'valist', 'value', 'values', 'variable',
+            'variance', 'varray', 'varying', 'view', 'views', 'void', 'when', 'where', 'while', 'with', 'work', 'wrapped',
+            'write', 'year', 'zone']
+
+        self._integer_types = ("int", )
+
+        self._keywords = set(keywords_as_list)
+
+    def sql_type(self, sql_ansi_type):
+        ansi_type = sql_ansi_type[0]
+        result = sql_ansi_type
+
+        if ansi_type == 'decimal':
+            oracle_type = 'number'
+            _, scale, precision = sql_ansi_type
+            result = (oracle_type, scale, precision)
+
+        elif ansi_type == 'varchar':
+            oracle_type = 'varchar2'
+            length = sql_ansi_type[1]
+            result = (oracle_type, length)
+
+        elif ansi_type == 'int':
+            length = sql_ansi_type[1]
+            if length > MAX_INTEGER:
+                result = ('number', length, 0)
+
+        return result
+
+    def __str__(self):
+        return ORACLE
+
+
+class MSSqlDialect(AnsiSqlDialect):
+
+    def __init__(self):
+        keywords = [
+            'add', 'all', 'alter', 'and', 'any', 'as', 'asc', 'authorization', 'backup', 'begin', 'between', 'break',
+            'browse', 'bulk', 'by', 'cascade', 'case', 'check', 'checkpoint', 'close', 'clustered', 'coalesce', 'collate',
+            'column', 'commit', 'compute', 'constraint', 'contains', 'containstable', 'continue', 'convert', 'create',
+            'cross', 'current', 'current_date', 'current_time', 'current_timestamp', 'current_user', 'cursor', 'database',
+            'dbcc', 'deallocate', 'declare', 'default', 'delete', 'deny', 'desc', 'disk', 'distinct', 'distributed',
+            'double', 'drop', 'dump', 'else', 'end', 'errlvl', 'escape', 'except', 'exec', 'execute', 'exists', 'exit',
+            'external', 'fetch', 'file', 'fillfactor', 'for', 'foreign', 'freetext', 'freetexttable', 'from', 'full',
+            'function', 'goto', 'grant', 'group', 'having', 'holdlock', 'identity', 'identitycol', 'identity_insert',
+            'if', 'in', 'index', 'inner', 'insert', 'intersect', 'into', 'is', 'join', 'key', 'kill', 'left', 'like',
+            'lineno', 'load', 'merge', 'national', 'nocheck', 'nonclustered', 'not', 'null', 'nullif', 'of', 'off',
+            'offsets', 'on', 'open', 'opendatasource', 'openquery', 'openrowset', 'openxml', 'option', 'or', 'order',
+            'outer', 'over', 'percent', 'pivot', 'plan', 'precision', 'primary', 'print', 'proc', 'procedure', 'public',
+            'raiserror', 'read', 'readtext', 'reconfigure', 'references', 'replication', 'restore', 'restrict', 'return',
+            'revert', 'revoke', 'right', 'rollback', 'rowcount', 'rowguidcol', 'rule', 'save', 'schema', 'securityaudit',
+            'select', 'semantickeyphrasetable', 'semanticsimilaritydetailstable', 'semanticsimilaritytable', 'session_user',
+            'set', 'setuser', 'shutdown', 'some', 'statistics', 'system_user', 'table', 'tablesample', 'textsize', 'then',
+            'to', 'top', 'tran', 'transaction', 'trigger', 'truncate', 'try_convert', 'tsequal', 'union', 'unique', 'unpivot',
+            'update', 'updatetext', 'use', 'user', 'values', 'varying', 'view', 'waitfor', 'when', 'where', 'while', 'with',
+            'withingroup', 'writetext']
+
+        self._integer_types = ("smallint", "int", "bigint")
+
+        self._keywords = set(keywords)
+
+    def sql_type(self, sql_ansi_type):
+        ansi_type = sql_ansi_type[0]
+        result = sql_ansi_type
+
+        if ansi_type == 'int':
+            length = sql_ansi_type[1]
+
+            if length <= MAX_SMALLINT:
+                result = ('smallint', length)
+            elif length <= MAX_INTEGER or length is None:
+                result = ('int', length)
+            elif length <= MAX_BIGINT:
+                result = ('bigint', length)
+            else:
+                result = ('decimal', length, 0)
+
+        return result
+
+    def __str__(self):
+        return MSSQL
+
+
+class DB2SqlDialect(AnsiSqlDialect):
+
+    def __init__(self):
+        keywords = [
+            'add', 'after', 'all', 'allocate', 'allow', 'alter', 'and', 'any', 'as', 'asensitive', 'associate', 'asutime',
+            'at', 'audit', 'aux', 'auxiliary', 'before', 'begin', 'between', 'bufferpool', 'by', 'call', 'capture',
+            'cascaded', 'case', 'cast', 'ccsid', 'char', 'character', 'check', 'clone', 'close', 'cluster', 'collection',
+            'collid', 'column', 'comment', 'commit', 'concat', 'condition', 'connect', 'connection', 'constraint',
+            'contains', 'content', 'continue', 'create', 'current', 'current_date', 'current_lc_ctype', 'current_path',
+            'current_schema', 'current_time', 'current_timestamp', 'currval1', 'cursor', 'data', 'database', 'day', 'days',
+            'dbinfo', 'declare', 'default', 'delete', 'descriptor', 'deterministic', 'disable', 'disallow', 'distinct',
+            'do', 'document', 'double', 'drop', 'dssize', 'dynamic', 'editproc', 'else', 'elseif', 'encoding', 'encryption',
+            'end', 'end-exec2', 'ending', 'erase', 'escape', 'except', 'exception', 'execute', 'exists', 'exit', 'explain',
+            'external', 'fenced', 'fetch', 'fieldproc', 'final', 'first1', 'for', 'free', 'from', 'full', 'function',
+            'generated', 'get', 'global', 'go', 'goto', 'grant', 'group', 'handler', 'having', 'hold', 'hour', 'hours',
+            'if', 'immediate', 'in', 'inclusive', 'index', 'inherit', 'inner', 'inout', 'insensitive', 'insert', 'intersect',
+            'into', 'is', 'isobid', 'iterate', 'jar', 'join', 'keep', 'key', 'label', 'language', 'last1', 'lc_ctype',
+            'leave', 'left', 'like', 'local', 'locale', 'locator', 'locators', 'lock', 'lockmax', 'locksize', 'long', 'loop',
+            'maintained', 'materialized', 'microsecond', 'microseconds', 'minute', 'minutes', 'modifies', 'month', 'months',
+            'next1', 'nextval', 'no', 'none', 'not', 'null', 'nulls', 'numparts', 'obid', 'of', 'old1', 'on', 'open',
+            'optimization', 'optimize', 'or', 'order', 'organization1', 'out', 'outer', 'package', 'padded', 'parameter',
+            'part', 'partition', 'partitioned', 'partitioning', 'path', 'period1', 'piecesize', 'plan', 'precision',
+            'prepare', 'prevval', 'prior1', 'priqty', 'privileges', 'procedure', 'program', 'psid', 'public', 'query',
+            'queryno', 'reads', 'references', 'refresh', 'release', 'rename', 'repeat', 'resignal', 'restrict', 'result',
+            'result_set_locator', 'return', 'returns', 'revoke', 'right', 'role', 'rollback', 'round_ceiling', 'round_down',
+            'round_floor', 'round_half_down', 'round_half_even', 'round_half_up', 'round_up', 'row', 'rowset', 'run',
+            'savepoint', 'schema', 'scratchpad', 'second', 'seconds', 'secqty', 'security', 'select', 'sensitive', 'sequence',
+            'session_user', 'set', 'signal', 'simple', 'some', 'source', 'specific', 'standard', 'statement', 'static', 'stay',
+            'stogroup', 'stores', 'style', 'summary', 'synonym', 'sysdate1', 'system', 'systimestamp1', 'table', 'tablespace',
+            'then', 'to', 'trigger', 'truncate', 'type', 'undo', 'union', 'unique', 'until', 'update', 'user', 'using',
+            'validproc', 'value', 'values', 'variable', 'variant', 'vcat', 'view', 'volatile', 'volumes', 'when', 'whenever',
+            'where', 'while', 'with', 'wlm', 'xmlcast', 'xmlexists', 'xmlnamespaces', 'year', 'years', 'zone']
+
+        self._keywords = set(keywords)
+
+        self._integer_types = ("smallint", "integer", "bigint")
+
+    def sql_type(self, sql_ansi_type):
+        ansi_type = sql_ansi_type[0]
+        result = sql_ansi_type
+        if ansi_type == 'int':
+            length = sql_ansi_type[1]
+            if length <= MAX_SMALLINT:
+                result = ('smallint', length)
+            elif length <= MAX_INTEGER or length is None:
+                result = ('integer', length)
+            elif length <= MAX_BIGINT:
+                result = ('bigint', length)
+            else:
+                result = ('decimal', length)
+
+        return result
+
+    def __str__(self):
+        return DB2
+
+ANSI_SQL_DIALECT = AnsiSqlDialect()
+DB2_SQL_DIALECT = DB2SqlDialect()
+MS_SQL_DIALECT = MSSqlDialect()
+ORACLE_SQL_DIALECT = OracleSqlDialect()
+
+
 def assert_is_valid_dialect(dialect):
-    assert dialect in (ANSI, DB2, MSSQL, MYSQL, ORACLE), 'dialect=%r' % dialect
+    assert six.text_type(dialect) in (ANSI, DB2, MSSQL, MYSQL, ORACLE), 'dialect=%r' % dialect
 
 
 def write_create(cid_path, cid_reader):
@@ -65,7 +308,7 @@ def write_create(cid_path, cid_reader):
 
 
 class SqlFactory(object):
-    def __init__(self, cid, table, dialect=ANSI):
+    def __init__(self, cid, table, dialect=ANSI_SQL_DIALECT):
         self._cid = cid
         self._table = table
         self._dialect = dialect
@@ -85,8 +328,12 @@ class SqlFactory(object):
         for field in self._cid.field_formats:
             sql_type, sql_length, sql_precision = (field.sql_ansi_type() + (None, None))[:3]
             assert sql_type in ('varchar', 'decimal', 'int', 'date')
-
-            row = (field.field_name, sql_type, sql_length, sql_precision, field.is_allowed_to_be_empty,
+            sql_type, sql_length, sql_precision = (
+                self._dialect.sql_type((sql_type, sql_length, sql_precision)) + (None, None))[:3]
+            field_name = field.field_name
+            if self._dialect.is_keyword(field_name):
+                field_name = self._dialect.sql_escaped(field_name)
+            row = (field_name, sql_type, sql_length, sql_precision, field.is_allowed_to_be_empty,
                    field.empty_value)
             yield row
 
@@ -100,16 +347,17 @@ class SqlFactory(object):
                 result += ",\n"
 
             column_def = self._indent + field_name + " " + field_type
-            if length is not None and precision is None:
-                column_def += "(" + str(length) + ")"
-            elif length is not None and precision is not None:
-                column_def += "(" + str(length) + ", " + str(precision) + ")"
+            if field_type not in self._dialect.integer_types:
+                if length is not None and precision is None:
+                    column_def += "(" + six.text_type(length) + ")"
+                elif length is not None and precision is not None:
+                    column_def += "(" + six.text_type(length) + ", " + six.text_type(precision) + ")"
 
             if not is_not_null:
                 column_def += " not null"
 
             if default_value is not None and len(default_value) > 0:
-                column_def += " default " + str(default_value)
+                column_def += " default " + six.text_type(default_value)
 
             result += column_def
 

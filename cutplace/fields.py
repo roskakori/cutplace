@@ -364,12 +364,8 @@ class DecimalFieldFormat(AbstractFieldFormat):
         self.valid_range = ranges.DecimalRange(rule, ranges.DEFAULT_DECIMAL_RANGE_TEXT)
         self._length = ranges.DecimalRange(length_text)
 
-        if self.valid_range is not None:
-            self._precision = self.valid_range.precision
-            self._scale = self.valid_range.scale
-        else:
-            self._precision = None
-            self._scale = None
+        self._precision = self.valid_range.precision
+        self._scale = self.valid_range.scale
 
     def sql_ansi_type(self):
         return ('decimal', self._scale, self._precision)
@@ -471,7 +467,7 @@ class IntegerFieldFormat(AbstractFieldFormat):
                 self.valid_range = ranges.Range(ranges.DEFAULT_INTEGER_RANGE_TEXT)
 
     def sql_ansi_type(self):
-        return ('int',)
+        return ('int', None if self.valid_range is None else self.valid_range.upper_limit)
 
     def validated_value(self, value):
         assert value

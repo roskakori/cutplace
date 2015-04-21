@@ -22,6 +22,7 @@ from __future__ import unicode_literals
 
 import unittest
 import decimal
+import six
 
 from cutplace import errors
 from cutplace import ranges
@@ -146,6 +147,9 @@ class RangeTest(unittest.TestCase):
     def test_fails_on_unterminated_string(self):
         self.assertRaises(errors.InterfaceError, ranges.Range, "\"\"")
 
+    def test_fails_on_missing_numbers(self):
+        self.assertRaises(errors.InterfaceError, ranges.Range, "...")
+
     def test_can_validate_with_lower_and_upper_limit(self):
         lower_and_upper_range = ranges.Range("-1...1")
         lower_and_upper_range.validate("x", - 1)
@@ -199,11 +203,24 @@ class RangeTest(unittest.TestCase):
             ranges.create_range_from_length(
                 ranges.Range("3...4, 10...")).items, [(-999, -10), (100, 9999), (None, -100000000), (1000000000, None)])
 
+    def test_can_display_lower_is_upper_length(self):
+        self.assertEqual(six.text_type(ranges.Range("9...9")), "9")
+
+    def test_can_display_multi_range(self):
+        self.assertEqual(six.text_type(ranges.Range("9...10, 11...13")), "9...10, 11...13")
+
     def test_fails_on_create_range_from_negative_length(self):
         self.assertRaises(errors.RangeValueError, ranges.create_range_from_length, ranges.Range("-19...-1"))
         self.assertRaises(errors.RangeValueError, ranges.create_range_from_length, ranges.Range("-19...1"))
         self.assertRaises(errors.RangeValueError, ranges.create_range_from_length, ranges.Range("-1...0"))
         self.assertRaises(errors.RangeValueError, ranges.create_range_from_length, ranges.Range("0...0"))
+
+    def test_can_represent_range_containing_none(self):
+        none_range = ranges.Range(None)
+        self.assertEqual(six.text_type(none_range), six.text_type(None))
+        upper_none_range = ranges.Range("1...")
+        upper_none_range.items.append(None)
+        self.assertEqual(six.text_type(upper_none_range), "1..., None")
 
 
 class DecimalRangeTest(unittest.TestCase):
@@ -395,6 +412,22 @@ class DecimalRangeTest(unittest.TestCase):
         self.assertEqual(7, decimal_range.scale)
         self.assertEqual(2, decimal_range.precision)
 
+    def test_can_display_lower_is_upper_length(self):
+        self.assertEqual(six.text_type(ranges.DecimalRange("9.9...9.9")), "9.9...9.9")
+
+    def test_can_display_multi_range(self):
+        self.assertEqual(six.text_type(ranges.DecimalRange("9.1...10.9, 11...13")), "9.1...10.9, 11.0...13.0")
+
+    def test_can_represent_range_containing_none(self):
+        none_range = ranges.DecimalRange(None)
+        self.assertEqual(six.text_type(none_range), six.text_type(None))
+        upper_none_range = ranges.DecimalRange("1...")
+        upper_none_range.items.append(None)
+        self.assertEqual(six.text_type(upper_none_range), "1, None")
+
+    def test_fails_on_non_decimal_value_to_validate(self):
+        decimal_range = ranges.DecimalRange("1.1...2.2")
+        self.assertRaises(errors.RangeValueError, decimal_range.validate, "x", "a")
 
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()
