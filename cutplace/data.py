@@ -195,6 +195,9 @@ class DataFormat(object):
         assert self.format == FORMAT_DELIMITED
         assert item_delimiter is not None
         assert len(item_delimiter) == 1
+        assert item_delimiter != '\x00', \
+            "item delimiter must not be %r (to avoid zero termindated strings in Python's C based CSV reader))" \
+            % item_delimiter
 
         self._item_delimiter = item_delimiter
 
@@ -326,10 +329,15 @@ class DataFormat(object):
             self.escape_character = DataFormat._validated_choice(
                 KEY_ESCAPE_CHARACTER, value, _VALID_ESCAPE_CHARACTERS, location)
         elif name == KEY_ITEM_DELIMITER:
-            self.item_delimiter = DataFormat._validated_character(KEY_ITEM_DELIMITER, value, location)
+            item_delimiter = DataFormat._validated_character(KEY_ITEM_DELIMITER, value, location)
+            if item_delimiter == '\x00':
+                raise errors.InterfaceError(
+                    "data format property %s must not be 0 (to avoid zero termindated strings in Python's C based CSV reader)"
+                    % _compat.text_repr(KEY_ITEM_DELIMITER), location)
+            self.item_delimiter = item_delimiter
         elif name == KEY_LINE_DELIMITER:
             try:
-                self.line_delimiter = _TEXT_TO_LINE_DELIMITER_MAP[value]
+                self.line_delimiter = _TEXT_TO_LINE_DELIMITER_MAP[value.lower()]
             except KeyError:
                 raise errors.InterfaceError(
                     'line delimiter %s must be changed to one of: %s'

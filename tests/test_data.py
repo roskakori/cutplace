@@ -304,6 +304,12 @@ class DataFormatTest(unittest.TestCase):
         self._test_fails_on_broken_validated_character(
             '"abc"', "*: text for data format property 'x' must be a single character but is: '\"abc\"'")
 
+    def test_fails_on_zero_item_delimiter(self):
+        delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
+        dev_test.assert_raises_and_fnmatches(
+            self, errors.InterfaceError, "data format property 'item_delimiter' must not be 0 (*)",
+            delimited_format.set_property, data.KEY_ITEM_DELIMITER, '\x00')
+
 
 if __name__ == '__main__':
     logging.basicConfig()
