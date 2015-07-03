@@ -26,11 +26,13 @@ try:
         from tkinter.filedialog import Open
         from tkinter.filedialog import SaveAs
         from tkinter.messagebox import showerror
+        from tkinter.messagebox import showinfo
     else:
         from Tkinter import *
         from tkFileDialog import Open
         from tkFileDialog import SaveAs
         from tkMessageBox import showerror
+        from tkMessageBox import showinfo
     has_tk = True
 except ImportError:
     has_tk = False
@@ -47,6 +49,11 @@ _DATA_ROW = 1
 _VALIDATE_BUTTON_ROW = 2
 _VALIDATION_RESULT_ROW = 3
 _SAVE_ROW = 4
+
+# Menu indices to enable / disable certain items.
+_CHOOSE_CID_PATH_MENU_INDEX = 0
+_CHOOSE_DATA_PATH_MENU_INDEX = 1
+_SAVE_LOG_AS_MENU_INDEX = 2
 
 
 class CutplaceFrame(Frame):
@@ -116,10 +123,6 @@ class CutplaceFrame(Frame):
         _validation_result_scrollbar.config(command=self._validation_result_text.yview)
         self._validation_result_text.config(yscrollcommand=_validation_result_scrollbar.set)
 
-        # "Save validation result as" button.
-        self._save_log_button = Button(self, command=self.save_log_as, text='Save validation result as...')
-        self._save_log_button.grid(row=_SAVE_ROW, column=1, columnspan=2, sticky=E + S)
-
         # Set up file dialogs.
         self._choose_cid_dialog = Open(
             initialfile=self.cid_path,
@@ -135,6 +138,17 @@ class CutplaceFrame(Frame):
             title='Save validation result',
         )
 
+        menubar = Menu(master)
+        master.config(menu=menubar)
+        file_menu = Menu(menubar, tearoff=False)
+        file_menu.add_command(command=self.choose_cid, label='Choose CID...')
+        file_menu.add_command(command=self.choose_data, label='Choose data...')
+        file_menu.add_command(command=self.save_log_as, label='Save log as...')
+        menubar.add_cascade(label='File', menu=file_menu)
+        help_menu = Menu(menubar, tearoff=False)
+        help_menu.add_command(command=self.show_about, label='About')
+        menubar.add_cascade(label='Help', menu=help_menu)
+
         self._enable_usable_widgets()
 
     def _enable_usable_widgets(self):
@@ -147,7 +161,6 @@ class CutplaceFrame(Frame):
 
         set_state(self._validate_button, self.cid_path)
         set_state(self._validation_result_text, self.validation_result)
-        set_state(self._save_log_button, self.validation_result)
 
     def choose_cid(self):
         """
@@ -179,6 +192,9 @@ class CutplaceFrame(Frame):
                     validation_result_file.write(self._validation_result_text.get(1.0, END))
             except Exception as error:
                 showerror('Cutplace error', 'Cannot save validation results:\n%s' % error)
+
+    def show_about(self):
+        showinfo('Cutplace', 'Version ' + __version__)
 
     def clear_validation_result_text(self):
         """
@@ -229,8 +245,8 @@ class CutplaceFrame(Frame):
             finally:
                 self._validation_result_text.config(state=DISABLED)
 
-        def add_log_error_line(line):
-            add_log_line('ERROR: %s' % line)
+        def add_log_error_line(line_or_error):
+            add_log_line('ERROR: %s' % line_or_error)
 
         def show_status_line(line):
             self._validation_status_text.set(line)
@@ -264,7 +280,7 @@ class CutplaceFrame(Frame):
                         last_update_time = now
                         show_status_line(
                             '%d rows validated' % (validator.accepted_rows_count + validator.rejected_rows_count))
-                    if isinstance(row_or_error, errors.CutplaceError):
+                    if isinstance(row_or_error, errors.DataError):
                         add_log_error_line(row_or_error)
                 show_status_line(
                     '%d rows validated - finished' % (validator.accepted_rows_count + validator.rejected_rows_count))
@@ -291,6 +307,6 @@ def open_gui(cid_path=None, data_path=None):
     root.rowconfigure(0, weight=1)
     # TODO: Make GUI scale on resized window.
     root.resizable(width=False, height=False)
-    root.title('Cutplace v' + __version__)
+    root.title('Cutplace')
     CutplaceFrame(root, cid_path, data_path)
     root.mainloop()
