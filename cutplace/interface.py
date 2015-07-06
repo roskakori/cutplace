@@ -259,9 +259,9 @@ class Cid(object):
                 if row_type == 'd':
                     self.add_data_format_row(row_data)
                 elif row_type == 'f':
-                    self.add_field_format(row_data)
+                    self.add_field_format_row(row_data)
                 elif row_type == 'c':
-                    self.add_check(row_data)
+                    self.add_check_row(row_data)
                 elif row_type != '':
                     # Raise error when value is not supported.
                     raise errors.InterfaceError(
@@ -273,7 +273,32 @@ class Cid(object):
         if len(self.field_names) == 0:
             raise errors.InterfaceError('fields must be specified', self._location)
 
-    def add_field_format(self, possibly_incomplete_items):
+    def add_field_format(self, field_format):
+        """
+        Add field to the Cid. Typically the field is created using the
+        constructor of any descendant of
+        :py:class:`cutplace.fields.AbstractFieldFormat`. Alternatively it
+        can be copied from existing :py:attr:`Cid.field_formats`.
+
+        :param cutplace.fields.AbstractFieldFormat field_format: the field
+            format to add
+        :raises AssertionError: on violations of basic consistency, for
+            example when attempting to add duplicate fields
+        """
+        assert self._data_format is not None
+        assert field_format is not None
+        field_name = field_format.field_name
+        assert field_name is not None
+        assert field_name not in self._field_name_to_format_map
+
+        self._field_name_to_format_map[field_name] = field_format
+        self._field_name_to_index_map[field_name] = len(self._field_names)
+        self._field_names.append(field_name)
+        self._field_formats.append(field_format)
+        # TODO: Remember location where field format was defined to later include it in error message
+        _log.debug("%s: defined field: %s", self._location, field_format)
+
+    def add_field_format_row(self, possibly_incomplete_items):
         """
         Add field as described by `possibly_incomplete_items`, which is a
         list consisting of:
@@ -398,21 +423,30 @@ class Cid(object):
                     self._location)
 
         self._location.set_cell(1)
-        self._field_name_to_format_map[field_name] = field_format
-        self._field_name_to_index_map[field_name] = len(self._field_names)
-        self._field_names.append(field_name)
-        self._field_formats.append(field_format)
-        # TODO: Remember location where field format was defined to later include it in error message
-        _log.debug("%s: defined field: %s", self._location, field_format)
 
         assert field_name
         assert field_type
         assert field_rule is not None
 
-    def add_check(self, possibly_incomplete_items):
+        self.add_field_format(field_format)
+
+    def add_check(self, check_to_add):
+        """
+        Add ``check_to_add`` to the Cid so it can be performed during
+        validation.
+
+        :param cutplace.checks.AbstractCheck check_to_add: the check to add
+        """
+        assert check_to_add.descrption not in self._check_name_to_check_map
+
+        self._check_name_to_check_map[check_to_add.description] = check_to_add
+        self._check_names.append(check_to_add.description)
+        assert len(self.check_names) == len(self._check_name_to_check_map)
+
+    def add_check_row(self, possibly_incomplete_items):
         """
         Add a check as declared in ``possibly_incomplete_items``, which
-        ideally is a list is composed of 3 elements:
+        ideally is a list composed of 3 elements:
 
         1. description ('customer_id_must_be_unique')
         2. type (e.g. 'IsUnique'  mapping to :py:class:`cutplace.checks.IsUniqueCheck`)

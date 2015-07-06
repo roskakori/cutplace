@@ -5,7 +5,7 @@ Revision history
 This chapter describes improvements compared to earlier versions of cutplace.
 
 
-Version 0.8.6, 2015-06-xx
+Version 0.8.6, 2015-07-06
 =========================
 
 * Added command line option :option:`--gui` to open a graphical user
@@ -14,6 +14,14 @@ Version 0.8.6, 2015-06-xx
 * Improved error message when attempting to use a 0 byte as item delimiter in
   CID's for delimited data. (Python's :py:mod:`csv` module fails with a
   :py:exc:`TypeError` because the low level implementation is based on C).
+* Improved API: Cleaned up :py:class:`cutplace.Cid`:
+  * Changed :py:meth:`cutplace.Cid.add_check` to require an
+    :py:class:`cutplace.fields.AbstractCheck` as parameter and added
+    :py:meth:`cutplace.Cid.add_check_row` to accept a row.
+  * Changed :py:meth:`cutplace.Cid.add_field_format` to require an
+    :py:class:`cutplace.fields.AbstractFieldFormat` as parameter and added
+    :py:meth:`cutplace.Cid.add_field_format_row` to accept a row.
+
 
 Version 0.8.5, 2015-03-09
 =========================

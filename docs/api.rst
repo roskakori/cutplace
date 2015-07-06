@@ -349,12 +349,12 @@ Next we can add rows as read from a CID file using
     >>> cid.add_data_format_row([cutplace.data.KEY_ITEM_DELIMITER, ';'])
     >>>
     >>> # Add a couple of fields.
-    >>> cid.add_field_format(['id', '', '', '1...5', 'Integer'])
-    >>> cid.add_field_format(['name'])
-    >>> cid.add_field_format(['date_of_birth', '', 'X', '', 'DateTime', 'YYYY-MM-DD'])
+    >>> cid.add_field_format_row(['id', '', '', '1...5', 'Integer'])
+    >>> cid.add_field_format_row(['name'])
+    >>> cid.add_field_format_row(['date_of_birth', '', 'X', '', 'DateTime', 'YYYY-MM-DD'])
     >>>
     >>> # Make sure that the ``id`` field contains only unique values.
-    >>> cid.add_check(['id_must_be_unique', 'IsUnique', 'id'])
+    >>> cid.add_check_row(['id_must_be_unique', 'IsUnique', 'id'])
     >>> cid.field_names
     ['id', 'name', 'date_of_birth']
 
@@ -362,7 +362,7 @@ If any of this methods cannot handle the parameters you passed, they raise a
 :py:exc:`cutplace.errors.CutplaceError` with a message describing what went wrong.
 For example::
 
-    >>> cid.add_check([]) #doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> cid.add_check_row([]) #doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     InterfaceError: <source> (R1C2): check row (marked with 'c') must contain at least 2 columns
 
