@@ -15,6 +15,11 @@ A graphical user interface to specify a CID and data file and validate them.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import io
 import os
 import six
@@ -47,13 +52,14 @@ _PADDING = 4
 _CID_ROW = 0
 _DATA_ROW = 1
 _VALIDATE_BUTTON_ROW = 2
-_VALIDATION_RESULT_ROW = 3
+_VALIDATION_REPORT_ROW = 3
 _SAVE_ROW = 4
 
 # Menu indices to enable / disable certain items.
 _CHOOSE_CID_PATH_MENU_INDEX = 0
 _CHOOSE_DATA_PATH_MENU_INDEX = 1
-_SAVE_LOG_AS_MENU_INDEX = 2
+_SAVE_VALIDATION_REPORT_AS_MENU_INDEX = 2
+_QUIT_MENU_INDEX = 3
 
 
 class CutplaceFrame(Frame):
@@ -82,7 +88,7 @@ class CutplaceFrame(Frame):
         # Define basic layout.
         self.grid(padx=_PADDING, pady=_PADDING)
         # self.grid_columnconfigure(1, weight=1)
-        self.grid_rowconfigure(_VALIDATION_RESULT_ROW, weight=1)
+        self.grid_rowconfigure(_VALIDATION_REPORT_ROW, weight=1)
 
         # Choose CID.
         self._cid_label = Label(self, text='CID:')
@@ -112,16 +118,16 @@ class CutplaceFrame(Frame):
         validation_status_label.grid(row=_VALIDATE_BUTTON_ROW, column=1)
 
         # Validation result.
-        validation_result_frame = LabelFrame(self, text='Validation result')
-        validation_result_frame.grid(row=_VALIDATION_RESULT_ROW, columnspan=3, sticky=E + N + S + W)
-        validation_result_frame.grid_columnconfigure(0, weight=1)
-        validation_result_frame.grid_rowconfigure(0, weight=1)
-        self._validation_result_text = Text(validation_result_frame)
-        self._validation_result_text.grid(column=0, row=0, sticky=E + N + S)
-        _validation_result_scrollbar = Scrollbar(validation_result_frame)
-        _validation_result_scrollbar.grid(column=1, row=0, sticky=N + S + W)
-        _validation_result_scrollbar.config(command=self._validation_result_text.yview)
-        self._validation_result_text.config(yscrollcommand=_validation_result_scrollbar.set)
+        validation_report_frame = LabelFrame(self, text='Validation report')
+        validation_report_frame.grid(row=_VALIDATION_REPORT_ROW, columnspan=3, sticky=E + N + S + W)
+        validation_report_frame.grid_columnconfigure(0, weight=1)
+        validation_report_frame.grid_rowconfigure(0, weight=1)
+        self._validation_report_text = Text(validation_report_frame)
+        self._validation_report_text.grid(column=0, row=0, sticky=E + N + S)
+        _validation_report_scrollbar = Scrollbar(validation_report_frame)
+        _validation_report_scrollbar.grid(column=1, row=0, sticky=N + S + W)
+        _validation_report_scrollbar.config(command=self._validation_report_text.yview)
+        self._validation_report_text.config(yscrollcommand=_validation_report_scrollbar.set)
 
         # Set up file dialogs.
         self._choose_cid_dialog = Open(
@@ -140,11 +146,12 @@ class CutplaceFrame(Frame):
 
         menubar = Menu(master)
         master.config(menu=menubar)
-        file_menu = Menu(menubar, tearoff=False)
-        file_menu.add_command(command=self.choose_cid, label='Choose CID...')
-        file_menu.add_command(command=self.choose_data, label='Choose data...')
-        file_menu.add_command(command=self.save_log_as, label='Save log as...')
-        menubar.add_cascade(label='File', menu=file_menu)
+        self._file_menu = Menu(menubar, tearoff=False)
+        self._file_menu.add_command(command=self.choose_cid, label='Choose CID...')
+        self._file_menu.add_command(command=self.choose_data, label='Choose data...')
+        self._file_menu.add_command(command=self.save_validation_report_as, label='Save validation report as...')
+        self._file_menu.add_command(command=self.quit, label='Quit')
+        menubar.add_cascade(label='File', menu=self._file_menu)
         help_menu = Menu(menubar, tearoff=False)
         help_menu.add_command(command=self.show_about, label='About')
         menubar.add_cascade(label='Help', menu=help_menu)
@@ -152,15 +159,25 @@ class CutplaceFrame(Frame):
         self._enable_usable_widgets()
 
     def _enable_usable_widgets(self):
-        def set_state(widget_to_set_state_for, possibly_empty_text):
+        def state_for(possibly_empty_text):
             if (possibly_empty_text is not None) and (possibly_empty_text.rstrip() != ''):
-                state = 'normal'
+                result = 'normal'
             else:
-                state = 'disabled'
-            widget_to_set_state_for.config(state=state)
+                result = 'disabled'
+            return result
+
+        def set_state(widget_to_set_state_for, possibly_empty_text):
+            widget_to_set_state_for.config(state=state_for(possibly_empty_text))
 
         set_state(self._validate_button, self.cid_path)
-        set_state(self._validation_result_text, self.validation_result)
+        set_state(self._validation_report_text, self.validation_report)
+        set_state(self._data_path_entry, self.cid_path)
+        set_state(self._choose_data_button, self.cid_path)
+
+        cid_path_state = state_for(self.cid_path)
+        self._file_menu.entryconfig(_CHOOSE_DATA_PATH_MENU_INDEX, state=cid_path_state)
+        self._file_menu.entryconfig(_SAVE_VALIDATION_REPORT_AS_MENU_INDEX, state=state_for(self.validation_report))
+
 
     def choose_cid(self):
         """
@@ -180,30 +197,33 @@ class CutplaceFrame(Frame):
             self.data_path = data_path
             self._enable_usable_widgets()
 
-    def save_log_as(self):
+    def save_validation_report_as(self):
         """
         Open a dialog to set specify where the validation results should be
         stored and write to this file.
         """
-        validation_result_path = self._save_log_as_dialog.show()
-        if validation_result_path != '':
+        validation_report_path = self._save_log_as_dialog.show()
+        if validation_report_path != '':
             try:
-                with io.open(validation_result_path, 'w', encoding='utf-8') as validation_result_file:
-                    validation_result_file.write(self._validation_result_text.get(1.0, END))
+                with io.open(validation_report_path, 'w', encoding='utf-8') as validation_result_file:
+                    validation_result_file.write(self._validation_report_text.get(1.0, END))
             except Exception as error:
                 showerror('Cutplace error', 'Cannot save validation results:\n%s' % error)
+
+    def quit(self):
+        self.destroy()  # FIXME: Actually close root frame and exit application.
 
     def show_about(self):
         showinfo('Cutplace', 'Version ' + __version__)
 
-    def clear_validation_result_text(self):
+    def clear_validation_report_text(self):
         """
         Clear the text area containing the validation results.
         """
-        self._validation_result_text.configure(state='normal')
-        self._validation_result_text.delete(1.0, END)
-        self._validation_result_text.see(END)
-        self._validation_result_text.configure(state='disabled')
+        self._validation_report_text.configure(state='normal')
+        self._validation_report_text.delete(1.0, END)
+        self._validation_report_text.see(END)
+        self._enable_usable_widgets()
 
     def _cid_path(self):
         return self._cid_path_entry.get()
@@ -226,8 +246,8 @@ class CutplaceFrame(Frame):
     data_path = property(_data_path, _set_data_path, None, 'Path of the data to validate')
 
     @property
-    def validation_result(self):
-        return self._validation_result_text.get(0.0, END)
+    def validation_report(self):
+        return self._validation_report_text.get(0.0, END)
 
     def validate(self):
         """
@@ -238,12 +258,12 @@ class CutplaceFrame(Frame):
         assert self.cid_path != ''
 
         def add_log_line(line):
-            self._validation_result_text.config(state=NORMAL)
+            self._validation_report_text.config(state=NORMAL)
             try:
-                self._validation_result_text.insert(END, line + '\n')
-                self._validation_result_text.see(END)
+                self._validation_report_text.insert(END, line + '\n')
+                self._validation_report_text.see(END)
             finally:
-                self._validation_result_text.config(state=DISABLED)
+                self._validation_report_text.config(state=DISABLED)
 
         def add_log_error_line(line_or_error):
             add_log_line('ERROR: %s' % line_or_error)
@@ -255,7 +275,7 @@ class CutplaceFrame(Frame):
         assert self.cid_path != ''
 
         cid_name = os.path.basename(self.cid_path)
-        self.clear_validation_result_text()
+        self.clear_validation_report_text()
         add_log_line('%s: validating' % cid_name)
         self._enable_usable_widgets()
         cid = None
