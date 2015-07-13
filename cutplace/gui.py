@@ -79,11 +79,15 @@ class CutplaceFrame(Frame):
         :param keywords: Tk keywords
         """
         assert has_tk
+        assert master is not None
+
         if six.PY2:
             # In Python 2, Frame is an old style class.
             Frame.__init__(self, master, config, **keywords)
         else:
             super().__init__(master, config, **keywords)
+
+        self._master = master
 
         # Define basic layout.
         self.grid(padx=_PADDING, pady=_PADDING)
@@ -211,7 +215,7 @@ class CutplaceFrame(Frame):
                 showerror('Cutplace error', 'Cannot save validation results:\n%s' % error)
 
     def quit(self):
-        self.destroy()  # FIXME: Actually close root frame and exit application.
+        self._master.destroy()
 
     def show_about(self):
         showinfo('Cutplace', 'Version ' + __version__)
