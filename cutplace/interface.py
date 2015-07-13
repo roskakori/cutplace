@@ -378,10 +378,14 @@ class Cid(object):
         self._location.advance_cell()
         field_rule = items[5].strip()
         _log.debug("create field: %s(%r, %r, %r)", field_class.__name__, field_name, field_type, field_rule)
-        field_format = field_class.__new__(
-            field_class, field_name, field_is_allowed_to_be_empty, field_length, field_rule)
-        field_format.__init__(
-            field_name, field_is_allowed_to_be_empty, field_length, field_rule, self._data_format)
+        try:
+            field_format = field_class.__new__(
+                field_class, field_name, field_is_allowed_to_be_empty, field_length, field_rule)
+            field_format.__init__(
+                field_name, field_is_allowed_to_be_empty, field_length, field_rule, self._data_format)
+        except errors.InterfaceError as error:
+            error_location = error.location if error.location is not None else self._location
+            error.prepend_message('cannot declare field %s' % _compat.text_repr(field_name), error_location)
 
         # Validate field length.
         # TODO #82: Cleanup validation for declared field formats.

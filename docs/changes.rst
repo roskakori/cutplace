@@ -5,12 +5,15 @@ Revision history
 This chapter describes improvements compared to earlier versions of cutplace.
 
 
-Version 0.8.6, 2015-07-06
+Version 0.8.6, 2015-07-13
 =========================
 
 * Added command line option :option:`--gui` to open a graphical user
   interface for validation (issue
   `#77 <https://github.com/roskakori/cutplace/issues/77>`_).
+* Improved error message for broken field declarations in CIDs detected by
+  the field format constructor, which now include the name of the field and
+  the location in the CID.
 * Improved error message when attempting to use a 0 byte as item delimiter in
   CID's for delimited data. (Python's :py:mod:`csv` module fails with a
   :py:exc:`TypeError` because the low level implementation is based on C).
