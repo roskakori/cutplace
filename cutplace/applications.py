@@ -74,6 +74,9 @@ class CutplaceApp(object):
 
         parser = argparse.ArgumentParser(description=description)
         parser.add_argument(
+            '--create', '-C', action='store_true', dest='is_create_sql',
+            help='write SQL statement to create a table representing CID-FILE')
+        parser.add_argument(
             '--gui', '--g', action='store_true', dest='is_gui',
             help='provide a graphical user interface to set CID-FILE and DATA-FILE')
         parser.add_argument(
@@ -83,16 +86,13 @@ class CutplaceApp(object):
             '--plugins', '-P', metavar='FOLDER', dest='plugins_folder',
             help='folder to scan for plugins (default: no plugins)')
         parser.add_argument(
-            '-u', '--until', metavar='COUNT', dest='validate_until', default=DEFAULT_VALIDATE_UNTIL, type=int,
+            '--until', '-u', metavar='COUNT', dest='validate_until', default=DEFAULT_VALIDATE_UNTIL, type=int,
             help='maximum number of rows to validate; -1=all, 0=none (default: %d)' % DEFAULT_VALIDATE_UNTIL)
         parser.add_argument('--version', action='version', version=version)
         parser.add_argument(
             'cid_path', metavar='CID-FILE', nargs='?', help='file containing a cutplace interface definition (CID)')
         parser.add_argument(
             'data_paths', metavar='DATA-FILE', nargs='*', help='data file(s) to validate')
-        parser.add_argument(
-            '--create', '-C', action='store_true', dest='is_create_sql',
-            help='write SQL statement to create a table representing CID-FILE')
         args = parser.parse_args(argv[1:])
 
         self._log.setLevel(_tools.LOG_LEVEL_NAME_TO_LEVEL_MAP[args.log_level])
