@@ -30,7 +30,7 @@ from cutplace import rowio
 from cutplace._compat import python_2_unicode_compatible
 
 # TODO: Move to module ``ranges``.
-MAX_TINYINT = 2 ** 7 - 1
+MAX_TINYINT = 2 ** 8 - 1  # NOTE: Tinyint really is unsigned.
 MAX_SMALLINT = 2 ** 15 - 1
 MAX_INTEGER = 2 ** 31 - 1
 MAX_BIGINT = 2 ** 63 - 1
