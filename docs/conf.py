@@ -8,11 +8,11 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys
-import os
 import inspect
-from sphinx import apidoc
+import os
+import sys
 
+from sphinx import apidoc
 
 __location__ = os.path.join(os.getcwd(), os.path.dirname(
     inspect.getfile(inspect.currentframe())))
@@ -53,7 +53,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'cutplace'
-copyright = u'2014, Thomas Aglassinger'
+copyright = u'2015, Thomas Aglassinger'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

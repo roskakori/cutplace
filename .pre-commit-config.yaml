@@ -1,13 +1,16 @@
 -   repo: git://github.com/pre-commit/pre-commit-hooks
-    sha: v0.3.0
+    sha: v0.4.1
     hooks:
     -   id: trailing-whitespace
+    -   id: check-added-large-files
     -   id: check-json
     -   id: check-yaml
+    -   id: check-xml
     -   id: debug-statements
     -   id: end-of-file-fixer
+    -   id: requirements-txt-fixer
     -   id: flake8
-        args: ["--exclude=versioneer.py,cutplace/_version.py,docs/conf.py"]
+        args: ["--exclude=docs/conf.py"]
 
 -   repo: git://github.com/FalconSocial/pre-commit-python-sorter
     sha: 1.0.1

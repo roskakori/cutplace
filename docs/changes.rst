@@ -5,9 +5,18 @@ Revision history
 This chapter describes improvements compared to earlier versions of cutplace.
 
 
-Version 0.8.6, 2015-07-13
+Version 0.8.6, 2015-07-14
 =========================
 
+* Fixed installation from source distribution by upgrading to
+  `Pyscaffold https://pypi.python.org/pypi/pyscaffold`
+  2.2.1. Earlier versions used
+  `versioneer https://pypi.python.org/pypi/versioneer` for version numbering
+  and forgot to include ``versionneer.py`` in the distribution archive. The
+  current version uses
+  `setuptools_scm https://pypi.python.org/pypi/setuptools_scm` which only
+  needs a clean dependency instead of additional source code (issue
+  `#108 <https://github.com/roskakori/cutplace/issues/108>`_).
 * Added command line option :option:`--gui` to open a graphical user
   interface for validation (issue
   `#77 <https://github.com/roskakori/cutplace/issues/77>`_).
