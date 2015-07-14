@@ -182,7 +182,6 @@ class CutplaceFrame(Frame):
         self._file_menu.entryconfig(_CHOOSE_DATA_PATH_MENU_INDEX, state=cid_path_state)
         self._file_menu.entryconfig(_SAVE_VALIDATION_REPORT_AS_MENU_INDEX, state=state_for(self.validation_report))
 
-
     def choose_cid(self):
         """
         Open a dialog to set the CID path.
