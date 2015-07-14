@@ -60,7 +60,7 @@ def version2str(version):
         if '.dev' in version:
             version, tail = version.rsplit('.dev', 1)
             assert tail == '0', 'own dev numbers are unsupported'
-        return '{}.post0.dev{}'.format(version, distance)
+        return '{0}.post0.dev{1}'.format(version, distance)
 
 
 def local_version2str(version):
@@ -127,7 +127,7 @@ def prepare_console_scripts(dct):
 
 
 def prepare_extras_require(dct):
-    return {k: [r.strip() for r in v.split(',')] for k, v in dct.items()}
+    return dict([(k, [r.strip() for r in v.split(',')]) for k, v in dct.items()])
 
 
 def prepare_data_files(dct):
@@ -146,7 +146,7 @@ def prepare_data_files(dct):
 
 
 def read_setup_cfg():
-    config = configparser.SafeConfigParser(allow_no_value=True)
+    config = configparser.SafeConfigParser()
     config_file = os.path.join(__location__, 'setup.cfg')
     with open(config_file, 'r') as f:
         config.readfp(f)
@@ -205,7 +205,7 @@ def build_cmd_docs():
 def setup_package():
     docs_path = os.path.join(__location__, "docs")
     docs_build_path = os.path.join(docs_path, "_build")
-    needs_pytest = {'pytest', 'test', 'ptr'}.intersection(sys.argv)
+    needs_pytest = set(['pytest', 'test', 'ptr']).intersection(sys.argv)
     pytest_runner = ['pytest-runner'] if needs_pytest else []
     install_reqs = get_install_requirements("requirements.txt")
     metadata, console_scripts, extras_require, data_files = read_setup_cfg()
