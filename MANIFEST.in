@@ -1,6 +1,0 @@
-include versioneer.py
-include *.txt
-include *.rst
-include tox.ini
-recursive-include cutplace *.py *.c *.h *.pxd *.pyx
-recursive-include docs *.rst *.py
