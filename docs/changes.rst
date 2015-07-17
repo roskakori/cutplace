@@ -9,6 +9,12 @@ Version 0.8.7, 2015-07-xx
 =========================
 
 * Fixed :py:exc:`NameError` on platforms without :py:mod:`tkinter`.
+* Improved documenation:
+
+  * Fixed missing example for own field and check in
+    :ref:`using-own-check-and-field-formats` (issue
+    `#33 <https://github.com/roskakori/cutplace/issues/33>`_).
+
 * Improved API:
 
   * Fixed that :py:meth:`cutplace.rows` also yielded header rows instead of

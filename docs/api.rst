@@ -654,9 +654,10 @@ Plugins are standard Python modules that define classes based on
 :py:class:`cutplace.fields.AbstractCheck` and
 :py:class:`cutplace.fields.AbstractFieldFormat`. For our example, create a
 folder named :file:`~/cutplace_plugins` and store a Python module named
-:file:`myplugins.py` in it with the following contents::
+:file:`myplugins.py` in it with the following contents:
 
 .. literalinclude:: ../examples/plugins.py
+  :language: python
 
 
 The CID can now refer to :py:class:`ColorFieldFormat` as ``Color`` (without
