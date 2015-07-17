@@ -73,9 +73,9 @@ class AbstractCheck(object):
         Reset all internal resources needed by the check to keep track of the check conditions.
         By default do nothing.
 
-        It is recommended that the :py:meth:`.__init__` of any child classes calls this method.
+        It is recommended that the :py:meth:`.__init__` of any child class calls this method.
 
-        This is called by :py:meth:`cutplace.validator.Reader.validate` when starting to validate the data.
+        This is called by :py:meth:`cutplace.validio.Reader.validate_rows` when starting to validate the data.
         """
         pass
 
@@ -154,7 +154,7 @@ class AbstractCheck(object):
         that need to extract field values by name or that have a `rule` referring to certain
         fields.
 
-        The order of field names in this list match the order of declaration in the CID.
+        The order of field names in this list matches the order of declaration in the CID.
         """
         return self._field_names
 

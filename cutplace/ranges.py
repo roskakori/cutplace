@@ -194,7 +194,7 @@ class Range(object):
         """
         assert default is None or (default.strip() != ''), "default=%r" % default
 
-        # Find out if a `text` has been specified and if not, use optional `default` instead.
+        # Find out if a `description` has been specified and if not, use optional `default` instead.
         has_description = (description is not None) and (description.strip() != '')
         if not has_description and default is not None:
             description = default
@@ -481,15 +481,47 @@ class Range(object):
 
 @python_2_unicode_compatible
 class DecimalRange(Range):
+    """
+    A decimal range to validate that decimal values are within it.
 
+    Example:
+
+    >>> from cutplace.ranges import DecimalRange
+    >>> size_range = DecimalRange('0...299.99')
+    >>> size_range.scale
+    5
+    >>> size_range.precision
+    2
+    >>> size_range.validate('size', '1.72')
+    >>> size_range.validate('size', '1234.56')  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    cutplace.errors.RangeValueError: size is Decimal('1234.56') but must be within range: '0.00...299.99'
+    """
     def __init__(self, description, default=None, location=None):
+        """
+        Setup a decimal range as specified by ``description``.
 
+        :param str description: a range description of the form \
+          ``lower...upper`` or ``limit``, possibly consisting of multiple \
+          items. In case it is empty (``''``), the range specified by \
+          ``default`` is used; the description also specifies the \
+          :py:attr:`~cutplace.ranges.DecimalRange.scale` and \
+          :py:attr:`~cutplace.ranges.DecimalRange.precision` valid numbers \
+          can use.
+        :param str default: an alternative to use in case ``description``
+          is ``None`` or empty; in case both ``description`` and \
+          ``default`` are ``None`` or empty, all values within the \
+          :py:const:`DEFAULT_SCALE` and :py:const:`DEFAULT_PRECISION` are \
+          valid.
+
+        """
         assert default is None or (default.strip() != ''), "default=%r" % default
 
         self._precision = DEFAULT_PRECISION
         self._scale = DEFAULT_SCALE
 
-        # Find out if a `text` has been specified and if not, use optional `default` instead.
+        # Find out if a `description` has been specified and if not, use optional `default` instead.
         has_description = (description is not None) and (description.strip() != '')
         if not has_description and default is not None:
             description = default

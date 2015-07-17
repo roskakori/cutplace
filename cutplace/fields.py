@@ -504,7 +504,7 @@ class IntegerFieldFormat(AbstractFieldFormat):
             lower_limit = self.valid_range.lower_limit
             upper_limit = self.valid_range.upper_limit
             limit = max(sign_adjusted_limit(lower_limit), sign_adjusted_limit(upper_limit))
-        return ('int', limit)
+        return 'int', limit
 
     def validated_value(self, value):
         assert value

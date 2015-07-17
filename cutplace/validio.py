@@ -268,7 +268,7 @@ class Reader(BaseValidator):
         :py:meth:`~cutplace.validio.Reader.rows()` conform to
         :py:attr:`~cutplace.validio.Reader.cid`.
 
-        In order to check everything, :py:meth`~.close()` has to be
+        In order to check everything, :py:meth:`~.close()` has to be
         called to also validate the checks at the end of the data.
 
         :raises cutplace.errors.DataError: on broken data
@@ -355,7 +355,7 @@ def rows(cid_or_path, data_stream_or_path, on_error='raise', validate_until=None
     :param data_stream_or_path: filelike object or :py:class:`str` \
       describing a path pointing to the data to be read
     :param str on_error: same as ``on_error`` for :py:class:`cutplace.Reader`
-    :param validate_until: same as ``on_error`` for \
+    :param validate_until: same as ``validate_until`` for \
       :py:class:`cutplace.Reader`
     :raises cutplace.errors.DataError: on broken data but only in case \
       ``on_error='raise'`` (the default)

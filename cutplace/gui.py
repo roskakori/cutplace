@@ -72,10 +72,10 @@ class CutplaceFrame(Frame):
 
         :param master: Tk master or root in which the frame should show up
         :param cid_path: optional preset for :guilabel:`CID` widget
-        :type: str or None
+        :type cid_path: str or None
         :param data_path: optional preset for :guilabel:`Data` widget
-        :type: str or None
-        :param config: Tik configuration
+        :type data_path: str or None
+        :param config: Tk configuration
         :param keywords: Tk keywords
         """
         assert has_tk
@@ -319,9 +319,9 @@ def open_gui(cid_path=None, data_path=None):
     Open a new window with a user interface to validate a CID and data file.
 
     :param cid_path: optional preset for :guilabel:`CID` widget
-    :type: str or None
+    :type cid_path: str or None
     :param data_path: optional preset for :guilabel:`Data` widget
-    :type: str or None
+    :type data_path: str or None
     """
     assert has_tk
 

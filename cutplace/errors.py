@@ -48,7 +48,7 @@ class Location(object):
 
     def __init__(self, file_path, has_column=False, has_cell=False, has_sheet=False):
         """
-        Create a new :py:class`Location` for the input described by
+        Create a new :py:class:`Location` for the input described by
         ``file_path``. This can also be a symbolic name such as
         ``"<source>"`` or ``"<string>"`` in case the input is no actual file.
         If ``file_path`` is no string type, ``"<io>"`` will be used.
@@ -203,7 +203,7 @@ class Location(object):
 
 def create_caller_location(modules_to_ignore=None, has_column=False, has_cell=False, has_sheet=False):
     """
-    :py:class`~cutplace.errors.Location` referring to the calling Python
+    :py:class:`~cutplace.errors.Location` referring to the calling Python
     source code.
     """
     actual_modules_to_ignore = ["errors"]
@@ -244,7 +244,7 @@ class CutplaceError(Exception):
       error.
     * :py:attr:`~cutplace.errors.CutplaceError.see_also_message`,
       :py:attr:`~cutplace.errors.CutplaceError.see_also_location` (can be
-      ``None``): a message and :py:class:`~cutplace.errors.CutplaceError`
+      ``None``): a message and :py:class:`~cutplace.errors.Location`
       describing additional information. For example, when a key field has to
       be unique but two data rows use the same value, this points to the
       first value while the actual ``message`` and ``location`` point to the

@@ -5,6 +5,11 @@ Revision history
 This chapter describes improvements compared to earlier versions of cutplace.
 
 
+Version 0.8.7, 2015-07-xx
+=========================
+
+* Cleaned up API documentation (typos, links).
+
 Version 0.8.6, 2015-07-14
 =========================
 

@@ -133,7 +133,7 @@ class Cid(object):
     @property
     def check_map(self):
         """
-        List of check names in no particular order.
+        Map of check names to the actual :py:class:`cutplace.checks.AbstractCheck`.
         """
         return self._check_name_to_check_map
 
@@ -306,8 +306,8 @@ class Cid(object):
         1) field name
         2) optional: example value (can be empty)
         3) optional: empty flag ("X" = field is allowed to be empty)
-        4) optional: length (using the syntax of py:class:`cutplace.ranges.Range`)
-        5) optional: field type (e.g. 'Integer' for py:class:`cutplace.fields.IntegerFieldFormat`)
+        4) optional: length (using the syntax of :py:class:`cutplace.ranges.Range`)
+        5) optional: field type (e.g. 'Integer' for :py:class:`cutplace.fields.IntegerFieldFormat`)
         6) optional: rule to validate field (depending on type)
 
         Any missing items are interpreted as empty string (``''``).
@@ -548,7 +548,7 @@ class Cid(object):
 
 def create_cid_from_string(cid_text):
     """
-    A py:class:`~cutplace.interface.Cid` as described in ``cid_text``
+    A :py:class:`~cutplace.interface.Cid` as described in ``cid_text``
     using CSV format with comma (,) as delimiter (factory function).
     """
     with io.StringIO(cid_text) as cid_string_io:
@@ -560,7 +560,7 @@ def field_names_and_lengths(fixed_cid):
     """
     List of tuples ``(field_name, field_length)`` for all field formats in
     ``fixed_cid`` which must be of data format
-    py:attr:`~cutplace.data.FORMAT_FIXED`. Here, ``field_length`` is an
+    :py:attr:`~cutplace.data.FORMAT_FIXED`. Here, ``field_length`` is an
     ``int`` derived from
     :py:attr:`~cutplace.fields.AbstractFieldFormat.length`.
     """
