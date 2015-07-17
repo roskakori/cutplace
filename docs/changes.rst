@@ -8,6 +8,7 @@ This chapter describes improvements compared to earlier versions of cutplace.
 Version 0.8.7, 2015-07-xx
 =========================
 
+* Fixed :py:exc:`NameError` on platforms without :py:mod:`tkinter`.
 * Improved API:
 
   * Fixed that :py:meth:`cutplace.rows` also yielded header rows instead of
