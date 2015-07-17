@@ -8,18 +8,23 @@ This chapter describes improvements compared to earlier versions of cutplace.
 Version 0.8.7, 2015-07-xx
 =========================
 
-* Cleaned up API documentation (typos, links).
+* Improved API:
+
+  * Fixed that :py:meth:`cutplace.rows` also yielded header rows instead of
+    only data rows.
+  * Cleaned up API documentation (typos, links).
+
 
 Version 0.8.6, 2015-07-14
 =========================
 
 * Fixed installation from source distribution by upgrading to
-  `Pyscaffold https://pypi.python.org/pypi/pyscaffold`
+  `Pyscaffold <https://pypi.python.org/pypi/pyscaffold>`_
   2.2.1. Earlier versions used
-  `versioneer https://pypi.python.org/pypi/versioneer` for version numbering
-  and forgot to include ``versionneer.py`` in the distribution archive. The
-  current version uses
-  `setuptools_scm https://pypi.python.org/pypi/setuptools_scm` which only
+  `versioneer <https://pypi.python.org/pypi/versioneer>`_ for version
+  numbering and forgot to include ``versionneer.py`` in the distribution
+  archive. The current version uses
+  `setuptools_scm <https://pypi.python.org/pypi/setuptools_scm>`_ which only
   needs a clean dependency instead of additional source code (issue
   `#108 <https://github.com/roskakori/cutplace/issues/108>`_).
 * Added command line option :option:`--gui` to open a graphical user
@@ -32,6 +37,7 @@ Version 0.8.6, 2015-07-14
   CID's for delimited data. (Python's :py:mod:`csv` module fails with a
   :py:exc:`TypeError` because the low level implementation is based on C).
 * Improved API: Cleaned up :py:class:`cutplace.Cid`:
+
   * Changed :py:meth:`cutplace.Cid.add_check` to require an
     :py:class:`cutplace.fields.AbstractCheck` as parameter and added
     :py:meth:`cutplace.Cid.add_check_row` to accept a row.

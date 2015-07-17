@@ -248,10 +248,11 @@ class Reader(BaseValidator):
             try:
                 is_after_header_row = (row_count > header_row_count)
                 is_before_validate_until = (self._validate_until is None) or (row_count <= self._validate_until)
-                if is_after_header_row and is_before_validate_until:
-                    self.validate_row(row)
-                self.accepted_rows_count += 1
-                yield row
+                if is_after_header_row:
+                    if is_before_validate_until:
+                        self.validate_row(row)
+                    self.accepted_rows_count += 1
+                    yield row
             except errors.DataError as error:
                 if self.on_error == 'raise':
                     raise

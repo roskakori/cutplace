@@ -150,7 +150,7 @@ class ReaderTest(unittest.TestCase):
         with io.StringIO('some_number\n1\n2\n3') as data:
             with validio.Reader(cid, data) as reader:
                 rows = list(reader.rows())
-        self.assertEqual([['some_number'], ['1'], ['2'], ['3']], rows)
+        self.assertEqual([['1'], ['2'], ['3']], rows)
 
     def test_fails_on_error_in_first_non_header_row(self):
         cid_text = '\n'.join([
