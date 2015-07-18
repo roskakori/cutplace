@@ -138,7 +138,7 @@ Dealing with errors
 ===================
 
 When :command:`cutplace` detects any errors in the CID or data or cannot
-validate them due external circumstances the logs an error messages and sets
+validate them due external circumstances, it logs an error messages and sets
 an exit code other than 0.
 
 The value of the exit code hints at what needs to be fixed:
