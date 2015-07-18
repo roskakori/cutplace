@@ -310,6 +310,15 @@ class CidTest(unittest.TestCase):
         ])
         self._test_fails_on_broken_cid_from_text(cid_text, '*cannot find class*')
 
+    def test_fails_on_broken_field_rule(self):
+        cid_text = '\n'.join([
+            ',CID with a broken Integer field rule.',
+            'D,Format,%s' % data.FORMAT_DELIMITED,
+            ' ,Name         ,,,Length,Type    ,Rule',
+            'F,some         ,,,      ,Integer ,no_integer_range',
+        ])
+        self._test_fails_on_broken_cid_from_text(cid_text, "*cannot declare field 'some':*")
+
     def test_fails_on_broken_field_name(self):
         cid_text = '\n'.join([
             ',CID referring to a field with a type for which there is no class',

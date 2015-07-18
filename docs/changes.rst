@@ -5,9 +5,11 @@ Revision history
 This chapter describes improvements compared to earlier versions of cutplace.
 
 
-Version 0.8.7, 2015-07-xx
+Version 0.8.7, 2015-07-18
 =========================
 
+* Fixed that errors detected by field formats during declaration got
+  suppressed and typically resulted in more confusing errors later.
 * Fixed :py:exc:`NameError` on platforms without :py:mod:`tkinter`.
 * Improved documenation:
 
@@ -212,7 +214,7 @@ The API (see :ref:`modindex`) has been reworked too and is cleaner and more
 pythonic now. The project structure applies most of the
 `Simple Rules For Building Great Python Packages <http://axialcorps.com/2013/08/29/5-simple-rules-for-building-great-python-packages/>`_.
 The basic project structure and build process are provided by
-`pyscaffold <https://github.com/Aaronontheweb/scaffold-py>`_.
+`Pyscaffold <https://pypi.python.org/pypi/pyscaffold>`_.
 
 * All essential functions can be accessed after a simple ``import cutplace``. The
   various sub modules are needed only for special requirements.

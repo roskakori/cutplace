@@ -386,6 +386,7 @@ class Cid(object):
         except errors.InterfaceError as error:
             error_location = error.location if error.location is not None else self._location
             error.prepend_message('cannot declare field %s' % _compat.text_repr(field_name), error_location)
+            raise error
 
         # Validate field length.
         # TODO #82: Cleanup validation for declared field formats.
