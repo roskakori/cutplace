@@ -1,15 +1,3 @@
-.. image:: https://pypip.in/py_versions/cutplace/badge.svg
-    :target: https://pypi.python.org/pypi/cutplace/
-    :alt: Supported Python versions
-
-.. image:: https://pypip.in/format/cutplace/badge.svg
-    :target: https://pypi.python.org/pypi/cutplace/
-    :alt: Download format
-
-.. image:: https://pypip.in/license/cutplace/badge.svg
-    :target: https://pypi.python.org/pypi/cutplace/
-    :alt: License
-
 .. image:: https://travis-ci.org/roskakori/cutplace.svg?branch=master
     :target: https://travis-ci.org/roskakori/cutplace
     :alt: Build Status
@@ -23,7 +11,7 @@
     :alt: Code Health
 
 Cutplace is a tool and API to validate that tabular data stored in CSV,
-Excel, ODS and PRN files conform to an cutplace interface definition (CID).
+Excel, ODS and PRN files conform to a cutplace interface definition (CID).
 
 As an example, consider the following ``customers.csv`` file that stores data
 about customers::
