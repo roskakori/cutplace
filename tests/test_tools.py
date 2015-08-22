@@ -44,7 +44,7 @@ class ToolsTest(unittest.TestCase):
         for customer_id in range(15):
             row = dev_test.create_test_customer_row(customer_id)
             self.assertTrue(row is not None)
-            self.assertEqual(len(row), 6)
+            self.assertEqual(len(row), 5)
 
     def test_can_validate_python_name(self):
         self.assertEqual(_tools.validated_python_name('x', 'abc_123'), 'abc_123')

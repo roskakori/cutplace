@@ -51,7 +51,7 @@ class CidTest(unittest.TestCase):
 
     def test_can_read_excel_and_create_data_format_delimited(self):
         cid_reader = interface.Cid()
-        source_path = dev_test.path_to_test_cid("icd_customers.xls")
+        source_path = dev_test.CID_CUSTOMERS_XLS_PATH
         cid_reader.read(source_path, rowio.excel_rows(source_path))
 
         self.assertEqual(cid_reader._data_format.format, "delimited")
@@ -102,27 +102,22 @@ class CidTest(unittest.TestCase):
 
     def test_can_read_fields_from_excel(self):
         cid_reader = interface.Cid()
-        source_path = dev_test.path_to_test_cid("icd_customers.xls")
+        source_path = dev_test.path_to_test_cid('cid_customers.xls')
         cid_reader.read(source_path, rowio.excel_rows(source_path))
-        self.assertEqual(cid_reader.field_names[0], 'branch_id')
-        self.assertEqual(cid_reader.field_formats[0].length.items, ranges.Range('5').items)
-        self.assertTrue(isinstance(cid_reader.field_formats[0], fields.TextFieldFormat))
-        self.assertEqual(cid_reader.field_names[1], 'customer_id')
-        self.assertTrue(isinstance(cid_reader.field_formats[1], fields.IntegerFieldFormat))
-        self.assertEqual(cid_reader.field_formats[1].length.items, ranges.Range('2...').items)
+        self.assertEqual(cid_reader.field_names[0], 'customer_id')
+        self.assertTrue(isinstance(cid_reader.field_formats[0], fields.IntegerFieldFormat))
+        self.assertEqual(cid_reader.field_names[1], 'surname')
+        self.assertTrue(isinstance(cid_reader.field_formats[1], fields.TextFieldFormat))
+        self.assertEqual(cid_reader.field_formats[1].length.items, ranges.Range('...60').items)
         self.assertEqual(cid_reader.field_names[2], 'first_name')
         self.assertTrue(isinstance(cid_reader.field_formats[2], fields.TextFieldFormat))
         self.assertEqual(cid_reader.field_formats[2].length.items, ranges.Range('...60').items)
-        self.assertEqual(cid_reader.field_names[3], 'surname')
-        self.assertTrue(isinstance(cid_reader.field_formats[3], fields.TextFieldFormat))
-        self.assertEqual(cid_reader.field_formats[3].length.items, ranges.Range('...60').items)
+        self.assertTrue(cid_reader.field_formats[2].is_allowed_to_be_empty)
+        self.assertEqual(cid_reader.field_names[3], 'date_of_birth')
+        self.assertTrue(isinstance(cid_reader.field_formats[3], fields.DateTimeFieldFormat))
         self.assertEqual(cid_reader.field_names[4], 'gender')
         self.assertTrue(isinstance(cid_reader.field_formats[4], fields.ChoiceFieldFormat))
-        self.assertEqual(cid_reader.field_formats[4].length.items, ranges.Range('2...6').items)
-        self.assertEqual(cid_reader.field_names[5], 'date_of_birth')
-        self.assertTrue(isinstance(cid_reader.field_formats[5], fields.DateTimeFieldFormat))
-        self.assertTrue(cid_reader.field_formats[5].is_allowed_to_be_empty)
-        self.assertEqual(cid_reader.field_formats[5].length.items, ranges.Range('10').items)
+        self.assertTrue(cid_reader.field_formats[4].is_allowed_to_be_empty)
 
     def test_can_handle_all_field_formats_from_array(self):
         cid_reader = interface.Cid()
@@ -184,21 +179,19 @@ class CidTest(unittest.TestCase):
 
     def test_can_read_delimited_rows(self):
         # TODO: either get rid of the CID and move it to test_iotools or use validate.Reader and move it to test_validate.
-        delimited_cid = interface.Cid(dev_test.path_to_test_cid("icd_customers.xls"))
+        delimited_cid = interface.Cid(dev_test.CID_CUSTOMERS_XLS_PATH)
         delimited_rows = rowio.delimited_rows(dev_test.path_to_test_data("valid_customers.csv"), delimited_cid._data_format)
         first_row = next(delimited_rows)
-        self.assertEqual(first_row, ['38000', '23', 'John', 'Doe', 'male', '08.03.1957'])
+        self.assertEqual(first_row, ['23', 'John', 'Doe', '1957-03-08', 'male'])
 
     def test_can_handle_checks_from_excel(self):
         cid_reader = interface.Cid()
-        source_path = dev_test.path_to_test_cid("customers.xls")
+        source_path = dev_test.CID_CUSTOMERS_XLS_PATH
         cid_reader.read(source_path, rowio.excel_rows(source_path))
         self.assertTrue(isinstance(cid_reader.check_for(cid_reader.check_names[0]), checks.IsUniqueCheck))
-        self.assertTrue(isinstance(cid_reader.check_for(cid_reader.check_names[1]), checks.DistinctCountCheck))
 
     def test_can_be_rendered_as_str(self):
-        customers_cid_path = dev_test.path_to_test_cid("customers.xls")
-        customers_cid = interface.Cid(customers_cid_path)
+        customers_cid = interface.Cid(dev_test.CID_CUSTOMERS_ODS_PATH)
         cid_str = str(customers_cid)
         self.assertTrue('Cid' in cid_str)
         self.assertTrue(data.FORMAT_DELIMITED in cid_str)

@@ -16,7 +16,7 @@ Excel, ODS and PRN files conform to a cutplace interface definition (CID).
 As an example, consider the following ``customers.csv`` file that stores data
 about customers::
 
-    ID,surname,first_name,born,gender
+    customer_id,surname,first_name,born,gender
     3798,Miller,John,1978-11-27,male
     19253,Webster Inc.,,1950-01-12,
     46418,Jane,Doe,2003-06-29,female
@@ -63,12 +63,12 @@ Cutplace can validate that the data file conforms to the CID::
 
 Now add a new line with a broken ``date_of_birth``::
 
-    73921,Harris,Diana,04.08.1913,female
+    73921,Harris,Diana,04.08.1953,female
 
 Cutplace rejects this file with the error message:
 
     customers.csv (R5C4): cannot accept field 'date_of_birth': date must
-    match format YYYY-MM-DD (%Y-%m-%d) but is: '04.08.1913'
+    match format YYYY-MM-DD (%Y-%m-%d) but is: '04.08.1953'
 
 Additionally, cutplace provides an easy to use API to read and write
 tabular data files using a common interface without having to deal with

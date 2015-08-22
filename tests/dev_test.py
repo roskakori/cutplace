@@ -121,7 +121,6 @@ _SURNAMES = [
     'Willis', 'Wilson', 'Wood', 'Woods', 'Wright', 'Young'
 ]
 
-
 def _random_datetime(start_text="1900-01-01 00:00:00", end_text="2009-03-15 23:59:59"):
     """
     A Random datetime between two datetime objects.
@@ -129,9 +128,9 @@ def _random_datetime(start_text="1900-01-01 00:00:00", end_text="2009-03-15 23:5
     Based on <http://stackoverflow.com/questions/553303/generate-a-random-date-between-two-other-dates>.
     """
     # TODO: Improve default time range: from (now - 120 years) to now.
-    timeFormat = "%Y-%m-%d %H:%M:%S"
-    start = datetime.strptime(start_text, timeFormat)
-    end = datetime.strptime(end_text, timeFormat)
+    time_format = "%Y-%m-%d %H:%M:%S"
+    start = datetime.strptime(start_text, time_format)
+    end = datetime.strptime(end_text, time_format)
 
     delta = end - start
     int_delta = (delta.days * 24 * 60 * 60) + delta.seconds
@@ -163,29 +162,54 @@ def random_name(is_male=True):
     return result
 
 
+def _path_to_project_folder(folder):
+    assert folder is not None
+
+    result = os.getcwd()
+    cutplace_init_path = os.path.join('cutplace', '__init__.py')
+    if not os.path.exists(os.path.join(result, cutplace_init_path)):
+        project_folder_found = False
+        previous_result = None
+        while not project_folder_found and (result != previous_result):
+            previous_result = result
+            result = os.path.dirname(result)
+            project_folder_found = os.path.exists(os.path.join(result, cutplace_init_path))
+        if not project_folder_found:
+            raise IOError(
+                "cannot find project folder: test must run from project folder; "
+                + "currently attempting to find project folder in: %r" % os.getcwd())
+    if folder is not None:
+        result = os.path.join(result, folder)
+    return result
+
+
+_EXAMPLES_FOLDER_PATH = _path_to_project_folder('examples')
+_TESTS_FOLDER_PATH = _path_to_project_folder('tests')
+
+
+def path_to_examples_folder():
+    """
+    Path to sub folder `folder` in 'tests' folder.
+    """
+    return _EXAMPLES_FOLDER_PATH
+
+
+def path_to_example(file_name):
+    """
+    Path of example file ``file_name``.
+    """
+    assert file_name
+
+    return os.path.join(_EXAMPLES_FOLDER_PATH, file_name)
+
+
 def path_to_test_folder(folder):
     """
     Path to sub folder `folder` in 'tests' folder.
     """
     assert folder
 
-    # Attempt to find `folder` in "tests" folder based from current folder.
-    test_folder = os.path.join(os.getcwd(), "tests")
-    if not os.path.exists(test_folder) and (len(sys.argv) == 2):
-        # Try the folder specified in the one and only command line option.
-        # TODO: Make the base folder a property setable from outside.
-        test_folder = os.path.join(sys.argv[1], "tests")
-    if not os.path.exists(test_folder):
-        base_path = os.getcwd()
-        test_folder_found = False
-        while not test_folder_found and base_path:
-            base_path = os.path.split(base_path)[0]
-            test_folder = os.path.join(base_path, "tests")
-            test_folder_found = os.path.exists(test_folder)
-    if not os.path.exists(test_folder):
-        raise IOError("cannot find test folder: test must run from project folder or project folder must be passed as command line option; currently attempting to find test folder in: %r" % test_folder)
-    result = os.path.join(test_folder, folder)
-    return result
+    return os.path.join(_TESTS_FOLDER_PATH, folder)
 
 
 def path_to_test_file(folder, file_name):
@@ -217,28 +241,35 @@ def path_to_test_result(file_name):
 
 def path_to_test_cid(cid_file_name):
     """
-    Path to test CID `cid_file_name` which has to be located in 'tests/input/cids'.
+    Path to test CID `cid_file_name` which has to be located in 'examples'
+    or 'tests/input/cids'.
     """
     assert cid_file_name
-    return path_to_test_file(os.path.join("data", "cids"), cid_file_name)
+    result = path_to_example(cid_file_name)
+    if not os.path.exists(result):
+        result = path_to_test_file(os.path.join("data", "cids"), cid_file_name)
+    return result
 
 
 def path_to_test_plugins():
     """
     Path to folder containing test plugins.
     """
-    return path_to_test_folder("data")
+    return _EXAMPLES_FOLDER_PATH
 
+
+CID_CUSTOMERS_ODS_PATH = path_to_example('cid_customers.ods')
+CID_CUSTOMERS_XLS_PATH = path_to_test_cid('cid_customers.xls')
+CUSTOMERS_CSV_PATH = path_to_example('customers.csv')
 
 def create_test_customer_row(customer_id):
-    branch_id = random.choice(['38000', '38053', '38111'])
     gender = random.choice(['female', 'male'])
     first_name = random_first_name(gender == 'male')
     surname = random_surname()
     if random.randint(0, 100) == 0:
         gender = "unknown"
-    date_of_birth = random_datetime("%d.%m.%Y")
-    return [branch_id, six.text_type(customer_id), first_name, surname, gender, date_of_birth]
+    date_of_birth = random_datetime('%Y-%m-%d')
+    return [six.text_type(customer_id), surname, first_name, date_of_birth, gender]
 
 
 def assert_fnmatches(test_case, actual_value, expected_pattern):

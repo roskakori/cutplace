@@ -141,8 +141,7 @@ class DelimitedRowsTest(_BaseRowsTest):
         self.assertEqual([['eggs'], ['sp\u00c4m']], actual_rows)
 
     def test_fails_on_delimited_with_unterminated_quote(self):
-        cid_path = dev_test.path_to_test_cid('customers.ods')
-        customer_cid = interface.Cid(cid_path)
+        customer_cid = interface.Cid(dev_test.CID_CUSTOMERS_ODS_PATH)
         broken_delimited_path = dev_test.path_to_test_data('broken_customers_with_unterminated_quote.csv')
         try:
             list(rowio.delimited_rows(broken_delimited_path, customer_cid.data_format))

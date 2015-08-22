@@ -14,7 +14,8 @@ class ColorFieldFormat(fields.AbstractFieldFormat):
     def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format):
         # HACK: Use super() in a way that works both in Python 2 and 3. If the code only has to work with Python 3,
         # use the cleaner `super().__init__(...)`.
-        super(ColorFieldFormat, self).__init__(
+        # FIXME: super(ColorFieldFormat, self).__init__(
+        fields.AbstractFieldFormat.__init__(self,
             field_name, is_allowed_to_be_empty, length, rule, data_format,
             empty_value=(0.0, 0.0, 0.0))  # Use black as "empty" color.
 

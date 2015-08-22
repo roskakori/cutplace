@@ -55,10 +55,10 @@ stored in a file and want to read it, use::
     >>>
     >>> # Compute the path of a test file in a system independent manner,
     >>> # assuming that the current folder is "docs".
-    >>> cid_path = os.path.join(os.pardir, 'tests', 'data', 'cids', 'customers.ods')
+    >>> cid_path = os.path.join(os.pardir, 'examples', 'cid_customers.ods')
     >>> cid = cutplace.Cid(cid_path)
     >>> cid.field_names
-    ['branch_id', 'customer_id', 'first_name', 'surname', 'gender', 'date_of_birth']
+    ['customer_id', 'surname', 'first_name', 'date_of_birth', 'gender']
 
 This is the easiest way to describe an interface. The input document is
 human readable even for non coders and quite simple to edit and maintain. It
@@ -74,7 +74,7 @@ called :py:func:`cutplace.validate` and :py:func:`cutplace.rows`.
 Both of them take to parameters: the path to a CID and the path to the data
 to validate or read. For example::
 
-    >>> valid_data_path = os.path.join(os.pardir, 'tests', 'data', 'valid_customers.csv')
+    >>> valid_data_path = os.path.join(os.pardir, 'examples', 'customers.csv')
     >>> cutplace.validate(cid_path, valid_data_path)
 
 If the data are valid, :py:func:`cutplace.validate` seemingly does nothing.
@@ -113,7 +113,7 @@ not conform to the CID? Let's take a look at it::
     >>> cutplace.validate(cid, broken_data_path)
     Traceback (most recent call last):
         ...
-    cutplace.errors.FieldValueError: broken_customers.csv (R4C1): cannot accept field 'branch_id': value '12345' must match regular expression: '38\\d\\d\\d'
+    cutplace.errors.FieldValueError: broken_customers.csv (R3C1): cannot accept field 'customer_id': value must be an integer number: 'abcd'    broken_customers.csv (R3C1): cannot accept field 'customer_id': value must be an integer number: 'abcd'
 
 Apparently the first broken data item causes the validation to stop with an
 :py:exc:`cutplace.errors.FieldValueError`, which is a descendant of

@@ -1,4 +1,4 @@
-"branch_id","customer_id","first_name","surname","gender","date_of_birth"
-38000,23,"John","Doe"
-38000,59,"Jane","Miller","female","04.10.1946"
-38053,17,"Mike","Webster","male","23.12.1974"
+customer_id,surname,first_name,born,gender
+3798,Miller,John,1978-11-27,male
+19253,Webster Inc.,,
+46418,Jane,Doe,2003-06-29,female

@@ -45,17 +45,17 @@ class ReaderTest(unittest.TestCase):
     Tests for data formats.
     """
     def test_can_open_and_validate_csv_source_file(self):
-        cid = interface.Cid(dev_test.path_to_test_cid("icd_customers.xls"))
-        with validio.Reader(cid, dev_test.path_to_test_data("valid_customers.csv")) as reader:
+        cid = interface.Cid(dev_test.CID_CUSTOMERS_ODS_PATH)
+        with validio.Reader(cid, dev_test.CUSTOMERS_CSV_PATH) as reader:
             reader.validate_rows()
 
     def test_can_open_and_validate_excel_source_file(self):
-        cid = interface.Cid(dev_test.path_to_test_cid("icd_customers_excel.xls"))
+        cid = interface.Cid(dev_test.path_to_test_cid("cid_customers_excel.xls"))
         with validio.Reader(cid, dev_test.path_to_test_data("valid_customers.xls")) as reader:
             reader.validate_rows()
 
     def test_can_open_and_validate_ods_source_file(self):
-        cid = interface.Cid(dev_test.path_to_test_cid("icd_customers_ods.xls"))
+        cid = interface.Cid(dev_test.path_to_test_cid("cid_customers_ods.xls"))
         with validio.Reader(cid, dev_test.path_to_test_data("valid_customers.ods")) as reader:
             reader.validate_rows()
 
@@ -65,31 +65,28 @@ class ReaderTest(unittest.TestCase):
             reader.validate_rows()
 
     def test_fails_on_invalid_csv_source_file(self):
-        cid = interface.Cid(dev_test.path_to_test_cid("icd_customers.xls"))
+        cid = interface.Cid(dev_test.CID_CUSTOMERS_XLS_PATH)
         with validio.Reader(cid, dev_test.path_to_test_data("broken_customers.csv")) as reader:
             self.assertRaises(errors.FieldValueError, reader.validate_rows)
 
     def test_fails_on_csv_source_file_with_fewer_elements_than_expected(self):
-        cid = interface.Cid(dev_test.path_to_test_cid("icd_customers.xls"))
+        cid = interface.Cid(dev_test.CID_CUSTOMERS_XLS_PATH)
         with validio.Reader(cid, dev_test.path_to_test_data("broken_customers_fewer_elements.csv")) as reader:
-            self.assertRaises(errors.DataError, reader.validate_rows)
+            dev_test.assert_raises_and_fnmatches(
+                self, errors.DataError,
+                "*(R3C1): row must contain 5 fields but only has 4: *'19253', *'Webster Inc.', *'', *''?", reader.validate_rows)
 
     def test_fails_on_csv_source_file_with_more_elements_than_expected(self):
-        cid_reader = interface.Cid(dev_test.path_to_test_cid("icd_customers.xls"))
+        cid_reader = interface.Cid(dev_test.CID_CUSTOMERS_XLS_PATH)
         with validio.Reader(cid_reader, dev_test.path_to_test_data("broken_customers_more_elements.csv")) as reader:
-            self.assertRaises(errors.DataError, reader.validate_rows)
+            dev_test.assert_raises_and_fnmatches(
+                self, errors.DataError,
+                "*(R3C1): row must contain 5 fields but has 6, additional values are: *'error'*", reader.validate_rows)
 
     def test_fails_on_invalid_csv_source_file_with_duplicates(self):
-        cid = interface.Cid(dev_test.path_to_test_cid("icd_customers.xls"))
+        cid = interface.Cid(dev_test.CID_CUSTOMERS_XLS_PATH)
         with validio.Reader(cid, dev_test.path_to_test_data("broken_customers_with_duplicates.csv")) as reader:
             self.assertRaises(errors.CheckError, reader.validate_rows)
-
-    def test_fails_on_invalid_csv_source_file_with_not_observed_count_expression(self):
-        cid = interface.Cid(dev_test.path_to_test_cid("icd_customers.xls"))
-        data_path = dev_test.path_to_test_data("broken_customers_with_too_many_branches.csv")
-        reader = validio.Reader(cid, data_path)
-        reader.validate_rows()
-        self.assertRaises(errors.CheckError, reader.close)
 
     def test_can_process_escape_character(self):
         """
@@ -332,9 +329,9 @@ class WriterTest(unittest.TestCase):
 
 class ValidationFunctionsTest(unittest.TestCase):
     def setUp(self):
-        self._cid_path = dev_test.path_to_test_cid("icd_customers.xls")
-        self._cid = interface.Cid(self._cid_path)
-        self._data_path = dev_test.path_to_test_data("valid_customers.csv")
+        self._cid_path = dev_test.CID_CUSTOMERS_XLS_PATH
+        self._cid = interface.Cid(dev_test.CID_CUSTOMERS_ODS_PATH)
+        self._data_path = dev_test.CUSTOMERS_CSV_PATH
 
     def test_can_validate_from_files(self):
         validio.validate(self._cid_path, self._data_path)

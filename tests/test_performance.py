@@ -56,19 +56,19 @@ def _build_lots_of_customers_csv(target_csv_path, customer_count=1000):
 
 
 def _build_and_validate_many_customers():
-    icd_ods_path = dev_test.path_to_test_cid("customers.ods")
+    cid_path = dev_test.CID_CUSTOMERS_ODS_PATH
     # TODO: Write to 'build/many_customers.csv'
     many_customers_csv_path = dev_test.path_to_test_data("lots_of_customers.csv")
     _build_lots_of_customers_csv(many_customers_csv_path, 50)
 
     # Validate the data using the API, so in case of errors we get specific information.
-    customers_cid = interface.Cid(icd_ods_path)
+    customers_cid = interface.Cid(cid_path)
     with validio.Reader(customers_cid, many_customers_csv_path) as reader:
         reader.validate_rows()
 
     # Validate the data using the command line application in order to use
     # the whole tool chain from an end user's point of view.
-    exit_code = applications.main(["test_performance.py", icd_ods_path, many_customers_csv_path])
+    exit_code = applications.main(["test_performance.py", cid_path, many_customers_csv_path])
     if exit_code != 0:
         raise ValueError("exit code of performance test must be 0 but is %d" % exit_code)
 
