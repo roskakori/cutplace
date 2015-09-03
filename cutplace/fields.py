@@ -526,19 +526,25 @@ class DateTimeFieldFormat(AbstractFieldFormat):
     """
     # We can't use a dictionary here because checks for patterns need to be in order. In
     # particular, "%" need to be checked first, and "YYYY" needs to be checked before "YY".
-    _human_readable_to_strptime_map = ["%:%%", "DD:%d", "MM:%m", "YYYY:%Y", "YY:%y", "hh:%H", "mm:%M", "ss:%S"]
+    _HUMAN_READABLE_TO_STRPTIME_TUPLES = (
+        ('%', '%%'),
+        ('DD', '%d'),
+        ('MM', '%m'),
+        ('YYYY', '%Y'),
+        ('YY', '%y'),
+        ('hh', '%H'),
+        ('mm', '%M'),
+        ('ss', '%S'),
+    )
 
     def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value=None):
         super(DateTimeFieldFormat, self).__init__(
             field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value)
         self.human_readable_format = rule
-        # Create an actual copy of the rule string so `replace()` will not modify the original..
-        strptime_format = "".join(rule)
 
-        for patternKeyValue in DateTimeFieldFormat._human_readable_to_strptime_map:
-            (key, value) = patternKeyValue.split(":")
-            strptime_format = strptime_format.replace(key, value)
-        self.strptimeFormat = strptime_format
+        self.strptime_format = rule
+        for human_readyble_item, strptime_item in DateTimeFieldFormat._HUMAN_READABLE_TO_STRPTIME_TUPLES:
+            self.strptime_format = self.strptime_format.replace(human_readyble_item, strptime_item)
 
     def sql_ansi_type(self):
         # FIXME: Use timestamp for ANSI, date, datetime and time for others.
@@ -548,11 +554,11 @@ class DateTimeFieldFormat(AbstractFieldFormat):
         assert value
 
         try:
-            result = time.strptime(value, self.strptimeFormat)
+            result = time.strptime(value, self.strptime_format)
         except ValueError:
             raise errors.FieldValueError(
                 "date must match format %s (%s) but is: %s (%s)"
-                % (self.human_readable_format, self.strptimeFormat, _compat.text_repr(value), sys.exc_info()[1]))
+                % (self.human_readable_format, self.strptime_format, _compat.text_repr(value), sys.exc_info()[1]))
         return result
 
 
