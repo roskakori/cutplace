@@ -44,46 +44,46 @@ class ReaderTest(unittest.TestCase):
     """
     Tests for data formats.
     """
-    def test_can_open_and_validate_csv_source_file(self):
+    def test_can_open_and_validate_csv(self):
         cid = interface.Cid(dev_test.CID_CUSTOMERS_ODS_PATH)
         with validio.Reader(cid, dev_test.CUSTOMERS_CSV_PATH) as reader:
             reader.validate_rows()
 
-    def test_can_open_and_validate_excel_source_file(self):
+    def test_can_open_and_validate_excel(self):
         cid = interface.Cid(dev_test.path_to_test_cid("cid_customers_excel.xls"))
         with validio.Reader(cid, dev_test.path_to_test_data("valid_customers.xls")) as reader:
             reader.validate_rows()
 
-    def test_can_open_and_validate_ods_source_file(self):
+    def test_can_open_and_validate_ods(self):
         cid = interface.Cid(dev_test.path_to_test_cid("cid_customers_ods.xls"))
         with validio.Reader(cid, dev_test.path_to_test_data("valid_customers.ods")) as reader:
             reader.validate_rows()
 
-    def test_can_open_and_validate_fixed_source_file(self):
+    def test_can_open_and_validate_fixed(self):
         cid = interface.Cid(dev_test.path_to_test_cid("customers_fixed.xls"))
         with validio.Reader(cid, dev_test.path_to_test_data("valid_customers_fixed.txt")) as reader:
             reader.validate_rows()
 
-    def test_fails_on_invalid_csv_source_file(self):
+    def test_fails_on_invalid_csv(self):
         cid = interface.Cid(dev_test.CID_CUSTOMERS_XLS_PATH)
         with validio.Reader(cid, dev_test.path_to_test_data("broken_customers.csv")) as reader:
             self.assertRaises(errors.FieldValueError, reader.validate_rows)
 
-    def test_fails_on_csv_source_file_with_fewer_elements_than_expected(self):
+    def test_fails_on_csv_with_fewer_elements_than_expected(self):
         cid = interface.Cid(dev_test.CID_CUSTOMERS_XLS_PATH)
         with validio.Reader(cid, dev_test.path_to_test_data("broken_customers_fewer_elements.csv")) as reader:
             dev_test.assert_raises_and_fnmatches(
                 self, errors.DataError,
                 "*(R3C1): row must contain 5 fields but only has 4: *'19253', *'Webster Inc.', *'', *''?", reader.validate_rows)
 
-    def test_fails_on_csv_source_file_with_more_elements_than_expected(self):
+    def test_fails_on_csv_with_more_elements_than_expected(self):
         cid_reader = interface.Cid(dev_test.CID_CUSTOMERS_XLS_PATH)
         with validio.Reader(cid_reader, dev_test.path_to_test_data("broken_customers_more_elements.csv")) as reader:
             dev_test.assert_raises_and_fnmatches(
                 self, errors.DataError,
                 "*(R3C1): row must contain 5 fields but has 6, additional values are: *'error'*", reader.validate_rows)
 
-    def test_fails_on_invalid_csv_source_file_with_duplicates(self):
+    def test_fails_on_invalid_csv_with_duplicates(self):
         cid = interface.Cid(dev_test.CID_CUSTOMERS_XLS_PATH)
         with validio.Reader(cid, dev_test.path_to_test_data("broken_customers_with_duplicates.csv")) as reader:
             self.assertRaises(errors.CheckError, reader.validate_rows)
