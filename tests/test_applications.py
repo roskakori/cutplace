@@ -31,7 +31,7 @@ from tests import dev_test
 from tests import _ods
 
 
-_log = logging.getLogger("cutplace")
+_log = logging.getLogger("cutplace.test_applications")
 
 _customers_cid_path = dev_test.path_to_example('cid_customers.ods')
 _valid_customers_csv_path = dev_test.path_to_example('customers.csv')
@@ -114,8 +114,8 @@ class CutplaceProcessTest(unittest.TestCase):
         self.assertRaises(IOError, applications.process, ['test_fails_on_non_existent_cid', 'no_such_cid.xls'])
 
     def test_can_validate_proper_csv(self):
-        cid_path = dev_test.path_to_test_cid('cid_customers.ods')
-        csv_path = dev_test.path_to_test_data('valid_customers.csv')
+        cid_path = dev_test.CID_CUSTOMERS_ODS_PATH
+        csv_path = dev_test.CUSTOMERS_CSV_PATH
         exit_code = applications.process(['test_can_validate_proper_csv', cid_path, csv_path])
         self.assertEqual(0, exit_code)
 

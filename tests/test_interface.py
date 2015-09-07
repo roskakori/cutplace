@@ -179,10 +179,12 @@ class CidTest(unittest.TestCase):
 
     def test_can_read_delimited_rows(self):
         # TODO: either get rid of the CID and move it to test_iotools or use validate.Reader and move it to test_validate.
-        delimited_cid = interface.Cid(dev_test.CID_CUSTOMERS_XLS_PATH)
-        delimited_rows = rowio.delimited_rows(dev_test.path_to_test_data("valid_customers.csv"), delimited_cid._data_format)
-        first_row = next(delimited_rows)
-        self.assertEqual(first_row, ['23', 'John', 'Doe', '1957-03-08', 'male'])
+        delimited_cid = interface.Cid(dev_test.CID_CUSTOMERS_ODS_PATH)
+        delimited_rows = rowio.delimited_rows(dev_test.CUSTOMERS_CSV_PATH, delimited_cid.data_format)
+        title_row = next(delimited_rows)
+        self.assertEqual(title_row, ['customer_id', 'surname', 'first_name', 'born', 'gender'])
+        first_data_row = next(delimited_rows)
+        self.assertEqual(first_data_row, ['3798', 'Miller', 'John', '1978-11-27', 'male'])
 
     def test_can_handle_checks_from_excel(self):
         cid_reader = interface.Cid()

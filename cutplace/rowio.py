@@ -215,7 +215,7 @@ def delimited_rows(delimited_source, data_format):
         try:
             for row in delimited_reader:
                 yield row
-        except csv.Error as error:
+        except (csv.Error, UnicodeDecodeError) as error:
             _raise_delimited_data_format_error(delimited_source, delimited_reader, error)
     finally:
         if has_opened_delimited_stream:

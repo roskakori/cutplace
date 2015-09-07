@@ -62,7 +62,7 @@ class ExcelRowsTest(_BaseRowsTest):
                 self.assertEqual(cutplace_value, excel_value)
 
     def test_fails_on_excel_from_csv(self):
-        csv_path = dev_test.path_to_test_data('valid_customers.csv')
+        csv_path = dev_test.CUSTOMERS_CSV_PATH
         try:
             list(rowio.excel_rows(csv_path))
             self.fail()
