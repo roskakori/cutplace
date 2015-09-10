@@ -269,7 +269,7 @@ class Reader(BaseValidator):
         :py:meth:`~cutplace.validio.Reader.rows()` conform to
         :py:attr:`~cutplace.validio.Reader.cid`.
 
-        In order to check everything, :py:meth:`~.close()` has to be
+        In order to check everything, :py:meth:`~.Reader.close()` has to be
         called to also validate the checks at the end of the data.
 
         :raises cutplace.errors.DataError: on broken data
