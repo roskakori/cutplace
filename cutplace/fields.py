@@ -536,6 +536,10 @@ class DateTimeFieldFormat(AbstractFieldFormat):
         ('mm', '%M'),
         ('ss', '%S'),
     )
+    _STRPTIME_TIME_DIRECTIVES = ('%H', '%M', '%S')
+    _STRPTIME_DATE_DIRECTIVES = ('%d', '%m', '%y', '%Y')
+    _NO_EXCEL_TIME = ' 00:00:00'
+    _NO_EXCEL_TIME_LENGTH = len(_NO_EXCEL_TIME)
 
     def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value=None):
         super(DateTimeFieldFormat, self).__init__(
@@ -545,6 +549,10 @@ class DateTimeFieldFormat(AbstractFieldFormat):
         self.strptime_format = rule
         for human_readyble_item, strptime_item in DateTimeFieldFormat._HUMAN_READABLE_TO_STRPTIME_TUPLES:
             self.strptime_format = self.strptime_format.replace(human_readyble_item, strptime_item)
+        self._has_time = any(
+            directive in self.strptime_format for directive in DateTimeFieldFormat._STRPTIME_TIME_DIRECTIVES)
+        self._has_date = any(
+            directive in self.strptime_format for directive in DateTimeFieldFormat._STRPTIME_DATE_DIRECTIVES)
 
     def sql_ansi_type(self):
         # FIXME: Use timestamp for ANSI, date, datetime and time for others.
@@ -553,12 +561,17 @@ class DateTimeFieldFormat(AbstractFieldFormat):
     def validated_value(self, value):
         assert value
 
+        if not self._has_time and (self.data_format.format == data.FORMAT_EXCEL) and (value.endswith(DateTimeFieldFormat._NO_EXCEL_TIME)):
+            value_to_validate = value[:-DateTimeFieldFormat._NO_EXCEL_TIME_LENGTH]
+        else:
+            value_to_validate = value
+
         try:
-            result = time.strptime(value, self.strptime_format)
+            result = time.strptime(value_to_validate, self.strptime_format)
         except ValueError:
             raise errors.FieldValueError(
                 "date must match format %s (%s) but is: %s (%s)"
-                % (self.human_readable_format, self.strptime_format, _compat.text_repr(value), sys.exc_info()[1]))
+                % (self.human_readable_format, self.strptime_format, _compat.text_repr(value_to_validate), sys.exc_info()[1]))
         return result
 
 
