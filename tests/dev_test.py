@@ -267,7 +267,7 @@ def create_test_customer_row(customer_id):
     first_name = random_first_name(gender == 'male')
     surname = random_surname()
     if random.randint(0, 100) == 0:
-        gender = ''
+        gender = ''g
     date_of_birth = random_datetime('%Y-%m-%d')
     return [six.text_type(customer_id), surname, first_name, date_of_birth, gender]
 
