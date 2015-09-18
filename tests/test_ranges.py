@@ -51,11 +51,11 @@ class RangeTest(unittest.TestCase):
         self.assertEqual(empty_range.items, None)
         self.assertEqual(empty_range.lower_limit, None)
         self.assertEqual(empty_range.upper_limit, None)
-        self.assertIsNone(empty_range.validate("x", ranges.MIN_INTEGER - 1))
-        self.assertIsNone(empty_range.validate("x", 1))
-        self.assertIsNone(empty_range.validate("x", 0))
-        self.assertIsNone(empty_range.validate("x", -1))
-        self.assertIsNone(empty_range.validate("x", ranges.MAX_INTEGER + 1))
+        self.assertEqual(None, empty_range.validate("x", ranges.MIN_INTEGER - 1))
+        self.assertEqual(None, empty_range.validate("x", 1))
+        self.assertEqual(None, empty_range.validate("x", 0))
+        self.assertEqual(None, empty_range.validate("x", -1))
+        self.assertEqual(None, empty_range.validate("x", ranges.MAX_INTEGER + 1))
 
     def test_can_handle_empty_range(self):
         self._test_can_handle_empty_range(None)
@@ -309,14 +309,14 @@ class DecimalRangeTest(unittest.TestCase):
 
     def _test_can_handle_empty_range(self, description):
         empty_range = ranges.DecimalRange(description)
-        self.assertEquals(empty_range.items, None)
-        self.assertEquals(empty_range.lower_limit, None)
-        self.assertEquals(empty_range.upper_limit, None)
-        self.assertIsNone(empty_range.validate("x", decimal.Decimal(ranges.MIN_DECIMAL_TEXT) - 1))
-        self.assertIsNone(empty_range.validate("x", decimal.Decimal('1.1')))
-        self.assertIsNone(empty_range.validate("x", 0))
-        self.assertIsNone(empty_range.validate("x", decimal.Decimal('-1.1')))
-        self.assertIsNone(empty_range.validate("x", decimal.Decimal(ranges.MAX_DECIMAL_TEXT) + 1))
+        self.assertEqual(empty_range.items, None)
+        self.assertEqual(empty_range.lower_limit, None)
+        self.assertEqual(empty_range.upper_limit, None)
+        self.assertEqual(None, empty_range.validate("x", decimal.Decimal('1.1')))
+        self.assertEqual(None, empty_range.validate("x", 0))
+        self.assertEqual(None, empty_range.validate("x", decimal.Decimal('-1.1')))
+        self.assertEqual(None, empty_range.validate("x", decimal.Decimal(ranges.MAX_DECIMAL_TEXT) + 1))
+        self.assertEqual(None, empty_range.validate("x", decimal.Decimal(ranges.MIN_DECIMAL_TEXT) - 1))
 
     def test_can_handle_empty_range(self):
         self._test_can_handle_empty_range(None)
