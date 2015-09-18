@@ -24,7 +24,6 @@ import fnmatch
 import logging
 import os
 import random
-import sys
 from datetime import timedelta, datetime
 from random import randrange
 
@@ -120,6 +119,7 @@ _SURNAMES = [
     'Watson', 'Watts', 'Weaver', 'Webb', 'Welch', 'Wells', 'West', 'Wheeler', 'White', 'Williams', 'Williamson',
     'Willis', 'Wilson', 'Wood', 'Woods', 'Wright', 'Young'
 ]
+
 
 def _random_datetime(start_text="1900-01-01 00:00:00", end_text="2009-03-15 23:59:59"):
     """
@@ -261,6 +261,7 @@ def path_to_test_plugins():
 CID_CUSTOMERS_ODS_PATH = path_to_example('cid_customers.ods')
 CID_CUSTOMERS_XLS_PATH = path_to_test_cid('cid_customers.xls')
 CUSTOMERS_CSV_PATH = path_to_example('customers.csv')
+
 
 def create_test_customer_row(customer_id):
     gender = random.choice(['female', 'male'])
