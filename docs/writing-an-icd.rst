@@ -510,6 +510,8 @@ F   department  sales    **X**          **Choice**  "sales"
 
 .. index:: double: field format; DateTime
 
+.. _field-format-datetime:
+
 DateTime
 --------
 

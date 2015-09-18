@@ -5,13 +5,28 @@ Revision history
 This chapter describes improvements compared to earlier versions of cutplace.
 
 
+Version 0.8.8, 2015-09-xx
+=========================
+
+* Improve validation of Excel dates and times. Fields of type
+  :ref:`field-format-datetime` now check the format specified by the rule
+  and in case it only contains date or time components only extracts those.
+  (API note: internally, Excel dates and times returned by the low level
+  function :py:meth:`cutplace.rowio.excel_rows()` still use the full
+  `YYYY-MM-DD hh:mm:ss` format. This mostly change effects
+  :py:class:`cutplace.validio.Reader` and
+  :py:meth:`cutplace.fields.DateTimeFieldFormat.validated_value()`.)
+* Cleaned up CID and data files for documentation, examples and tests. There
+  are fewer files now and they have multiple uses.
+
+
 Version 0.8.7, 2015-07-18
 =========================
 
 * Fixed that errors detected by field formats during declaration got
   suppressed and typically resulted in more confusing errors later.
 * Fixed :py:exc:`NameError` on platforms without :py:mod:`tkinter`.
-* Improved documenation:
+* Improved documentation:
 
   * Fixed missing example for own field and check in
     :ref:`using-own-check-and-field-formats` (issue

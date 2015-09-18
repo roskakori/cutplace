@@ -113,7 +113,7 @@ not conform to the CID? Let's take a look at it::
     >>> cutplace.validate(cid, broken_data_path)
     Traceback (most recent call last):
         ...
-    cutplace.errors.FieldValueError: broken_customers.csv (R3C1): cannot accept field 'customer_id': value must be an integer number: 'abcd'    broken_customers.csv (R3C1): cannot accept field 'customer_id': value must be an integer number: 'abcd'
+    cutplace.errors.FieldValueError: broken_customers.csv (R3C1): cannot accept field 'customer_id': value must be an integer number: 'abcd'
 
 Apparently the first broken data item causes the validation to stop with an
 :py:exc:`cutplace.errors.FieldValueError`, which is a descendant of
@@ -137,15 +137,15 @@ validation::
     ...     if isinstance(row_or_error, Exception):
     ...         if isinstance(row_or_error, cutplace.errors.CutplaceError):
     ...             # Print data related error details and move on.
-    ...             print(row_or_error)
+    ...             print('%s' % row_or_error)
     ...         else:
     ...             # Let other, more severe errors terminate the validation.
     ...             raise row_or_error
     ...     else:
     ...         pass  # We could also do something useful with the data in ``row`` here.
-    broken_customers.csv (R4C1): cannot accept field 'branch_id': value '12345' must match regular expression: '38\\d\\d\\d'
-    broken_customers.csv (R5C2): cannot accept field 'customer_id': value must be an integer number: 'XX'
-    broken_customers.csv (R6C6): cannot accept field 'date_of_birth': date must match format DD.MM.YYYY (%d.%m.%Y) but is: '30.02.1994' (day is out of range for month)
+    broken_customers.csv (R3C1): cannot accept field 'customer_id': value must be an integer number: 'abcd'
+    broken_customers.csv (R4C5): cannot accept field 'gender': value is 'unknown' but must be one of: 'female' or 'male'
+    broken_customers.csv (R5C4): cannot accept field 'date_of_birth': date must match format YYYY-MM-DD (%Y-%m-%d) but is: '17.04.1954' (time data '17.04.1954' does not match format '%Y-%m-%d')
 
 Note that it is possible for the reader to throw other exceptions, for example
 :py:exc:`IOError` in case the file cannot be read at all or :py:exc:`UnicodeError`
@@ -183,8 +183,8 @@ so, we compute the full name and print it::
     ...      surname = row[surname_index]
     ...      full_name = surname + ', ' + first_name
     ...      print(full_name)
-    Doe, John
-    Miller, Jane
+    Miller, John
+    Doe, Jane
 
 Of course nothing prevents you from doing more glamorous things here like
 inserting the data into a database or rendering them to a dynamic web page.
@@ -229,8 +229,8 @@ validation code::
     >>> import os.path
     >>> from cutplace import Cid, Reader
     >>> # Change this to use your own files.
-    >>> cid_path = os.path.join(os.pardir, 'tests', 'data', 'cids', 'customers.ods')
-    >>> data_path = os.path.join(os.pardir, 'tests', 'data', 'valid_customers.csv')
+    >>> cid_path = os.path.join(os.pardir, 'examples', 'cid_customers.ods')
+    >>> data_path = os.path.join(os.pardir, 'examples', 'customers.csv')
     >>> # Define the interface.
     >>> cid = Cid(cid_path)
     >>> # Validate the data.
@@ -264,7 +264,7 @@ Now you can create a writer and write a valid row to it::
 Attempting to write broken data results in an :py:exc:`Exception` derived
 from :py:exc:`cutplace.errors.CutplaceError`::
 
-    >>> writer.write_row(['38000', 'not a number', 'Jane', 'Miller', 'female', '04.10.1946']) #doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> writer.write_row(['not a number', 'Miller', 'John', '1978-11-27' ,'male']) #doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     FieldValueError: <io> (R1C2): field 'customer_id' must match format: value must be an integer number: 'not a number'
 
