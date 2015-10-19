@@ -13,7 +13,7 @@ and functions, refer to the :ref:`modindex`.
 
 This chapter describes how to perform a basic validation of a simple CSV file
 containing data about some customers. It also explains how to extend
-cutplace's fields formats and checks and implement your own.
+cutplace's fields formats and checks to implement your own.
 
 
 Logging
@@ -174,17 +174,18 @@ used in the CID::
     >>> surname_index =  cid.field_index('surname')
 
 Now we can read the data just like before. Instead of a simple ``pass`` loop
-we obtain the first name from ``row`` and check if it starts with ``'J'``. If
+we obtain the first name from ``row`` and check if it starts with ``'T'``. If
 so, we compute the full name and print it::
 
     >>> for row in cutplace.rows(cid, valid_data_path):
     ...   first_name = row[first_name_index]
-    ...   if first_name.startswith('J'):
+    ...   if first_name.startswith('T'):
     ...      surname = row[surname_index]
     ...      full_name = surname + ', ' + first_name
     ...      print(full_name)
-    Miller, John
-    Doe, Jane
+    Beck, Tyler
+    Lopez, Tyler
+    Rose, Tammy
 
 Of course nothing prevents you from doing more glamorous things here like
 inserting the data into a database or rendering them to a dynamic web page.
@@ -580,37 +581,34 @@ from the :doc:`tutorial`, which defined the following fields:
 
 +-+--------------------+----------+------+------+--------+------------+
 + +Name                +Example   +Empty?+Length+Type    +Rule        +
-+=+====================+==========+======+======+========+============+
-+F+branch_id           +38000     +      +5     +        +            +
 +-+--------------------+----------+------+------+--------+------------+
-+F+customer_id         +16        +      +2...  +Integer +10:65535    +
++F+customer_id         +16        +      +2:    +Integer +10...65535  +
 +-+--------------------+----------+------+------+--------+------------+
-+F+first_name          +Jane      +      +...60 +        +            +
++F+first_name          +Jane      +      +:60   +        +            +
 +-+--------------------+----------+------+------+--------+------------+
-+F+surname             +Doe       +      +...60 +        +            +
++F+surname             +Doe       +      +:60   +        +            +
 +-+--------------------+----------+------+------+--------+------------+
-+F+gender              +female    +      +2...6 +Choice  +male, female+
++F+date_of_birth       +1995-11-15+X     +10    +DateTime+YYYY-MM-DD  +
 +-+--------------------+----------+------+------+--------+------------+
-+F+date_of_birth       +27.02.1946+X     +10    +DateTime+DD.MM.YYYY  +
++F+gender              +female    +X     +2:6   +Choice  +male, female+
 +-+--------------------+----------+------+------+--------+------------+
 
 Now consider a data row with the following values:
 
-+---------+-----------+----------+-------+------+-------------+
-+Branch id+Customer id+First name+Surname+Gender+Date of birth+
-+=========+===========+==========+=======+======+=============+
-+38111    +96         +Andrew    +Dixon  +male  +02.10.1913   +
-+---------+-----------+----------+-------+------+-------------+
++-----------+----------+-------+-------------+=======+
++Customer id+First name+Surname+Date of birth+Gender +
++===========+==========+=======+=============+=======+
++96         +Andrew    +Dixon  +1913-10-02   +male   +
++-----------+----------+-------+-------------+-------+
 
 The row map for this row would be::
 
   row_map = {
-      'branch_id': 38111,
       'customer_id': 96,
       'first_name': 'Andrew',
       'last_name': 'Dixon',
-      'gender': 'male',
       'date_of_birth': time.struct_time(tm_year=1913, tm_mon=10, tm_mday=2, ...)
+      'gender': 'male',
   }
 
 With this knowledge, we can easily implement a :py:meth:`check_row()` that

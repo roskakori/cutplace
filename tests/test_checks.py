@@ -34,17 +34,13 @@ def _create_field_map(field_names, field_values):
     assert field_values
     assert len(field_names) == len(field_values)
 
-    # TODO: There must be a more pythonic way to do this.
-    result = {}
-    for fieldIndex in range(len(field_names) - 1):
-        result[field_names[fieldIndex]] = field_values[fieldIndex]
-    return result
+    return dict(zip(field_names, field_values))
 
 
 class _AbstractCheckTest(unittest.TestCase):
     def test_can_represent_check_as_str(self):
         field_names = _TEST_FIELD_NAMES
-        # TODO: Create an instance of the current class instead of _AbstractCheck even for ancestors.
+        # TODO: Create an instance of the current class instead of AbstractCheck even for ancestors.
         check = checks.AbstractCheck("test check", "", field_names)
         self.assertTrue(check.__str__())
 
@@ -71,10 +67,30 @@ class _AbstractCheckTest(unittest.TestCase):
 
 
 class IsUniqueCheckTest(_AbstractCheckTest):
-    def test_fails_on_duplicate(self):
+    def test_fails_on_duplicate_with_single_field(self):
+        field_names = ['customer_id']
+        check = checks.IsUniqueCheck('test check', 'customer_id', field_names)
+        location = errors.Location(self.test_fails_on_duplicate_with_single_field, has_cell=True)
+        check.check_row(_create_field_map(field_names, [1]), location)
+        location.advance_line()
+        check.check_row(_create_field_map(field_names, [2]), location)
+        location.advance_line()
+        try:
+            check.check_row(_create_field_map(field_names, [1]), location)
+            self.fail('duplicate row must cause CheckError')
+        except errors.CheckError as error:
+            self.assertTrue(error.see_also_location)
+            self.assertNotEqual(location, error.see_also_location)
+            self.assertEqual(error.location.cell, 0)
+
+        # These methods should not do anything, but call them anyway for tests sake.
+        check.check_at_end(location)
+        check.cleanup()
+
+    def test_fails_on_duplicate_with_multiple_fields(self):
         field_names = _TEST_FIELD_NAMES
         check = checks.IsUniqueCheck("test check", "branch_id, customer_id", field_names)
-        location = errors.Location(self.test_fails_on_duplicate, has_cell=True)
+        location = errors.Location(self.test_fails_on_duplicate_with_multiple_fields, has_cell=True)
         check.check_row(_create_field_map(field_names, [38000, 23, "John", "Doe", "male", "08.03.1957"]), location)
         location.advance_line()
         check.check_row(_create_field_map(field_names, [38000, 59, "Jane", "Miller", "female", "04.10.1946"]), location)

@@ -39,6 +39,7 @@ dist/*
 sdist/*
 docs/_rst/*
 docs/_build/*
+docs/include/*
 cover/*
 tests/build
 MANIFEST

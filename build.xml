@@ -22,6 +22,22 @@
         </sequential>
     </macrodef>
 
+    <macrodef name="torst">
+        <!-- Macro to run convert a data file to ReStructured text. -->
+        <attribute name="cid" />
+        <attribute name="data" />
+        <attribute name="rst" />
+        <sequential>
+            <exec executable="python" failonerror="true">
+                <env key="PYTHONPATH" value="."/>
+                <arg file="tests/dev_torst.py" />
+                <arg file="@{cid}" />
+                <arg file="@{data}" />
+                <arg file="@{rst}" />
+            </exec>
+        </sequential>
+    </macrodef>
+
     <target name="develop" depends="bdist_wheel" description="install current development version">
         <tstamp />
         <pyst command="develop" />
@@ -135,6 +151,8 @@
     </target>
 
     <target description="build documentation" name="docs">
+        <torst cid="examples/cid_customers.ods" data="examples/customers.csv" rst="docs/include/customers.rst" />
+        <torst cid="examples/cid_customers.ods" data="examples/customers_without_date_of_birth.csv" rst="docs/include/customers_without_date_of_birth.rst" />
         <pyst command="docs" />
     </target>
 

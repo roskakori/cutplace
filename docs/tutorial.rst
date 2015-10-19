@@ -11,7 +11,7 @@ the data. Starting from there, the CID gets refined and improved to
 allow more rigorous validations which detect increasingly subtle errors
 in the data.
 
-You can find the files for the examples in the ``examples`` folder of
+You can find the files for the examples in the :file:`examples` folder of
 the cutplace source distribution. For your convenience they are also
 provided as links at the bottom of each data or CID file.
 
@@ -28,33 +28,7 @@ See: :download:`customers.csv <../examples/customers.csv>`
 Because this is hard to read here is how the file looks if you
 open it in a spreadsheet application such as Excel or Calc:
 
-+---------+-----------+----------+-------+------+-------------+
-+Branch id+Customer id+First name+Surname+Gender+Date of birth+
-+=========+===========+==========+=======+======+=============+
-+38000    +16         +Daisy     +Mason  +female+27.02.1946   +
-+---------+-----------+----------+-------+------+-------------+
-+38000    +42         +Wendy     +Davis  +female+30.12.1971   +
-+---------+-----------+----------+-------+------+-------------+
-+38000    +57         +Keith     +Parker +male  +02.06.1984   +
-+---------+-----------+----------+-------+------+-------------+
-+38000    +76         +Kenneth   +Tucker +male  +15.11.1908   +
-+---------+-----------+----------+-------+------+-------------+
-+38053    +11         +Carlos    +Barrett+male  +09.02.1929   +
-+---------+-----------+----------+-------+------+-------------+
-+38053    +20         +Terrance  +Hart   +male  +11.03.1961   +
-+---------+-----------+----------+-------+------+-------------+
-+38053    +34         +Lori      +Dunn   +female+26.09.1996   +
-+---------+-----------+----------+-------+------+-------------+
-+38053    +73         +Mary      +Sutton +female+09.12.1982   +
-+---------+-----------+----------+-------+------+-------------+
-+38053    +83         +Lorraine  +Castro +female+15.08.1978   +
-+---------+-----------+----------+-------+------+-------------+
-+38111    +31         +Esther    +Newman +female+23.03.1932   +
-+---------+-----------+----------+-------+------+-------------+
-+38111    +79         +Tyler     +Rose   +male  +17.12.1920   +
-+---------+-----------+----------+-------+------+-------------+
-+38111    +127        +Andrew    +Dixon  +male  +02.10.1913   +
-+---------+-----------+----------+-------+------+-------------+
+.. include:: ../docs/include/customers.rst
 
 Describing data format and and field names
 ==========================================
@@ -82,17 +56,15 @@ Without much further ado, here's how you can tell these facts to cutplace:
 +-+-------------------+---+
 + +**Fields**         +   +
 +-+-------------------+---+
-+F+branch_id          +   +
-+-+-------------------+---+
 +F+customer_id        +   +
 +-+-------------------+---+
 +F+first_name         +   +
 +-+-------------------+---+
 +F+surname            +   +
 +-+-------------------+---+
-+F+gender             +   +
-+-+-------------------+---+
 +F+date_of_birth      +   +
++-+-------------------+---+
++F+gender             +   +
 +-+-------------------+---+
 
 See: :download:`cid_customers_field_names_only.ods <../examples/cid_customers_field_names_only.ods>`
@@ -156,39 +128,37 @@ mean the same for cutplace:
 +-+-------------------+---+
 +D+Header             +1  +
 +-+-------------------+---+
-+F+branch_id          +   +
-+-+-------------------+---+
 +F+customer_id        +   +
 +-+-------------------+---+
 +F+first_name         +   +
 +-+-------------------+---+
 +F+surname            +   +
 +-+-------------------+---+
-+F+gender             +   +
-+-+-------------------+---+
 +F+date_of_birth      +   +
 +-+-------------------+---+
++F+gender             +   +
++-+-------------------+---+
 
-But it's a lot harder to read for you, isn't it?
+But it's a lot harder to read, isn't it?
 
 How and where to store the CID
 ==============================
 
 So how do you store this information? Cutplace is quite flexible here.
 The easiest way would be to use a spreadsheet application such as Excel
-or OpenOffice.org's Calc and store it as ``*.xls`` or ``*.ods`` file.
-Alternatively you can use the text editor or your choice and store it as
-``*.csv``, where columns are separated with a comma (,) and data items
-with blanks or commas are embedded between double quotes (").
+or OpenOffice.org's Calc and store it as :file:`*.xlsx` or :file:`*.ods`
+file. Alternatively you can use the text editor or your choice and store it
+as UTF-8 encoded :file:`*.csv`, where columns are separated with a comma (,)
+and data items with blanks or commas are embedded between double quotes (").
 
 Concerning the location on your disk, cutplace does not impose any
-requirements on you
+requirements on you.
 
 .. TODO: Recommendations how to name the CID files.
 
 For this tutorial, we assume both the data and CID files are stored in
 the same folder which and that your current console terminal session already
-changed to this folder (using for example the command ``cd``).
+changed to this folder (using for example the command :command:`cd`).
 
 Running cutplace for the first time
 ===================================
@@ -207,7 +177,7 @@ Next let's try if cutplace has been installed properly::
 
 This should result in an output similar to::
 
-  cutplace.py 0.8.x (2015-xx-xx, rxxx)
+  cutplace 0.8.x
 
 The actual version numbers may vary. If your version of cutplace is older then
 |release|, consider upgrading to avoid compatibility issues with this
@@ -219,11 +189,11 @@ If instead this results in an error message, refer to the chapter on
 In case everything worked out so far, let's finally do what we came here
 for: validate that our data conform to the interface we just described::
 
-  cutplace cid_customers_1.ods customers_1.csv
+  cutplace cid_customers_field_names_only.ods customers.csv
 
 This assumes you used Calc to create the CID. Users of Excel should
-replace the "``.ods``" with "``.xls``", users of text editors with
-"``.csv``" respectively.
+replace the ":file:`.ods`" with ":file:`.xlsx`", users of text editors with
+":file:`.csv`" respectively.
 
 Summary so far
 ==============
@@ -258,17 +228,15 @@ letting you add an examples for a field right after the name:
 +-+--------------------+--------------+
 + +*Name*              +*Example*     +
 +-+--------------------+--------------+
-+F+branch_id           +**38000**     +
-+-+--------------------+--------------+
-+F+customer_id         +**16**        +
-+-+--------------------+--------------+
-+F+first_name          +**Jane**      +
++F+customer_id         +**1**         +
 +-+--------------------+--------------+
 +F+surname             +**Doe**       +
 +-+--------------------+--------------+
-+F+gender              +**female**    +
++F+first_name          +**Jane**      +
 +-+--------------------+--------------+
-+F+date_of_birth       +**27.02.1946**+
++F+date_of_birth       +**1995-11-15**+
++-+--------------------+--------------+
++F+gender              +**female**    +
 +-+--------------------+--------------+
 
 See: :download:`cid_customers_with_examples.ods <../examples/cid_customers_with_examples.ods>`
@@ -279,8 +247,8 @@ name to the generic "Jane Doe".
 
 These examples are entirely optional. If you cannot find a good example
 for a field (like one containing a database BLOB) or you do not think
-a real world example does not add any value (like for a field
-containing an encrypted password), feel free to leave it empty.
+a real world example does not add any value (like a field containing an
+encrypted password), feel free to leave it empty.
 
 Allowing fields to be empty
 ===========================
@@ -289,33 +257,7 @@ So far, every data item had an actual value and none of it was empty.
 But what if for instance we do not know the date of birth for one of
 our customers? Consider the following example data file:
 
-+---------+-----------+----------+-------+------+-------------+
-+Branch id+Customer id+First name+Surname+Gender+Date of birth+
-+---------+-----------+----------+-------+------+-------------+
-+38000    +16         +Daisy     +Mason  +female+27.02.1946   +
-+---------+-----------+----------+-------+------+-------------+
-+38000    +42         +Wendy     +Davis  +female+30.12.1971   +
-+---------+-----------+----------+-------+------+-------------+
-+38000    +57         +Keith     +Parker +male  +02.06.1984   +
-+---------+-----------+----------+-------+------+-------------+
-+38000    +76         +Kenneth   +Tucker +male  +             +
-+---------+-----------+----------+-------+------+-------------+
-+38053    +2          +Carlos    +Barrett+male  +09.02.1929   +
-+---------+-----------+----------+-------+------+-------------+
-+38053    +20         +Terrance  +Hart   +male  +11.03.1961   +
-+---------+-----------+----------+-------+------+-------------+
-+38053    +34         +Lori      +Dunn   +female+26.09.1996   +
-+---------+-----------+----------+-------+------+-------------+
-+38053    +73         +Mary      +Sutton +female+09.12.1982   +
-+---------+-----------+----------+-------+------+-------------+
-+38053    +83         +Lorraine  +Castro +female+15.08.1978   +
-+---------+-----------+----------+-------+------+-------------+
-+38111    +16         +Esther    +Newman +female+             +
-+---------+-----------+----------+-------+------+-------------+
-+38111    +79         +Tyler     +Rose   +male  +17.12.1920   +
-+---------+-----------+----------+-------+------+-------------+
-+38111    +96         +Andrew    +Dixon  +male  +02.10.1913   +
-+---------+-----------+----------+-------+------+-------------+
+.. include:: ../docs/include/customers_without_date_of_birth.rst
 
 See: :download:`customers_without_date_of_birth.csv <../examples/customers_without_date_of_birth.csv>`
 
@@ -324,18 +266,12 @@ Ester Newman in row 10.
 
 Now try to validate these data with the same CID we used before::
 
-  cutplace cid_customers_1.ods customers_without_date_of_birth.csv
+  cutplace cid_customers_field_names_only.ods customers_without_date_of_birth.csv
 
 This time the output contains the following lines::
 
-  INFO:cutplace:validate "customers_without_date_of_birth.csv"
-  ...
-  ERROR:cutplace:items: ['38000', '76', 'Kenneth', 'Tucker', 'male', '']
-  ERROR:cutplace:field error: field 'date_of_birth' must match format: value must not be empty
-  ...
-  ERROR:cutplace:items: ['38111', '16', 'Esther', 'Newman', 'female', '']
-  ERROR:cutplace:field error: field 'date_of_birth' must match format: value must not be empty
-  ...
+  INFO:cutplace:validate "examples/customers_without_date_of_birth.csv"
+  ERROR:cutplace:  customers_without_date_of_birth.csv (R4C4): cannot accept field 'date_of_birth': value must not be empty
 
 The essential part here is::
 
@@ -358,17 +294,15 @@ where fields that can be empty are marked with an ``X``:
 +-+--------------------+----------+----------+
 + +Name                +Example   +**Empty?**+
 +-+--------------------+----------+----------+
-+F+branch_id           +38000     +          +
-+-+--------------------+----------+----------+
 +F+customer_id         +16        +          +
 +-+--------------------+----------+----------+
 +F+first_name          +Jane      +          +
 +-+--------------------+----------+----------+
 +F+surname             +Doe       +          +
 +-+--------------------+----------+----------+
-+F+gender              +female    +          +
++F+date_of_birth       +1995-11-15+**X**     +
 +-+--------------------+----------+----------+
-+F+date_of_birth       +27.02.1946+**X**     +
++F+gender              +female    +**X**     +
 +-+--------------------+----------+----------+
 
 See: :download:`cid_customers_with_empty_fields.ods <../examples/cid_customers_with_empty_fields.ods>`
@@ -377,7 +311,11 @@ Now lets try again with the new CID::
 
   cutplace cid_customers_with_empty_fields.ods customers_without_date_of_birth.csv
 
-This time, no error messages show up and all the data are accepted.
+This time, no error messages show up and all the data are accepted::
+
+  INFO:cutplace:validate "customers_without_date_of_birth.csv"
+  INFO:cutplace:  accepted 10 rows
+
 
 Limiting the length of field values
 ===================================
@@ -393,26 +331,21 @@ Fortunately, cutplace allows to describe length limits for fields:
 +-+--------------------+----------+------+------------+
 + +Name                +Example   +Empty?+**Length**  +
 +-+--------------------+----------+------+------------+
-+F+branch_id           +38000     +      +**5**       +
-+-+--------------------+----------+------+------------+
 +F+customer_id         +16        +      +**2...**    +
 +-+--------------------+----------+------+------------+
 +F+first_name          +Jane      +      +**...60**   +
 +-+--------------------+----------+------+------------+
 +F+surname             +Doe       +      +**...60**   +
 +-+--------------------+----------+------+------------+
-+F+gender              +female    +      +**4...6**   +
++F+date_of_birth       +1995-11-15+X     +**10**      +
 +-+--------------------+----------+------+------------+
-+F+date_of_birth       +27.02.1946+X     +**10**      +
++F+gender              +female    +X     +**4...6**   +
 +-+--------------------+----------+------+------------+
 
 See: :download:`cid_customers_with_lengths.ods <../examples/cid_customers_with_lengths.ods>`
 
 Let's take a closer look at these examples, especially at the meaning of
 the ellipsis (...) in some of the description of the lengths.
-
-* The ``branch_id`` always has to have exactly 5 characters, so its
-  length is ``5``.
 
 * Let's assume same the ``customer_id`` has to have at least 2 characters
   because one of them is a checksum in order to catch (most) mistyped
@@ -422,12 +355,8 @@ the ellipsis (...) in some of the description of the lengths.
   because someone said so way back in the 70s when COBOL ruled the world.
   To express this as length, use ``...60``.
 
-* The ``gender`` can be ``male`` or ``female``, so its length is between
-  4 and 6, which reads as ``4...6``.
-
-* And finally, ``date_of_birth`` always takes exactly 10 characters
-  because apparently we require it to use leading zeros. This is
-  similar to ``brach_id``, which also used an exact length.
+* The ``date_of_birth`` always takes exactly 10 characters because apparently
+  we require it to use leading zeros.
 
   Wait a second, didn't we state before that the ``date_of_birth`` can be
   empty? Shouldn't we use ``0...10`` then? Actually no, because this would
@@ -435,10 +364,12 @@ the ellipsis (...) in some of the description of the lengths.
   possibility that ``date_of_birth`` can have a length of 0 is already
   taken care of by the ``X`` in the *Empty?* column.
 
-To summarize: lengths are either exact values (like ``5``) or ranges
-with an lower and upper limit separated by a colon (like ``4...6``).
-Either the lower or upper limit can be omitted (like ``2...`` or
-``...60``).
+* And finally, the ``gender`` can be ``male`` or ``female``, so its length is between
+  4 and 6, which reads as ``4...6``.
+
+To summarize: lengths are either exact values (like ``10``) or ranges with a
+lower and upper limit separated by a colon (like ``4...6``). Either the lower
+or upper limit can be omitted (like ``2...`` or ``...60``).
 
 In case you cannot decide yet on a reasonable limit on a certain field,
 just leave its entry in the *Length* column empty.
@@ -468,17 +399,15 @@ cutplace:
 +-+--------------------+----------+------+------+------------+----------------+
 + +Name                +Example   +Empty?+Length+**Type**    +**Rule**        +
 +-+--------------------+----------+------+------+------------+----------------+
-+F+branch_id           +38000     +      +5     +            +                +
-+-+--------------------+----------+------+------+------------+----------------+
 +F+customer_id         +16        +      +2:    +**Integer** +**10...65535**  +
 +-+--------------------+----------+------+------+------------+----------------+
 +F+first_name          +Jane      +      +:60   +            +                +
 +-+--------------------+----------+------+------+------------+----------------+
 +F+surname             +Doe       +      +:60   +            +                +
 +-+--------------------+----------+------+------+------------+----------------+
-+F+gender              +female    +      +2:6   +**Choice**  +**male, female**+
++F+date_of_birth       +1995-11-15+X     +10    +**DateTime**+**YYYY-MM-DD**  +
 +-+--------------------+----------+------+------+------------+----------------+
-+F+date_of_birth       +27.02.1946+X     +10    +**DateTime**+**DD.MM.YYYY**  +
++F+gender              +female    +X     +2:6   +**Choice**  +**male, female**+
 +-+--------------------+----------+------+------+------------+----------------+
 
 See: :download:`cid_customers_with_types_and_rules.ods <../examples/cid_customers_with_types_and_rules.ods>`
@@ -520,6 +449,8 @@ This tutorial showcases just a few of the types available.
   :ref:`field-format-regex`
     A field format to match patterns using regular expressions.
 
+
+
 Checking general conditions
 ===========================
 
@@ -528,10 +459,7 @@ of separate fields. But what about conditions that are more sophisticated
 and require several fields or rows to validate them?
 
 For example, we might want to validate that every customer has a unique
-``customer_id`` within its assigned branch.
-
-Or we might want to validate that the number of distinct branches does
-remain within a certain limit, say, 3 branches.
+``customer_id``.
 
 For these kind of conditions cutplace supports *checks*. Here's how it
 looks in practice:
@@ -541,9 +469,7 @@ looks in practice:
 +-+--------------------------------------+-------------+----------------------+
 + +*Description*                         +*Type*       +*Rule*                +
 +-+--------------------------------------+-------------+----------------------+
-+C+customer must be unique               +IsUnique     +branch_id, customer_id+
-+-+--------------------------------------+-------------+----------------------+
-+C+distinct branches must be within limit+DistinctCount+branch_id <= 3        +
++C+customer must be unique               +IsUnique     +customer_id           +
 +-+--------------------------------------+-------------+----------------------+
 
 See: :download:`cid_customers.ods <../examples/cid_customers.ods>`
@@ -566,6 +492,43 @@ the rule can look solely depends on the type of the check.
   :ref:`check-is-unique`
     A check to validate that a field value or a combination of field
     values is unique in each row compared with all other rows.
+
+It is also possible to check for composite keys spawning several fields. As an
+example consider multiple branches of a company where each branch can have a
+customer with a ``customer_id`` of for example ``16``:
+
++-+--------------------+----------+------+------+------------+----------------+
++ +Name                +Example   +Empty?+Length+Type        +Rule            +
++-+--------------------+----------+------+------+------------+----------------+
++F+**branch_id**       +123       +      +1...  +Integer     +1...99999       +
++-+--------------------+----------+------+------+------------+----------------+
++F+customer_id         +16        +      +2...  +Integer     +10...65535      +
++-+--------------------+----------+------+------+------------+----------------+
++F+first_name          +Jane      +      +...60 +            +                +
++-+--------------------+----------+------+------+------------+----------------+
++F+surname             +Doe       +      +...60 +            +                +
++-+--------------------+----------+------+------+------------+----------------+
++F+date_of_birth       +1995-11-15+X     +10    +DateTime    +YYYY-MM-DD      +
++-+--------------------+----------+------+------+------------+----------------+
++F+gender              +female    +X     +2...6 +Choice      +male, female    +
++-+--------------------+----------+------+------+------------+----------------+
+
+To check that the customer_id is unique within each branch, use:
+
++-+--------------------------------------+-------------+-----------------------+
++ +Description                           +Type         +Rule                   +
++-+--------------------------------------+-------------+-----------------------+
++C+customer must be unique within branch +IsUnique     +branch_id, customer_id +
++-+--------------------------------------+-------------+-----------------------+
+
+Possibly branches are 5 digit codes however in practice it might be known that
+there are at most 100 branches at the same time. To express this, use:
+
++-+---------------------------------------+--------------+-----------------+
++ +Description                            +Type          +Rule             +
++-+---------------------------------------+--------------+-----------------+
++C+distinct branches must be within limit +DistinctCount +branch_id <= 100 +
++-+---------------------------------------+--------------+-----------------+
 
 
 Conclusion

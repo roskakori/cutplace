@@ -24,6 +24,7 @@ import io
 import logging
 import os.path
 import pstats
+import random
 import unittest
 
 import six
@@ -45,14 +46,14 @@ except ImportError:
 
 
 def _build_lots_of_customers_csv(target_csv_path, customer_count=1000):
-    # TODO: Use a random seed to generate the same data every time.
     assert target_csv_path is not None
 
     _log.info('write lots of customers to "%s"', target_csv_path)
+    randomizer = random.Random(2)
     with io.open(target_csv_path, "w", newline='', encoding='cp1252') as target_csv_file:
         csv_writer = _compat.csv_writer(target_csv_file)
-        for customerId in range(customer_count):
-            csv_writer.writerow(dev_test.create_test_customer_row(customerId))
+        for customer_id in range(1, customer_count + 1):
+            csv_writer.writerow(dev_test.create_test_customer_row(customer_id, randomizer))
 
 
 def _build_and_validate_many_customers():

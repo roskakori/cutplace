@@ -30,6 +30,8 @@ from cutplace import _compat
 from cutplace import _tools
 from cutplace import rowio
 
+# TODO: Remove the whole module as it should be obsolete now due dev_torst.
+
 _log = logging.getLogger('cutplace.ods')
 
 

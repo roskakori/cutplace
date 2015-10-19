@@ -121,44 +121,44 @@ _SURNAMES = [
 ]
 
 
-def _random_datetime(start_text="1900-01-01 00:00:00", end_text="2009-03-15 23:59:59"):
+def _random_datetime(randomizer, start_text="1930-01-01 00:00:00", end_text="2015-09-30 23:59:59"):
     """
     A Random datetime between two datetime objects.
 
     Based on <http://stackoverflow.com/questions/553303/generate-a-random-date-between-two-other-dates>.
     """
-    # TODO: Improve default time range: from (now - 120 years) to now.
+    # TODO: Improve default time range: from (now - 110 years) to now.
     time_format = "%Y-%m-%d %H:%M:%S"
     start = datetime.strptime(start_text, time_format)
     end = datetime.strptime(end_text, time_format)
 
-    delta = end - start
-    int_delta = (delta.days * 24 * 60 * 60) + delta.seconds
-    random_second = randrange(int_delta)
-    return (start + timedelta(seconds=random_second))
+    delta_datetime = end - start
+    delta_in_seconds = (delta_datetime.days * 24 * 60 * 60) + delta_datetime.seconds
+    random_seconds = randomizer.randrange(delta_in_seconds)
+    return start + timedelta(seconds=random_seconds)
 
 
-def random_datetime(time_format="%Y-%m-%d %H:%M:%S"):
-    sometimes = _random_datetime()
+def random_datetime(randomizer, time_format="%Y-%m-%d %H:%M:%S"):
+    sometimes = _random_datetime(randomizer)
     return six.text_type(sometimes.strftime(time_format))
 
 
-def random_first_name(is_male=True):
+def random_first_name(randomizer, is_male=True):
     if is_male:
         first_names_pool = _MALE_NAMES
     else:
         first_names_pool = _FEMALE_NAMES
-    result = random.choice(first_names_pool)
+    result = randomizer.choice(first_names_pool)
     return result
 
 
-def random_surname():
-    result = random.choice(_SURNAMES)
+def random_surname(randomizer):
+    result = randomizer.choice(_SURNAMES)
     return result
 
 
-def random_name(is_male=True):
-    result = "%s %s" % (random_first_name(is_male), random_surname())
+def random_name(randomizer, is_male=True):
+    result = "%s %s" % (random_first_name(randomizer, is_male), random_surname(randomizer))
     return result
 
 
@@ -263,13 +263,14 @@ CID_CUSTOMERS_XLS_PATH = path_to_test_cid('cid_customers.xls')
 CUSTOMERS_CSV_PATH = path_to_example('customers.csv')
 
 
-def create_test_customer_row(customer_id):
-    gender = random.choice(['female', 'male'])
-    first_name = random_first_name(gender == 'male')
-    surname = random_surname()
-    if random.randint(0, 100) == 0:
+def create_test_customer_row(customer_id, randomizer=None):
+    actual_randomizer = randomizer if randomizer is not None else random.Random()
+    gender = actual_randomizer.choice(['female', 'male'])
+    first_name = random_first_name(actual_randomizer, gender == 'male')
+    surname = random_surname(actual_randomizer)
+    if actual_randomizer.randint(0, 100) == 0:
         gender = ''
-    date_of_birth = random_datetime('%Y-%m-%d')
+    date_of_birth = random_datetime(actual_randomizer, '%Y-%m-%d')
     return [six.text_type(customer_id), surname, first_name, date_of_birth, gender]
 
 

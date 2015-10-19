@@ -1,4 +1,11 @@
 customer_id,surname,first_name,born,gender
-3798,Miller,John,1978-11-27,male
-19253,Webster Inc.,,1950-01-12,
-46418,Doe,Jane,2003-06-29,female
+1,Beck,Tyler,1995-11-15,male
+2,Gibson,Martin,1969-08-18,male
+3,Hopkins,Chester,1982-12-19,male
+4,Lopez,Tyler,1930-10-13,male
+5,James,Ana,1943-08-10,female
+6,Martin,Jon,1932-09-27,male
+7,Knight,Carolyn,1977-05-25,female
+8,Rose,Tammy,2004-01-12,female
+9,Gutierrez,Reginald,2010-05-18,male
+10,Phillips,Pauline,1960-11-09,female

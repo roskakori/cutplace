@@ -184,7 +184,7 @@ class CidTest(unittest.TestCase):
         title_row = next(delimited_rows)
         self.assertEqual(title_row, ['customer_id', 'surname', 'first_name', 'born', 'gender'])
         first_data_row = next(delimited_rows)
-        self.assertEqual(first_data_row, ['3798', 'Miller', 'John', '1978-11-27', 'male'])
+        self.assertEqual(first_data_row, ['1', 'Beck', 'Tyler', '1995-11-15', 'male'])
 
     def test_can_handle_checks_from_excel(self):
         cid_reader = interface.Cid()

@@ -21,6 +21,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import os.path
+import random
 import unittest
 
 from cutplace import _tools
@@ -29,14 +30,16 @@ from tests import dev_test
 
 class ToolsTest(unittest.TestCase):
     def test_can_create_test_date_time(self):
+        randomizer = random.Random(0)
         for _ in range(15):
-            random_datetime = dev_test.random_datetime()
+            random_datetime = dev_test.random_datetime(randomizer)
             self.assertTrue(random_datetime is not None)
             self.assertNotEqual(random_datetime, '')
 
     def test_can_create_test_name(self):
+        randomizer = random.Random(0)
         for _ in range(15):
-            name = dev_test.random_name()
+            name = dev_test.random_name(randomizer)
             self.assertTrue(name is not None)
             self.assertNotEqual(name, '')
 
