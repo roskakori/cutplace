@@ -206,7 +206,7 @@ def create_caller_location(modules_to_ignore=None, has_column=False, has_cell=Fa
     :py:class:`~cutplace.errors.Location` referring to the calling Python
     source code.
     """
-    actual_modules_to_ignore = ["errors"]
+    actual_modules_to_ignore = ['errors', 'traceback']
     if modules_to_ignore:
         actual_modules_to_ignore.extend(modules_to_ignore)
     source_path = None
