@@ -17,9 +17,16 @@ As an example, consider the following ``customers.csv`` file that stores data
 about customers::
 
     customer_id,surname,first_name,born,gender
-    3798,Miller,John,1978-11-27,male
-    19253,Webster Inc.,,1950-01-12,
-    46418,Jane,Doe,2003-06-29,female
+    1,Beck,Tyler,1995-11-15,male
+    2,Gibson,Martin,1969-08-18,male
+    3,Hopkins,Chester,1982-12-19,male
+    4,Lopez,Tyler,1930-10-13,male
+    5,James,Ana,1943-08-10,female
+    6,Martin,Jon,1932-09-27,male
+    7,Knight,Carolyn,1977-05-25,female
+    8,Rose,Tammy,2004-01-12,female
+    9,Gutierrez,Reginald,2010-05-18,male
+    10,Phillips,Pauline,1960-11-09,female
 
 A CID can describe such a file in an easy to read way. It consists of
 three sections. First, there is the general data format:
@@ -55,11 +62,11 @@ C   customer must be unique  IsUnique  customer_id
 ==  =======================  ========  ===========
 
 The CID can be stored in common spreadsheet formats, in particular
-Excel and ODS, for example ``customers_cid.ods``.
+Excel and ODS, for example ``cid_customers.ods``.
 
 Cutplace can validate that the data file conforms to the CID::
 
-    $ cutplace customers_cid.ods customers.csv
+    $ cutplace cid_customers.ods customers.csv
 
 Now add a new line with a broken ``date_of_birth``::
 
@@ -67,7 +74,7 @@ Now add a new line with a broken ``date_of_birth``::
 
 Cutplace rejects this file with the error message:
 
-    customers.csv (R5C4): cannot accept field 'date_of_birth': date must
+    customers.csv (R12C4): cannot accept field 'date_of_birth': date must
     match format YYYY-MM-DD (%Y-%m-%d) but is: '04.08.1953'
 
 Additionally, cutplace provides an easy to use API to read and write
@@ -78,7 +85,7 @@ above example::
     import cutplace
     import cutplace.errors
 
-    cid_path = 'customers_cid.ods'
+    cid_path = 'cid_customers.ods'
     data_path = 'customers.csv'
     try:
         for row in cutplace.rows(cid_path, data_path):
