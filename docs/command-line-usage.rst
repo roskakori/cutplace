@@ -24,9 +24,8 @@ To learn which version of cutplace you are using, run::
 
   cutplace --version
 
-Note that this also prints the version of Python used and a few details on the
-platform running on. This is particular useful in case you intend to report
-bugs as described in :doc:`support`.
+This is particular useful in case you intend to report bugs as described in
+:doc:`support`.
 
 
 Validate a CID
@@ -52,7 +51,7 @@ Validate that a data file conforms to a CID
 To validate that a data file conforms to a CID, pass the path of the CID and
 the data file. For example using the same CID as in the previous section to
 validate a data file containing customers stored in
-:file:`cid_customers.ods`, run::
+:file:`customers_data.csv`, run::
 
   cutplace cid_customers.ods customers_data.csv
 

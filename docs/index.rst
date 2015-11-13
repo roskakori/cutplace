@@ -13,7 +13,7 @@ data to validate, the fields provided and additional conditions to check
 across rows or the whole data set.
 
 Additionally cutplace offers an API to validate and read data described
-by a CID. It provides a uniform interface to :py:class:`csv.reader` and
+by a CID. It provides a uniform interface to :py:func:`csv.reader` and
 packages to read other formats, saving you from having to learn the
 intrinsics of each package.
 
