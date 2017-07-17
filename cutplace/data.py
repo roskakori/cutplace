@@ -25,7 +25,7 @@ import io
 import string
 import token
 import tokenize
-
+import csv
 import six
 
 from cutplace import errors
@@ -82,12 +82,21 @@ KEY_SHEET = "sheet"
 KEY_SKIP_INITIAL_SPACE = "skip_initial_space"
 KEY_DECIMAL_SEPARATOR = "decimal_separator"
 KEY_THOUSANDS_SEPARATOR = "thousands_separator"
+KEY_QUOTING = "quoting"
 
 _VALID_QUOTE_CHARACTERS = ["\"", "\'"]
 _VALID_ESCAPE_CHARACTERS = ["\"", "\\"]
 _VALID_DECIMAL_SEPARATORS = [".", ","]
 _VALID_THOUSANDS_SEPARATORS = [",", ".", ""]
 _VALID_FORMATS = [FORMAT_DELIMITED, FORMAT_EXCEL, FORMAT_FIXED, FORMAT_ODS]
+_VALID_QUOTING = ['all', 'minimal', 'nonnumeric', 'none']
+
+READABLE_TO_CSV_QUOTING_FORMAT = {
+    "all": csv.QUOTE_ALL,
+    "minimal": csv.QUOTE_MINIMAL,
+    "nonnumeric": csv.QUOTE_NONNUMERIC,
+    "none": csv.QUOTE_NONE,
+}
 
 
 @python_2_unicode_compatible
@@ -117,6 +126,7 @@ class DataFormat(object):
         self._is_valid = False
         self._allowed_characters = None
         self._encoding = 'cp1252'
+        self._quoting = csv.QUOTE_MINIMAL
         if self.format == FORMAT_DELIMITED:
             self._escape_character = '"'
             self._item_delimiter = ','
@@ -140,6 +150,14 @@ class DataFormat(object):
     @property
     def format(self):
         return self._format
+
+    @property
+    def quoting(self):
+        return self._quoting
+
+    @quoting.setter
+    def quoting(self, value):
+        self._quoting = value
 
     @property
     def encoding(self):
@@ -353,6 +371,9 @@ class DataFormat(object):
         elif name == KEY_THOUSANDS_SEPARATOR:
             self.thousands_separator = DataFormat._validated_choice(
                 KEY_THOUSANDS_SEPARATOR, value, _VALID_THOUSANDS_SEPARATORS, location)
+        elif name == KEY_QUOTING:
+            result = DataFormat._validated_choice(KEY_QUOTING, value, _VALID_QUOTING, location, ignore_case=True)
+            self.quoting = READABLE_TO_CSV_QUOTING_FORMAT[result]
         else:
             assert False, 'name=%r' % name
 

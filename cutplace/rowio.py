@@ -188,6 +188,7 @@ def _as_delimited_keywords(delimited_data_format):
         'quotechar': delimited_data_format.quote_character,
         'skipinitialspace': delimited_data_format.skip_initial_space,
         'strict': True,
+        'quoting': delimited_data_format.quoting,
     }
     return result
 
