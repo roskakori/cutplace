@@ -81,9 +81,9 @@ def validated_python_name(name, value):
                         % (name, value))
     second_token = next(toky)
     second_token_type = second_token[0]
-    if not tokenize.ISEOF(second_token_type):
-        raise NameError("%s must be a single word, but after %r there also is %r" % (name, result, second_token[1]))
-    return result
+    if tokenize.ISEOF(second_token_type) or second_token_type == 4:
+        return result
+    raise NameError("%s must be a single word, but after %r there also is %r" % (name, result, second_token[1]))
 
 
 def human_readable_list(items, final_separator='or'):

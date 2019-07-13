@@ -195,8 +195,9 @@ class IsUniqueCheck(AbstractCheck):
                     raise errors.InterfaceError(six.text_type(error))
                 self._field_names_to_check.append(token_value)
             elif not _tools.is_comma_token(next_token):
-                raise errors.InterfaceError(
-                    "after field name a comma (,) must follow but found: %r" % token_value, self.location_of_rule)
+                if token_type != 4:
+                    raise errors.InterfaceError(
+                        "after field name a comma (,) must follow but found: %r" % token_value, self.location_of_rule)
             after_comma = not after_comma
             next_token = next(toky)
         if not len(self._field_names_to_check):
