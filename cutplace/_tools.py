@@ -81,7 +81,8 @@ def validated_python_name(name, value):
                         % (name, value))
     second_token = next(toky)
     second_token_type = second_token[0]
-    if not tokenize.ISEOF(second_token_type):
+    # on unix, tokenize return a return char before the EOF
+    if not tokenize.ISEOF(second_token_type) and not second_token_type == 4:
         raise NameError("%s must be a single word, but after %r there also is %r" % (name, result, second_token[1]))
     return result
 
@@ -140,7 +141,8 @@ def is_eof_token(some_token):
     True if ``some_token`` is a token that represents an "end of file".
     """
     assert some_token is not None
-    return tokenize.ISEOF(some_token[0])
+    # on linux tokenize return return char before EOF
+    return tokenize.ISEOF(some_token[0]) or some_token[0] == 4
 
 
 def is_comma_token(some_token):

@@ -178,6 +178,8 @@ class Cid(object):
         assert type_name
 
         class_name = class_qualifier.split(".")[-1] + class_name_appendix
+        # class_qualifer need to have it first char in capital
+        class_name = (class_name[:1].upper() + class_name[1:])
         result = name_to_class_map.get(class_name)
         if result is None:
             raise errors.InterfaceError(
