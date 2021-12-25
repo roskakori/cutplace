@@ -1,7 +1,8 @@
-wheel >= 0.24
-autopep8 >= 1.0.4
-coverage >= 3.7
-flake8 >= 2.2
-setuptools_scm >= 1.5.5
-Sphinx >= 1.2
-tox >= 1.8.1
+wheel < 0.4
+autopep8 <= 1.6
+coverage < 4.0.0
+flake8 < 3.8
+setuptools_scm < 4
+# HACK: Getting Sphinx to work with Python 2 is not worth it anymore.
+# TODO: Sphinx < 2
+tox < 4.0
