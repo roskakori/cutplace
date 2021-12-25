@@ -21,13 +21,17 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import glob
-import imp  # TODO: deprecated; with Python 3, use importlib.
 import inspect
 import io
 import logging
 import os.path
 
 import six
+if six.PY2:
+    import imp
+else:
+    import importlib.machinery
+    import importlib.util
 
 from cutplace import data
 from cutplace import fields
@@ -598,9 +602,16 @@ def import_plugins(folder_to_scan_for_plugins):
     for module_to_import_path in glob.glob(pattern_to_scan):
         module_name = os.path.splitext(os.path.basename(module_to_import_path))[0]
         modules_to_import.add((module_name, module_to_import_path))
-    for module_name_to_import, modulePathToImport in modules_to_import:
-        _log.info('  import %s from \'%s\'', module_name_to_import, modulePathToImport)
-        imp.load_source(module_name_to_import, modulePathToImport)
+    for module_name_to_import, module_path_to_import in modules_to_import:
+        _log.info('  import %s from \'%s\'', module_name_to_import, module_path_to_import)
+        if six.PY2:
+            imp.load_source(module_name_to_import, module_path_to_import)
+        else:
+            module_path_to_import = os.path.abspath(module_path_to_import)
+            loader = importlib.machinery.SourceFileLoader(module_name_to_import, module_path_to_import)
+            spec = importlib.util.spec_from_loader(module_name_to_import, loader)
+            loaded_module = importlib.util.module_from_spec(spec)
+            loader.exec_module(loaded_module)
     current_checks = set(checks.AbstractCheck.__subclasses__())  # @UndefinedVariable
     current_field_formats = set(fields.AbstractFieldFormat.__subclasses__())  # @UndefinedVariable
     log_imported_items('fields', base_field_formats, current_field_formats)

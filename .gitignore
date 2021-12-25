@@ -40,6 +40,7 @@ sdist/*
 docs/_rst/*
 docs/_build/*
 docs/include/*
+!docs/include/.keep
 cover/*
 tests/build
 MANIFEST

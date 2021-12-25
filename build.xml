@@ -153,7 +153,11 @@
     <target description="build documentation" name="docs">
         <torst cid="examples/cid_customers.ods" data="examples/customers.csv" rst="docs/include/customers.rst" />
         <torst cid="examples/cid_customers.ods" data="examples/customers_without_date_of_birth.csv" rst="docs/include/customers_without_date_of_birth.rst" />
-        <pyst command="docs" />
+        <exec executable="make" failonerror="true">
+            <arg value="-C" />
+            <arg value="docs" />
+            <arg value="html" />
+        </exec>
     </target>
 
     <target name="flake8" description="build flake8 violations report">

@@ -139,4 +139,4 @@ def main(arguments):
 
 if __name__ == '__main__':  # pragma: no cover
     logging.basicConfig(level=logging.INFO)
-    main(sys.argv[1:])
+    sys.exit(main(sys.argv[1:]))

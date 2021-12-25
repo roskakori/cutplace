@@ -69,8 +69,7 @@ def validated_python_name(name, value):
     assert name
     assert value is not None
 
-    readable = io.StringIO(value.strip())
-    toky = tokenize.generate_tokens(readable.readline)
+    toky = generated_tokens(value.strip())
     next_token = next(toky)
     next_type = next_token[0]
     result = next_token[1]
@@ -81,9 +80,23 @@ def validated_python_name(name, value):
                         % (name, value))
     second_token = next(toky)
     second_token_type = second_token[0]
+    if second_token_type == token.NEWLINE and second_token[1] == "":
+        # HACK: In Python 3.x a newline seems to be added either by generate_tokens() or readline().
+        second_token = next(toky)
+        second_token_type = second_token[0]
     if not tokenize.ISEOF(second_token_type):
         raise NameError("%s must be a single word, but after %r there also is %r" % (name, result, second_token[1]))
     return result
+
+
+def generated_tokens(text):
+    toky = list(tokenize.generate_tokens(_compat.token_io_readline(text)))
+    if len(toky) >= 2 and is_newline_token(toky[-2]) and is_eof_token(toky[-1]):
+        # HACK: Remove newline that generated_tokens() adds starting with Python 3.x but not before.
+        del toky[-2]
+    for result in toky:
+        yield result
+
 
 
 def human_readable_list(items, final_separator='or'):
@@ -117,7 +130,7 @@ def tokenize_without_space(text):
     ``text`` split into token with any white space tokens removed.
     """
     assert text is not None
-    for toky in tokenize.generate_tokens(_compat.token_io_readline(text)):
+    for toky in generated_tokens(text):
         toky_type = toky[0]
         toky_text = toky[1]
         if ((toky_type != token.INDENT) and toky_text.strip()) or (toky_type == token.ENDMARKER):
@@ -133,6 +146,11 @@ def token_text(toky):
     else:
         result = toky_text
     return result
+
+
+def is_newline_token(some_token):
+    assert some_token is not None
+    return some_token[0] == token.NEWLINE and some_token[1] == ""
 
 
 def is_eof_token(some_token):

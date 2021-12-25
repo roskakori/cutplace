@@ -55,8 +55,6 @@ Contents
    changes
    license
 
-   Module Reference <_rst/modules>
-
 
 Indices and tables
 ==================

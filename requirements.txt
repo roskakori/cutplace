@@ -1,5 +1,4 @@
-argparse >= 1.1
-setuptools >= 9.0
-six >= 1.8
-xlrd >= 0.9.3
-XlsxWriter >= 0.6.6
+setuptools < 45.0
+six >= 1.16
+xlrd < 2.0.0
+XlsxWriter < 3.0.0
