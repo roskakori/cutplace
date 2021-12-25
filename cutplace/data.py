@@ -21,10 +21,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import codecs
-import io
 import string
 import token
-import tokenize
 
 import six
 
@@ -35,6 +33,8 @@ from cutplace import _tools
 from cutplace._compat import python_2_unicode_compatible
 
 #: Value for property ``line_delimiter`` to indicate any possible delimiter.
+from cutplace._tools import generated_tokens
+
 ANY = "any"
 #: Value for property ``line_delimiter`` to indicate carriage return (Mac OS Classic).
 CR = "cr"
@@ -417,7 +417,7 @@ class DataFormat(object):
         if (len(stripped_value) == 1) and (stripped_value not in string.digits):
             result_code = ord(stripped_value)
         else:
-            tokens = tokenize.generate_tokens(io.StringIO(value).readline)
+            tokens = generated_tokens(value)
             next_token = next(tokens)
             if _tools.is_eof_token(next_token):
                 raise errors.InterfaceError(

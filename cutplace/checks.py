@@ -27,9 +27,9 @@ import six
 
 from cutplace import fields
 from cutplace import errors
-from cutplace import _compat
 from cutplace import _tools
 from cutplace._compat import python_2_unicode_compatible
+from cutplace._tools import generated_tokens
 
 
 @python_2_unicode_compatible
@@ -171,8 +171,7 @@ class IsUniqueCheck(AbstractCheck):
         self.reset()
 
         # Extract field names to check from rule.
-        rule_read_line = _compat.token_io_readline(rule)
-        toky = tokenize.generate_tokens(rule_read_line)
+        toky = generated_tokens(rule)
         after_comma = True
         next_token = next(toky)
         unique_field_names = set()
@@ -226,8 +225,7 @@ class DistinctCountCheck(AbstractCheck):
     def __init__(self, description, rule, available_field_names, location=None):
         super(DistinctCountCheck, self).__init__(description, rule, available_field_names, location)
 
-        rule_read_line = _compat.token_io_readline(rule)
-        tokens = tokenize.generate_tokens(rule_read_line)
+        tokens = generated_tokens(rule)
         first_token = next(tokens)
 
         # Obtain and validate field to count.
