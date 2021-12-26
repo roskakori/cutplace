@@ -35,6 +35,7 @@ To build the distribution archives::
 The :file:`scripts` folder contains a few shell scripts to build other parts:
 
 * :file:`build_documentation.sh`: Build the Sphinx documentation.
+* :file:`build_performance_test_report.sh`: Build a performance test report.
 * :file:`build_test_coverage_report.sh`: Build a test coverage report for
   manual browsing. View file:`htmlcov/index.html` to take a look at it.
 * :file:`update_dependencies.sh`: Update dependencies to the most current
