@@ -1,10 +1,6 @@
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = [
-    "--cov=cutplace",
-    "--cov-branch",
-    "--cov-report=xml",
-    "--junitxml=test-report.xml",
     "-rA"
 ]
 testpaths = [
@@ -56,6 +52,7 @@ wheel = "^0.37.1"
 coverage = "^6.2"
 Sphinx = "^4.3.2"
 pytest = "^6.2.5"
+coveralls = "^3.3.1"
 
 [tool.poetry.scripts]
 cutplace = "cutplace.applications:main_for_script"
