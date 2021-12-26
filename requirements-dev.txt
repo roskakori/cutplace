@@ -1,5 +1,0 @@
-wheel==0.37.1
-coverage==6.2
-poetry==1.1.12
-setuptools_scm==6.3.2
-Sphinx==4.3.2
