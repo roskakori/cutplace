@@ -1,3 +1,7 @@
+.. image:: https://img.shields.io/pypi/v/cutplace
+    :target: https://pypi.org/project/cutplace/
+    :alt: PyPI
+
 .. image:: https://readthedocs.org/projects/cutplace/badge/?version=latest
     :target: https://cutplace.readthedocs.io/
     :alt: Documentation
