@@ -33,7 +33,7 @@ jobs:
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
         run: |
-          poetry run pytest
+          poetry run pytest --cov=cutplace --cov-branch
           source .venv/bin/activate
           if [[ ${{ matrix.python-version }} == $MAIN_PYTHON_VERSION ]]; then coveralls; fi
       - name: Check code quality
