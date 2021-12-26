@@ -29,13 +29,16 @@ jobs:
         run: |
           poetry build
       - name: Run the test suite
+        run: |
+          poetry run pytest --cov=cutplace --cov-branch
+      - name: Update coveralls
+        if: ${{ matrix.python-version }} == $MAIN_PYTHON_VERSION
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
         run: |
-          poetry run pytest --cov=cutplace --cov-branch
           source .venv/bin/activate
-          if [[ ${{ matrix.python-version }} == $MAIN_PYTHON_VERSION ]]; then coveralls; fi
-      - name: Check code quality
+          coveralls
+      - name: Check coding style
         if: ${{ matrix.python-version }} == $MAIN_PYTHON_VERSION
         run: |
           source .venv/bin/activate
