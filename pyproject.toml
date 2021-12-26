@@ -73,6 +73,7 @@ coveralls = "^3.3.1"
 pep8-naming = "^0.12.1"
 pytest-cov = "^3.0.0"
 pre-commit = "^2.16.0"
+pur = "^5.4.2"
 
 [tool.poetry.scripts]
 cutplace = "cutplace.applications:main_for_script"
