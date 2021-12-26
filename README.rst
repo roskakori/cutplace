@@ -1,3 +1,7 @@
+.. image:: https://readthedocs.org/projects/cutplace/badge/?version=latest
+    :target: https://cutplace.readthedocs.io/
+    :alt: Documentation
+
 .. image:: https://github.com/roskakori/cutplace/actions/workflows/build.yaml/badge.svg
     :target: https://travis-ci.org/roskakori/cutplace
     :alt: Build Status
