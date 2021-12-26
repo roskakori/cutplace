@@ -22,9 +22,8 @@ __pycache__/*
 *.egg-info
 
 # Unittest and coverage
-htmlcov/*
+/htmlcov
 .coverage
-.tox
 coverage.xml
 junit.xml
 
@@ -33,14 +32,14 @@ flake8.txt
 sloccount.sc
 
 # Build and docs folder/files
-.eggs/*
-build/*
-dist/*
-sdist/*
-docs/_rst/*
-docs/_build/*
-docs/include/*
-!docs/include/.keep
-cover/*
-tests/build
-MANIFEST
+/.eggs
+/.pytest_cache
+/build
+/dist
+/docs/_rst/*
+/docs/_build/*
+/docs/include/*
+!/docs/include/.keep
+/sdist
+/tests/build
+/tests/test-report.xml

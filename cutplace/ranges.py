@@ -17,20 +17,12 @@ format.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import token
 import decimal
-
-import six
 
 from cutplace import errors
 from cutplace import _compat
 from cutplace import _tools
-from cutplace._compat import python_2_unicode_compatible
 
 #: '...' as single character.
 ELLIPSIS = '\u2026'
@@ -174,7 +166,7 @@ def _decimal_as_text(decimal_value, precision=DEFAULT_PRECISION):
     return '%.*f' % (precision, decimal_value)
 
 
-@python_2_unicode_compatible
+
 class Range(object):
     """
     A range that can be used to validate that a value is within it.
@@ -386,7 +378,7 @@ class Range(object):
             else:
                 result += "%s...%s" % (lower, upper)
         else:
-            result = six.text_type(None)
+            result = str(None)
         return result
 
     def __repr__(self):
@@ -409,7 +401,7 @@ class Range(object):
                     result += ", "
                 result += self._repr_item(item)
         else:
-            result = six.text_type(None)
+            result = str(None)
         return result
 
     def _items_overlap(self, some, other):
@@ -479,7 +471,7 @@ class Range(object):
                     "%s is %r but must be within range: %s" % (name, value, self), location)
 
 
-@python_2_unicode_compatible
+
 class DecimalRange(Range):
     """
     A decimal range to validate that decimal values are within it.
@@ -706,7 +698,7 @@ class DecimalRange(Range):
                 if upper is not None:
                     result += "..." + _decimal_as_text(upper, self.precision)
         else:
-            result = six.text_type(None)
+            result = str(None)
         return result
 
     def validate(self, name, value, location=None):

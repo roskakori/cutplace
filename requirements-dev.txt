@@ -1,8 +1,5 @@
-wheel < 0.4
-autopep8 <= 1.6
-coverage < 4.0.0
-flake8 < 3.8
-setuptools_scm < 4
-# HACK: Getting Sphinx to work with Python 2 is not worth it anymore.
-# TODO: Sphinx < 2
-tox < 4.0
+wheel==0.37.1
+coverage==6.2
+poetry==1.1.12
+setuptools_scm==6.3.2
+Sphinx==4.3.2

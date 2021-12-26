@@ -15,19 +15,11 @@ Development tool and utility functions for testing and test data generation.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import fnmatch
 import logging
 import os
 import random
 from datetime import timedelta, datetime
-from random import randrange
-
-import six
 
 _log = logging.getLogger("cutplace.tests")
 
@@ -140,7 +132,7 @@ def _random_datetime(randomizer, start_text="1930-01-01 00:00:00", end_text="201
 
 def random_datetime(randomizer, time_format="%Y-%m-%d %H:%M:%S"):
     sometimes = _random_datetime(randomizer)
-    return six.text_type(sometimes.strftime(time_format))
+    return str(sometimes.strftime(time_format))
 
 
 def random_first_name(randomizer, is_male=True):
@@ -271,7 +263,7 @@ def create_test_customer_row(customer_id, randomizer=None):
     if actual_randomizer.randint(0, 100) == 0:
         gender = ''
     date_of_birth = random_datetime(actual_randomizer, '%Y-%m-%d')
-    return [six.text_type(customer_id), surname, first_name, date_of_birth, gender]
+    return [str(customer_id), surname, first_name, date_of_birth, gender]
 
 
 def assert_fnmatches(test_case, actual_value, expected_pattern):
@@ -289,7 +281,7 @@ def assert_error_fnmatches(test_case, actual_error, expected_message_pattern):
     assert isinstance(actual_error, Exception)
     assert expected_message_pattern is not None
 
-    actual_message = six.text_type(actual_error)
+    actual_message = str(actual_error)
     assert_fnmatches(test_case, actual_message, expected_message_pattern)
 
 

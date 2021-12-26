@@ -2,7 +2,7 @@
 Cutplace is a tool to validate that tabular data stored in CSV, Excel, ODS
 and PRN files conform to an interface definition (CID).
 
-Additionally to the command line tool the functionality of cutplace is also
+In addition to the command line tool the functionality of cutplace is also
 accessible through a Python API.
 """
 import pkg_resources

@@ -13,6 +13,7 @@
 # import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
+import cutplace
 
 
 # -- Project information -----------------------------------------------------
@@ -22,14 +23,8 @@ copyright = '2021, Thomas Aglassinger'
 author = 'Thomas Aglassinger'
 
 # The full version, including alpha/beta/rc tags
-# TODO: Use setup_scm to set this from the git tag.
-from setuptools_scm import get_version
-try:
-    release = get_version()
-    version = release.split('-', 1)[0]
-except LookupError:
-    version = '0.8.9'
-    release = '0.8.9'
+release = cutplace.__version__
+version = release.split('-', 1)[0]
 
 
 # -- General configuration ---------------------------------------------------

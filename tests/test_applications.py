@@ -15,16 +15,9 @@ Tests for cutplace application.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import logging
 import os
 import unittest
-
-import six
 
 from cutplace import applications
 from tests import dev_test
@@ -142,10 +135,7 @@ class CutplaceProcessTest(unittest.TestCase):
         self.assertEqual(1, exit_code)
 
     def test_fails_on_non_existent_data(self):
-        if six.PY2:
-            expected_error_class = EnvironmentError
-        else:
-            expected_error_class = IOError
+        expected_error_class = IOError
         cid_path = dev_test.path_to_test_cid('customers.xls')
         self.assertRaises(expected_error_class, applications.process, ['test_fails_on_non_existent_data', cid_path, 'no_such_data.csv'])
 

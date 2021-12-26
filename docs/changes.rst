@@ -5,6 +5,14 @@ Revision history
 This chapter describes improvements compared to earlier versions of cutplace.
 
 
+Version 0.9.0, 2021-12-26
+=========================
+
+* Removed support for Python 2.
+* Changed build tool to `poetry <https://python-poetry.org/>`_.
+* Changed test tool to `pytest <https://docs.pytest.org/>`_.
+
+
 Version 0.8.9, 2021-12-25
 =========================
 
