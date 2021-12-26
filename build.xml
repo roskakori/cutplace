@@ -35,14 +35,4 @@
             <arg file="tests/test_performance.py" />
         </exec>
     </target>
-
-    <target description="build documentation" name="docs">
-        <torst cid="examples/cid_customers.ods" data="examples/customers.csv" rst="docs/include/customers.rst" />
-        <torst cid="examples/cid_customers.ods" data="examples/customers_without_date_of_birth.csv" rst="docs/include/customers_without_date_of_birth.rst" />
-        <exec executable="make" failonerror="true">
-            <arg value="-C" />
-            <arg value="docs" />
-            <arg value="html" />
-        </exec>
-    </target>
 </project>
