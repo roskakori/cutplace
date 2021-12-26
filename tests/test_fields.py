@@ -16,16 +16,9 @@ Tests  for field formats.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import decimal
 import logging
 import unittest
-
-import six
 
 from cutplace import data
 from cutplace import errors
@@ -95,7 +88,7 @@ class AbstractFieldFormatTest(unittest.TestCase):
 
     def test_can_output_field_format_as_string(self):
         field_format = fields.AbstractFieldFormat('x', False, '3...5', '', _ANY_FORMAT)
-        self.assertEqual(six.text_type(field_format), "AbstractFieldFormat('x', False, Range('3...5'), '')")
+        self.assertEqual(str(field_format), "AbstractFieldFormat('x', False, Range('3...5'), '')")
 
 
 class DateTimeFieldFormatTest(unittest.TestCase):
@@ -114,7 +107,7 @@ class DateTimeFieldFormatTest(unittest.TestCase):
     def test_can_accept_empty_date(self):
         field_format = fields.DateTimeFieldFormat("x", True, None, "YYYY-MM-DD", _ANY_FORMAT)
         self.assertEqual(field_format.validated(""), None)
-        self.assertNotEquals(field_format.validated("2000-01-01"), None)
+        self.assertNotEqual(field_format.validated("2000-01-01"), None)
 
     def test_fails_on_broken_dates(self):
         field_format = fields.DateTimeFieldFormat("x", False, None, "YYYY-MM-DD", _ANY_FORMAT)
@@ -314,7 +307,7 @@ class IntegerFieldFormatTest(unittest.TestCase):
             field_format.example = "11"
             self.fail()
         except errors.FieldValueError as anticipated_error:
-            self.assertEqual('value is 11 but must be within range: 1...10', six.text_type(anticipated_error))
+            self.assertEqual('value is 11 but must be within range: 1...10', str(anticipated_error))
 
 
 class RegExFieldFormatTest(unittest.TestCase):

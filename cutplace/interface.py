@@ -15,23 +15,14 @@ Classes and functions to read and represent cutplace interface definitions.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import glob
 import inspect
 import io
 import logging
 import os.path
 
-import six
-if six.PY2:
-    import imp
-else:
-    import importlib.machinery
-    import importlib.util
+import importlib.machinery
+import importlib.util
 
 from cutplace import data
 from cutplace import fields
@@ -40,12 +31,11 @@ from cutplace import checks
 from cutplace import rowio
 from cutplace import _compat
 from cutplace import _tools
-from cutplace._compat import python_2_unicode_compatible
 
 _log = logging.getLogger("cutplace")
 
 
-@python_2_unicode_compatible
+
 class Cid(object):
     _EMPTY_INDICATOR = "x"
     _ID_CHECK = "c"
@@ -377,7 +367,7 @@ class Cid(object):
                     field_type += _tools.validated_python_name("field type part", part)
                 assert field_type, "empty field type must be detected by validated_python_name()"
             except NameError as error:
-                raise errors.InterfaceError(six.text_type(error), self._location)
+                raise errors.InterfaceError(str(error), self._location)
         field_class = self._create_field_format_class(field_type)
         self._location.advance_cell()
         field_rule = items[5].strip()
@@ -604,14 +594,11 @@ def import_plugins(folder_to_scan_for_plugins):
         modules_to_import.add((module_name, module_to_import_path))
     for module_name_to_import, module_path_to_import in modules_to_import:
         _log.info('  import %s from \'%s\'', module_name_to_import, module_path_to_import)
-        if six.PY2:
-            imp.load_source(module_name_to_import, module_path_to_import)
-        else:
-            module_path_to_import = os.path.abspath(module_path_to_import)
-            loader = importlib.machinery.SourceFileLoader(module_name_to_import, module_path_to_import)
-            spec = importlib.util.spec_from_loader(module_name_to_import, loader)
-            loaded_module = importlib.util.module_from_spec(spec)
-            loader.exec_module(loaded_module)
+        module_path_to_import = os.path.abspath(module_path_to_import)
+        loader = importlib.machinery.SourceFileLoader(module_name_to_import, module_path_to_import)
+        spec = importlib.util.spec_from_loader(module_name_to_import, loader)
+        loaded_module = importlib.util.module_from_spec(spec)
+        loader.exec_module(loaded_module)
     current_checks = set(checks.AbstractCheck.__subclasses__())  # @UndefinedVariable
     current_field_formats = set(fields.AbstractFieldFormat.__subclasses__())  # @UndefinedVariable
     log_imported_items('fields', base_field_formats, current_field_formats)

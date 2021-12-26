@@ -16,17 +16,10 @@ format but not any :py:mod:`cutplace.fields` or :py:mod:`cutplace.checks`.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import csv
 import datetime
 import io
 import os
-import re
-import six
 import xlrd
 import xlsxwriter
 import zipfile
@@ -75,19 +68,6 @@ _OOO_NAMESPACES = {
 }
 _NUMBER_COLUMNS_REPEATED = '{' + _OOO_NAMESPACES['table'] + '}number-columns-repeated'
 
-if six.PY2:
-    # HACK: Prepare ``ElementTree`` for namespaced find operations.
-    # See also: <http://effbot.org/zone/element-namespaces.htm>.
-    try:
-        register_namespace = ElementTree.register_namespace
-    except AttributeError:
-        def register_namespace(prefix, uri):
-            ElementTree._namespace_map[uri] = prefix
-
-    for short_name, url in _OOO_NAMESPACES.items():
-        register_namespace(short_name, url)
-
-
 def _excel_cell_value(cell, datemode):
     """
     The value of ``cell`` as text taking into account the way excel encodes
@@ -113,17 +93,17 @@ def _excel_cell_value(cell, datemode):
         assert len(cell_tuple) == 6, "cell_tuple=%r" % cell_tuple
         if cell_tuple[:3] == (0, 0, 0):
             time_tuple = cell_tuple[3:]
-            result = six.text_type(datetime.time(*time_tuple))
+            result = str(datetime.time(*time_tuple))
         else:
-            result = six.text_type(datetime.datetime(*cell_tuple))
+            result = str(datetime.datetime(*cell_tuple))
     elif cell.ctype == xlrd.XL_CELL_ERROR:
         default_error_text = xlrd.error_text_from_code[0x2a]  # same as "#N/A!"
         error_code = cell.value
-        result = six.text_type(xlrd.error_text_from_code.get(error_code, default_error_text))
-    elif isinstance(cell.value, six.text_type):
+        result = str(xlrd.error_text_from_code.get(error_code, default_error_text))
+    elif isinstance(cell.value, str):
         result = cell.value
     else:
-        result = six.text_type(cell.value)
+        result = str(cell.value)
         if (cell.ctype == xlrd.XL_CELL_NUMBER) and (result.endswith(".0")):
             result = result[:-2]
 
@@ -203,7 +183,7 @@ def delimited_rows(delimited_source, data_format):
     :raises cutplace.errors.DataFormatError: if ``delimited`` source is not
       a valid delimited file
     """
-    if isinstance(delimited_source, six.string_types):
+    if isinstance(delimited_source, str):
         delimited_stream = io.open(delimited_source, 'r', newline='', encoding=data_format.encoding)
         has_opened_delimited_stream = True
     else:
@@ -223,13 +203,8 @@ def delimited_rows(delimited_source, data_format):
 
 
 def _findall(element, xpath, namespaces):
-    if six.PY2:
-        resolved_xpath = xpath
-        for short_name, url in namespaces.items():
-            resolved_xpath = re.sub(r'\b' + short_name + ':', '{' + url + '}', resolved_xpath)
-        result = element.findall(resolved_xpath)
-    else:
-        result = element.findall(xpath, namespaces)
+    # TODO: Cleanup: Replace calls to this function by direct calls to element.findall().
+    result = element.findall(xpath, namespaces)
     return result
 
 
@@ -294,25 +269,11 @@ def ods_rows(source_ods_path, sheet=1):
                 raise errors.DataFormatError(
                     'table:number-columns-repeated is %s but must be an integer' % _compat.text_repr(repeated_text),
                     location)
-            if six.PY2:
-                text_p = table_cell.find('{%s}p' % _OOO_NAMESPACES['text'])
-            else:
-                text_p = table_cell.find('text:p', namespaces=_OOO_NAMESPACES)
+            text_p = table_cell.find('text:p', namespaces=_OOO_NAMESPACES)
             if text_p is None:
                 cell_value = ''
             else:
                 cell_value = text_p.text
-                if six.PY2:
-                    # HACK: It seems that under Python 2 ElementTree.find() returns a unicode string only of the value
-                    # actually contains non ASCII characters, and otherwise a binary string. To work around this we
-                    # check the result for binary strings and possibly convert them to uncicode strings assuming UTF-8
-                    # to be the internal encoding for the XML file. Ideally we would parse the XML header for the
-                    # encoding. Considering that Python 2 is on the way out, this just doesn't seem to be worth the
-                    # trouble right now.
-                    if isinstance(cell_value, six.binary_type):
-                        cell_value = six.text_type(cell_value, 'utf-8')
-                    else:
-                        assert isinstance(cell_value, six.text_type), 'cell_value=%r' % cell_value
             row.extend([cell_value] * repeated_count)
             location.advance_cell(repeated_count)
         yield row
@@ -388,7 +349,7 @@ def fixed_rows(fixed_source, encoding, field_name_and_lengths, line_delimiter='a
                     % (_compat.text_repr(actual_line_delimiter), _compat.text_repr(line_delimiter)), location)
         return result
 
-    if isinstance(fixed_source, six.string_types):
+    if isinstance(fixed_source, str):
         fixed_file = io.open(fixed_source, 'r', encoding=encoding)
         is_opened = True
     else:
@@ -414,7 +375,7 @@ def fixed_rows(fixed_source, encoding, field_name_and_lengths, line_delimiter='a
                     # Ensure that the input is a text file, `io.StringIO` or something similar. Binary files,
                     # `io.BytesIO` and the like cannot be used because the return bytes instead of strings.
                     # NOTE: We do not need to use _compat.text_repr(item) because type `unicode` does not fail here.
-                    assert isinstance(item, six.text_type), \
+                    assert isinstance(item, str), \
                         '%s: fixed_source must yield strings but got type %s, value %r' % (location, type(item), item)
                 item_length = len(item)
                 if item_length == 0:
@@ -455,7 +416,7 @@ def auto_rows(source):
     text stream providing a ``read()`` method.
     """
     result = None
-    if isinstance(source, six.string_types):
+    if isinstance(source, str):
         suffix = os.path.splitext(source)[1].lstrip('.').lower()
         if suffix == 'ods':
             result = ods_rows(source)
@@ -495,7 +456,7 @@ class AbstractRowWriter(object):
 
         self._data_format = data_format
         self._has_opened_target_stream = False
-        if isinstance(target, six.string_types):
+        if isinstance(target, str):
             self._target_path = target
             self._target_stream = io.open(self._target_path, 'w', encoding=data_format.encoding, newline='')
             self._has_opened_target_stream = True
@@ -589,10 +550,7 @@ class FixedRowWriter(AbstractRowWriter):
         self._field_names_and_lengths = field_names_and_lengths
         self._expected_row_item_count = len(self._field_names_and_lengths)
         if self.data_format.line_delimiter == 'any':
-            if six.PY2:
-                self._line_separator = six.text_type(os.linesep)
-            else:
-                self._line_separator = os.linesep
+            self._line_separator = os.linesep
         else:
             self._line_separator = self.data_format.line_delimiter
 
@@ -616,9 +574,9 @@ class FixedRowWriter(AbstractRowWriter):
             for field_index, field_value in enumerate(row_to_write):
                 self.location.set_cell(field_index)
                 field_name, expected_field_length = self._field_names_and_lengths[field_index]
-                assert isinstance(field_value, six.text_type), \
+                assert isinstance(field_value, str), \
                     '%s: field %s must be of type %s instead of %s: %r' \
-                    % (self.location, _compat.text_repr(field_name), six.text_type.__name__, type(field_value).__name__,
+                    % (self.location, _compat.text_repr(field_name), str.__name__, type(field_value).__name__,
                        field_value)
                 actual_field_length = len(field_value)
                 assert actual_field_length == expected_field_length, \
@@ -642,7 +600,7 @@ class XlsxRowWriter(AbstractRowWriter):
     """
     A writer for Excel 2007+ (:file:`*.xlsx`) documents.
 
-    Additionally to the common interface provided by
+    Additionally, to the common interface provided by
     :py:class:`~.AbstractRowWriter` the internal :py:attr:`~.workbook` and
     :py:attr:`~.worksheet` can be accessed and modified before calling
     :py:meth:`cutplace.rowio.XlsxRowWriter.close` in order to add for
@@ -658,7 +616,7 @@ class XlsxRowWriter(AbstractRowWriter):
         file during :py:meth:`cutplace.rowio.XlsxRowWriter.close`.
         """
         assert target_path is not None
-        assert isinstance(target_path, six.string_types), 'target_path must be a string but is: %s' % type(target_path)
+        assert isinstance(target_path, str), 'target_path must be a string but is: %s' % type(target_path)
 
         self._target_path = target_path
         self._target_stream = None
@@ -697,9 +655,9 @@ class XlsxRowWriter(AbstractRowWriter):
         row_index = self.location.line
         for item in row_to_write:
             assert item is not None
-            assert not isinstance(item, six.binary_type), 'item must be a (unicode) string: %r' % item
+            assert not isinstance(item, bytes), 'item must be a string: %r' % item
             column_index = self.location.cell
-            if isinstance(item, six.text_type):
+            if isinstance(item, str):
                 # Write strings as explicit strings to prevent strings starting with '=' from being converted to
                 # formulas.
                 self.worksheet.write_string(row_index, column_index, item)

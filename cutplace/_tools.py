@@ -15,24 +15,17 @@ Various internal utility functions.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
-import errno
 import logging
 import os
-import io
 import token
 import tokenize
-
-import six
 
 from cutplace import _compat
 
 
 #: Mapping for value of :option:`--log` to logging level.
+from cutplace.errors import InterfaceError
+
 LOG_LEVEL_NAME_TO_LEVEL_MAP = {
     "debug": logging.DEBUG,
     "info": logging.INFO,
@@ -49,14 +42,7 @@ def mkdirs(folder):
     """
     assert folder is not None
 
-    if six.PY2:
-        try:
-            os.makedirs(folder)
-        except OSError as error:
-            if error.errno != errno.EEXIST:
-                raise
-    else:
-        os.makedirs(folder, exist_ok=True)
+    os.makedirs(folder, exist_ok=True)
 
 
 def validated_python_name(name, value):
@@ -97,6 +83,12 @@ def generated_tokens(text):
     for result in toky:
         yield result
 
+
+def next_token(tokens):
+    try:
+        return next(tokens)
+    except tokenize.TokenError as error:
+        raise InterfaceError()
 
 
 def human_readable_list(items, final_separator='or'):
@@ -192,6 +184,6 @@ def with_suffix(path, suffix=''):
 
 def length_of_int(int_value):
     assert int_value is not None
-    assert isinstance(int_value, six.integer_types), 'value=%r' % int_value
+    assert isinstance(int_value, int), 'value=%r' % int_value
 
-    return len(six.text_type(int_value))
+    return len(str(int_value))

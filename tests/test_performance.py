@@ -15,19 +15,12 @@ Test cutplace performance.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import io
 import logging
 import os.path
 import pstats
 import random
 import unittest
-
-import six
 
 from cutplace import interface
 from cutplace import validio
@@ -89,9 +82,7 @@ class PerformanceTest(unittest.TestCase):
             target_profile_path)
         with io.open(target_report_path, "w", encoding='utf-8') as targetReportFile:
             stats = pstats.Stats(target_profile_path, stream=targetReportFile)
-            # HACK: With Python 2, avoid TypeError: must be unicode, not str
-            if not six.PY2:
-                stats.sort_stats("cumulative").print_stats("cutplace", 20)
+            stats.sort_stats("cumulative").print_stats("cutplace", 20)
 
 
 if __name__ == '__main__':  # pragma: no cover

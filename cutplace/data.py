@@ -15,22 +15,15 @@ Data formats that describe the general structure of the data.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import codecs
 import string
 import token
-
-import six
+import tokenize
 
 from cutplace import errors
 from cutplace import ranges
 from cutplace import _compat
 from cutplace import _tools
-from cutplace._compat import python_2_unicode_compatible
 
 #: Value for property ``line_delimiter`` to indicate any possible delimiter.
 from cutplace._tools import generated_tokens
@@ -90,7 +83,7 @@ _VALID_THOUSANDS_SEPARATORS = [",", ".", ""]
 _VALID_FORMATS = [FORMAT_DELIMITED, FORMAT_EXCEL, FORMAT_FIXED, FORMAT_ODS]
 
 
-@python_2_unicode_compatible
+
 class DataFormat(object):
     """
     General data format of a file describing the basic structure.
@@ -242,7 +235,7 @@ class DataFormat(object):
         assert self.format in (FORMAT_EXCEL, FORMAT_ODS)
         assert new_sheet >= 1
 
-        self._sheet == new_sheet
+        self._sheet = new_sheet
 
     @property
     def skip_initial_space(self):
@@ -287,7 +280,7 @@ class DataFormat(object):
             In some cases, the value will be translated to an internal representation. \
             For example ``set_property(KEY_LINE_DELIMITER, 'lf')`` results in \
             :py:attr:`cutplace.data.line_delimiter` being ``'\n'``.
-        :type value: str or None
+        :type location: str or None
 
         :raises cutplace.errors.InterfaceError: if ``name`` is not a valid property name for this data format
         :raises cutplace.errors.InterfaceError: if ``value`` is invalid for the specified property
@@ -417,36 +410,41 @@ class DataFormat(object):
         if (len(stripped_value) == 1) and (stripped_value not in string.digits):
             result_code = ord(stripped_value)
         else:
-            tokens = generated_tokens(value)
-            next_token = next(tokens)
-            if _tools.is_eof_token(next_token):
+            try:
+                tokens = generated_tokens(value)
+                next_token = next(tokens)
+                if _tools.is_eof_token(next_token):
+                    raise errors.InterfaceError(
+                        "value for %s must be specified" % name_for_errors, location)
+                next_type = next_token[0]
+                next_value = next_token[1]
+                if next_type == token.NAME:
+                    result_code = ranges.code_for_symbolic_token(name_for_errors, next_value, location)
+                elif next_type == token.NUMBER:
+                    result_code = ranges.code_for_number_token(name_for_errors, next_value, location)
+                elif next_type == token.STRING:
+                    result_code = ranges.code_for_string_token(name_for_errors, next_value, location)
+                elif (len(next_value) == 1) and not _tools.is_eof_token(next_token):
+                    result_code = ord(next_value)
+                else:
+                    raise errors.InterfaceError(
+                        'value for %s must a number, a single character or a symbolic name but is: %s'
+                        % (name_for_errors, _compat.text_repr(value)), location)
+                # Ensure there are no further tokens.
+                next_token = next(tokens)
+                if not _tools.is_eof_token(next_token):
+                    raise errors.InterfaceError(
+                        'value for %s must be a single character but is: %s'
+                        % (name_for_errors, _compat.text_repr(value)), location)
+            except tokenize.TokenError as error:
                 raise errors.InterfaceError(
-                    "value for %s must be specified" % name_for_errors, location)
-            next_type = next_token[0]
-            next_value = next_token[1]
-            if next_type == token.NAME:
-                result_code = ranges.code_for_symbolic_token(name_for_errors, next_value, location)
-            elif next_type == token.NUMBER:
-                result_code = ranges.code_for_number_token(name_for_errors, next_value, location)
-            elif next_type == token.STRING:
-                result_code = ranges.code_for_string_token(name_for_errors, next_value, location)
-            elif (len(next_value) == 1) and not _tools.is_eof_token(next_token):
-                result_code = ord(next_value)
-            else:
-                raise errors.InterfaceError(
-                    'value for %s must a number, a single character or a symbolic name but is: %s'
-                    % (name_for_errors, _compat.text_repr(value)), location)
-            # Ensure there are no further tokens.
-            next_token = next(tokens)
-            if not _tools.is_eof_token(next_token):
-                raise errors.InterfaceError(
-                    'value for %s must be a single character but is: %s'
-                    % (name_for_errors, _compat.text_repr(value)), location)
+                    'value for %s must be a valid Python token: %s (error: %s)'
+                    % (name_for_errors, _compat.text_repr(value), error), location)
+
         # TODO: Handle 'none' properly.
         assert result_code is not None
         assert result_code >= 0
-        result = six.unichr(result_code)
-        assert result is not None
+        result = chr(result_code)
         return result
 
     def validate(self):

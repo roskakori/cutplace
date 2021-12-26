@@ -15,11 +15,6 @@ Standard field formats supported by cutplace.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import decimal
 import fnmatch
 import keyword
@@ -28,15 +23,12 @@ import string
 import sys
 import time
 
-import six
-
 from cutplace import data
 from cutplace import ranges
 from cutplace import errors
 from cutplace import _compat
 from cutplace import _tools
 
-from cutplace._compat import python_2_unicode_compatible
 
 # TODO #61: Replace various %r or '%s' by %s and apply _compat.text_repr().
 
@@ -47,7 +39,7 @@ _ASCII_LETTERS = set(string.ascii_letters)
 _ASCII_LETTERS_DIGITS_AND_UNDERSCORE = set(string.ascii_letters + string.digits + '_')
 
 
-@python_2_unicode_compatible
+
 class AbstractFieldFormat(object):
     """
     Abstract format description of a field in a data file, acting base for all
@@ -222,7 +214,7 @@ class AbstractFieldFormat(object):
                     self.length.validate(
                         "length of '%s' with value %s" % (self.field_name, _compat.text_repr(value)), len(value))
             except errors.RangeValueError as error:
-                raise errors.FieldValueError(six.text_type(error))
+                raise errors.FieldValueError(str(error))
 
     def validated_value(self, value):
         """
@@ -516,7 +508,7 @@ class IntegerFieldFormat(AbstractFieldFormat):
         try:
             self.valid_range.validate("value", value_as_int)
         except errors.RangeValueError as error:
-            raise errors.FieldValueError(six.text_type(error))
+            raise errors.FieldValueError(str(error))
         return value_as_int
 
 

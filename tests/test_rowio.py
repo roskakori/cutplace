@@ -15,16 +15,9 @@ Tests for the :py:mod:`cutplace.rowio` module.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import io
 import os
 import unittest
-
-import six
 
 from cutplace import data
 from cutplace import interface
@@ -386,7 +379,7 @@ class XlsxRowWriterTest(unittest.TestCase):
             for row_to_write in rows_to_write:
                 xlsx_writer.write_row(row_to_write)
         for row_index, row_read in enumerate(rowio.excel_rows(xlsx_path)):
-            string_row_written = [six.text_type(item) for item in rows_to_write[row_index]]
+            string_row_written = [str(item) for item in rows_to_write[row_index]]
             self.assertEqual(string_row_written, row_read)
 
 

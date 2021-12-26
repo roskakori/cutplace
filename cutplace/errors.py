@@ -15,18 +15,10 @@ Errors that can be raised by cutplace.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import copy
 import os
 import traceback
 
-import six
-
-from cutplace._compat import python_2_unicode_compatible
 
 #: Symbolic names that can be used to improve the legibility of the CID.
 NAME_TO_ASCII_CODE_MAP = {
@@ -38,7 +30,6 @@ NAME_TO_ASCII_CODE_MAP = {
 }
 
 
-@python_2_unicode_compatible
 class Location(object):
     """
     Location in an input file, consisting of ``line``, an optional ``column``
@@ -86,7 +77,7 @@ class Location(object):
         <io> (1;1)
         """
         assert file_path
-        if isinstance(file_path, six.string_types):
+        if isinstance(file_path, str):
             self.file_path = file_path
         else:
             try:
@@ -230,7 +221,7 @@ def create_caller_location(modules_to_ignore=None, has_column=False, has_cell=Fa
     return result
 
 
-@python_2_unicode_compatible
+
 class CutplaceError(Exception):
     """
     Error caused by issues in the CID or data. Details are provided by the
@@ -269,11 +260,7 @@ class CutplaceError(Exception):
         """
         assert message
         assert (see_also_location and see_also_message) or not see_also_location
-        if six.PY2:
-            # HACK: We cannot use `super()` here because ``Exception`` is an old style class.
-            Exception.__init__(self, message)
-        else:
-            super().__init__(self, message)
+        super().__init__(self, message)
         self._location = copy.copy(location)
         self._see_also_message = see_also_message
         self._see_also_location = copy.copy(see_also_location)
@@ -342,12 +329,12 @@ class CutplaceError(Exception):
         """
         result = ''
         if self._location:
-            result += six.text_type(self.location) + ': '
+            result += str(self.location) + ': '
         result += self._message
         if self.see_also_message is not None:
             result += ' (see also: '
             if self.see_also_location:
-                result += six.text_type(self.see_also_location) + ': '
+                result += str(self.see_also_location) + ': '
             result += self.see_also_message + ')'
         return result
 

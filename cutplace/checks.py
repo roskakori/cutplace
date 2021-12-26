@@ -15,24 +15,15 @@ Standard checks that can cover a whole row or data set.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import copy
 import tokenize
-
-import six
 
 from cutplace import fields
 from cutplace import errors
 from cutplace import _tools
-from cutplace._compat import python_2_unicode_compatible
 from cutplace._tools import generated_tokens
 
 
-@python_2_unicode_compatible
 class AbstractCheck(object):
     """
     Abstract check to be used as base class for other checks. The constructor should be called by
@@ -191,7 +182,7 @@ class IsUniqueCheck(AbstractCheck):
                             self.location_of_rule)
                     unique_field_names.add(token_value)
                 except errors.InterfaceError as error:
-                    raise errors.InterfaceError(six.text_type(error))
+                    raise errors.InterfaceError(str(error))
                 self._field_names_to_check.append(token_value)
             elif not _tools.is_comma_token(next_token):
                 raise errors.InterfaceError(

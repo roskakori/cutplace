@@ -16,16 +16,9 @@ Tests for `cid` module
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import fnmatch
 import os.path
 import unittest
-
-import six
 
 from cutplace import checks
 from cutplace import interface
@@ -233,7 +226,7 @@ class CidTest(unittest.TestCase):
             self.fail('InterfaceError must be raised')
         except errors.InterfaceError as anticipated_error:
             if anticipated_error_message_pattern is not None:
-                anticipated_error_message = six.text_type(anticipated_error)
+                anticipated_error_message = str(anticipated_error)
                 if not fnmatch.fnmatch(anticipated_error_message, anticipated_error_message_pattern):
                     self.fail(
                         'anticipated error message must match %r but is %r'

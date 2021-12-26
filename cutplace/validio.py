@@ -15,14 +15,7 @@ Validated input and output of tabular data in various formats.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import itertools
-
-import six
 
 from cutplace import data
 from cutplace import errors
@@ -59,7 +52,7 @@ class BaseValidator(object):
     def __init__(self, cid_or_path):
         assert cid_or_path is not None
 
-        if isinstance(cid_or_path, six.string_types):
+        if isinstance(cid_or_path, str):
             self._cid = interface.Cid(cid_or_path)
         else:
             self._cid = cid_or_path
@@ -133,10 +126,10 @@ class BaseValidator(object):
             self.location.set_cell(field_index)
             field_to_validate = self.cid.field_formats[field_index]
             try:
-                if not isinstance(field_value, six.text_type):
+                if not isinstance(field_value, str):
                     raise errors.FieldValueError(
                         'type must be %s instead of %s: %s'
-                        % (six.text_type.__name__, type(field_value).__name__, _compat.text_repr(field_value)))
+                        % (str.__name__, type(field_value).__name__, _compat.text_repr(field_value)))
                 field_to_validate.validated(field_value)
             except errors.FieldValueError as error:
                 error.prepend_message(
@@ -193,7 +186,7 @@ class Reader(BaseValidator):
 
         super(Reader, self).__init__(cid_or_path)
         # TODO: Consolidate obtaining source path with other code segments that do similar things.
-        if isinstance(source_data_stream_or_path, six.string_types):
+        if isinstance(source_data_stream_or_path, str):
             source_path = source_data_stream_or_path
         else:
             try:

@@ -25,29 +25,16 @@ for their availability using :py:data:`cutplace.gui.has_tk`, for example:
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import io
 import os
-import six
 import time
 
 try:
-    if six.PY3:
-        from tkinter import *
-        from tkinter.filedialog import Open
-        from tkinter.filedialog import SaveAs
-        from tkinter.messagebox import showerror
-        from tkinter.messagebox import showinfo
-    else:
-        from Tkinter import *
-        from tkFileDialog import Open
-        from tkFileDialog import SaveAs
-        from tkMessageBox import showerror
-        from tkMessageBox import showinfo
+    from tkinter import *
+    from tkinter.filedialog import Open
+    from tkinter.filedialog import SaveAs
+    from tkinter.messagebox import showerror
+    from tkinter.messagebox import showinfo
     has_tk = True
 except ImportError:
     has_tk = False
@@ -92,11 +79,7 @@ if has_tk:
             assert has_tk
             assert master is not None
 
-            if six.PY2:
-                # In Python 2, Frame is an old style class.
-                Frame.__init__(self, master, config, **keywords)
-            else:
-                super().__init__(master, config, **keywords)
+            super().__init__(master, config, **keywords)
 
             self._master = master
 

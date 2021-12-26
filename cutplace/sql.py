@@ -15,19 +15,11 @@ Methods to create sql statements from existing fields.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import io
 import logging
 import os.path
 
-import six
-
 from cutplace import rowio
-from cutplace._compat import python_2_unicode_compatible
 
 # TODO: Move to module ``ranges``.
 MAX_TINYINT = 2 ** 8 - 1  # NOTE: Tinyint really is unsigned.
@@ -49,7 +41,7 @@ _INT_TYPES = set(['bigint', 'int', 'smallint', 'tinyint'])
 _log = logging.getLogger("cutplace")
 
 
-@python_2_unicode_compatible
+
 class AnsiSqlDialect():
     """
     ANSI SQL dialect basically but not really supported by several database vendors.
@@ -115,7 +107,7 @@ class AnsiSqlDialect():
         return ANSI
 
 
-@python_2_unicode_compatible
+
 class PlSqlDialect(AnsiSqlDialect):
     """
     PL/SQL dialect used by Oracle.
@@ -180,7 +172,7 @@ class PlSqlDialect(AnsiSqlDialect):
         return PL
 
 
-@python_2_unicode_compatible
+
 class TransactSqlDialect(AnsiSqlDialect):
     """
     Transact-SQL dialect used by Microsoft SQL Server and Sybase.
@@ -233,7 +225,7 @@ class TransactSqlDialect(AnsiSqlDialect):
         return TRANSACT
 
 
-@python_2_unicode_compatible
+
 class Db2SqlDialect(AnsiSqlDialect):
     """
     SQL dialect used by IBM DB2.
@@ -305,7 +297,7 @@ _VALID_ANSI_TYPE_NAMES = ('char', 'date', 'decimal', 'int', 'varchar')
 
 
 def assert_is_valid_dialect(dialect):
-    assert six.text_type(dialect) in (ANSI, DB2, TRANSACT, PL), 'dialect=%r' % dialect
+    assert str(dialect) in (ANSI, DB2, TRANSACT, PL), 'dialect=%r' % dialect
 
 
 def assert_is_valid_ansi_type(ansi_type):
@@ -333,7 +325,7 @@ def assert_is_valid_ansi_type(ansi_type):
         assert False, 'ansi_type.name=%r but must be one of %s' % (type_name, _VALID_ANSI_TYPE_NAMES)
     for ansi_type_index, ansi_type_item in enumerate(ansi_type_items[1:], 1):
         if ansi_type_item is not None:
-            assert isinstance(ansi_type_item, six.integer_types), \
+            assert isinstance(ansi_type_item, int), \
                 'type(ansi_type[%d]) must be int but is %s' % (ansi_type_index, type(ansi_type[ansi_type_index]))
             assert ansi_type_item >= 0, 'ansi_type[%d] = %d must be at least 0' % (ansi_type_index, ansi_type_item)
 
@@ -395,15 +387,15 @@ class SqlFactory(object):
             column_def = self._indent + field_name + " " + field_type
             if field_type not in _INT_TYPES:
                 if length is not None and precision is None:
-                    column_def += "(" + six.text_type(length) + ")"
+                    column_def += "(" + str(length) + ")"
                 elif length is not None and precision is not None:
-                    column_def += "(" + six.text_type(length) + ", " + six.text_type(precision) + ")"
+                    column_def += "(" + str(length) + ", " + str(precision) + ")"
 
             if not is_not_null:
                 column_def += " not null"
 
             if default_value is not None and len(default_value) > 0:
-                column_def += " default " + six.text_type(default_value)
+                column_def += " default " + str(default_value)
 
             result += column_def
 

@@ -15,17 +15,12 @@ Tests for data formats.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import fnmatch
 import logging
 import tokenize
 import unittest
 
-import six
+import pytest
 
 from cutplace import data
 from cutplace import errors
@@ -273,9 +268,6 @@ class DataFormatTest(unittest.TestCase):
     def _test_fails_on_broken_validated_character(self, value, anticipated_error_message_pattern):
         try:
             data.DataFormat._validated_character('x', value, self._location)
-        except tokenize.TokenError:
-            # HACK: Python 3's generate_tokens() raises TokenError for certain syntax errors while Python 2 does not.
-            assert not six.PY2
         except errors.InterfaceError as error:
             assert fnmatch.fnmatchcase(str(error), anticipated_error_message_pattern)
 
@@ -301,7 +293,7 @@ class DataFormatTest(unittest.TestCase):
     def test_fails_on_validated_character_with_unterminated_multi_line_expression(self):
         self._test_fails_on_broken_validated_character(
             '((',
-            "*: value for data format property 'x' must be a single character but is: '(('")
+            "*: value for data format property 'x' must be a valid Python token: '(('*")
 
     def test_fails_on_validated_character_with_unterminated_string(self):
         self._test_fails_on_broken_validated_character(

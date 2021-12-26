@@ -16,16 +16,9 @@ Tests for `sql` module
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import sqlite3
 import unittest
 from contextlib import closing
-
-import six
 
 from cutplace import data
 from cutplace import interface
@@ -209,10 +202,10 @@ class SqlFactoryTest(unittest.TestCase):
             ['D', 'Encoding', 'ISO-8859-1'],
             ['D', 'Allowed characters', '32:'],
             ['F', 'latitude', '1.5853', '', '', 'Decimal'],
-            ['F', 'small', '1', '', '', 'Integer', '0...%s' % six.text_type(sql.MAX_SMALLINT)],
-            ['F', 'int', '1', '', '', 'Integer', '0...%s' % six.text_type(sql.MAX_SMALLINT + 1)],
-            ['F', 'big', '1', '', '', 'Integer', '0...%s' % six.text_type(sql.MAX_INTEGER + 1)],
-            ['F', 'decimal', '1', '', '', 'Integer', '0...%s' % six.text_type(sql.MAX_BIGINT + 1)],
+            ['F', 'small', '1', '', '', 'Integer', '0...%s' % str(sql.MAX_SMALLINT)],
+            ['F', 'int', '1', '', '', 'Integer', '0...%s' % str(sql.MAX_SMALLINT + 1)],
+            ['F', 'big', '1', '', '', 'Integer', '0...%s' % str(sql.MAX_INTEGER + 1)],
+            ['F', 'decimal', '1', '', '', 'Integer', '0...%s' % str(sql.MAX_BIGINT + 1)],
         ])
 
         sql_factory = sql.SqlFactory(cid, 'customers', sql.DB2_SQL_DIALECT)
@@ -240,10 +233,10 @@ class SqlFactoryTest(unittest.TestCase):
             ['D', 'Encoding', 'ISO-8859-1'],
             ['D', 'Allowed characters', '32:'],
             ['F', 'latitude', '1.5853', '', '', 'Decimal'],
-            ['F', 'smallint', '1', '', '', 'Integer', '0...%s' % six.text_type(sql.MAX_SMALLINT)],
-            ['F', 'int', '1', '', '', 'Integer', '0...%s' % six.text_type(sql.MAX_SMALLINT + 1)],
-            ['F', 'big', '1', '', '', 'Integer', '0...%s' % six.text_type(sql.MAX_INTEGER + 1)],
-            ['F', 'decimal', '1', '', '', 'Integer', '0...%s' % six.text_type(sql.MAX_BIGINT + 1)],
+            ['F', 'smallint', '1', '', '', 'Integer', '0...%s' % str(sql.MAX_SMALLINT)],
+            ['F', 'int', '1', '', '', 'Integer', '0...%s' % str(sql.MAX_SMALLINT + 1)],
+            ['F', 'big', '1', '', '', 'Integer', '0...%s' % str(sql.MAX_INTEGER + 1)],
+            ['F', 'decimal', '1', '', '', 'Integer', '0...%s' % str(sql.MAX_BIGINT + 1)],
         ])
 
         sql_factory = sql.SqlFactory(cid, 'customers', sql.TRANSACT_SQL_DIALECT)
@@ -271,10 +264,10 @@ class SqlFactoryTest(unittest.TestCase):
             ['D', 'Encoding', 'ISO-8859-1'],
             ['D', 'Allowed characters', '32:'],
             ['F', 'latitude', '1.5853', '', '', 'Decimal'],
-            ['F', 'small', '1', '', '', 'Integer', '0...%s' % six.text_type(sql.MAX_SMALLINT)],
-            ['F', 'int', '1', '', '', 'Integer', '0...%s' % six.text_type(sql.MAX_SMALLINT + 1)],
-            ['F', 'big', '1', '', '', 'Integer', '0...%s' % six.text_type(sql.MAX_INTEGER + 1)],
-            ['F', 'decimal', '1', '', '', 'Integer', '0...%s' % six.text_type(sql.MAX_BIGINT + 1)],
+            ['F', 'small', '1', '', '', 'Integer', '0...%s' % str(sql.MAX_SMALLINT)],
+            ['F', 'int', '1', '', '', 'Integer', '0...%s' % str(sql.MAX_SMALLINT + 1)],
+            ['F', 'big', '1', '', '', 'Integer', '0...%s' % str(sql.MAX_INTEGER + 1)],
+            ['F', 'decimal', '1', '', '', 'Integer', '0...%s' % str(sql.MAX_BIGINT + 1)],
             ['F', 'surname', 'Doe', '', '1...60', 'Text'],
         ])
 
