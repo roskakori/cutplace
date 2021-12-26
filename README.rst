@@ -1,3 +1,11 @@
+.. image:: https://img.shields.io/pypi/v/cutplace
+    :target: https://pypi.org/project/cutplace/
+    :alt: PyPI
+
+.. image:: https://readthedocs.org/projects/cutplace/badge/?version=latest
+    :target: https://cutplace.readthedocs.io/
+    :alt: Documentation
+
 .. image:: https://github.com/roskakori/cutplace/actions/workflows/build.yaml/badge.svg
     :target: https://travis-ci.org/roskakori/cutplace
     :alt: Build Status
@@ -8,6 +16,7 @@
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/psf/black
+    :alt: Black
 
 Cutplace is a tool and API to validate that tabular data stored in CSV,
 Excel, ODS and PRN files conform to a cutplace interface definition (CID).
