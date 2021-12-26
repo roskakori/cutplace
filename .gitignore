@@ -43,3 +43,4 @@ sloccount.sc
 /sdist
 /tests/build
 /tests/test-report.xml
+/test-report.xml
