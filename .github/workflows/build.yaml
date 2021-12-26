@@ -23,6 +23,7 @@ jobs:
       - name: Install dependencies
         run: |
           poetry install --no-interaction
+          source .venv/bin/activate
       - name: Build cutplace package
         run: |
           poetry build
