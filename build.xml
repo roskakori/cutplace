@@ -45,19 +45,4 @@
             <arg value="html" />
         </exec>
     </target>
-
-    <target name="flake8" description="build flake8 violations report">
-        <echo message="build flake8 violations report" />
-        <exec executable="flake8" failonerror="true">
-            <arg value="--config" />
-            <arg file="tox.ini" />
-            <arg file="setup.py" />
-            <arg file="cutplace" />
-            <arg file="tests" />
-            <redirector error="flake8.txt" output="flake8.txt" />
-        </exec>
-        <concat>
-            <filelist files="flake8.txt"/>
-        </concat>
-    </target>
 </project>
