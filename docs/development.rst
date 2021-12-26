@@ -9,6 +9,7 @@ how to build it and how to contribute to the project.
 If you are interested in using cutplace's classes and functions, refer to the
 chapter about the :doc:`api`.
 
+.. index:: build, poetry
 
 Obtain and build the source code
 ================================
@@ -31,27 +32,13 @@ To build the distribution archives::
 
   $ poetry build
 
-.. index:: ant
+The :file:`scripts` folder contains a few shell scripts to build other parts:
 
-For everything else related to the build, use
-`ant <http://ant.apache.org/>`_, a build tool popular in the Java world.
-To get an overview of the available ant targets, run::
-
-  $ ant -projecthelp
-
-Using ant in a Python project might seem unusual, but there are good
-reasons for that:
-
-* ant is more robust and portable than using shell scripts for the same
-  thing.
-
-* It is easier to write and maintain an ant target than adding a new
-  :file:`setup.py` command. This is particularly true for targets that just
-  call a few command line tools and move around a couple of files.
-
-To build the documentation::
-
-  $ ant docs
+* :file:`build_documentation.sh`: Build the Sphinx documentation.
+* :file:`build_test_coverage_report.sh`: Build a test coverage report for
+  manual browsing. View file:`htmlcov/index.html` to take a look at it.
+* :file:`update_dependencies.sh`: Update dependencies to the most current
+  version.
 
 .. index:: repository, source code
 
@@ -91,6 +78,12 @@ Developer cheat sheet
 
 This section makes it easier for developers to remember how to perform
 certain common but rarely necessary tasks.
+
+Update the version number in :file:`pyproject.toml`::
+
+  [tool.poetry]
+  name = "cutplace"
+  version = "0.9.x"
 
 Build the distribution archives::
 

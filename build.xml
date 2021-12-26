@@ -11,38 +11,12 @@
     <!-- Property to access environment variables. -->
     <property environment="env" />
 
-    <macrodef name="torst">
-        <!-- Macro to run convert a data file to ReStructured text. -->
-        <attribute name="cid" />
-        <attribute name="data" />
-        <attribute name="rst" />
-        <sequential>
-            <exec executable="python" failonerror="true">
-                <env key="PYTHONPATH" value="."/>
-                <arg file="tests/dev_torst.py" />
-                <arg file="@{cid}" />
-                <arg file="@{data}" />
-                <arg file="@{rst}" />
-            </exec>
-        </sequential>
-    </macrodef>
-
     <target name="performance" description="run performance test">
         <exec executable="nosetests" failonerror="false">
             <arg value="--with-xunit" />
             <arg value="--xunit-file" />
             <arg file="nosetests_performance.xml" />
             <arg file="tests/test_performance.py" />
-        </exec>
-    </target>
-
-    <target description="build documentation" name="docs">
-        <torst cid="examples/cid_customers.ods" data="examples/customers.csv" rst="docs/include/customers.rst" />
-        <torst cid="examples/cid_customers.ods" data="examples/customers_without_date_of_birth.csv" rst="docs/include/customers_without_date_of_birth.rst" />
-        <exec executable="make" failonerror="true">
-            <arg value="-C" />
-            <arg value="docs" />
-            <arg value="html" />
         </exec>
     </target>
 </project>
