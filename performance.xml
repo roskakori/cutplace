@@ -1,1 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="0.341" timestamp="2021-12-26T22:06:56.842564" hostname="suda51.local"><testcase classname="tests.test_performance.PerformanceTest" name="test_can_validate_many_customers" time="0.077" /></testsuite></testsuites>
