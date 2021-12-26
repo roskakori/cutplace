@@ -31,19 +31,14 @@ import time
 
 try:
     from tkinter import *
-    from tkinter.filedialog import Open
-    from tkinter.filedialog import SaveAs
-    from tkinter.messagebox import showerror
-    from tkinter.messagebox import showinfo
+    from tkinter.filedialog import Open, SaveAs
+    from tkinter.messagebox import showerror, showinfo
 
     has_tk = True
 except ImportError:
     has_tk = False
 
-from cutplace import errors
-from cutplace import interface
-from cutplace import validio
-from cutplace import __version__
+from cutplace import __version__, errors, interface, validio
 
 _PADDING = 4
 

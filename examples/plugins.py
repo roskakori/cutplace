@@ -1,10 +1,7 @@
 """
 Example plugins for cutplace.
 """
-from cutplace import checks
-from cutplace import errors
-from cutplace import fields
-from cutplace import ranges
+from cutplace import checks, errors, fields, ranges
 
 
 class ColorFieldFormat(fields.AbstractFieldFormat):

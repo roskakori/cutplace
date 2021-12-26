@@ -20,10 +20,7 @@ import decimal
 import logging
 import unittest
 
-from cutplace import data
-from cutplace import errors
-from cutplace import fields
-
+from cutplace import data, errors, fields
 from tests import dev_test
 
 _ANY_FORMAT = data.DataFormat(data.FORMAT_DELIMITED)

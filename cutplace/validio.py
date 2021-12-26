@@ -17,11 +17,7 @@ Validated input and output of tabular data in various formats.
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import itertools
 
-from cutplace import data
-from cutplace import errors
-from cutplace import interface
-from cutplace import rowio
-from cutplace import _compat
+from cutplace import _compat, data, errors, interface, rowio
 
 # Valid choices for ``on_error`` parameter.
 _VALID_ON_ERROR_CHOICES = ("continue", "raise", "yield")

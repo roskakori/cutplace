@@ -20,13 +20,7 @@ import fnmatch
 import os.path
 import unittest
 
-from cutplace import checks
-from cutplace import interface
-from cutplace import data
-from cutplace import errors
-from cutplace import fields
-from cutplace import ranges
-from cutplace import rowio
+from cutplace import checks, data, errors, fields, interface, ranges, rowio
 from tests import dev_test
 
 

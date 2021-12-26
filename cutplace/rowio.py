@@ -20,16 +20,14 @@ import csv
 import datetime
 import io
 import os
-import xlrd
-import xlsxwriter
 import zipfile
 from contextlib import closing
 from xml.etree import ElementTree
 
-from cutplace import data
-from cutplace import errors
-from cutplace import _compat
-from cutplace import _tools
+import xlrd
+import xlsxwriter
+
+from cutplace import _compat, _tools, data, errors
 
 # Valid line delimiters for  `fixed_rows()`.
 _VALID_FIXED_ANY_LINE_DELIMITERS = ("\n", "\r", "\r\n")

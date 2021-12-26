@@ -19,7 +19,7 @@ import fnmatch
 import logging
 import os
 import random
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 
 _log = logging.getLogger("cutplace.tests")
 

@@ -18,9 +18,7 @@ Standard checks that can cover a whole row or data set.
 import copy
 import tokenize
 
-from cutplace import fields
-from cutplace import errors
-from cutplace import _tools
+from cutplace import _tools, errors, fields
 from cutplace._tools import generated_tokens
 
 

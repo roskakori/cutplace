@@ -20,10 +20,7 @@ import string
 import token
 import tokenize
 
-from cutplace import errors
-from cutplace import ranges
-from cutplace import _compat
-from cutplace import _tools
+from cutplace import _compat, _tools, errors, ranges
 
 #: Value for property ``line_delimiter`` to indicate any possible delimiter.
 from cutplace._tools import generated_tokens

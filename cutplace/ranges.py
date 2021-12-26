@@ -3,6 +3,8 @@ Ranges check if certain values are within it. This is used in several places of 
 particular to specify the length limits for field values and the characters allowed for a data
 format.
 """
+import decimal
+
 # Copyright (C) 2009-2021 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -18,11 +20,8 @@ format.
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import token
-import decimal
 
-from cutplace import errors
-from cutplace import _compat
-from cutplace import _tools
+from cutplace import _compat, _tools, errors
 
 #: '...' as single character.
 ELLIPSIS = "\u2026"

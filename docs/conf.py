@@ -15,7 +15,6 @@
 # sys.path.insert(0, os.path.abspath('.'))
 import cutplace
 
-
 # -- Project information -----------------------------------------------------
 
 project = "cutplace"

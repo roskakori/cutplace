@@ -22,8 +22,7 @@ import unittest
 
 import pytest
 
-from cutplace import data
-from cutplace import errors
+from cutplace import data, errors
 from tests import dev_test
 
 

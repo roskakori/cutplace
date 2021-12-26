@@ -18,23 +18,13 @@ any errors and setting a proper exit code to be passed to the end user.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import argparse
 import logging
 import sys
 
-from cutplace import errors
-from cutplace import gui
-from cutplace import interface
-from cutplace import validio
-from cutplace import rowio
-from cutplace import sql
-from cutplace import _tools
-from cutplace import __version__
+from cutplace import __version__, _tools, errors, gui, interface, rowio, sql, validio
 
 DEFAULT_CID_ENCODING = "utf-8"
 DEFAULT_LOG_LEVEL = "info"

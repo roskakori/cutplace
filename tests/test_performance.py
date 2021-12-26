@@ -22,11 +22,7 @@ import pstats
 import random
 import unittest
 
-from cutplace import interface
-from cutplace import validio
-from cutplace import _compat
-from cutplace import applications
-from cutplace import _tools
+from cutplace import _compat, _tools, applications, interface, validio
 from tests import dev_test
 
 _log = logging.getLogger("cutplace.dev_reports")

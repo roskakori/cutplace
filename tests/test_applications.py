@@ -20,9 +20,7 @@ import os
 import unittest
 
 from cutplace import applications
-from tests import dev_test
-from tests import _ods
-
+from tests import _ods, dev_test
 
 _log = logging.getLogger("cutplace.test_applications")
 

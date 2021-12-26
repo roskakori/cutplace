@@ -19,11 +19,7 @@ import io
 import os
 import unittest
 
-from cutplace import data
-from cutplace import interface
-from cutplace import errors
-from cutplace import rowio
-from cutplace import _tools
+from cutplace import _tools, data, errors, interface, rowio
 from tests import dev_test
 
 _EURO_SIGN = "\u20ac"

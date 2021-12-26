@@ -73,6 +73,11 @@ cutplace = "cutplace.applications:main_for_script"
 [tool.poetry.urls]
 "Bug Tracker" = "https://github.com/roskakori/cutplace/issues"
 
+[tool.isort]
+profile = "black"
+default_section = "THIRDPARTY"
+known_first_party = "cutplace,scripts"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

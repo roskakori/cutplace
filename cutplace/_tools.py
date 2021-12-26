@@ -22,7 +22,6 @@ import tokenize
 
 from cutplace import _compat
 
-
 #: Mapping for value of :option:`--log` to logging level.
 from cutplace.errors import InterfaceError
 

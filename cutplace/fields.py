@@ -23,12 +23,7 @@ import string
 import sys
 import time
 
-from cutplace import data
-from cutplace import ranges
-from cutplace import errors
-from cutplace import _compat
-from cutplace import _tools
-
+from cutplace import _compat, _tools, data, errors, ranges
 
 # TODO #61: Replace various %r or '%s' by %s and apply _compat.text_repr().
 

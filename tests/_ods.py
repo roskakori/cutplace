@@ -16,19 +16,14 @@ Read and convert ODS files created by OpenOffice.org's Calc.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import argparse
-import logging
 import io
+import logging
 import sys
 
-from cutplace import _compat
-from cutplace import _tools
-from cutplace import rowio
+from cutplace import _compat, _tools, rowio
 
 # TODO: Remove the whole module as it should be obsolete now due dev_torst.
 

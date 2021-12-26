@@ -20,9 +20,7 @@ import sqlite3
 import unittest
 from contextlib import closing
 
-from cutplace import data
-from cutplace import interface
-from cutplace import sql
+from cutplace import data, interface, sql
 
 _ANY_FORMAT = data.DataFormat(data.FORMAT_DELIMITED)
 _FIXED_FORMAT = data.DataFormat(data.FORMAT_FIXED)

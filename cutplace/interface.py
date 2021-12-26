@@ -16,21 +16,14 @@ Classes and functions to read and represent cutplace interface definitions.
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import glob
+import importlib.machinery
+import importlib.util
 import inspect
 import io
 import logging
 import os.path
 
-import importlib.machinery
-import importlib.util
-
-from cutplace import data
-from cutplace import fields
-from cutplace import errors
-from cutplace import checks
-from cutplace import rowio
-from cutplace import _compat
-from cutplace import _tools
+from cutplace import _compat, _tools, checks, data, errors, fields, rowio
 
 _log = logging.getLogger("cutplace")
 

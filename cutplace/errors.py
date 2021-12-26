@@ -19,7 +19,6 @@ import copy
 import os
 import traceback
 
-
 #: Symbolic names that can be used to improve the legibility of the CID.
 NAME_TO_ASCII_CODE_MAP = {"cr": 13, "ff": 12, "lf": 10, "tab": 9, "vt": 11}
 

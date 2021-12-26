@@ -10,7 +10,7 @@ import pkg_resources
 from cutplace.errors import Location
 from cutplace.interface import Cid
 from cutplace.ranges import Range
-from cutplace.validio import Reader, Writer, validate, rows
+from cutplace.validio import Reader, Writer, rows, validate
 
 #: Package version information.
 __version__ = pkg_resources.get_distribution(__name__).version
