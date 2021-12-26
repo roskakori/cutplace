@@ -710,4 +710,3 @@ If you are unsure which plugins exactly cutplace imports, use
   INFO:cutplace:  import plugins from "/Users/me/cutplace_plugins/myplugins.py"
   INFO:cutplace:    fields found: ['ColorFieldFormat']
   INFO:cutplace:    checks found: ['FullNameLengthIsInRangeCheck']
-

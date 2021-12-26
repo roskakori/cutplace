@@ -1,3 +1,21 @@
+[tool.black]
+line-length = 120
+include = '\.pyi?$'
+target-version = [
+    "py37",
+    "py38",
+    "py39",
+]
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = [
@@ -45,7 +63,6 @@ packages = [
 python = "^3.7"
 xlrd = "^1.2"
 XlsxWriter = "^3"
-pytest-cov = "^3.0.0"
 
 [tool.poetry.dev-dependencies]
 wheel = "^0.37.1"
@@ -53,12 +70,20 @@ coverage = "^6.2"
 Sphinx = "^4.3.2"
 pytest = "^6.2.5"
 coveralls = "^3.3.1"
+pep8-naming = "^0.12.1"
+pytest-cov = "^3.0.0"
+pre-commit = "^2.16.0"
 
 [tool.poetry.scripts]
 cutplace = "cutplace.applications:main_for_script"
 
 [tool.poetry.urls]
 "Bug Tracker" = "https://github.com/roskakori/cutplace/issues"
+
+[tool.isort]
+profile = "black"
+default_section = "THIRDPARTY"
+known_first_party = "cutplace,scripts"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

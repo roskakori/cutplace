@@ -1,7 +1,7 @@
 """
 Standard checks that can cover a whole row or data set.
 """
-# Copyright (C) 2009-2015 Thomas Aglassinger
+# Copyright (C) 2009-2021 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
@@ -18,9 +18,7 @@ Standard checks that can cover a whole row or data set.
 import copy
 import tokenize
 
-from cutplace import fields
-from cutplace import errors
-from cutplace import _tools
+from cutplace import _tools, errors, fields
 from cutplace._tools import generated_tokens
 
 
@@ -29,6 +27,7 @@ class AbstractCheck(object):
     Abstract check to be used as base class for other checks. The constructor should be called by
     descendants, the other methods do nothing and can be left untouched.
     """
+
     def __init__(self, description, rule, available_field_names, location_of_definition=None):
         r"""
         Create a check.
@@ -51,7 +50,7 @@ class AbstractCheck(object):
         self._rule = rule
         self._field_names = available_field_names
         if location_of_definition is None:
-            self._location = errors.create_caller_location(['checks'])
+            self._location = errors.create_caller_location(["checks"])
             self._location_of_rule = self._location
         else:
             self._location = copy.copy(location_of_definition)
@@ -154,6 +153,7 @@ class IsUniqueCheck(AbstractCheck):
     """
     Check to ensure that all rows are unique concerning certain key fields.
     """
+
     def __init__(self, description, rule, available_field_names, location=None):
         super(IsUniqueCheck, self).__init__(description, rule, available_field_names, location)
 
@@ -173,25 +173,30 @@ class IsUniqueCheck(AbstractCheck):
                 if token_type != tokenize.NAME:
                     raise errors.InterfaceError(
                         "field name must contain only ASCII letters, numbers and underscores (_) "
-                        + "but found: %r [token type=%r]" % (token_value, token_type), self.location_of_rule)
+                        + "but found: %r [token type=%r]" % (token_value, token_type),
+                        self.location_of_rule,
+                    )
                 try:
                     fields.field_name_index(token_value, available_field_names, location)
                     if token_value in unique_field_names:
                         raise errors.InterfaceError(
                             "duplicate field name for unique check must be removed: %s" % token_value,
-                            self.location_of_rule)
+                            self.location_of_rule,
+                        )
                     unique_field_names.add(token_value)
                 except errors.InterfaceError as error:
                     raise errors.InterfaceError(str(error))
                 self._field_names_to_check.append(token_value)
             elif not _tools.is_comma_token(next_token):
                 raise errors.InterfaceError(
-                    "after field name a comma (,) must follow but found: %r" % token_value, self.location_of_rule)
+                    "after field name a comma (,) must follow but found: %r" % token_value, self.location_of_rule
+                )
             after_comma = not after_comma
             next_token = next(toky)
         if not len(self._field_names_to_check):
             raise errors.InterfaceError(
-                "rule must contain at least one field name to check for uniqueness", self.location_of_rule)
+                "rule must contain at least one field name to check for uniqueness", self.location_of_rule
+            )
 
     def reset(self):
         self._row_key_to_location_map = {}
@@ -201,8 +206,11 @@ class IsUniqueCheck(AbstractCheck):
         see_also_location = self._row_key_to_location_map.get(row_key)
         if see_also_location is not None:
             raise errors.CheckError(
-                "values for %r must be unique: %s" % (self._field_names_to_check, row_key), location,
-                see_also_message="location of first occurrence", see_also_location=see_also_location)
+                "values for %r must be unique: %s" % (self._field_names_to_check, row_key),
+                location,
+                see_also_message="location of first occurrence",
+                see_also_location=see_also_location,
+            )
         else:
             self._row_key_to_location_map[row_key] = copy.copy(location)
 
@@ -211,6 +219,7 @@ class DistinctCountCheck(AbstractCheck):
     """
     Check to ensure that the number of different values in a field matches an expression.
     """
+
     _COUNT_NAME = "count"
 
     def __init__(self, description, rule, available_field_names, location=None):
@@ -222,7 +231,8 @@ class DistinctCountCheck(AbstractCheck):
         # Obtain and validate field to count.
         if first_token[0] != tokenize.NAME:
             raise errors.InterfaceError(
-                "rule must start with a field name but found: %r" % first_token[1], self.location_of_rule)
+                "rule must start with a field name but found: %r" % first_token[1], self.location_of_rule
+            )
         self._field_name_to_count = first_token[1]
         fields.field_name_index(self._field_name_to_count, available_field_names, location)
         line_where_field_name_ends, column_where_field_name_ends = first_token[3]
@@ -250,11 +260,14 @@ class DistinctCountCheck(AbstractCheck):
             result = eval(self._expression, {}, local_variables)
         except Exception as message:
             raise errors.InterfaceError(
-                "cannot evaluate count expression %r: %s" % (self._expression, message), self.location_of_rule)
+                "cannot evaluate count expression %r: %s" % (self._expression, message), self.location_of_rule
+            )
         if result not in (True, False):
             raise errors.InterfaceError(
                 "count expression %r must result in %r or %r, but test resulted in: %r"
-                % (self._expression, True, False, result), self.location_of_rule)
+                % (self._expression, True, False, result),
+                self.location_of_rule,
+            )
         return result
 
     def check_row(self, field_name_to_value_map, location):
@@ -267,4 +280,5 @@ class DistinctCountCheck(AbstractCheck):
     def check_at_end(self, location):
         if not self._eval():
             raise errors.CheckError(
-                "distinct count is %d but check requires: %r" % (self._distinct_count(), self._expression), location)
+                "distinct count is %d but check requires: %r" % (self._distinct_count(), self._expression), location
+            )

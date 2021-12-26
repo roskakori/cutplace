@@ -1,3 +1,0 @@
-setuptools==60.1.0
-xlrd<2.0.0
-XlsxWriter==3.0.2

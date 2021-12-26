@@ -105,4 +105,3 @@ Upload release to PyPI::
 
   $ poetry run pytest
   $ poetry publish
-
