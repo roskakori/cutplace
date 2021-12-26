@@ -36,8 +36,8 @@ from cutplace import sql
 from cutplace import _tools
 from cutplace import __version__
 
-DEFAULT_CID_ENCODING = 'utf-8'
-DEFAULT_LOG_LEVEL = 'info'
+DEFAULT_CID_ENCODING = "utf-8"
+DEFAULT_LOG_LEVEL = "info"
 assert DEFAULT_LOG_LEVEL in _tools.LOG_LEVEL_NAME_TO_LEVEL_MAP
 DEFAULT_VALIDATE_UNTIL = -1
 
@@ -48,6 +48,7 @@ class CutplaceApp(object):
     """
     Command line application to validate CID's and data.
     """
+
     def __init__(self):
         """
         Setup the empty command line application.
@@ -69,30 +70,53 @@ class CutplaceApp(object):
         """
         assert argv is not None
 
-        description = 'validate DATA-FILE against interface description CID-FILE'
-        version = '%(prog)s ' + __version__
+        description = "validate DATA-FILE against interface description CID-FILE"
+        version = "%(prog)s " + __version__
 
         parser = argparse.ArgumentParser(description=description)
         parser.add_argument(
-            '--create', '-C', action='store_true', dest='is_create_sql',
-            help='write SQL statement to create a table representing CID-FILE')
+            "--create",
+            "-C",
+            action="store_true",
+            dest="is_create_sql",
+            help="write SQL statement to create a table representing CID-FILE",
+        )
         parser.add_argument(
-            '--gui', '--g', action='store_true', dest='is_gui',
-            help='provide a graphical user interface to set CID-FILE and DATA-FILE')
+            "--gui",
+            "--g",
+            action="store_true",
+            dest="is_gui",
+            help="provide a graphical user interface to set CID-FILE and DATA-FILE",
+        )
         parser.add_argument(
-            '--log', metavar='LEVEL', choices=sorted(_tools.LOG_LEVEL_NAME_TO_LEVEL_MAP.keys()), dest='log_level',
-            default=DEFAULT_LOG_LEVEL, help='set log level to LEVEL (default: %s)' % DEFAULT_LOG_LEVEL)
+            "--log",
+            metavar="LEVEL",
+            choices=sorted(_tools.LOG_LEVEL_NAME_TO_LEVEL_MAP.keys()),
+            dest="log_level",
+            default=DEFAULT_LOG_LEVEL,
+            help="set log level to LEVEL (default: %s)" % DEFAULT_LOG_LEVEL,
+        )
         parser.add_argument(
-            '--plugins', '-P', metavar='FOLDER', dest='plugins_folder',
-            help='folder to scan for plugins (default: no plugins)')
+            "--plugins",
+            "-P",
+            metavar="FOLDER",
+            dest="plugins_folder",
+            help="folder to scan for plugins (default: no plugins)",
+        )
         parser.add_argument(
-            '--until', '-u', metavar='COUNT', dest='validate_until', default=DEFAULT_VALIDATE_UNTIL, type=int,
-            help='maximum number of rows to validate; -1=all, 0=none (default: %d)' % DEFAULT_VALIDATE_UNTIL)
-        parser.add_argument('--version', action='version', version=version)
+            "--until",
+            "-u",
+            metavar="COUNT",
+            dest="validate_until",
+            default=DEFAULT_VALIDATE_UNTIL,
+            type=int,
+            help="maximum number of rows to validate; -1=all, 0=none (default: %d)" % DEFAULT_VALIDATE_UNTIL,
+        )
+        parser.add_argument("--version", action="version", version=version)
         parser.add_argument(
-            'cid_path', metavar='CID-FILE', nargs='?', help='file containing a cutplace interface definition (CID)')
-        parser.add_argument(
-            'data_paths', metavar='DATA-FILE', nargs='*', help='data file(s) to validate')
+            "cid_path", metavar="CID-FILE", nargs="?", help="file containing a cutplace interface definition (CID)"
+        )
+        parser.add_argument("data_paths", metavar="DATA-FILE", nargs="*", help="data file(s) to validate")
         args = parser.parse_args(argv[1:])
 
         self._log.setLevel(_tools.LOG_LEVEL_NAME_TO_LEVEL_MAP[args.log_level])
@@ -105,21 +129,21 @@ class CutplaceApp(object):
             elif args.validate_until >= 0:
                 self.validate_until = args.validate_until
             else:
-                parser.error('option --until is %d but must be at least -1' % args.validate_until)
+                parser.error("option --until is %d but must be at least -1" % args.validate_until)
         if args.plugins_folder is not None:
             interface.import_plugins(args.plugins_folder)
         if args.data_paths is not None:
             self.data_paths = args.data_paths
         if args.is_gui:
             if not gui.has_tk:
-                parser.error('tkinter package must be installed in order for --gui to work')
+                parser.error("tkinter package must be installed in order for --gui to work")
         if args.cid_path is not None:
             self.set_cid_from_path(args.cid_path)
         elif not args.is_gui:
-            parser.error('CID_PATH or --gui must be specified')
+            parser.error("CID_PATH or --gui must be specified")
 
-        self._log.debug('cutplace %s', __version__)
-        self._log.debug('arguments=%s', args)
+        self._log.debug("cutplace %s", __version__)
+        self._log.debug("arguments=%s", args)
 
     def set_cid_from_path(self, cid_path):
         """
@@ -148,9 +172,9 @@ class CutplaceApp(object):
         try:
             with validio.Reader(self.cid, data_path, validate_until=self.validate_until) as reader:
                 reader.validate_rows()
-            _log.info('  accepted %d rows', reader.accepted_rows_count)
+            _log.info("  accepted %d rows", reader.accepted_rows_count)
         except errors.CutplaceError as error:
-            _log.error('  %s', error)
+            _log.error("  %s", error)
             self.all_validations_were_ok = False
 
 
@@ -231,5 +255,6 @@ def main_for_script():  # pragma: no cover
     logging.basicConfig(level=logging.INFO)
     sys.exit(main())
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main_for_script()

@@ -29,31 +29,31 @@ from tests import _ods
 
 class OdsTest(unittest.TestCase):
     def test_can_convert_ods_to_csv(self):
-        source_ods_path = dev_test.path_to_test_data('valid_customers.ods')
-        target_path = dev_test.path_to_test_result('valid_customers_from__ods.csv')
+        source_ods_path = dev_test.path_to_test_data("valid_customers.ods")
+        target_path = dev_test.path_to_test_result("valid_customers_from__ods.csv")
         _ods.main([source_ods_path, target_path])
 
     def test_can_convert_ods_to_rst(self):
-        source_ods_path = dev_test.path_to_test_data('valid_customers.ods')
-        target_path = dev_test.path_to_test_result('valid_customers_from__ods.rst')
-        _ods.main(['--format=rst', source_ods_path, target_path])
+        source_ods_path = dev_test.path_to_test_data("valid_customers.ods")
+        target_path = dev_test.path_to_test_result("valid_customers_from__ods.rst")
+        _ods.main(["--format=rst", source_ods_path, target_path])
 
     def test_fails_on_kinky_file_name(self):
-        source_ods_path = dev_test.path_to_test_data('valid_customers.ods')
-        target_path = dev_test.path_to_test_result('kinky_file_name//\\:^$\\::/')
+        source_ods_path = dev_test.path_to_test_data("valid_customers.ods")
+        target_path = dev_test.path_to_test_result("kinky_file_name//\\:^$\\::/")
         self.assertRaises(SystemExit, _ods.main, [source_ods_path, target_path])
 
     def test_fails_without_command_line_arguments(self):
         self.assertRaises(SystemExit, _ods.main, [])
 
     def test_fails_on_broken_sheet(self):
-        source_ods_path = dev_test.path_to_test_data('valid_customers.ods')
-        target_path = dev_test.path_to_test_result('valid_customers_from__ods.csv')
-        self.assertRaises(SystemExit, _ods.main, ['--sheet=x', source_ods_path, target_path])
-        self.assertRaises(SystemExit, _ods.main, ['--sheet=0', source_ods_path, target_path])
-        self.assertRaises(SystemExit, _ods.main, ['--sheet=17', source_ods_path, target_path])
+        source_ods_path = dev_test.path_to_test_data("valid_customers.ods")
+        target_path = dev_test.path_to_test_result("valid_customers_from__ods.csv")
+        self.assertRaises(SystemExit, _ods.main, ["--sheet=x", source_ods_path, target_path])
+        self.assertRaises(SystemExit, _ods.main, ["--sheet=0", source_ods_path, target_path])
+        self.assertRaises(SystemExit, _ods.main, ["--sheet=17", source_ods_path, target_path])
 
 
-if __name__ == '__main__':  # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     logging.basicConfig(level=logging.INFO)
     unittest.main()

@@ -21,14 +21,14 @@ import unittest
 
 
 def _path_to_docs_file(file_name):
-    docs_folder = os.path.join(os.path.pardir, 'docs')
+    docs_folder = os.path.join(os.path.pardir, "docs")
     return os.path.join(docs_folder, file_name)
 
 
 class DocumentationTest(unittest.TestCase):
     def test_can_run_examples_in_api_rst(self):
-        doctest.testfile(_path_to_docs_file('api.rst'))
+        doctest.testfile(_path_to_docs_file("api.rst"))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

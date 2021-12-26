@@ -16,13 +16,4 @@ from cutplace.validio import Reader, Writer, validate, rows
 __version__ = pkg_resources.get_distribution(__name__).version
 
 #: Public classes and functions.
-__all__ = [
-    'Cid',
-    'Location',
-    'Range',
-    'Reader',
-    'Writer',
-    'validate',
-    'rows',
-    '__version__'
-]
+__all__ = ["Cid", "Location", "Range", "Reader", "Writer", "validate", "rows", "__version__"]

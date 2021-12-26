@@ -36,8 +36,7 @@ from cutplace import _tools
 _FieldFormatClassSuffix = "FieldFormat"
 
 _ASCII_LETTERS = set(string.ascii_letters)
-_ASCII_LETTERS_DIGITS_AND_UNDERSCORE = set(string.ascii_letters + string.digits + '_')
-
+_ASCII_LETTERS_DIGITS_AND_UNDERSCORE = set(string.ascii_letters + string.digits + "_")
 
 
 class AbstractFieldFormat(object):
@@ -54,8 +53,8 @@ class AbstractFieldFormat(object):
 
     def __init__(self, field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value=None):
         assert field_name is not None
-        assert field_name, 'field_name must not be empty'
-        assert is_allowed_to_be_empty in (False, True), 'is_allowed_to_be_empty=%r' % is_allowed_to_be_empty
+        assert field_name, "field_name must not be empty"
+        assert is_allowed_to_be_empty in (False, True), "is_allowed_to_be_empty=%r" % is_allowed_to_be_empty
         assert rule is not None, 'to specify "no rule" use "" instead of None'
         assert data_format is not None
         # TODO #82: Cleanup validation for declared field formats.
@@ -153,7 +152,7 @@ class AbstractFieldFormat(object):
         characters derived from
         :py:attr:`~cutplace.fields.AbstractFieldFormat.length`.
         """
-        return ('varchar', None if self.length is None else self.length.upper_limit)
+        return ("varchar", None if self.length is None else self.length.upper_limit)
 
     def validate_characters(self, value):
         """
@@ -172,9 +171,16 @@ class AbstractFieldFormat(object):
                 except errors.RangeValueError:
                     raise errors.FieldValueError(
                         "character %s (code point U+%04x, decimal %d) in field '%s' at column %d must be an allowed "
-                        "character: %s" % (
-                            _compat.text_repr(character), character_code, character_code, self.field_name,
-                            character_column, valid_character_range))
+                        "character: %s"
+                        % (
+                            _compat.text_repr(character),
+                            character_code,
+                            character_code,
+                            self.field_name,
+                            character_column,
+                            valid_character_range,
+                        )
+                    )
 
     def validate_empty(self, value):
         """
@@ -199,7 +205,7 @@ class AbstractFieldFormat(object):
         """
         assert value is not None
 
-        if self.length is not None and not (self.is_allowed_to_be_empty and (value == '')):
+        if self.length is not None and not (self.is_allowed_to_be_empty and (value == "")):
             try:
                 if self.data_format.format == data.FORMAT_FIXED:
                     # Length of fixed format is considered a maximum, fewer characters have to be padded later.
@@ -207,12 +213,13 @@ class AbstractFieldFormat(object):
                     fixed_length = self.length.lower_limit
                     if value_length > fixed_length:
                         raise errors.FieldValueError(
-                            'fixed format field must have at most %d characters instead of %d: %s'
+                            "fixed format field must have at most %d characters instead of %d: %s"
                             % (fixed_length, value_length, _compat.text_repr(value))
                         )
                 else:
                     self.length.validate(
-                        "length of '%s' with value %s" % (self.field_name, _compat.text_repr(value)), len(value))
+                        "length of '%s' with value %s" % (self.field_name, _compat.text_repr(value)), len(value)
+                    )
             except errors.RangeValueError as error:
                 raise errors.FieldValueError(str(error))
 
@@ -256,17 +263,23 @@ class AbstractFieldFormat(object):
 
     def __str__(self):
         return "%s(%s, %s, %s, %s)" % (
-            self.__class__.__name__, _compat.text_repr(self.field_name), self.is_allowed_to_be_empty,
-            _compat.text_repr(self.length), _compat.text_repr(self.rule))
+            self.__class__.__name__,
+            _compat.text_repr(self.field_name),
+            self.is_allowed_to_be_empty,
+            _compat.text_repr(self.length),
+            _compat.text_repr(self.rule),
+        )
 
 
 class ChoiceFieldFormat(AbstractFieldFormat):
     """
     Field format accepting only values from a pool of choices.
     """
+
     def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format):
         super(ChoiceFieldFormat, self).__init__(
-            field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value='')
+            field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value=""
+        )
         self.choices = []
 
         # Split rule into tokens, ignoring white space.
@@ -283,18 +296,21 @@ class ChoiceFieldFormat(AbstractFieldFormat):
                 else:
                     previous_toky_text = None
                 raise errors.InterfaceError(
-                    "choice value must precede a comma (,) but found: %s" % _compat.text_repr(previous_toky_text))
+                    "choice value must precede a comma (,) but found: %s" % _compat.text_repr(previous_toky_text)
+                )
             choice = _tools.token_text(toky)
             if not choice:
                 raise errors.InterfaceError(
-                    "choice field must be allowed to be empty instead of containing an empty choice")
+                    "choice field must be allowed to be empty instead of containing an empty choice"
+                )
             self.choices.append(choice)
             toky = next(tokens)
             if not _tools.is_eof_token(toky):
                 if not _tools.is_comma_token(toky):
                     raise errors.InterfaceError(
                         "comma (,) must follow choice value %s but found: %s"
-                        % (_compat.text_repr(choice), _compat.text_repr(toky[1])))
+                        % (_compat.text_repr(choice), _compat.text_repr(toky[1]))
+                    )
                 # Process next choice after comma.
                 toky = next(tokens)
                 if _tools.is_eof_token(toky):
@@ -308,7 +324,8 @@ class ChoiceFieldFormat(AbstractFieldFormat):
         if value not in self.choices:
             raise errors.FieldValueError(
                 "value is %s but must be one of: %s"
-                % (_compat.text_repr(value), _tools.human_readable_list(self.choices)))
+                % (_compat.text_repr(value), _tools.human_readable_list(self.choices))
+            )
         return value
 
 
@@ -316,45 +333,48 @@ class ConstantFieldFormat(AbstractFieldFormat):
     """
     Field format accepting only values from a pool of choices.
     """
+
     def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format):
         super(ConstantFieldFormat, self).__init__(
-            field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value='')
+            field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value=""
+        )
 
         # Extract constant from rule tokens.
         tokens = _tools.tokenize_without_space(rule)
         toky = next(tokens)
         if _tools.is_eof_token(toky):
             # No rule means that the field must always be empty.
-            self._constant = ''
+            self._constant = ""
         else:
             self._constant = _tools.token_text(toky)
             toky = next(tokens)
             if not _tools.is_eof_token(toky):
                 raise errors.InterfaceError(
-                    'constant rule must be a single Python token but also found: %s'
-                    % _compat.text_repr(_tools.token_text(toky)))
-        has_empty_rule = (rule == '')
+                    "constant rule must be a single Python token but also found: %s"
+                    % _compat.text_repr(_tools.token_text(toky))
+                )
+        has_empty_rule = rule == ""
         if self.is_allowed_to_be_empty and not has_empty_rule:
             raise errors.InterfaceError(
-                'to describe a Constant that can be empty, use a Choice field with a single choice')
+                "to describe a Constant that can be empty, use a Choice field with a single choice"
+            )
         if not self.is_allowed_to_be_empty and has_empty_rule:
-            raise errors.InterfaceError(
-                'field must be marked as empty to describe a constant empty value')
+            raise errors.InterfaceError("field must be marked as empty to describe a constant empty value")
         try:
-            self.length.validate(
-                'rule of constant field %s' % _compat.text_repr(self.field_name), len(self._constant))
+            self.length.validate("rule of constant field %s" % _compat.text_repr(self.field_name), len(self._constant))
         except errors.RangeValueError:
             raise errors.InterfaceError(
-                'length is %s but must be %d to match constant %s'
-                % (self.length, len(self._constant), _compat.text_repr(self._constant)))
+                "length is %s but must be %d to match constant %s"
+                % (self.length, len(self._constant), _compat.text_repr(self._constant))
+            )
 
     def validated_value(self, value):
         assert value
 
         if value != self._constant:
             raise errors.FieldValueError(
-                "value is %s but must be constant: %s"
-                % (_compat.text_repr(value), _compat.text_repr(self._constant)))
+                "value is %s but must be constant: %s" % (_compat.text_repr(value), _compat.text_repr(self._constant))
+            )
         return value
 
 
@@ -366,8 +386,7 @@ class DecimalFieldFormat(AbstractFieldFormat):
     """
 
     def __init__(self, field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value=None):
-        super(DecimalFieldFormat, self).__init__(
-            field_name, is_allowed_to_be_empty, "", "", data_format, empty_value)
+        super(DecimalFieldFormat, self).__init__(field_name, is_allowed_to_be_empty, "", "", data_format, empty_value)
         assert rule is not None, 'to specify "no rule" use "" instead of None'
         self.decimal_separator = data_format.decimal_separator
         self.thousands_separator = data_format.thousands_separator
@@ -378,7 +397,7 @@ class DecimalFieldFormat(AbstractFieldFormat):
         self._scale = self.valid_range.scale
 
     def sql_ansi_type(self):
-        return ('decimal', self._scale, self._precision)
+        return ("decimal", self._scale, self._precision)
 
     def validated_value(self, value):
         assert value
@@ -390,15 +409,16 @@ class DecimalFieldFormat(AbstractFieldFormat):
                 if found_decimal_separator:
                     raise errors.FieldValueError(
                         "decimal field must contain only one decimal separator (%s): %s"
-                        % (_compat.text_repr(self.decimal_separator), _compat.text_repr(value)))
+                        % (_compat.text_repr(self.decimal_separator), _compat.text_repr(value))
+                    )
                 translated_value += "."
                 found_decimal_separator = True
             elif self.thousands_separator and (character_to_process == self.thousands_separator):
                 if found_decimal_separator:
                     raise errors.FieldValueError(
                         "decimal field must contain thousands separator (%r) only before "
-                        "decimal separator (%r): %r "
-                        % (self.thousands_separator, self.decimal_separator, value))
+                        "decimal separator (%r): %r " % (self.thousands_separator, self.decimal_separator, value)
+                    )
             else:
                 translated_value += character_to_process
 
@@ -421,12 +441,14 @@ class IntegerFieldFormat(AbstractFieldFormat):
     """
     Field format accepting numeric integer values (without fractional part).
     """
+
     def __init__(self, field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value=None):
         super(IntegerFieldFormat, self).__init__(
-            field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value)
+            field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value
+        )
 
-        is_fixed_format = (data_format.format == data.FORMAT_FIXED)
-        has_length = (length_text is not None) and (length_text.strip() != '')
+        is_fixed_format = data_format.format == data.FORMAT_FIXED
+        has_length = (length_text is not None) and (length_text.strip() != "")
         if has_length:
             length = self.length
             if is_fixed_format:
@@ -434,10 +456,10 @@ class IntegerFieldFormat(AbstractFieldFormat):
                 # 1 to take into account that leading and trailing blanks
                 # might be missing from the rule parts.
                 assert self.length.lower_limit == self.length.upper_limit
-                length = ranges.Range('1...%d' % self.length.upper_limit)
+                length = ranges.Range("1...%d" % self.length.upper_limit)
             length_range = ranges.create_range_from_length(length)
 
-        has_rule = (rule is not None) and (rule.strip() != '')
+        has_rule = (rule is not None) and (rule.strip() != "")
         if has_rule:
             rule_range = ranges.Range(rule)
 
@@ -454,7 +476,8 @@ class IntegerFieldFormat(AbstractFieldFormat):
                         length_of_partial_rule_limit = _tools.length_of_int(partial_rule_limit)
                         try:
                             length.validate(
-                                "length of partial rule limit '%d'" % partial_rule_limit, length_of_partial_rule_limit)
+                                "length of partial rule limit '%d'" % partial_rule_limit, length_of_partial_rule_limit
+                            )
                         except errors.RangeValueError as error:
                             message = "length must be consistent with rule: %s" % error
                             raise errors.InterfaceError(message)
@@ -496,7 +519,7 @@ class IntegerFieldFormat(AbstractFieldFormat):
             lower_limit = self.valid_range.lower_limit
             upper_limit = self.valid_range.upper_limit
             limit = max(sign_adjusted_limit(lower_limit), sign_adjusted_limit(upper_limit))
-        return 'int', limit
+        return "int", limit
 
     def validated_value(self, value):
         assert value
@@ -516,45 +539,53 @@ class DateTimeFieldFormat(AbstractFieldFormat):
     """
     Field format accepting values that represent dates or times.
     """
+
     # We can't use a dictionary here because checks for patterns need to be in order. In
     # particular, "%" need to be checked first, and "YYYY" needs to be checked before "YY".
     _HUMAN_READABLE_TO_STRPTIME_TUPLES = (
-        ('%', '%%'),
-        ('DD', '%d'),
-        ('MM', '%m'),
-        ('YYYY', '%Y'),
-        ('YY', '%y'),
-        ('hh', '%H'),
-        ('mm', '%M'),
-        ('ss', '%S'),
+        ("%", "%%"),
+        ("DD", "%d"),
+        ("MM", "%m"),
+        ("YYYY", "%Y"),
+        ("YY", "%y"),
+        ("hh", "%H"),
+        ("mm", "%M"),
+        ("ss", "%S"),
     )
-    _STRPTIME_TIME_DIRECTIVES = ('%H', '%M', '%S')
-    _STRPTIME_DATE_DIRECTIVES = ('%d', '%m', '%y', '%Y')
-    _NO_EXCEL_TIME = ' 00:00:00'
+    _STRPTIME_TIME_DIRECTIVES = ("%H", "%M", "%S")
+    _STRPTIME_DATE_DIRECTIVES = ("%d", "%m", "%y", "%Y")
+    _NO_EXCEL_TIME = " 00:00:00"
     _NO_EXCEL_TIME_LENGTH = len(_NO_EXCEL_TIME)
 
     def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value=None):
         super(DateTimeFieldFormat, self).__init__(
-            field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value)
+            field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value
+        )
         self.human_readable_format = rule
 
         self.strptime_format = rule
         for human_readyble_item, strptime_item in DateTimeFieldFormat._HUMAN_READABLE_TO_STRPTIME_TUPLES:
             self.strptime_format = self.strptime_format.replace(human_readyble_item, strptime_item)
         self._has_time = any(
-            directive in self.strptime_format for directive in DateTimeFieldFormat._STRPTIME_TIME_DIRECTIVES)
+            directive in self.strptime_format for directive in DateTimeFieldFormat._STRPTIME_TIME_DIRECTIVES
+        )
         self._has_date = any(
-            directive in self.strptime_format for directive in DateTimeFieldFormat._STRPTIME_DATE_DIRECTIVES)
+            directive in self.strptime_format for directive in DateTimeFieldFormat._STRPTIME_DATE_DIRECTIVES
+        )
 
     def sql_ansi_type(self):
         # FIXME: Use timestamp for ANSI, date, datetime and time for others.
-        return ('date',)
+        return ("date",)
 
     def validated_value(self, value):
         assert value
 
-        if not self._has_time and (self.data_format.format == data.FORMAT_EXCEL) and (value.endswith(DateTimeFieldFormat._NO_EXCEL_TIME)):
-            value_to_validate = value[:-DateTimeFieldFormat._NO_EXCEL_TIME_LENGTH]
+        if (
+            not self._has_time
+            and (self.data_format.format == data.FORMAT_EXCEL)
+            and (value.endswith(DateTimeFieldFormat._NO_EXCEL_TIME))
+        ):
+            value_to_validate = value[: -DateTimeFieldFormat._NO_EXCEL_TIME_LENGTH]
         else:
             value_to_validate = value
 
@@ -563,7 +594,13 @@ class DateTimeFieldFormat(AbstractFieldFormat):
         except ValueError:
             raise errors.FieldValueError(
                 "date must match format %s (%s) but is: %s (%s)"
-                % (self.human_readable_format, self.strptime_format, _compat.text_repr(value_to_validate), sys.exc_info()[1]))
+                % (
+                    self.human_readable_format,
+                    self.strptime_format,
+                    _compat.text_repr(value_to_validate),
+                    sys.exc_info()[1],
+                )
+            )
         return result
 
 
@@ -571,9 +608,11 @@ class RegExFieldFormat(AbstractFieldFormat):
     """
     Field format accepting values that match a specified regular expression.
     """
+
     def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format):
-        super(RegExFieldFormat, self).__init__(field_name, is_allowed_to_be_empty, length, rule, data_format,
-                                               empty_value='')
+        super(RegExFieldFormat, self).__init__(
+            field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value=""
+        )
         self.regex = re.compile(rule, re.IGNORECASE | re.MULTILINE)
 
     def validated_value(self, value):
@@ -581,8 +620,8 @@ class RegExFieldFormat(AbstractFieldFormat):
 
         if not self.regex.match(value):
             raise errors.FieldValueError(
-                "value %s must match regular expression: %s"
-                % (_compat.text_repr(value), _compat.text_repr(self.rule)))
+                "value %s must match regular expression: %s" % (_compat.text_repr(value), _compat.text_repr(self.rule))
+            )
         return value
 
 
@@ -590,9 +629,11 @@ class PatternFieldFormat(AbstractFieldFormat):
     """
     Field format accepting values that match a pattern using "*" and "?" as place holders.
     """
-    def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value=''):
+
+    def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value=""):
         super(PatternFieldFormat, self).__init__(
-            field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value)
+            field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value
+        )
         self.pattern = fnmatch.translate(rule)
         self.regex = re.compile(self.pattern, re.IGNORECASE | re.MULTILINE)
 
@@ -601,8 +642,9 @@ class PatternFieldFormat(AbstractFieldFormat):
 
         if not self.regex.match(value):
             raise errors.FieldValueError(
-                'value %s must match pattern: %s (regex %s)'
-                % (_compat.text_repr(value), _compat.text_repr(self.rule), _compat.text_repr(self.pattern)))
+                "value %s must match pattern: %s (regex %s)"
+                % (_compat.text_repr(value), _compat.text_repr(self.rule), _compat.text_repr(self.pattern))
+            )
         return value
 
 
@@ -610,9 +652,11 @@ class TextFieldFormat(AbstractFieldFormat):
     """
     Field format accepting any text.
     """
-    def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value=''):
+
+    def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value=""):
         super(TextFieldFormat, self).__init__(
-            field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value)
+            field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value
+        )
 
     def validated_value(self, value):
         assert value
@@ -638,9 +682,10 @@ def field_name_index(field_name_to_look_up, available_field_names, location):
         field_index = available_field_names.index(field_name_to_look_up)
     except ValueError:
         raise errors.InterfaceError(
-            'unknown field name %s must be replaced by one of: %s'
+            "unknown field name %s must be replaced by one of: %s"
             % (_compat.text_repr(field_name_to_look_up), _tools.human_readable_list(available_field_names)),
-            location)
+            location,
+        )
     return field_index
 
 
@@ -653,10 +698,11 @@ def validated_field_name(supposed_field_name, location=None):
       invalid
     """
     field_name = supposed_field_name.strip()
-    basic_requirements_text = 'field name must be a valid Python name consisting of ASCII letters, ' \
-                              'underscore (_) and digits'
-    if field_name == '':
-        raise errors.InterfaceError(basic_requirements_text + 'but is empty', location)
+    basic_requirements_text = (
+        "field name must be a valid Python name consisting of ASCII letters, " "underscore (_) and digits"
+    )
+    if field_name == "":
+        raise errors.InterfaceError(basic_requirements_text + "but is empty", location)
     if keyword.iskeyword(field_name):
         raise errors.InterfaceError("field name must not be a Python keyword but is: '%s'" % field_name, location)
     is_first_character = True
@@ -664,11 +710,13 @@ def validated_field_name(supposed_field_name, location=None):
         if is_first_character:
             if character not in _ASCII_LETTERS:
                 raise errors.InterfaceError(
-                    "field name must begin with a lower-case letter but is: %s"
-                    % _compat.text_repr(field_name), location)
+                    "field name must begin with a lower-case letter but is: %s" % _compat.text_repr(field_name),
+                    location,
+                )
             is_first_character = False
         else:
             if character not in _ASCII_LETTERS_DIGITS_AND_UNDERSCORE:
                 raise errors.InterfaceError(
-                    basic_requirements_text + 'but is: %s' % _compat.text_repr(field_name), location)
+                    basic_requirements_text + "but is: %s" % _compat.text_repr(field_name), location
+                )
     return field_name

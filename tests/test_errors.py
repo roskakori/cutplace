@@ -74,31 +74,32 @@ class LocationTest(unittest.TestCase):
 
     def test_can_create_caller_location(self):
         location = errors.create_caller_location()
-        dev_test.assert_fnmatches(self, str(location), 'test_errors.py ([1-9]*)')
+        dev_test.assert_fnmatches(self, str(location), "test_errors.py ([1-9]*)")
 
 
 class CutplaceErrorTest(unittest.TestCase):
     def test_can_create_simple_cutplace_error(self):
-        location = errors.Location('eggs.ods', has_cell=True, has_sheet=True)
-        error = errors.CutplaceError('something must be something else', location)
+        location = errors.Location("eggs.ods", has_cell=True, has_sheet=True)
+        error = errors.CutplaceError("something must be something else", location)
         self.assertEqual(error.location, location)
-        self.assertEqual(error.__str__(), 'eggs.ods (Sheet1!R1C1): something must be something else')
+        self.assertEqual(error.__str__(), "eggs.ods (Sheet1!R1C1): something must be something else")
 
     def test_can_create_cutplace_error_with_see_also_details(self):
-        location = errors.Location('eggs.ods', has_cell=True, has_sheet=True)
+        location = errors.Location("eggs.ods", has_cell=True, has_sheet=True)
         location.advance_line(3)
         location.advance_cell(2)
-        location_of_cause = errors.Location('spam.ods', has_cell=True, has_sheet=True)
-        cause = errors.CutplaceError('something must be something else', location_of_cause)
-        error = errors.CutplaceError('cannot do something', location, cause.message, cause.location, cause)
+        location_of_cause = errors.Location("spam.ods", has_cell=True, has_sheet=True)
+        cause = errors.CutplaceError("something must be something else", location_of_cause)
+        error = errors.CutplaceError("cannot do something", location, cause.message, cause.location, cause)
         self.assertEqual(error.location, location)
         self.assertEqual(error.see_also_location, cause.location)
         self.assertEqual(error.cause, cause)
         self.assertEqual(
             error.__str__(),
-            'eggs.ods (Sheet1!R4C3): cannot do something '
-            + '(see also: spam.ods (Sheet1!R1C1): something must be something else)')
+            "eggs.ods (Sheet1!R4C3): cannot do something "
+            + "(see also: spam.ods (Sheet1!R1C1): something must be something else)",
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

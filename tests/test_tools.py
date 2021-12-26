@@ -34,14 +34,14 @@ class ToolsTest(unittest.TestCase):
         for _ in range(15):
             random_datetime = dev_test.random_datetime(randomizer)
             self.assertTrue(random_datetime is not None)
-            self.assertNotEqual(random_datetime, '')
+            self.assertNotEqual(random_datetime, "")
 
     def test_can_create_test_name(self):
         randomizer = random.Random(0)
         for _ in range(15):
             name = dev_test.random_name(randomizer)
             self.assertTrue(name is not None)
-            self.assertNotEqual(name, '')
+            self.assertNotEqual(name, "")
 
     def test_can_create_test_customer_row(self):
         for customer_id in range(15):
@@ -50,32 +50,32 @@ class ToolsTest(unittest.TestCase):
             self.assertEqual(len(row), 5)
 
     def test_can_validate_python_name(self):
-        self.assertEqual(_tools.validated_python_name('x', 'abc_123'), 'abc_123')
-        self.assertEqual(_tools.validated_python_name('x', ' abc_123 '), 'abc_123')
-        self.assertRaises(NameError, _tools.validated_python_name, 'x', '1337')
-        self.assertRaises(NameError, _tools.validated_python_name, 'x', '')
-        self.assertRaises(NameError, _tools.validated_python_name, 'x', ' ')
-        self.assertRaises(NameError, _tools.validated_python_name, 'x', 'a.b')
+        self.assertEqual(_tools.validated_python_name("x", "abc_123"), "abc_123")
+        self.assertEqual(_tools.validated_python_name("x", " abc_123 "), "abc_123")
+        self.assertRaises(NameError, _tools.validated_python_name, "x", "1337")
+        self.assertRaises(NameError, _tools.validated_python_name, "x", "")
+        self.assertRaises(NameError, _tools.validated_python_name, "x", " ")
+        self.assertRaises(NameError, _tools.validated_python_name, "x", "a.b")
 
     def test_can_build_human_readable_list(self):
-        self.assertEqual(_tools.human_readable_list([]), '')
-        self.assertEqual(_tools.human_readable_list(['a']), "'a'")
-        self.assertEqual(_tools.human_readable_list(['a', 'b']), "'a' or 'b'")
-        self.assertEqual(_tools.human_readable_list(['a', 'b', 'c']), "'a', 'b' or 'c'")
+        self.assertEqual(_tools.human_readable_list([]), "")
+        self.assertEqual(_tools.human_readable_list(["a"]), "'a'")
+        self.assertEqual(_tools.human_readable_list(["a", "b"]), "'a' or 'b'")
+        self.assertEqual(_tools.human_readable_list(["a", "b", "c"]), "'a', 'b' or 'c'")
 
     def _test_can_derive_suffix(self, expected_path, path_to_test, suffix_to_test):
         actualPath = _tools.with_suffix(path_to_test, suffix_to_test)
         self.assertEqual(expected_path, actualPath)
 
     def test_can_build_name_with_suffix(self):
-        self._test_can_derive_suffix('hugo.pas', 'hugo.txt', '.pas')
-        self._test_can_derive_suffix('hugo', 'hugo.txt', '')
-        self._test_can_derive_suffix('hugo.', 'hugo.txt', '.')
-        self._test_can_derive_suffix('hugo.txt', 'hugo', '.txt')
-        self._test_can_derive_suffix(os.path.join('eggs', 'hugo.pas'), os.path.join('eggs', 'hugo.txt'), '.pas')
+        self._test_can_derive_suffix("hugo.pas", "hugo.txt", ".pas")
+        self._test_can_derive_suffix("hugo", "hugo.txt", "")
+        self._test_can_derive_suffix("hugo.", "hugo.txt", ".")
+        self._test_can_derive_suffix("hugo.txt", "hugo", ".txt")
+        self._test_can_derive_suffix(os.path.join("eggs", "hugo.pas"), os.path.join("eggs", "hugo.txt"), ".pas")
 
     def test_fails_on_mkdirs_with_empty_path(self):
-        self.assertRaises(OSError, _tools.mkdirs, '')
+        self.assertRaises(OSError, _tools.mkdirs, "")
 
     def test_can_compute_length_of_int(self):
         self.assertEqual(3, _tools.length_of_int(123))

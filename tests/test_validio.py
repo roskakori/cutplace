@@ -30,11 +30,7 @@ from tests import dev_test
 
 _TEST_ENCODING = "cp1252"
 
-_DIGIT_CID_TEXT = '\n'.join([
-    'd,format,delimited',
-    'd,encoding,ascii',
-    'f,digit,,,1,Integer'
-])
+_DIGIT_CID_TEXT = "\n".join(["d,format,delimited", "d,encoding,ascii", "f,digit,,,1,Integer"])
 #: A CID for delimited data with 1 column per row that has to be a single
 #  digit.
 _DIGIT_CID = interface.create_cid_from_string(_DIGIT_CID_TEXT)
@@ -44,6 +40,7 @@ class ReaderTest(unittest.TestCase):
     """
     Tests for data formats.
     """
+
     def test_can_open_and_validate_csv(self):
         cid = interface.Cid(dev_test.CID_CUSTOMERS_ODS_PATH)
         with validio.Reader(cid, dev_test.CUSTOMERS_CSV_PATH) as reader:
@@ -73,15 +70,21 @@ class ReaderTest(unittest.TestCase):
         cid = interface.Cid(dev_test.CID_CUSTOMERS_XLS_PATH)
         with validio.Reader(cid, dev_test.path_to_test_data("broken_customers_fewer_elements.csv")) as reader:
             dev_test.assert_raises_and_fnmatches(
-                self, errors.DataError,
-                "*(R3C1): row must contain 5 fields but only has 4: *'19253', *'Webster Inc.', *'', *''?", reader.validate_rows)
+                self,
+                errors.DataError,
+                "*(R3C1): row must contain 5 fields but only has 4: *'19253', *'Webster Inc.', *'', *''?",
+                reader.validate_rows,
+            )
 
     def test_fails_on_csv_with_more_elements_than_expected(self):
         cid_reader = interface.Cid(dev_test.CID_CUSTOMERS_XLS_PATH)
         with validio.Reader(cid_reader, dev_test.path_to_test_data("broken_customers_more_elements.csv")) as reader:
             dev_test.assert_raises_and_fnmatches(
-                self, errors.DataError,
-                "*(R3C1): row must contain 5 fields but has 6, additional values are: *'error'*", reader.validate_rows)
+                self,
+                errors.DataError,
+                "*(R3C1): row must contain 5 fields but has 6, additional values are: *'error'*",
+                reader.validate_rows,
+            )
 
     def test_fails_on_invalid_csv_with_duplicates(self):
         cid = interface.Cid(dev_test.CID_CUSTOMERS_XLS_PATH)
@@ -92,14 +95,16 @@ class ReaderTest(unittest.TestCase):
         """
         Regression test for #49: Fails when last char of field is escaped.
         """
-        cid_text = '\n'.join([
-            'd,format,delimited',
-            'd,line delimiter,lf',
-            'd,encoding,ascii',
-            'd,quote character,""""',
-            'd,escape character,"\\"',
-            'f,some_fields'
-        ])
+        cid_text = "\n".join(
+            [
+                "d,format,delimited",
+                "d,line delimiter,lf",
+                "d,encoding,ascii",
+                'd,quote character,""""',
+                'd,escape character,"\\"',
+                "f,some_fields",
+            ]
+        )
         cid = interface.create_cid_from_string(cid_text)
         with io.StringIO('"\\"x"\n') as data_starting_with_escape_character:
             with validio.Reader(cid, data_starting_with_escape_character) as reader:
@@ -109,79 +114,83 @@ class ReaderTest(unittest.TestCase):
                 reader.validate_rows()
 
     def test_can_yield_errors(self):
-        cid_text = '\n'.join([
-            'd,format,delimited',
-            'd,encoding,ascii',
-            'f,some_number,,,,Integer'
-        ])
+        cid_text = "\n".join(["d,format,delimited", "d,encoding,ascii", "f,some_number,,,,Integer"])
         cid = interface.create_cid_from_string(cid_text)
-        with io.StringIO('1\nabc\n3') as partially_broken_data:
-            with validio.Reader(cid, partially_broken_data, 'yield') as reader:
+        with io.StringIO("1\nabc\n3") as partially_broken_data:
+            with validio.Reader(cid, partially_broken_data, "yield") as reader:
                 rows = list(reader.rows())
-        self.assertEqual(3, len(rows), 'expected 3 rows but got: %s' % rows)
-        self.assertEqual(['1'], rows[0])
-        self.assertEqual(errors.FieldValueError, type(rows[1]), 'rows=%s' % rows)
-        self.assertEqual(['3'], rows[2])
+        self.assertEqual(3, len(rows), "expected 3 rows but got: %s" % rows)
+        self.assertEqual(["1"], rows[0])
+        self.assertEqual(errors.FieldValueError, type(rows[1]), "rows=%s" % rows)
+        self.assertEqual(["3"], rows[2])
 
     def test_can_continue_after_errors(self):
-        cid_text = '\n'.join([
-            'd,format,delimited',
-            'd,encoding,ascii',
-            'f,some_number,,,,Integer',
-        ])
+        cid_text = "\n".join(
+            [
+                "d,format,delimited",
+                "d,encoding,ascii",
+                "f,some_number,,,,Integer",
+            ]
+        )
         cid = interface.create_cid_from_string(cid_text)
-        with io.StringIO('1\nabc\n3') as partially_broken_data:
-            with validio.Reader(cid, partially_broken_data, 'continue') as reader:
+        with io.StringIO("1\nabc\n3") as partially_broken_data:
+            with validio.Reader(cid, partially_broken_data, "continue") as reader:
                 rows = list(reader.rows())
         expected_row_count = 2
-        self.assertEqual(expected_row_count, len(rows), 'expected %d rows but got: %s' % (expected_row_count, rows))
-        self.assertEqual([['1'], ['3']], rows)
+        self.assertEqual(expected_row_count, len(rows), "expected %d rows but got: %s" % (expected_row_count, rows))
+        self.assertEqual([["1"], ["3"]], rows)
 
     def test_can_skip_header(self):
-        cid_text = '\n'.join([
-            'd,format,delimited',
-            'd,header,1',
-            'f,some_number,,,,Integer',
-        ])
+        cid_text = "\n".join(
+            [
+                "d,format,delimited",
+                "d,header,1",
+                "f,some_number,,,,Integer",
+            ]
+        )
         cid = interface.create_cid_from_string(cid_text)
-        with io.StringIO('some_number\n1\n2\n3') as data:
+        with io.StringIO("some_number\n1\n2\n3") as data:
             with validio.Reader(cid, data) as reader:
                 rows = list(reader.rows())
-        self.assertEqual([['1'], ['2'], ['3']], rows)
+        self.assertEqual([["1"], ["2"], ["3"]], rows)
 
     def test_fails_on_error_in_first_non_header_row(self):
-        cid_text = '\n'.join([
-            'd,format,delimited',
-            'd,header,1',
-            'f,some_number,,,,Integer',
-        ])
+        cid_text = "\n".join(
+            [
+                "d,format,delimited",
+                "d,header,1",
+                "f,some_number,,,,Integer",
+            ]
+        )
         cid = interface.create_cid_from_string(cid_text)
-        with io.StringIO('some_number\nabc\n') as broken_data:
+        with io.StringIO("some_number\nabc\n") as broken_data:
             with validio.Reader(cid, broken_data) as reader:
                 try:
                     list(reader.rows())
                     self.fail()
                 except errors.FieldValueError as anticipated_error:
                     dev_test.assert_fnmatches(
-                        self, str(anticipated_error),
-                        "* (R2C1): cannot accept field 'some_number': value must be an integer number: 'abc'")
+                        self,
+                        str(anticipated_error),
+                        "* (R2C1): cannot accept field 'some_number': value must be an integer number: 'abc'",
+                    )
 
     def test_can_skip_whole_validation(self):
-        data_with_row_3_broken = '1\n2\na\n'
+        data_with_row_3_broken = "1\n2\na\n"
         with io.StringIO(data_with_row_3_broken) as partially_broken_data:
             with validio.Reader(_DIGIT_CID, partially_broken_data, validate_until=0) as reader:
                 rows = list(reader.rows())
-        self.assertEqual([['1'], ['2'], ['a']], rows)
+        self.assertEqual([["1"], ["2"], ["a"]], rows)
 
     def test_can_skip_part_of_validation(self):
-        data_with_row_3_broken = '1\n2\na\n'
+        data_with_row_3_broken = "1\n2\na\n"
         with io.StringIO(data_with_row_3_broken) as partially_broken_data:
             with validio.Reader(_DIGIT_CID, partially_broken_data, validate_until=2) as reader:
                 rows = list(reader.rows())
-        self.assertEqual([['1'], ['2'], ['a']], rows)
+        self.assertEqual([["1"], ["2"], ["a"]], rows)
 
     def test_fails_on_broken_data_before_skipping_validation(self):
-        data_with_row_3_broken = '1\n2\na\n'
+        data_with_row_3_broken = "1\n2\na\n"
         with io.StringIO(data_with_row_3_broken) as partially_broken_data:
             with validio.Reader(_DIGIT_CID, partially_broken_data, validate_until=3) as reader:
                 try:
@@ -189,110 +198,122 @@ class ReaderTest(unittest.TestCase):
                     self.fail()
                 except errors.FieldValueError as anticipated_error:
                     dev_test.assert_fnmatches(
-                        self, str(anticipated_error),
-                        "* (R3C1): cannot accept field 'digit': value must be an integer number: 'a'")
+                        self,
+                        str(anticipated_error),
+                        "* (R3C1): cannot accept field 'digit': value must be an integer number: 'a'",
+                    )
 
 
 class WriterTest(unittest.TestCase):
     def setUp(self):
-        standard_delimited_cid_text = '\n'.join([
-            'd,format,delimited',
-            ' ,name   ,,empty,length,type,rule',
-            'f,surname',
-            'f,height ,,     ,      ,Integer',
-            'f,born_on,,     ,      ,DateTime,YYYY-MM-DD'
-        ])
+        standard_delimited_cid_text = "\n".join(
+            [
+                "d,format,delimited",
+                " ,name   ,,empty,length,type,rule",
+                "f,surname",
+                "f,height ,,     ,      ,Integer",
+                "f,born_on,,     ,      ,DateTime,YYYY-MM-DD",
+            ]
+        )
         self._standard_delimited_cid = interface.create_cid_from_string(standard_delimited_cid_text)
 
-        fixed_cid_text = '\n'.join([
-            'd,format,fixed',
-            ' ,name   ,,empty,length,type,rule',
-            'f,surname,,     ,10',
-            'f,height ,,     , 3    ,Integer',
-            'f,born_on,,     ,10    ,DateTime,YYYY-MM-DD'
-        ])
+        fixed_cid_text = "\n".join(
+            [
+                "d,format,fixed",
+                " ,name   ,,empty,length,type,rule",
+                "f,surname,,     ,10",
+                "f,height ,,     , 3    ,Integer",
+                "f,born_on,,     ,10    ,DateTime,YYYY-MM-DD",
+            ]
+        )
         # FIXME: Properly skip blanks when parsing "length" in CID.
-        fixed_cid_text = fixed_cid_text.replace(' ', '')
+        fixed_cid_text = fixed_cid_text.replace(" ", "")
         self._standard_fixed_cid = interface.create_cid_from_string(fixed_cid_text)
 
     def test_can_write_delimited(self):
         with io.StringIO() as delimited_stream:
             with validio.Writer(self._standard_delimited_cid, delimited_stream) as delimited_writer:
-                delimited_writer.write_row(['Miller', '173', '1967-05-23'])
-                delimited_writer.write_row(['Webster', '167', '1983-11-02'])
+                delimited_writer.write_row(["Miller", "173", "1967-05-23"])
+                delimited_writer.write_row(["Webster", "167", "1983-11-02"])
             data_written = dev_test.unified_newlines(delimited_stream.getvalue())
-        self.assertEqual('%r' % 'Miller,173,1967-05-23\nWebster,167,1983-11-02\n', '%r' % data_written)
+        self.assertEqual("%r" % "Miller,173,1967-05-23\nWebster,167,1983-11-02\n", "%r" % data_written)
 
     def test_can_write_delimited_header(self):
-        cid_with_header_text = '\n'.join([
-            'd,format,delimited',
-            'd,header,2',
-            ' ,name   ,,empty,length,type,rule',
-            'f,height ,,     ,      ,Integer',
-        ])
+        cid_with_header_text = "\n".join(
+            [
+                "d,format,delimited",
+                "d,header,2",
+                " ,name   ,,empty,length,type,rule",
+                "f,height ,,     ,      ,Integer",
+            ]
+        )
         cid_with_header = interface.create_cid_from_string(cid_with_header_text)
         with io.StringIO() as delimited_stream:
             with validio.Writer(cid_with_header, delimited_stream) as delimited_writer:
-                delimited_writer.write_row(['some', 'header', 'columns'])
-                delimited_writer.write_row(['height'])
-                delimited_writer.write_row(['173'])
+                delimited_writer.write_row(["some", "header", "columns"])
+                delimited_writer.write_row(["height"])
+                delimited_writer.write_row(["173"])
 
     def test_fails_on_writing_broken_field(self):
         with io.StringIO() as delimited_stream:
             with validio.Writer(self._standard_delimited_cid, delimited_stream) as delimited_writer:
-                delimited_writer.write_row(['Miller', '173', '1967-05-23'])
+                delimited_writer.write_row(["Miller", "173", "1967-05-23"])
                 try:
-                    delimited_writer.write_row(['Webster', 'not_a_number', '1983-11-02'])
+                    delimited_writer.write_row(["Webster", "not_a_number", "1983-11-02"])
                 except errors.FieldValueError as anticipated_error:
                     dev_test.assert_fnmatches(
-                        self, str(anticipated_error),
-                        "* (R2C2): cannot accept field 'height': value must be an integer number: *'not_a_number'")
+                        self,
+                        str(anticipated_error),
+                        "* (R2C2): cannot accept field 'height': value must be an integer number: *'not_a_number'",
+                    )
 
     def test_fails_on_error_after_header(self):
-        cid_with_header_text = '\n'.join([
-            'd,format,delimited',
-            'd,header,2',
-            ' ,name   ,,empty,length,type,rule',
-            'f,height ,,     ,      ,Integer',
-        ])
+        cid_with_header_text = "\n".join(
+            [
+                "d,format,delimited",
+                "d,header,2",
+                " ,name   ,,empty,length,type,rule",
+                "f,height ,,     ,      ,Integer",
+            ]
+        )
         cid_with_header = interface.create_cid_from_string(cid_with_header_text)
         with io.StringIO() as delimited_stream:
             with validio.Writer(cid_with_header, delimited_stream) as delimited_writer:
-                delimited_writer.write_row(['some', 'header', 'columns'])
-                delimited_writer.write_row(['height'])
-                self.assertRaises(errors.FieldValueError, delimited_writer.write_row, ['abc'])
+                delimited_writer.write_row(["some", "header", "columns"])
+                delimited_writer.write_row(["height"])
+                self.assertRaises(errors.FieldValueError, delimited_writer.write_row, ["abc"])
 
     def test_can_write_fixed_multiple_rows(self):
         with io.StringIO() as fixed_stream:
             with validio.Writer(self._standard_fixed_cid, fixed_stream) as fixed_writer:
-                fixed_writer.write_rows([
-                    ['Miller    ', '173', '1967-05-23'],
-                    ['Webster   ', '167', '1983-11-02']])
+                fixed_writer.write_rows([["Miller    ", "173", "1967-05-23"], ["Webster   ", "167", "1983-11-02"]])
             data_written = dev_test.unified_newlines(fixed_stream.getvalue())
-        self.assertEqual('%r' % 'Miller    1731967-05-23\nWebster   1671983-11-02\n', '%r' % data_written)
+        self.assertEqual("%r" % "Miller    1731967-05-23\nWebster   1671983-11-02\n", "%r" % data_written)
 
     def test_fails_on_writing_too_long_fixed_field(self):
         with io.StringIO() as fixed_stream:
             with validio.Writer(self._standard_fixed_cid, fixed_stream) as fixed_writer:
                 broken_rows_to_write = [
-                    ['Miller    ', '173', '1967-05-23'],
-                    ['Webster   ', '16789', '1983-11-02'],
+                    ["Miller    ", "173", "1967-05-23"],
+                    ["Webster   ", "16789", "1983-11-02"],
                 ]
                 try:
                     fixed_writer.write_rows(broken_rows_to_write)
                     self.fail()
                 except errors.DataError as anticipated_error:
                     dev_test.assert_fnmatches(
-                        self, str(anticipated_error),
+                        self,
+                        str(anticipated_error),
                         "* (R2C2): cannot accept field 'height': fixed format field must have at most 3 characters "
-                        + "instead of 5: '16789'")
+                        + "instead of 5: '16789'",
+                    )
 
     def test_can_write_too_short_fixed_field(self):
         with io.StringIO() as fixed_stream:
             with validio.Writer(self._standard_fixed_cid, fixed_stream) as fixed_writer:
                 broken_rows_to_write = [
-                    ['Miller    ', '173', '1967-05-23'],
-                    ['Webster   ', '7', '1983-11-02'],
+                    ["Miller    ", "173", "1967-05-23"],
+                    ["Webster   ", "7", "1983-11-02"],
                 ]
                 fixed_writer.write_rows(broken_rows_to_write)
 
@@ -300,31 +321,35 @@ class WriterTest(unittest.TestCase):
         with io.StringIO() as fixed_stream:
             with validio.Writer(self._standard_fixed_cid, fixed_stream) as fixed_writer:
                 broken_rows_to_write = [
-                    ['Miller    ', '173', '1967-05-23'],
-                    ['Webster   ', 'abc', '1983-11-02'],
+                    ["Miller    ", "173", "1967-05-23"],
+                    ["Webster   ", "abc", "1983-11-02"],
                 ]
                 try:
                     fixed_writer.write_rows(broken_rows_to_write)
                     self.fail()
                 except errors.DataError as anticipated_error:
                     dev_test.assert_fnmatches(
-                        self, str(anticipated_error),
-                        "* (R2C2): cannot accept field 'height': value must be an integer number: 'abc'")
+                        self,
+                        str(anticipated_error),
+                        "* (R2C2): cannot accept field 'height': value must be an integer number: 'abc'",
+                    )
 
     def test_fails_on_writing_fixed_row_with_too_few_fields(self):
         with io.StringIO() as fixed_stream:
             with validio.Writer(self._standard_fixed_cid, fixed_stream) as fixed_writer:
                 broken_rows_to_write = [
-                    ['Miller    ', '173', '1967-05-23'],
-                    ['Webster   ', 'abc'],
+                    ["Miller    ", "173", "1967-05-23"],
+                    ["Webster   ", "abc"],
                 ]
                 try:
                     fixed_writer.write_rows(broken_rows_to_write)
                     self.fail()
                 except errors.DataError as anticipated_error:
                     dev_test.assert_fnmatches(
-                        self, str(anticipated_error),
-                        "* row must contain 3 fields but only has 2: *'Webster   ', *'abc'?")
+                        self,
+                        str(anticipated_error),
+                        "* row must contain 3 fields but only has 2: *'Webster   ', *'abc'?",
+                    )
 
 
 class ValidationFunctionsTest(unittest.TestCase):
@@ -343,18 +368,18 @@ class ValidationFunctionsTest(unittest.TestCase):
         self.assertNotEqual(0, row_count)
 
     def test_can_validate_from_cid_and_stream(self):
-        with io.open(self._data_path, 'r', encoding=_TEST_ENCODING, newline='') as data_stream:
+        with io.open(self._data_path, "r", encoding=_TEST_ENCODING, newline="") as data_stream:
             validio.validate(self._cid, data_stream)
 
     def test_can_read_rows_from_cid_and_stream(self):
         row_count = 0
-        with io.open(self._data_path, 'r', encoding=_TEST_ENCODING, newline='') as data_stream:
+        with io.open(self._data_path, "r", encoding=_TEST_ENCODING, newline="") as data_stream:
             for row_count, _ in enumerate(validio.rows(self._cid, data_stream)):
                 pass
         self.assertNotEqual(0, row_count)
 
     def test_can_validate_until(self):
-        data_with_row_3_broken = '1\n2\na\n'
+        data_with_row_3_broken = "1\n2\na\n"
         with io.StringIO(data_with_row_3_broken) as partially_broken_data:
             validio.validate(_DIGIT_CID, partially_broken_data, 2)
         with io.StringIO(data_with_row_3_broken) as partially_broken_data:

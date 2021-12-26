@@ -6,6 +6,9 @@
     :target: https://coveralls.io/r/roskakori/cutplace?branch=master
     :alt: Test coverage
 
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :target: https://github.com/psf/black
+
 Cutplace is a tool and API to validate that tabular data stored in CSV,
 Excel, ODS and PRN files conform to a cutplace interface definition (CID).
 

@@ -31,7 +31,7 @@ LOG_LEVEL_NAME_TO_LEVEL_MAP = {
     "info": logging.INFO,
     "warning": logging.WARNING,
     "error": logging.ERROR,
-    "critical": logging.CRITICAL
+    "critical": logging.CRITICAL,
 }
 
 
@@ -62,8 +62,7 @@ def validated_python_name(name, value):
     if tokenize.ISEOF(next_type):
         raise NameError("%s must not be empty but was: %r" % (name, value))
     if next_type != token.NAME:
-        raise NameError("%s must contain only ASCII letters, digits and underscore (_) but is: %r"
-                        % (name, value))
+        raise NameError("%s must contain only ASCII letters, digits and underscore (_) but is: %r" % (name, value))
     second_token = next(toky)
     second_token_type = second_token[0]
     if second_token_type == token.NEWLINE and second_token[1] == "":
@@ -91,7 +90,7 @@ def next_token(tokens):
         raise InterfaceError()
 
 
-def human_readable_list(items, final_separator='or'):
+def human_readable_list(items, final_separator="or"):
     """
     All values in ``items`` in a human readable form. This is meant to be
     used in error messages, where dumping ``"%r"`` to the user does not cut
@@ -101,16 +100,16 @@ def human_readable_list(items, final_separator='or'):
     assert final_separator is not None
     item_count = len(items)
     if item_count == 0:
-        result = ''
+        result = ""
     elif item_count == 1:
         result = _compat.text_repr(items[0])
     else:
-        result = ''
+        result = ""
         for item_index in range(item_count):
             if item_index == item_count - 1:
-                result += ' ' + final_separator + ' '
+                result += " " + final_separator + " "
             elif item_index > 0:
-                result += ', '
+                result += ", "
             result += _compat.text_repr(items[item_index])
         assert result
     assert result is not None
@@ -161,7 +160,7 @@ def is_comma_token(some_token):
     return (some_token[0] == token.OP) and (some_token[1] == ",")
 
 
-def with_suffix(path, suffix=''):
+def with_suffix(path, suffix=""):
     """
     Same as ``path`` but with suffix changed to ``suffix``.
 
@@ -184,6 +183,6 @@ def with_suffix(path, suffix=''):
 
 def length_of_int(int_value):
     assert int_value is not None
-    assert isinstance(int_value, int), 'value=%r' % int_value
+    assert isinstance(int_value, int), "value=%r" % int_value
 
     return len(str(int_value))

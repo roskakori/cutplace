@@ -21,13 +21,7 @@ import traceback
 
 
 #: Symbolic names that can be used to improve the legibility of the CID.
-NAME_TO_ASCII_CODE_MAP = {
-    'cr': 13,
-    'ff': 12,
-    'lf': 10,
-    'tab': 9,
-    'vt': 11
-}
+NAME_TO_ASCII_CODE_MAP = {"cr": 13, "ff": 12, "lf": 10, "tab": 9, "vt": 11}
 
 
 class Location(object):
@@ -176,18 +170,23 @@ class Location(object):
         return self.__str__()
 
     def __lt__(self, other):
-        return (self.file_path < other.file_path) \
-            and (self.line < other.line) \
-            and (not self._has_column or (self.column < other.column)) \
-            and (not self._has_cell or (self.cell < other.cell)) \
+        return (
+            (self.file_path < other.file_path)
+            and (self.line < other.line)
+            and (not self._has_column or (self.column < other.column))
+            and (not self._has_cell or (self.cell < other.cell))
             and (not self._has_sheet or (self.sheet < other.sheet))
+        )
 
     def __eq__(self, other):
-        return (self.file_path == other.file_path) \
-            and (self.line == other.line) \
-            and (not self._has_column or (self.column == other.column)) \
-            and (not self._has_cell or (self.cell == other.cell)) \
+        return (
+            (self.file_path == other.file_path)
+            and (self.line == other.line)
+            and (not self._has_column or (self.column == other.column))
+            and (not self._has_cell or (self.cell == other.cell))
             and (not self._has_sheet or (self.sheet == other.sheet))
+        )
+
     # Note: There is no ``Location.__hash__()`` because it is a mutable class that cannot be
     # used as dictionary key.
 
@@ -197,7 +196,7 @@ def create_caller_location(modules_to_ignore=None, has_column=False, has_cell=Fa
     :py:class:`~cutplace.errors.Location` referring to the calling Python
     source code.
     """
-    actual_modules_to_ignore = ['errors', 'traceback']
+    actual_modules_to_ignore = ["errors", "traceback"]
     if modules_to_ignore:
         actual_modules_to_ignore.extend(modules_to_ignore)
     source_path = None
@@ -219,7 +218,6 @@ def create_caller_location(modules_to_ignore=None, has_column=False, has_cell=Fa
     if source_line:
         result.advance_line(source_line)
     return result
-
 
 
 class CutplaceError(Exception):
@@ -320,22 +318,22 @@ class CutplaceError(Exception):
         """
         assert prefix is not None
         assert new_location is not None
-        self._message = prefix + ': ' + self._message
+        self._message = prefix + ": " + self._message
         self._location = copy.copy(new_location)
 
     def __str__(self):
         """
         Human readable summary of all details related to the error.
         """
-        result = ''
+        result = ""
         if self._location:
-            result += str(self.location) + ': '
+            result += str(self.location) + ": "
         result += self._message
         if self.see_also_message is not None:
-            result += ' (see also: '
+            result += " (see also: "
             if self.see_also_location:
-                result += str(self.see_also_location) + ': '
-            result += self.see_also_message + ')'
+                result += str(self.see_also_location) + ": "
+            result += self.see_also_message + ")"
         return result
 
 
@@ -344,6 +342,7 @@ class DataError(CutplaceError):
     Error that can be fixed by providing proper data. Typically this is fixed
     by the end user on site.
     """
+
     pass
 
 
@@ -352,6 +351,7 @@ class InterfaceError(CutplaceError):
     Error that can be fixed by providing a proper CID or API calls. Typically
     this is fixed by the domain expert or the developer.
     """
+
     pass
 
 
@@ -360,6 +360,7 @@ class RangeValueError(DataError):
     Error raised when `ranges.Range.validate()` detects that a value is
     outside the expected ranges.
     """
+
     pass
 
 
@@ -369,6 +370,7 @@ class DataFormatError(DataError):
     violations, for example unterminated quotes at the end of a delimited
     file or an ODS file that cannot be unzipped.
     """
+
     pass
 
 
@@ -378,6 +380,7 @@ class FieldValueError(DataError):
     :py:meth:`cutplace.fields.AbstractFieldFormat.validated` detects an
     error.
     """
+
     pass
 
 
@@ -385,4 +388,5 @@ class CheckError(DataError):
     """
     Error to be raised when a check fails.
     """
+
     pass
