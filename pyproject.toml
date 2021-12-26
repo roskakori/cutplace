@@ -79,7 +79,8 @@ pur = "^5.4.2"
 cutplace = "cutplace.applications:main_for_script"
 
 [tool.poetry.urls]
-"Bug Tracker" = "https://github.com/roskakori/cutplace/issues"
+"Issue Tracker" = "https://github.com/roskakori/cutplace/issues"
+"Changes" = "https://cutplace.readthedocs.io/en/latest/changes.html"
 
 [tool.isort]
 profile = "black"
