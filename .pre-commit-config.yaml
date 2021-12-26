@@ -17,7 +17,7 @@ repos:
       - id: prettier
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.0.1
+    rev: v4.1.0
     hooks:
       - id: fix-byte-order-marker
       - id: trailing-whitespace
@@ -32,7 +32,7 @@ repos:
       - id: mixed-line-ending
 
   - repo: https://gitlab.com/pycqa/flake8
-    rev: 4.0.1
+    rev: 3.9.2
     hooks:
       - id: flake8
         additional_dependencies: ["pep8-naming==0.12.1"]
