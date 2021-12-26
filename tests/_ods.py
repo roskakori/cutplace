@@ -25,6 +25,12 @@ from cutplace import _compat, _tools, rowio
 
 # TODO: Remove the whole module as it should be obsolete now due dev_torst.
 
+_FORMAT_CSV = "csv"
+_FORMAT_RST = "rst"
+_FORMATS = [_FORMAT_CSV, _FORMAT_RST]
+_DEFAULT_FORMAT = _FORMAT_CSV
+_DEFAULT_SHEET = 1
+
 _log = logging.getLogger("cutplace.ods")
 
 
@@ -122,12 +128,6 @@ def to_rst(ods_source_path, rst_target_path, first_row_is_heading=True, sheet=1)
 # TODO: Add support for items spawning multiple rows.
 def main(arguments):
     assert arguments is not None
-
-    _FORMAT_CSV = "csv"
-    _FORMAT_RST = "rst"
-    _FORMATS = [_FORMAT_CSV, _FORMAT_RST]
-    _DEFAULT_FORMAT = _FORMAT_CSV
-    _DEFAULT_SHEET = 1
 
     parser = argparse.ArgumentParser(description="convert ODS file to other formats")
     parser.add_argument(

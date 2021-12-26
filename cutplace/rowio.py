@@ -443,7 +443,8 @@ def auto_rows(source):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
         # TODO: Use chardet to figure out an encoding.
         delimited_format.set_property(data.KEY_ENCODING, "utf-8")
-        # TODO: Determine delimiter by counting common delimiters with the first 4096 bytes and choosing the maximum one.
+        # TODO: Determine delimiter by counting common delimiters
+        #  with the first 4096 bytes and choosing the maximum one.
         delimited_format.set_property(data.KEY_ITEM_DELIMITER, ",")
         delimited_format.validate()
         result = delimited_rows(source, delimited_format)

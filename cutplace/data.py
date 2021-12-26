@@ -334,7 +334,8 @@ class DataFormat(object):
             item_delimiter = DataFormat._validated_character(KEY_ITEM_DELIMITER, value, location)
             if item_delimiter == "\x00":
                 raise errors.InterfaceError(
-                    "data format property %s must not be 0 (to avoid zero termindated strings in Python's C based CSV reader)"
+                    "data format property %s must not be 0 "
+                    "(to avoid zero termindated strings in Python's C based CSV reader)"
                     % _compat.text_repr(KEY_ITEM_DELIMITER),
                     location,
                 )

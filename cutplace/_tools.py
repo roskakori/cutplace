@@ -23,8 +23,6 @@ import tokenize
 from cutplace import _compat
 
 #: Mapping for value of :option:`--log` to logging level.
-from cutplace.errors import InterfaceError
-
 LOG_LEVEL_NAME_TO_LEVEL_MAP = {
     "debug": logging.DEBUG,
     "info": logging.INFO,
@@ -80,13 +78,6 @@ def generated_tokens(text):
         del toky[-2]
     for result in toky:
         yield result
-
-
-def next_token(tokens):
-    try:
-        return next(tokens)
-    except tokenize.TokenError as error:
-        raise InterfaceError()
 
 
 def human_readable_list(items, final_separator="or"):

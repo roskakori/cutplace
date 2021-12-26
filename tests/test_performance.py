@@ -79,8 +79,8 @@ class PerformanceTest(unittest.TestCase):
             "from tests import test_performance; test_performance._build_and_validate_many_customers()",
             target_profile_path,
         )
-        with io.open(target_report_path, "w", encoding="utf-8") as targetReportFile:
-            stats = pstats.Stats(target_profile_path, stream=targetReportFile)
+        with io.open(target_report_path, "w", encoding="utf-8") as target_report_file:
+            stats = pstats.Stats(target_profile_path, stream=target_report_file)
             stats.sort_stats("cumulative").print_stats("cutplace", 20)
 
 

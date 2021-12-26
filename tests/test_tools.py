@@ -59,8 +59,8 @@ class ToolsTest(unittest.TestCase):
         self.assertEqual(_tools.human_readable_list(["a", "b", "c"]), "'a', 'b' or 'c'")
 
     def _test_can_derive_suffix(self, expected_path, path_to_test, suffix_to_test):
-        actualPath = _tools.with_suffix(path_to_test, suffix_to_test)
-        self.assertEqual(expected_path, actualPath)
+        actual_path = _tools.with_suffix(path_to_test, suffix_to_test)
+        self.assertEqual(expected_path, actual_path)
 
     def test_can_build_name_with_suffix(self):
         self._test_can_derive_suffix("hugo.pas", "hugo.txt", ".pas")

@@ -189,7 +189,8 @@ class CidTest(unittest.TestCase):
         )
 
     def test_can_read_delimited_rows(self):
-        # TODO: either get rid of the CID and move it to test_iotools or use validate.Reader and move it to test_validate.
+        # TODO: either get rid of the CID and move it to test_iotools
+        #  or use validate.Reader and move it to test_validate.
         delimited_cid = interface.Cid(dev_test.CID_CUSTOMERS_ODS_PATH)
         delimited_rows = rowio.delimited_rows(dev_test.CUSTOMERS_CSV_PATH, delimited_cid.data_format)
         title_row = next(delimited_rows)

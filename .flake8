@@ -1,0 +1,13 @@
+[flake8]
+max-line-length = 120
+ignore = E203, N813, W503
+exclude =
+    __pycache__
+    .eggs
+    .git
+    .venv
+    build
+    # tkinter is too much of a mess to bother with flake8.
+    cutplace/gui.py
+    dist
+    docs/conf.py

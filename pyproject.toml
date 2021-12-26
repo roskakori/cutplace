@@ -71,6 +71,7 @@ coverage = "^6.2"
 Sphinx = "^4.3.2"
 pytest = "^6.2.5"
 coveralls = "^3.3.1"
+pep8-naming = "^0.12.1"
 
 [tool.poetry.scripts]
 cutplace = "cutplace.applications:main_for_script"

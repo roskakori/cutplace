@@ -347,7 +347,7 @@ class RegExFieldFormatTest(unittest.TestCase):
         try:
             fields.RegExFieldFormat("x", False, None, "*", _ANY_FORMAT)
             self.fail("broken pattern must raise error")
-        except:
+        except Exception:
             # Ignore error caused by broken pattern. It would be better to use assertFails but
             # the interface to re.compile doesn't document a specific exception to be raised in
             # such a case.

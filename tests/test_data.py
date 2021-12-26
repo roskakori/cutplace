@@ -17,10 +17,7 @@ Tests for data formats.
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import fnmatch
 import logging
-import tokenize
 import unittest
-
-import pytest
 
 from cutplace import data, errors
 from tests import dev_test
