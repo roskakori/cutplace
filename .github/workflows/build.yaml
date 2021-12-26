@@ -36,5 +36,7 @@ jobs:
           source .venv/bin/activate
           if [[ ${{ matrix.python-version }} == $MAIN_PYTHON_VERSION ]]; then coveralls; fi
       - name: Check code quality
+        if: ${{ matrix.python-version }} == $MAIN_PYTHON_VERSION
         run: |
-          # TODO: if [[ ${{ matrix.python-version }} == $MAIN_PYTHON_VERSION ]]; then pre-commit run --all-files; fi
+          source .venv/bin/activate
+          pre-commit run --all-files
