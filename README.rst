@@ -1,4 +1,4 @@
-.. image:: https://travis-ci.org/roskakori/cutplace.svg?branch=master
+.. image:: https://github.com/roskakori/cutplace/actions/workflows/build.yaml/badge.svg
     :target: https://travis-ci.org/roskakori/cutplace
     :alt: Build Status
 
