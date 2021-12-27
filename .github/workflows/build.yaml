@@ -37,7 +37,8 @@ jobs:
           poetry build
       - name: Run the test suite
         run: |
-          poetry run pytest --cov=cutplace --cov-branch
+          source .venv/bin/activate
+          pytest --cov=cutplace --cov-branch
       - name: Update coveralls
         if: ${{ matrix.python-version }} == $MAIN_PYTHON_VERSION
         env:
