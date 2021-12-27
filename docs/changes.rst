@@ -5,12 +5,29 @@ Revision history
 This chapter describes improvements compared to earlier versions of cutplace.
 
 
-Version 0.9.0, 2021-12-26
+Version 0.9.0, 2021-12-27
 =========================
 
 * Removed support for Python 2.
-* Changed build tool to `poetry <https://python-poetry.org/>`_.
-* Changed test tool to `pytest <https://docs.pytest.org/>`_.
+* Updated build process to more contemporary tool chain:
+
+  - Removed checks and badge for defunct landscape.io.
+  - Changed build tool to `poetry <https://python-poetry.org/>`_.
+  - Changed test tool to `pytest <https://docs.pytest.org/>`_.
+  - Changed continuous integration from Travis CI to
+    `GitHub actions <https://docs.github.com/en/actions>`_.
+  - Changed ant targets to shell scripts (with ``set -e`` to ensure basic
+    robustness). Granted, that's not more contemporary but what can you do?
+    With ant being obsoleted by even more messy tools like maven and
+    gradle, :file:`setup.py` being replaced by the purely declarative
+    :file:`pyproject.toml` and :command:`make` being awful since 1976...
+
+* Added `pre-commit <https://pre-commit.com/>`_ with additional hooks for
+  `black <https://github.com/psf/black>`_,
+  `isort <https://pycqa.github.io/isort/>`_ and
+  `prettier <https://prettier.io/>`_.
+* Changed flake8 to be part of pre-commit check.
+* Improved badges in README.
 
 
 Version 0.8.9, 2021-12-25

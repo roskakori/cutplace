@@ -155,7 +155,7 @@ class IsUniqueCheck(AbstractCheck):
     """
 
     def __init__(self, description, rule, available_field_names, location=None):
-        super(IsUniqueCheck, self).__init__(description, rule, available_field_names, location)
+        super().__init__(description, rule, available_field_names, location)
 
         self._field_names_to_check = []
         self._row_key_to_location_map = None
@@ -223,7 +223,7 @@ class DistinctCountCheck(AbstractCheck):
     _COUNT_NAME = "count"
 
     def __init__(self, description, rule, available_field_names, location=None):
-        super(DistinctCountCheck, self).__init__(description, rule, available_field_names, location)
+        super().__init__(description, rule, available_field_names, location)
 
         tokens = generated_tokens(rule)
         first_token = next(tokens)

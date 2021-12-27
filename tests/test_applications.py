@@ -238,8 +238,3 @@ class CutplaceMainTest(unittest.TestCase):
 
     def test_fails_without_any_arguments(self):
         self._test_fails_with_system_exit(2, ["test"])
-
-
-if __name__ == "__main__":  # pragma: no cover
-    logging.basicConfig(level=logging.INFO)
-    unittest.main()
