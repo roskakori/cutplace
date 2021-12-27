@@ -3,7 +3,9 @@ Ranges check if certain values are within it. This is used in several places of 
 particular to specify the length limits for field values and the characters allowed for a data
 format.
 """
-# Copyright (C) 2009-2015 Thomas Aglassinger
+import decimal
+
+# Copyright (C) 2009-2021 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
@@ -17,42 +19,31 @@ format.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import token
-import decimal
 
-import six
-
-from cutplace import errors
-from cutplace import _compat
-from cutplace import _tools
-from cutplace._compat import python_2_unicode_compatible
+from cutplace import _compat, _tools, errors
 
 #: '...' as single character.
-ELLIPSIS = '\u2026'
+ELLIPSIS = "\u2026"
 
 MAX_INTEGER = 2 ** 31 - 1
-MIN_INTEGER = -2 ** 31
+MIN_INTEGER = -(2 ** 31)
 
-DEFAULT_INTEGER_RANGE_TEXT = '%d...%d' % (MIN_INTEGER, MAX_INTEGER)
+DEFAULT_INTEGER_RANGE_TEXT = "%d...%d" % (MIN_INTEGER, MAX_INTEGER)
 
 #: Text to describe the upper limit of the default decimal range. 31 digits
 #: are the maximum scale of IBM DB2 decimals, which seems to be the smallest
 #: limit for currently practically relevant databases. Using 12 of these digits
 #: for the precision is an arbitrary decision intended to cover most
 #: practically relevant ranges.
-MAX_DECIMAL_TEXT = '9999999999999999999.999999999999'
-assert MAX_DECIMAL_TEXT.replace('9', '').replace('.', '') == ''
-MIN_DECIMAL_TEXT = '-' + MAX_DECIMAL_TEXT
-DEFAULT_DECIMAL_RANGE_TEXT = '%s...%s' % (MIN_DECIMAL_TEXT, MAX_DECIMAL_TEXT)
+MAX_DECIMAL_TEXT = "9999999999999999999.999999999999"
+assert MAX_DECIMAL_TEXT.replace("9", "").replace(".", "") == ""
+MIN_DECIMAL_TEXT = "-" + MAX_DECIMAL_TEXT
+DEFAULT_DECIMAL_RANGE_TEXT = "%s...%s" % (MIN_DECIMAL_TEXT, MAX_DECIMAL_TEXT)
 
 #: Precision (number of digits after the dot) to use for decimal numbers if
 #: no range is specified.
-DEFAULT_PRECISION = len(MAX_DECIMAL_TEXT.split('.')[1])
+DEFAULT_PRECISION = len(MAX_DECIMAL_TEXT.split(".")[1])
 
 #: Scale (total number of digits) to use for decimal numbers if no range is
 #: specified.
@@ -75,7 +66,8 @@ def code_for_number_token(name, value, location):
         result = int(value, 0)
     except ValueError:
         raise errors.InterfaceError(
-            'numeric value for %s must be an integer number but is: %s' % (name, _compat.text_repr(value)), location)
+            "numeric value for %s must be an integer number but is: %s" % (name, _compat.text_repr(value)), location
+        )
     return result
 
 
@@ -97,7 +89,8 @@ def code_for_symbolic_token(name, value, location):
     except KeyError:
         valid_symbols = _tools.human_readable_list(sorted(errors.NAME_TO_ASCII_CODE_MAP.keys()))
         raise errors.InterfaceError(
-            'symbolic name %s for %s must be one of: %s' % (_compat.text_repr(value), name, valid_symbols), location)
+            "symbolic name %s for %s must be one of: %s" % (_compat.text_repr(value), name, valid_symbols), location
+        )
     return result
 
 
@@ -114,15 +107,16 @@ def code_for_string_token(name, value, location):
     assert len(value) >= 2
     left_quote = value[0]
     right_quote = value[-1]
-    assert left_quote in "\"\'", "left_quote=%r" % left_quote
-    assert right_quote in "\"\'", "right_quote=%r" % right_quote
+    assert left_quote in "\"'", "left_quote=%r" % left_quote
+    assert right_quote in "\"'", "right_quote=%r" % right_quote
 
     value_without_quotes = value[1:-1]
     if len(value_without_quotes) != 1:
-        value_without_quotes = value_without_quotes.encode('utf-8').decode('unicode_escape')
+        value_without_quotes = value_without_quotes.encode("utf-8").decode("unicode_escape")
         if len(value_without_quotes) != 1:
             raise errors.InterfaceError(
-                'text for %s must be a single character but is: %s' % (name, _compat.text_repr(value)), location)
+                "text for %s must be a single character but is: %s" % (name, _compat.text_repr(value)), location
+            )
     return ord(value_without_quotes)
 
 
@@ -131,12 +125,13 @@ def create_range_from_length(length_range):
     Create a range from length.
     """
     assert length_range is not None
-    range_rule_text = ''
+    range_rule_text = ""
     if length_range.items is not None:
         if any((i[0] is not None and i[0] < 0) or (i[1] is not None and i[1] < 1) for i in length_range.items):
             raise errors.RangeValueError(
-                'length must be a positive range and upper limit has to be greater than one, but is: %s'
-                % length_range.description)
+                "length must be a positive range and upper limit has to be greater than one, but is: %s"
+                % length_range.description
+            )
 
         for item in length_range.items:
             lower_length = item[0]
@@ -144,22 +139,27 @@ def create_range_from_length(length_range):
 
             if lower_length is None or lower_length == 0 or lower_length == 1:
                 if upper_length is None:
-                    range_rule_text += ', '
+                    range_rule_text += ", "
                 elif upper_length == 1:
-                    range_rule_text += '0...9, '
+                    range_rule_text += "0...9, "
                 else:
-                    range_rule_text += ('-' + ('9' * (upper_length - 1)) + '...' + ('9' * upper_length)) + ', '
+                    range_rule_text += ("-" + ("9" * (upper_length - 1)) + "..." + ("9" * upper_length)) + ", "
             else:
                 if upper_length is None:
-                    range_rule_text += ('...-1' + ('0' * (lower_length - 2)) + ', 1' +
-                                        ('0' * (lower_length - 1)) + '..., ')
+                    range_rule_text += (
+                        "...-1" + ("0" * (lower_length - 2)) + ", 1" + ("0" * (lower_length - 1)) + "..., "
+                    )
                 else:
-                    range_rule_text += ('-' + ('9' * (upper_length - 1)) + '...-1' + ('0' * (lower_length - 2))) + ', 1' + \
-                                       (('0' * (lower_length - 1)) + '...' + ('9' * upper_length)) + ', '
+                    range_rule_text += (
+                        ("-" + ("9" * (upper_length - 1)) + "...-1" + ("0" * (lower_length - 2)))
+                        + ", 1"
+                        + (("0" * (lower_length - 1)) + "..." + ("9" * upper_length))
+                        + ", "
+                    )
 
-        range_rule_text = range_rule_text.rstrip(' ,')
+        range_rule_text = range_rule_text.rstrip(" ,")
     else:
-        range_rule_text = ''
+        range_rule_text = ""
     return Range(range_rule_text)
 
 
@@ -171,10 +171,9 @@ def _decimal_as_text(decimal_value, precision=DEFAULT_PRECISION):
     assert isinstance(decimal_value, decimal.Decimal)
     assert precision >= 0
 
-    return '%.*f' % (precision, decimal_value)
+    return "%.*f" % (precision, decimal_value)
 
 
-@python_2_unicode_compatible
 class Range(object):
     """
     A range that can be used to validate that a value is within it.
@@ -192,10 +191,10 @@ class Range(object):
         :param str default: an alternative to use in case ``description`` is \
           ``None`` or empty.
         """
-        assert default is None or (default.strip() != ''), "default=%r" % default
+        assert default is None or (default.strip() != ""), "default=%r" % default
 
         # Find out if a `description` has been specified and if not, use optional `default` instead.
-        has_description = (description is not None) and (description.strip() != '')
+        has_description = (description is not None) and (description.strip() != "")
         if not has_description and default is not None:
             description = default
             has_description = True
@@ -207,10 +206,10 @@ class Range(object):
             self._lower_limit = None
             self._upper_limit = None
         else:
-            self._description = description.replace('...', ELLIPSIS)
+            self._description = description.replace("...", ELLIPSIS)
             self._items = []
 
-            name_for_code = 'range'
+            name_for_code = "range"
             location = None  # TODO: Add location where range is declared.
             tokens = _tools.tokenize_without_space(self._description)
             end_reached = False
@@ -231,7 +230,7 @@ class Range(object):
                             # Numbers, e.g. ``123``.
                             value_as_int = code_for_number_token(name_for_code, next_value, location)
                             if after_hyphen:
-                                value_as_int *= - 1
+                                value_as_int *= -1
                                 after_hyphen = False
                         elif next_type == token.STRING:
                             # Python strings, e.g. ``'abc'`` or ``"""abc"""``.
@@ -241,34 +240,43 @@ class Range(object):
                             value_as_int = ord(next_value)
                         else:
                             raise errors.InterfaceError(
-                                'value for %s must a number, a single character or a symbolic name but is: %s'
-                                % (name_for_code, _compat.text_repr(next_value)), location)
+                                "value for %s must a number, a single character or a symbolic name but is: %s"
+                                % (name_for_code, _compat.text_repr(next_value)),
+                                location,
+                            )
                         if ellipsis_found:
                             if upper is None:
                                 upper = value_as_int
                             else:
                                 raise errors.InterfaceError(
                                     "range must have at most lower and upper limit but found another number: %s"
-                                    % _compat.text_repr(next_value), location)
+                                    % _compat.text_repr(next_value),
+                                    location,
+                                )
                         elif lower is None:
                             lower = value_as_int
                         else:
                             raise errors.InterfaceError(
                                 "number must be followed by ellipsis (...) but found: %s"
-                                % _compat.text_repr(next_value), location)
+                                % _compat.text_repr(next_value),
+                                location,
+                            )
                     elif after_hyphen:
                         raise errors.InterfaceError(
                             "hyphen (-) must be followed by number but found: %s" % _compat.text_repr(next_value),
-                            location)
+                            location,
+                        )
                     elif (next_type == token.OP) and (next_value == "-"):
                         after_hyphen = True
-                    elif next_value in (ELLIPSIS, ':'):
+                    elif next_value in (ELLIPSIS, ":"):
                         ellipsis_found = True
                     else:
                         raise errors.InterfaceError(
                             "range must be specified using integer numbers, text, "
                             "symbols and ellipsis (...) but found: %s [token type: %d]"
-                            % (_compat.text_repr(next_value), next_type), location)
+                            % (_compat.text_repr(next_value), next_type),
+                            location,
+                        )
                     next_token = next(tokens)
 
                 if after_hyphen:
@@ -280,7 +288,8 @@ class Range(object):
                         if ellipsis_found:
                             # Handle "...".
                             raise errors.InterfaceError(
-                                'ellipsis (...) must be preceded and/or succeeded by number', location)
+                                "ellipsis (...) must be preceded and/or succeeded by number", location
+                            )
                         else:
                             # Handle "".
                             result = None
@@ -292,8 +301,8 @@ class Range(object):
                     # Handle "x..." and "x...y".
                     if (upper is not None) and (lower > upper):
                         raise errors.InterfaceError(
-                            "lower range %d must be greater or equal than upper range %d" % (lower, upper),
-                            location)
+                            "lower range %d must be greater or equal than upper range %d" % (lower, upper), location
+                        )
                     result = (lower, upper)
                 else:
                     # Handle "x".
@@ -304,8 +313,9 @@ class Range(object):
                             item_text = _compat.text_repr(self._repr_item(item))
                             result_text = _compat.text_repr(self._repr_item(result))
                             raise errors.InterfaceError(
-                                "overlapping parts in range must be cleaned up: %s and %s"
-                                % (item_text, result_text), location)
+                                "overlapping parts in range must be cleaned up: %s and %s" % (item_text, result_text),
+                                location,
+                            )
                     self._items.append(result)
                 if _tools.is_eof_token(next_token):
                     end_reached = True
@@ -386,7 +396,7 @@ class Range(object):
             else:
                 result += "%s...%s" % (lower, upper)
         else:
-            result = six.text_type(None)
+            result = str(None)
         return result
 
     def __repr__(self):
@@ -409,7 +419,7 @@ class Range(object):
                     result += ", "
                 result += self._repr_item(item)
         else:
-            result = six.text_type(None)
+            result = str(None)
         return result
 
     def _items_overlap(self, some, other):
@@ -435,10 +445,10 @@ class Range(object):
             if lower is None:
                 assert upper is not None
                 # Handle "...y"
-                result = (value <= upper)
+                result = value <= upper
             elif upper is None:
                 # Handle "x..."
-                result = (value >= lower)
+                result = value >= lower
             else:
                 # Handle "x...y"
                 result = (value >= lower) and (value <= upper)
@@ -475,11 +485,9 @@ class Range(object):
                     is_valid = True
                 item_index += 1
             if not is_valid:
-                raise errors.RangeValueError(
-                    "%s is %r but must be within range: %s" % (name, value, self), location)
+                raise errors.RangeValueError("%s is %r but must be within range: %s" % (name, value, self), location)
 
 
-@python_2_unicode_compatible
 class DecimalRange(Range):
     """
     A decimal range to validate that decimal values are within it.
@@ -498,6 +506,7 @@ class DecimalRange(Range):
     ...
     cutplace.errors.RangeValueError: size is Decimal('1234.56') but must be within range: '0.00...299.99'
     """
+
     def __init__(self, description, default=None, location=None):
         """
         Setup a decimal range as specified by ``description``.
@@ -516,13 +525,13 @@ class DecimalRange(Range):
           valid.
 
         """
-        assert default is None or (default.strip() != ''), "default=%r" % default
+        assert default is None or (default.strip() != ""), "default=%r" % default
 
         self._precision = DEFAULT_PRECISION
         self._scale = DEFAULT_SCALE
 
         # Find out if a `description` has been specified and if not, use optional `default` instead.
-        has_description = (description is not None) and (description.strip() != '')
+        has_description = (description is not None) and (description.strip() != "")
         if not has_description and default is not None:
             description = default
             has_description = True
@@ -534,7 +543,7 @@ class DecimalRange(Range):
             self._lower_limit = None
             self._upper_limit = None
         else:
-            self._description = description.replace('...', ELLIPSIS)
+            self._description = description.replace("...", ELLIPSIS)
             self._items = []
             tokens = _tools.tokenize_without_space(self._description)
             end_reached = False
@@ -562,8 +571,9 @@ class DecimalRange(Range):
                                     max_digits_before_dot = digits_before_dot
                             except decimal.DecimalException:
                                 raise errors.InterfaceError(
-                                    "number must be an decimal or integer but is: %s"
-                                    % _compat.text_repr(next_value), location)
+                                    "number must be an decimal or integer but is: %s" % _compat.text_repr(next_value),
+                                    location,
+                                )
                             if after_hyphen:
                                 decimal_value = decimal_value.copy_negate()
                                 after_hyphen = False
@@ -574,24 +584,30 @@ class DecimalRange(Range):
                             else:
                                 raise errors.InterfaceError(
                                     "range must have at most lower and upper limit but found another number: %s"
-                                    % _compat.text_repr(next_value), location)
+                                    % _compat.text_repr(next_value),
+                                    location,
+                                )
                         elif lower is None:
                             lower = decimal_value
                         else:
                             raise errors.InterfaceError(
                                 "number must be followed by ellipsis (...) but found: %s"
-                                % _compat.text_repr(next_value))
+                                % _compat.text_repr(next_value)
+                            )
                     elif after_hyphen:
                         raise errors.InterfaceError(
-                            "hyphen (-) must be followed by number but found: %s" % _compat.text_repr(next_value))
+                            "hyphen (-) must be followed by number but found: %s" % _compat.text_repr(next_value)
+                        )
                     elif (next_type == token.OP) and (next_value == "-"):
                         after_hyphen = True
-                    elif next_value in (ELLIPSIS, ':'):
+                    elif next_value in (ELLIPSIS, ":"):
                         ellipsis_found = True
                     else:
-                        message = "range must be specified using decimal or integer numbers" \
-                                  " and ellipsis (...) but found: %s [token type: %d]" \
-                                  % (_compat.text_repr(next_value), next_type)
+                        message = (
+                            "range must be specified using decimal or integer numbers"
+                            " and ellipsis (...) but found: %s [token type: %d]"
+                            % (_compat.text_repr(next_value), next_type)
+                        )
                         raise errors.InterfaceError(message)
                     next_token = next(tokens)
 
@@ -615,7 +631,8 @@ class DecimalRange(Range):
                     if (upper is not None) and (lower > upper):
                         raise errors.InterfaceError(
                             "lower limit %s must be less or equal than upper limit %s"
-                            % (_decimal_as_text(lower, self.precision), _decimal_as_text(upper, self.precision)))
+                            % (_decimal_as_text(lower, self.precision), _decimal_as_text(upper, self.precision))
+                        )
                     range_item = (lower, upper)
                 else:
                     # Handle "x".
@@ -629,7 +646,9 @@ class DecimalRange(Range):
                             result_text = _compat.text_repr(self._repr_item(range_item))
                             raise errors.InterfaceError(
                                 "overlapping parts in decimal range must be cleaned up: %s and %s"
-                                % (item_text, result_text), location)
+                                % (item_text, result_text),
+                                location,
+                            )
                     self._items.append(range_item)
                 if _tools.is_eof_token(next_token):
                     end_reached = True
@@ -706,7 +725,7 @@ class DecimalRange(Range):
                 if upper is not None:
                     result += "..." + _decimal_as_text(upper, self.precision)
         else:
-            result = six.text_type(None)
+            result = str(None)
         return result
 
     def validate(self, name, value, location=None):
@@ -728,8 +747,7 @@ class DecimalRange(Range):
             try:
                 value_as_decimal = decimal.Decimal(value)
             except decimal.DecimalException:
-                raise errors.RangeValueError(
-                    "value must be decimal but is %s" % _compat.text_repr(value), location)
+                raise errors.RangeValueError("value must be decimal but is %s" % _compat.text_repr(value), location)
         else:
             value_as_decimal = value
 
@@ -750,4 +768,5 @@ class DecimalRange(Range):
                 item_index += 1
             if not is_valid:
                 raise errors.RangeValueError(
-                    "%s is %r but must be within range: %r" % (name, value_as_decimal, self), location)
+                    "%s is %r but must be within range: %r" % (name, value_as_decimal, self), location
+                )

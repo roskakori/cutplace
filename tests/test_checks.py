@@ -1,7 +1,7 @@
 """
 Tests for `checks` module.
 """
-# Copyright (C) 2009-2015 Thomas Aglassinger
+# Copyright (C) 2009-2021 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
@@ -15,18 +15,12 @@ Tests for `checks` module.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import logging
 import unittest
 
-from cutplace import checks
-from cutplace import errors
+from cutplace import checks, errors
 
-_TEST_FIELD_NAMES = 'branch_id customer_id first_name surname gender date_of_birth'.split()
+_TEST_FIELD_NAMES = "branch_id customer_id first_name surname gender date_of_birth".split()
 
 
 def _create_field_map(field_names, field_values):
@@ -68,8 +62,8 @@ class _AbstractCheckTest(unittest.TestCase):
 
 class IsUniqueCheckTest(_AbstractCheckTest):
     def test_fails_on_duplicate_with_single_field(self):
-        field_names = ['customer_id']
-        check = checks.IsUniqueCheck('test check', 'customer_id', field_names)
+        field_names = ["customer_id"]
+        check = checks.IsUniqueCheck("test check", "customer_id", field_names)
         location = errors.Location(self.test_fails_on_duplicate_with_single_field, has_cell=True)
         check.check_row(_create_field_map(field_names, [1]), location)
         location.advance_line()
@@ -77,7 +71,7 @@ class IsUniqueCheckTest(_AbstractCheckTest):
         location.advance_line()
         try:
             check.check_row(_create_field_map(field_names, [1]), location)
-            self.fail('duplicate row must cause CheckError')
+            self.fail("duplicate row must cause CheckError")
         except errors.CheckError as error:
             self.assertTrue(error.see_also_location)
             self.assertNotEqual(location, error.see_also_location)
@@ -96,8 +90,9 @@ class IsUniqueCheckTest(_AbstractCheckTest):
         check.check_row(_create_field_map(field_names, [38000, 59, "Jane", "Miller", "female", "04.10.1946"]), location)
         location.advance_line()
         try:
-            check.check_row(_create_field_map(field_names, [38000, 59, "Jane", "Miller", "female", "04.10.1946"]),
-                            location)
+            check.check_row(
+                _create_field_map(field_names, [38000, 59, "Jane", "Miller", "female", "04.10.1946"]), location
+            )
             self.fail("duplicate row must cause CheckError")
         except errors.CheckError as error:
             self.assertTrue(error.see_also_location)
@@ -115,8 +110,9 @@ class IsUniqueCheckTest(_AbstractCheckTest):
 
     def test_fails_on_rule_with_two_consecutive_commas(self):
         field_names = _TEST_FIELD_NAMES
-        self.assertRaises(errors.InterfaceError, checks.IsUniqueCheck, "test check", "branch_id,,customer_id",
-                field_names)
+        self.assertRaises(
+            errors.InterfaceError, checks.IsUniqueCheck, "test check", "branch_id,,customer_id", field_names
+        )
         self.assertRaises(errors.InterfaceError, checks.IsUniqueCheck, "test check", "branch_id,,", field_names)
 
     def test_fails_on_rule_starting_with_comma(self):
@@ -125,20 +121,23 @@ class IsUniqueCheckTest(_AbstractCheckTest):
 
     def test_fails_on_rule_with_broken_field_name(self):
         field_names = _TEST_FIELD_NAMES
-        self.assertRaises(errors.InterfaceError, checks.IsUniqueCheck, "test check", "branch_id, customer-id",
-                field_names)
+        self.assertRaises(
+            errors.InterfaceError, checks.IsUniqueCheck, "test check", "branch_id, customer-id", field_names
+        )
 
     def test_fails_on_rule_with_missing_comma_between_field_names(self):
         field_names = _TEST_FIELD_NAMES
-        self.assertRaises(errors.InterfaceError, checks.IsUniqueCheck, "test check", "branch_id customer_id",
-                field_names)
+        self.assertRaises(
+            errors.InterfaceError, checks.IsUniqueCheck, "test check", "branch_id customer_id", field_names
+        )
 
     def test_fails_on_rule_with_duplicate_field_name(self):
         field_names = _TEST_FIELD_NAMES
         first_field_name = field_names[0]
         broken_unique_field_names = ", ".join([first_field_name, first_field_name])
-        self.assertRaises(errors.InterfaceError, checks.IsUniqueCheck, "test check", broken_unique_field_names,
-                field_names)
+        self.assertRaises(
+            errors.InterfaceError, checks.IsUniqueCheck, "test check", broken_unique_field_names, field_names
+        )
 
 
 class DistinctCountCheckTest(unittest.TestCase):
@@ -160,11 +159,14 @@ class DistinctCountCheckTest(unittest.TestCase):
         self.assertRaises(errors.InterfaceError, checks.DistinctCountCheck, "broken", "", field_names)
         self.assertRaises(errors.InterfaceError, checks.DistinctCountCheck, "broken", " ", field_names)
         self.assertRaises(errors.InterfaceError, checks.DistinctCountCheck, "broken", "hugo < 3", field_names)
-        self.assertRaises(errors.InterfaceError, checks.DistinctCountCheck, "broken", "branch_id < (100 / 0)",
-                field_names)
-        self.assertRaises(errors.InterfaceError, checks.DistinctCountCheck, "broken",
-                "branch_id ! broken ^ 5ynt4x ?!?", field_names)
+        self.assertRaises(
+            errors.InterfaceError, checks.DistinctCountCheck, "broken", "branch_id < (100 / 0)", field_names
+        )
+        self.assertRaises(
+            errors.InterfaceError, checks.DistinctCountCheck, "broken", "branch_id ! broken ^ 5ynt4x ?!?", field_names
+        )
         self.assertRaises(errors.InterfaceError, checks.DistinctCountCheck, "broken", "branch_id + 123", field_names)
+
 
 if __name__ == "__main__":  # pragma: no cover
     logging.basicConfig(level=logging.INFO)

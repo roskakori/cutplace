@@ -1,7 +1,0 @@
-wheel >= 0.24
-autopep8 >= 1.0.4
-coverage >= 3.7
-flake8 >= 2.2
-setuptools_scm >= 1.5.5
-Sphinx >= 1.2
-tox >= 1.8.1

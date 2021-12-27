@@ -1,7 +1,7 @@
 """
 Test cutplace performance.
 """
-# Copyright (C) 2009-2015 Thomas Aglassinger
+# Copyright (C) 2009-2021 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
@@ -15,11 +15,6 @@ Test cutplace performance.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import io
 import logging
 import os.path
@@ -27,13 +22,7 @@ import pstats
 import random
 import unittest
 
-import six
-
-from cutplace import interface
-from cutplace import validio
-from cutplace import _compat
-from cutplace import applications
-from cutplace import _tools
+from cutplace import _compat, _tools, applications, interface, validio
 from tests import dev_test
 
 _log = logging.getLogger("cutplace.dev_reports")
@@ -42,7 +31,8 @@ try:
     import cProfile as profile
 except ImportError:
     import profile
-    _log.warning('cProfile is not available, using profile')
+
+    _log.warning("cProfile is not available, using profile")
 
 
 def _build_lots_of_customers_csv(target_csv_path, customer_count=1000):
@@ -50,7 +40,7 @@ def _build_lots_of_customers_csv(target_csv_path, customer_count=1000):
 
     _log.info('write lots of customers to "%s"', target_csv_path)
     randomizer = random.Random(2)
-    with io.open(target_csv_path, "w", newline='', encoding='cp1252') as target_csv_file:
+    with io.open(target_csv_path, "w", newline="", encoding="cp1252") as target_csv_file:
         csv_writer = _compat.csv_writer(target_csv_file)
         for customer_id in range(1, customer_count + 1):
             csv_writer.writerow(dev_test.create_test_customer_row(customer_id, randomizer))
@@ -78,6 +68,7 @@ class PerformanceTest(unittest.TestCase):
     """
     Test case for performance profiling.
     """
+
     def test_can_validate_many_customers(self):
         target_base_path = os.path.join("build", "site", "reports")
         item_name = "profile_lots_of_customers"
@@ -86,14 +77,13 @@ class PerformanceTest(unittest.TestCase):
         _tools.mkdirs(os.path.dirname(target_report_path))
         profile.run(
             "from tests import test_performance; test_performance._build_and_validate_many_customers()",
-            target_profile_path)
-        with io.open(target_report_path, "w", encoding='utf-8') as targetReportFile:
-            stats = pstats.Stats(target_profile_path, stream=targetReportFile)
-            # HACK: With Python 2, avoid TypeError: must be unicode, not str
-            if not six.PY2:
-                stats.sort_stats("cumulative").print_stats("cutplace", 20)
+            target_profile_path,
+        )
+        with io.open(target_report_path, "w", encoding="utf-8") as target_report_file:
+            stats = pstats.Stats(target_profile_path, stream=target_report_file)
+            stats.sort_stats("cumulative").print_stats("cutplace", 20)
 
 
-if __name__ == '__main__':  # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     logging.basicConfig(level=logging.INFO)
     unittest.main()

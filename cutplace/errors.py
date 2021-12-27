@@ -1,7 +1,7 @@
 """
 Errors that can be raised by cutplace.
 """
-# Copyright (C) 2009-2015 Thomas Aglassinger
+# Copyright (C) 2009-2021 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
@@ -15,30 +15,14 @@ Errors that can be raised by cutplace.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import copy
 import os
 import traceback
 
-import six
-
-from cutplace._compat import python_2_unicode_compatible
-
 #: Symbolic names that can be used to improve the legibility of the CID.
-NAME_TO_ASCII_CODE_MAP = {
-    'cr': 13,
-    'ff': 12,
-    'lf': 10,
-    'tab': 9,
-    'vt': 11
-}
+NAME_TO_ASCII_CODE_MAP = {"cr": 13, "ff": 12, "lf": 10, "tab": 9, "vt": 11}
 
 
-@python_2_unicode_compatible
 class Location(object):
     """
     Location in an input file, consisting of ``line``, an optional ``column``
@@ -86,7 +70,7 @@ class Location(object):
         <io> (1;1)
         """
         assert file_path
-        if isinstance(file_path, six.string_types):
+        if isinstance(file_path, str):
             self.file_path = file_path
         else:
             try:
@@ -185,18 +169,23 @@ class Location(object):
         return self.__str__()
 
     def __lt__(self, other):
-        return (self.file_path < other.file_path) \
-            and (self.line < other.line) \
-            and (not self._has_column or (self.column < other.column)) \
-            and (not self._has_cell or (self.cell < other.cell)) \
+        return (
+            (self.file_path < other.file_path)
+            and (self.line < other.line)
+            and (not self._has_column or (self.column < other.column))
+            and (not self._has_cell or (self.cell < other.cell))
             and (not self._has_sheet or (self.sheet < other.sheet))
+        )
 
     def __eq__(self, other):
-        return (self.file_path == other.file_path) \
-            and (self.line == other.line) \
-            and (not self._has_column or (self.column == other.column)) \
-            and (not self._has_cell or (self.cell == other.cell)) \
+        return (
+            (self.file_path == other.file_path)
+            and (self.line == other.line)
+            and (not self._has_column or (self.column == other.column))
+            and (not self._has_cell or (self.cell == other.cell))
             and (not self._has_sheet or (self.sheet == other.sheet))
+        )
+
     # Note: There is no ``Location.__hash__()`` because it is a mutable class that cannot be
     # used as dictionary key.
 
@@ -206,7 +195,7 @@ def create_caller_location(modules_to_ignore=None, has_column=False, has_cell=Fa
     :py:class:`~cutplace.errors.Location` referring to the calling Python
     source code.
     """
-    actual_modules_to_ignore = ['errors', 'traceback']
+    actual_modules_to_ignore = ["errors", "traceback"]
     if modules_to_ignore:
         actual_modules_to_ignore.extend(modules_to_ignore)
     source_path = None
@@ -230,7 +219,6 @@ def create_caller_location(modules_to_ignore=None, has_column=False, has_cell=Fa
     return result
 
 
-@python_2_unicode_compatible
 class CutplaceError(Exception):
     """
     Error caused by issues in the CID or data. Details are provided by the
@@ -269,11 +257,7 @@ class CutplaceError(Exception):
         """
         assert message
         assert (see_also_location and see_also_message) or not see_also_location
-        if six.PY2:
-            # HACK: We cannot use `super()` here because ``Exception`` is an old style class.
-            Exception.__init__(self, message)
-        else:
-            super().__init__(self, message)
+        super().__init__(message)
         self._location = copy.copy(location)
         self._see_also_message = see_also_message
         self._see_also_location = copy.copy(see_also_location)
@@ -333,22 +317,22 @@ class CutplaceError(Exception):
         """
         assert prefix is not None
         assert new_location is not None
-        self._message = prefix + ': ' + self._message
+        self._message = prefix + ": " + self._message
         self._location = copy.copy(new_location)
 
     def __str__(self):
         """
         Human readable summary of all details related to the error.
         """
-        result = ''
+        result = ""
         if self._location:
-            result += six.text_type(self.location) + ': '
+            result += str(self.location) + ": "
         result += self._message
         if self.see_also_message is not None:
-            result += ' (see also: '
+            result += " (see also: "
             if self.see_also_location:
-                result += six.text_type(self.see_also_location) + ': '
-            result += self.see_also_message + ')'
+                result += str(self.see_also_location) + ": "
+            result += self.see_also_message + ")"
         return result
 
 
@@ -357,6 +341,7 @@ class DataError(CutplaceError):
     Error that can be fixed by providing proper data. Typically this is fixed
     by the end user on site.
     """
+
     pass
 
 
@@ -365,6 +350,7 @@ class InterfaceError(CutplaceError):
     Error that can be fixed by providing a proper CID or API calls. Typically
     this is fixed by the domain expert or the developer.
     """
+
     pass
 
 
@@ -373,6 +359,7 @@ class RangeValueError(DataError):
     Error raised when `ranges.Range.validate()` detects that a value is
     outside the expected ranges.
     """
+
     pass
 
 
@@ -382,6 +369,7 @@ class DataFormatError(DataError):
     violations, for example unterminated quotes at the end of a delimited
     file or an ODS file that cannot be unzipped.
     """
+
     pass
 
 
@@ -391,6 +379,7 @@ class FieldValueError(DataError):
     :py:meth:`cutplace.fields.AbstractFieldFormat.validated` detects an
     error.
     """
+
     pass
 
 
@@ -398,4 +387,5 @@ class CheckError(DataError):
     """
     Error to be raised when a check fails.
     """
+
     pass

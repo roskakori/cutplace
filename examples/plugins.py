@@ -1,23 +1,24 @@
 """
 Example plugins for cutplace.
 """
-from cutplace import checks
-from cutplace import errors
-from cutplace import fields
-from cutplace import ranges
+from cutplace import checks, errors, fields, ranges
 
 
 class ColorFieldFormat(fields.AbstractFieldFormat):
     """
     Field format representing colors as their names.
     """
+
     def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format):
-        # HACK: Use super() in a way that works both in Python 2 and 3. If the code only has to work with Python 3,
-        # use the cleaner `super().__init__(...)`.
-        # FIXME: super(ColorFieldFormat, self).__init__(
-        fields.AbstractFieldFormat.__init__(self,
-            field_name, is_allowed_to_be_empty, length, rule, data_format,
-            empty_value=(0.0, 0.0, 0.0))  # Use black as "empty" color.
+        super().__init__(
+            field_name,
+            is_allowed_to_be_empty,
+            length,
+            rule,
+            data_format,
+            # Use black as "empty" color.
+            empty_value=(0.0, 0.0, 0.0),
+        )
 
     def validated_value(self, color_name):
         assert color_name
@@ -36,8 +37,9 @@ class FullNameLengthIsInRangeCheck(checks.AbstractCheck):
     """
     Check that total length of customer name is within the specified range.
     """
+
     def __init__(self, description, rule, available_field_names, location=None):
-        super(FullNameLengthIsInRangeCheck, self).__init__(description, rule, available_field_names, location)
+        super().__init__(description, rule, available_field_names, location)
         self._full_name_range = ranges.Range(rule)
         self.reset()
 

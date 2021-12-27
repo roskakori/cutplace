@@ -1,7 +1,7 @@
 """
 Convert data file described by CID to ReStructured Text.
 """
-# Copyright (C) 2009-2015 Thomas Aglassinger
+# Copyright (C) 2009-2021 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
@@ -15,11 +15,6 @@ Convert data file described by CID to ReStructured Text.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import argparse
 import io
 import logging
@@ -27,10 +22,9 @@ import os
 import sys
 
 import cutplace
-from cutplace import data
-from cutplace import rowio
+from cutplace import data, rowio
 
-_log = logging.getLogger('torst')
+_log = logging.getLogger("torst")
 
 
 def _write_rst_row(rst_target_file, column_lengths, items):
@@ -44,14 +38,14 @@ def _write_rst_row(rst_target_file, column_lengths, items):
         if column_index < len(items):
             item = items[column_index]
         else:
-            item = ''
+            item = ""
         item_length = len(item)
         assert column_length >= item_length
         # FIXME: Add support for items containing line separators.
-        if ('\n' in item) or ('\r' in item):
-            raise NotImplementedError('item must not contain line separator: %r' % item)
-        rst_target_file.write('+%s%s' % (item, ' ' * (column_length - item_length)))
-    rst_target_file.write('+\n')
+        if ("\n" in item) or ("\r" in item):
+            raise NotImplementedError("item must not contain line separator: %r" % item)
+        rst_target_file.write("+%s%s" % (item, " " * (column_length - item_length)))
+    rst_target_file.write("+\n")
 
 
 def _write_rst_separator_line(rst_target_file, column_lengths, line_separator):
@@ -66,7 +60,7 @@ def _write_rst_separator_line(rst_target_file, column_lengths, line_separator):
     rst_target_file.write("+\n")
 
 
-def _convert_to_rst(cid_path, data_path, target_rst_path, target_encoding='utf-8'):
+def _convert_to_rst(cid_path, data_path, target_rst_path, target_encoding="utf-8"):
     assert cid_path is not None
     assert data_path is not None
 
@@ -74,9 +68,9 @@ def _convert_to_rst(cid_path, data_path, target_rst_path, target_encoding='utf-8
     cid = cutplace.Cid(cid_path)
     data_format = cid.data_format
     if data_format.format != data.FORMAT_DELIMITED:
-        raise NotImplementedError('format=%s' % data_format.format)
+        raise NotImplementedError("format=%s" % data_format.format)
     if cid.data_format.header >= 2:
-        raise NotImplementedError('cid.data_format.header=%s' % cid.data_format.header)
+        raise NotImplementedError("cid.data_format.header=%s" % cid.data_format.header)
     first_row_is_heading = cid.data_format.header == 1
 
     _log.info('read data from "%s"', data_path)
@@ -100,7 +94,7 @@ def _convert_to_rst(cid_path, data_path, target_rst_path, target_encoding='utf-8
             raise ValueError('column %d in file "%s" must not always be empty' % (column_index + 1, data_path))
 
     _log.info('write RST to "%s"', target_rst_path)
-    with io.open(target_rst_path, mode='w', encoding=target_encoding) as rst_target_file:
+    with io.open(target_rst_path, mode="w", encoding=target_encoding) as rst_target_file:
         is_first_row = first_row_is_heading
         _write_rst_separator_line(rst_target_file, lengths, "-")
         for row_number, row in enumerate(rows):
@@ -116,15 +110,18 @@ def _convert_to_rst(cid_path, data_path, target_rst_path, target_encoding='utf-8
 def main(arguments):
     assert arguments is not None
 
-    parser = argparse.ArgumentParser(description='Convert data file described by CID to ReStructured Text')
-    parser.add_argument('cid_path', metavar='CID-FILE', help='CID describing the data')
-    parser.add_argument('data_path', metavar='DATA-FILE', help='source data file to convert to RST')
+    parser = argparse.ArgumentParser(description="Convert data file described by CID to ReStructured Text")
+    parser.add_argument("cid_path", metavar="CID-FILE", help="CID describing the data")
+    parser.add_argument("data_path", metavar="DATA-FILE", help="source data file to convert to RST")
     parser.add_argument(
-        'rst_path', metavar='RST-FILE', nargs='?',
-        help='target RST file; default: same as DATA_FILE but with suffix *.rst')
+        "rst_path",
+        metavar="RST-FILE",
+        nargs="?",
+        help="target RST file; default: same as DATA_FILE but with suffix *.rst",
+    )
     args = parser.parse_args(arguments)
     if args.rst_path is None:
-        args.rst_path = os.path.splitext(args.data_path)[0] + '.rst'
+        args.rst_path = os.path.splitext(args.data_path)[0] + ".rst"
 
     exit_code = 1
     try:
@@ -137,6 +134,6 @@ def main(arguments):
     return exit_code
 
 
-if __name__ == '__main__':  # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     logging.basicConfig(level=logging.INFO)
-    main(sys.argv[1:])
+    sys.exit(main(sys.argv[1:]))

@@ -1,7 +1,7 @@
 """
 Classes and functions to read and represent cutplace interface definitions.
 """
-# Copyright (C) 2009-2015 Thomas Aglassinger
+# Copyright (C) 2009-2021 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
@@ -15,33 +15,20 @@ Classes and functions to read and represent cutplace interface definitions.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import glob
-import imp  # TODO: deprecated; with Python 3, use importlib.
+import importlib.machinery
+import importlib.util
 import inspect
 import io
 import logging
 import os.path
+from pathlib import Path
 
-import six
-
-from cutplace import data
-from cutplace import fields
-from cutplace import errors
-from cutplace import checks
-from cutplace import rowio
-from cutplace import _compat
-from cutplace import _tools
-from cutplace._compat import python_2_unicode_compatible
+from cutplace import _compat, _tools, checks, data, errors, fields, rowio
 
 _log = logging.getLogger("cutplace")
 
 
-@python_2_unicode_compatible
 class Cid(object):
     _EMPTY_INDICATOR = "x"
     _ID_CHECK = "c"
@@ -79,13 +66,15 @@ class Cid(object):
             self.set_location_to_caller()
 
     def __str__(self):
-        result = 'Cid('
+        result = "Cid("
         if self.data_format is not None:
-            result += 'format=' + self.data_format.format + '; '
-            result += 'fields=[%s]' % ', '.join([
-                field_format.__class__.__name__ + '(' + field_format.field_name + ')'
-                for field_format in self.field_formats
-            ])
+            result += "format=" + self.data_format.format + "; "
+            result += "fields=[%s]" % ", ".join(
+                [
+                    field_format.__class__.__name__ + "(" + field_format.field_name + ")"
+                    for field_format in self.field_formats
+                ]
+            )
         return result
 
     def set_location_to_caller(self):
@@ -97,7 +86,7 @@ class Cid(object):
         It can be called repeatedly, for instance before each
         :py:meth:`add_check()` and :py:meth:`add_field_format()`.
         """
-        self._location = errors.create_caller_location(['interface'], has_cell=True)
+        self._location = errors.create_caller_location(["interface"], has_cell=True)
 
     @property
     def data_format(self):
@@ -141,32 +130,48 @@ class Cid(object):
     def _class_info(some_class):
         assert some_class is not None
         qualified_name = some_class.__module__ + "." + some_class.__name__
-        try:
-            source_path = inspect.getsourcefile(some_class)
-        except TypeError:
-            source_path = "(internal)"
-        result = qualified_name + " (see: \"" + source_path + "\")"
+        source_path = Cid._class_source_path(some_class)
+        result = qualified_name + ' (see: "' + source_path + '")'
         return result
+
+    @staticmethod
+    def _class_source_path(some_class):
+        try:
+            result = inspect.getsourcefile(some_class)
+        except TypeError:
+            result = "(internal)"
+        return result
+
+    @staticmethod
+    def _is_ci_pytest_class(some_class):
+        path_parts = Path(Cid._class_source_path(some_class)).parts
+        return len(path_parts) >= 4 and path_parts[-4] == "cutplace" and path_parts[-2:] == ("bin", "pytest")
 
     @staticmethod
     def _create_name_to_class_map(base_class):
         assert base_class is not None
         result = {}
-        # Note: we use a ``set`` of sub classes to ignore duplicates.
+        # NOTE: we use a ``set`` of subclasses to ignore duplicates.
         for class_to_process in set(base_class.__subclasses__()):
             qualified_class_name = class_to_process.__name__
-            plain_class_name = qualified_class_name.split('.')[-1]
+            plain_class_name = qualified_class_name.split(".")[-1]
             clashing_class = result.get(plain_class_name)
             if clashing_class is not None:
                 clashing_class_info = Cid._class_info(clashing_class)
                 class_to_process_info = Cid._class_info(class_to_process)
                 if clashing_class_info == class_to_process_info:
                     # HACK: Ignore duplicate classes. Such classes can occur after `import_plugins`
-                    # has been called more than once.
+                    #  has been called more than once.
+                    class_to_process = None
+                elif Cid._is_ci_pytest_class(class_to_process) or Cid._is_ci_pytest_class(clashing_class):
+                    # HACK: Ignore duplicates during CI. There must be a better way to do this using
+                    #  the pyproject.toml and build.yaml...
                     class_to_process = None
                 else:
-                    raise errors.CutplaceError("clashing plugin class names must be resolved: %s and %s"
-                                               % (clashing_class_info, class_to_process_info))
+                    raise errors.CutplaceError(
+                        "clashing plugin class names must be resolved: %s and %s"
+                        % (clashing_class_info, class_to_process_info)
+                    )
             if class_to_process is not None:
                 result[plain_class_name] = class_to_process
         return result
@@ -181,9 +186,15 @@ class Cid(object):
         result = name_to_class_map.get(class_name)
         if result is None:
             raise errors.InterfaceError(
-                "cannot find class for %s %s: related class is %s but must be one of: %s" % (
-                    type_name, class_qualifier, class_name,
-                    _tools.human_readable_list(sorted(name_to_class_map.keys()))), self._location)
+                "cannot find class for %s %s: related class is %s but must be one of: %s"
+                % (
+                    type_name,
+                    class_qualifier,
+                    class_name,
+                    _tools.human_readable_list(sorted(name_to_class_map.keys())),
+                ),
+                self._location,
+            )
         return result
 
     def _create_field_format_class(self, field_type):
@@ -210,19 +221,20 @@ class Cid(object):
         name, value = row_data[:2]
         lower_name = name.lower()
         self._location.advance_cell()
-        if name == '':
-            raise errors.InterfaceError('name of data format property must be specified', self._location)
+        if name == "":
+            raise errors.InterfaceError("name of data format property must be specified", self._location)
         self._location.advance_cell()
         if (self._data_format is None) and (lower_name != data.KEY_FORMAT):
             raise errors.InterfaceError(
-                'first data format row must set property %s instead of %s'
+                "first data format row must set property %s instead of %s"
                 % (_compat.text_repr(data.KEY_FORMAT), _compat.text_repr(name)),
-                self._location)
+                self._location,
+            )
         if (self._data_format is not None) and (lower_name == data.KEY_FORMAT):
             raise errors.InterfaceError(
-                'data format already is %s and must be set only once'
-                % _compat.text_repr(self._data_format.format),
-                self._location)
+                "data format already is %s and must be set only once" % _compat.text_repr(self._data_format.format),
+                self._location,
+            )
         lower_value = value.lower()
         if self._data_format is None:
             self._data_format = data.DataFormat(lower_value, self._location)
@@ -246,7 +258,7 @@ class Cid(object):
           cannot be processed
         """
         assert cid_path is not None
-        assert self.data_format is None, 'CID must be read only once'
+        assert self.data_format is None, "CID must be read only once"
 
         # TODO: Detect format and use proper reader.
         self._location = errors.Location(cid_path, has_cell=True)
@@ -255,23 +267,24 @@ class Cid(object):
         for row in rows:
             if row:
                 row_type = row[0].lower().strip()
-                row_data = (row[1:] + [''] * 6)[:6]
-                if row_type == 'd':
+                row_data = (row[1:] + [""] * 6)[:6]
+                if row_type == "d":
                     self.add_data_format_row(row_data)
-                elif row_type == 'f':
+                elif row_type == "f":
                     self.add_field_format_row(row_data)
-                elif row_type == 'c':
+                elif row_type == "c":
                     self.add_check_row(row_data)
-                elif row_type != '':
+                elif row_type != "":
                     # Raise error when value is not supported.
                     raise errors.InterfaceError(
-                        'CID row type is "%s" but must be empty or one of: C, D, or F' % row_type, self._location)
+                        'CID row type is "%s" but must be empty or one of: C, D, or F' % row_type, self._location
+                    )
             self._location.advance_line()
         if self.data_format is None:
-            raise errors.InterfaceError('data format must be specified', self._location)
+            raise errors.InterfaceError("data format must be specified", self._location)
         self.data_format.validate()
         if len(self.field_names) == 0:
-            raise errors.InterfaceError('fields must be specified', self._location)
+            raise errors.InterfaceError("fields must be specified", self._location)
 
     def add_field_format(self, field_format):
         """
@@ -329,14 +342,15 @@ class Cid(object):
         assert len(self._field_name_to_format_map) == field_count
         assert len(self._field_name_to_index_map) == field_count
 
-        items = (possibly_incomplete_items + 6 * [''])[:6]
+        items = (possibly_incomplete_items + 6 * [""])[:6]
 
         # Obtain field name.
         field_name = fields.validated_field_name(items[0], self._location)
         if field_name in self._field_name_to_format_map:
             # TODO: Add see_also_location pointing to previous declaration.
             raise errors.InterfaceError(
-                'duplicate field name must be changed to a unique one: %s' % field_name, self._location)
+                "duplicate field name must be changed to a unique one: %s" % field_name, self._location
+            )
 
         # Obtain example.
         self._location.advance_cell()
@@ -345,14 +359,16 @@ class Cid(object):
         # Obtain "empty" mark.
         self._location.advance_cell()
         field_is_allowed_to_be_empty_text = items[2].strip().lower()
-        if field_is_allowed_to_be_empty_text == '':
+        if field_is_allowed_to_be_empty_text == "":
             field_is_allowed_to_be_empty = False
         elif field_is_allowed_to_be_empty_text == self._EMPTY_INDICATOR:
             field_is_allowed_to_be_empty = True
         else:
             raise errors.InterfaceError(
                 "mark for empty field must be %s or empty but is %s"
-                % (self._EMPTY_INDICATOR, field_is_allowed_to_be_empty_text), self._location)
+                % (self._EMPTY_INDICATOR, field_is_allowed_to_be_empty_text),
+                self._location,
+            )
 
         # Obtain length.
         self._location.advance_cell()
@@ -361,10 +377,10 @@ class Cid(object):
         # Obtain field type and rule.
         self._location.advance_cell()
         field_type_item = items[4].strip()
-        if field_type_item == '':
-            field_type = 'Text'
+        if field_type_item == "":
+            field_type = "Text"
         else:
-            field_type = ''
+            field_type = ""
             field_type_parts = field_type_item.split(".")
             try:
                 for part in field_type_parts:
@@ -373,19 +389,19 @@ class Cid(object):
                     field_type += _tools.validated_python_name("field type part", part)
                 assert field_type, "empty field type must be detected by validated_python_name()"
             except NameError as error:
-                raise errors.InterfaceError(six.text_type(error), self._location)
+                raise errors.InterfaceError(str(error), self._location)
         field_class = self._create_field_format_class(field_type)
         self._location.advance_cell()
         field_rule = items[5].strip()
         _log.debug("create field: %s(%r, %r, %r)", field_class.__name__, field_name, field_type, field_rule)
         try:
             field_format = field_class.__new__(
-                field_class, field_name, field_is_allowed_to_be_empty, field_length, field_rule)
-            field_format.__init__(
-                field_name, field_is_allowed_to_be_empty, field_length, field_rule, self._data_format)
+                field_class, field_name, field_is_allowed_to_be_empty, field_length, field_rule
+            )
+            field_format.__init__(field_name, field_is_allowed_to_be_empty, field_length, field_rule, self._data_format)
         except errors.InterfaceError as error:
             error_location = error.location if error.location is not None else self._location
-            error.prepend_message('cannot declare field %s' % _compat.text_repr(field_name), error_location)
+            error.prepend_message("cannot declare field %s" % _compat.text_repr(field_name), error_location)
             raise error
 
         # Validate field length.
@@ -396,36 +412,45 @@ class Cid(object):
             if field_length.items is None:
                 raise errors.InterfaceError(
                     "length of field %s must be specified with fixed data format" % _compat.text_repr(field_name),
-                    self._location)
+                    self._location,
+                )
             if field_length.lower_limit != field_length.upper_limit:
                 raise errors.InterfaceError(
                     "length of field %s for fixed data format must be a specific number but is: %s"
-                    % (_compat.text_repr(field_name), field_format.length), self._location)
+                    % (_compat.text_repr(field_name), field_format.length),
+                    self._location,
+                )
             if field_length.lower_limit < 1:
                 raise errors.InterfaceError(
                     "length of field %s for fixed data format must be at least 1 but is: %d"
-                    % (_compat.text_repr(field_name), field_format.length.lower_limit), self._location)
+                    % (_compat.text_repr(field_name), field_format.length.lower_limit),
+                    self._location,
+                )
         elif field_length.lower_limit is not None:
             if field_length.lower_limit < 0:
                 raise errors.InterfaceError(
                     "lower limit for length of field %s must be at least 0 but is: %d"
-                    % (_compat.text_repr(field_name), field_format.length.lower_limit), self._location)
+                    % (_compat.text_repr(field_name), field_format.length.lower_limit),
+                    self._location,
+                )
         elif field_length.upper_limit is not None:
             # Note: 0 as upper limit is valid for a field that must always be empty.
             if field_length.upper_limit < 0:
                 raise errors.InterfaceError(
                     "upper limit for length of field %s must be at least 0 but is: %d"
-                    % (_compat.text_repr(field_name), field_format.length.upper_limit), self._location)
+                    % (_compat.text_repr(field_name), field_format.length.upper_limit),
+                    self._location,
+                )
 
         # Set and validate example in case there is one.
-        if field_example != '':
+        if field_example != "":
             try:
                 field_format.example = field_example
             except errors.FieldValueError as error:
                 self._location.set_cell(2)
                 raise errors.InterfaceError(
-                    "cannot validate example for field %s: %s" % (_compat.text_repr(field_name), error),
-                    self._location)
+                    "cannot validate example for field %s: %s" % (_compat.text_repr(field_name), error), self._location
+                )
 
         self._location.set_cell(1)
 
@@ -467,22 +492,21 @@ class Cid(object):
 
         items = list(possibly_incomplete_items)
         # HACK: Ignore possible concatenated (empty) cells between description and type.
-        while (len(items) >= 2) and (items[1].strip() == ''):
+        while (len(items) >= 2) and (items[1].strip() == ""):
             del items[1]
 
-        check_description, check_type, check_rule = (items + 3 * [''])[:3]
+        check_description, check_type, check_rule = (items + 3 * [""])[:3]
         self._location.advance_cell()
-        if check_description == '':
-            raise errors.InterfaceError(
-                'check description must be specified', self._location)
+        if check_description == "":
+            raise errors.InterfaceError("check description must be specified", self._location)
         self._location.advance_cell()
         check_class_name = check_type + "Check"
         if check_class_name not in self._check_name_to_class_map:
             list_of_available_check_types = _tools.human_readable_list(sorted(self._check_name_to_class_map.keys()))
             raise errors.InterfaceError(
-                "check type is '%s' but must be one of: %s"
-                % (check_type, list_of_available_check_types),
-                self._location)
+                "check type is '%s' but must be one of: %s" % (check_type, list_of_available_check_types),
+                self._location,
+            )
         _log.debug("create check: %s(%r, %r)", check_type, check_description, check_rule)
         check_class = self._create_check_class(check_type)
         check = check_class.__new__(check_class, check_description, check_rule, self._field_names, self._location)
@@ -492,7 +516,10 @@ class Cid(object):
         if existing_check is not None:
             raise errors.InterfaceError(
                 "check description must be used only once: %s" % _compat.text_repr(check_description),
-                self._location, "first declaration", existing_check.location)
+                self._location,
+                "first declaration",
+                existing_check.location,
+            )
         self._check_name_to_check_map[check_description] = check
         self._check_names.append(check_description)
         assert len(self.check_names) == len(self._check_name_to_check_map)
@@ -501,9 +528,10 @@ class Cid(object):
         """
         The column index of  the field named ``field_name`` starting with 0.
         """
-        assert field_name in self._field_name_to_index_map, \
-            "unknown field name '%s' must be replaced by one of: %s" \
-            % (field_name, _tools.human_readable_list(sorted(self.field_names)))
+        assert field_name in self._field_name_to_index_map, "unknown field name '%s' must be replaced by one of: %s" % (
+            field_name,
+            _tools.human_readable_list(sorted(self.field_names)),
+        )
 
         return self._field_name_to_index_map[field_name]
 
@@ -517,14 +545,18 @@ class Cid(object):
         :raises AssertionError: if ``field_name`` is not part of the CID
         :raises AssertionError: if ``row`` does not have the expected number of items
         """
-        assert field_name in self._field_name_to_index_map, \
-            "unknown field name %r must be replaced by one of: %s" \
-            % (field_name, _tools.human_readable_list(sorted(self.field_names)))
+        assert field_name in self._field_name_to_index_map, "unknown field name %r must be replaced by one of: %s" % (
+            field_name,
+            _tools.human_readable_list(sorted(self.field_names)),
+        )
         assert row is not None
         actual_row_count = len(row)
         expected_row_count = len(self.field_names)
-        assert actual_row_count == expected_row_count, \
-            "row must have %d items but has %d: %s" % (expected_row_count, actual_row_count, row)
+        assert actual_row_count == expected_row_count, "row must have %d items but has %d: %s" % (
+            expected_row_count,
+            actual_row_count,
+            row,
+        )
 
         return row[self._field_name_to_index_map[field_name]]
 
@@ -566,7 +598,7 @@ def field_names_and_lengths(fixed_cid):
     :py:attr:`~cutplace.fields.AbstractFieldFormat.length`.
     """
     assert fixed_cid is not None
-    assert fixed_cid.data_format.format == data.FORMAT_FIXED, 'format=' + fixed_cid.data_format.format
+    assert fixed_cid.data_format.format == data.FORMAT_FIXED, "format=" + fixed_cid.data_format.format
     result = []
     for field_format in fixed_cid.field_formats:
         field_name = field_format.field_name
@@ -586,22 +618,27 @@ def import_plugins(folder_to_scan_for_plugins):
     ``folder_to_scan_for_plugins`` (non recursively) consequently making the
     contained field formats and checks available for CIDs.
     """
+
     def log_imported_items(item_name, base_set, current_set):
         new_items = [item.__name__ for item in (current_set - base_set)]
-        _log.info('    %s found: %s', item_name, new_items)
+        _log.info("    %s found: %s", item_name, new_items)
 
     _log.info('import plugins from "%s"', folder_to_scan_for_plugins)
     modules_to_import = set()
     base_checks = set(checks.AbstractCheck.__subclasses__())  # @UndefinedVariable
     base_field_formats = set(fields.AbstractFieldFormat.__subclasses__())  # @UndefinedVariable
-    pattern_to_scan = os.path.join(folder_to_scan_for_plugins, '*.py')
+    pattern_to_scan = os.path.join(folder_to_scan_for_plugins, "*.py")
     for module_to_import_path in glob.glob(pattern_to_scan):
         module_name = os.path.splitext(os.path.basename(module_to_import_path))[0]
         modules_to_import.add((module_name, module_to_import_path))
-    for module_name_to_import, modulePathToImport in modules_to_import:
-        _log.info('  import %s from \'%s\'', module_name_to_import, modulePathToImport)
-        imp.load_source(module_name_to_import, modulePathToImport)
+    for module_name_to_import, module_path_to_import in modules_to_import:
+        _log.info("  import %s from '%s'", module_name_to_import, module_path_to_import)
+        module_path_to_import = os.path.abspath(module_path_to_import)
+        loader = importlib.machinery.SourceFileLoader(module_name_to_import, module_path_to_import)
+        spec = importlib.util.spec_from_loader(module_name_to_import, loader)
+        loaded_module = importlib.util.module_from_spec(spec)
+        loader.exec_module(loaded_module)
     current_checks = set(checks.AbstractCheck.__subclasses__())  # @UndefinedVariable
     current_field_formats = set(fields.AbstractFieldFormat.__subclasses__())  # @UndefinedVariable
-    log_imported_items('fields', base_field_formats, current_field_formats)
-    log_imported_items('checks', base_checks, current_checks)
+    log_imported_items("fields", base_field_formats, current_field_formats)
+    log_imported_items("checks", base_checks, current_checks)

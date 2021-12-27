@@ -1,0 +1,92 @@
+[tool.black]
+line-length = 120
+include = '\.pyi?$'
+target-version = [
+    "py37",
+    "py38",
+    "py39",
+]
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = [
+    "-rA"
+]
+testpaths = [
+    "tests",
+]
+
+[tool.poetry]
+name = "cutplace"
+version = "0.9.0"
+description = "validate data stored in CSV, PRN, ODS or Excel files"
+readme = "README.rst"
+authors = ["Thomas Aglassinger <roskakori@users.sourceforge.net>"]
+license = "LGPL-3.0-only"
+homepage = "https://github.com/roskakori/cutplace"
+repository = "https://github.com/roskakori/cutplace.git"
+documentation = "https://cutplace.readthedocs.io"
+keywords = ["check", "csv", "excel", "ods", "validate"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Documentation",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Testing",
+]
+packages = [
+    { include = "cutplace" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+xlrd = "^1.2"
+XlsxWriter = "^3"
+
+[tool.poetry.dev-dependencies]
+wheel = "^0.37.1"
+coverage = "^6.2"
+Sphinx = "^4.3.2"
+pytest = "^6.2.5"
+coveralls = "^3.3.1"
+pep8-naming = "^0.12.1"
+pytest-cov = "^3.0.0"
+pre-commit = "^2.16.0"
+pur = "^5.4.2"
+
+[tool.poetry.scripts]
+cutplace = "cutplace.applications:main_for_script"
+
+[tool.poetry.urls]
+"Issue Tracker" = "https://github.com/roskakori/cutplace/issues"
+"Changes" = "https://cutplace.readthedocs.io/en/latest/changes.html"
+
+[tool.isort]
+profile = "black"
+default_section = "THIRDPARTY"
+known_first_party = "cutplace,scripts"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

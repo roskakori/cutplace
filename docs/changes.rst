@@ -5,6 +5,50 @@ Revision history
 This chapter describes improvements compared to earlier versions of cutplace.
 
 
+Version 0.9.0, 2021-12-27
+=========================
+
+* Removed support for Python 2.
+* Updated build process to more contemporary tool chain:
+
+  - Removed checks and badge for defunct landscape.io.
+  - Changed build tool to `poetry <https://python-poetry.org/>`_.
+  - Changed test tool to `pytest <https://docs.pytest.org/>`_.
+  - Changed continuous integration from Travis CI to
+    `GitHub actions <https://docs.github.com/en/actions>`_.
+  - Changed ant targets to shell scripts (with ``set -e`` to ensure basic
+    robustness). Granted, that's not more contemporary but what can you do?
+    With ant being obsoleted by even more messy tools like maven and
+    gradle, :file:`setup.py` being replaced by the purely declarative
+    :file:`pyproject.toml` and :command:`make` being awful since 1976...
+
+* Added `pre-commit <https://pre-commit.com/>`_ with additional hooks for
+  `black <https://github.com/psf/black>`_,
+  `isort <https://pycqa.github.io/isort/>`_ and
+  `prettier <https://prettier.io/>`_.
+* Changed flake8 to be part of pre-commit check.
+* Improved badges in README.
+
+
+Version 0.8.9, 2021-12-25
+=========================
+
+This is the last version that supposedly works with Python 2. There is no
+actual release for it because the Python build process and tools changed too
+much to keep it working both with Python 2 and 3 with reasonable effort. The
+next version will drop Python 2 and rework the build process.
+
+* Fixed "field type part must be a single word" error in Python 3 because at
+  some point ``generate_tokens`` in the standard library startet adding a
+  spurious newline character at the end (issue
+  `#121 <https://github.com/roskakori/cutplace/issues/121>`_).
+* Removed dependency to external argparse that caused headache with Python 3's
+  internal argparse.
+* Updated several dependencies to last version that works with both Python 2
+  and Python 3.
+* Removed ability to build the documentation with Python 2.
+
+
 Version 0.8.8, 2015-11-13
 =========================
 
@@ -20,7 +64,7 @@ Version 0.8.8, 2015-11-13
   :py:class:`cutplace.validio.Reader` and
   :py:meth:`cutplace.fields.DateTimeFieldFormat.validated_value()`.)
 * Cleaned up CID and data files for documentation, examples and tests (
-  issue `#107 <https://github.com/roskakori/cutplace/issues/107>`). There
+  issue `#107 <https://github.com/roskakori/cutplace/issues/107>`_). There
   are fewer files now and they have multiple uses. Furthermore examples in
   the documentation now match the CID's in the :file:`examples` folder.
   Partially this can be attributed to parts of the documentation now

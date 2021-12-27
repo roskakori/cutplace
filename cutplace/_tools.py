@@ -1,7 +1,7 @@
 """
 Various internal utility functions.
 """
-# Copyright (C) 2009-2015 Thomas Aglassinger
+# Copyright (C) 2009-2021 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
@@ -15,22 +15,12 @@ Various internal utility functions.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
-import errno
 import logging
 import os
-import io
 import token
 import tokenize
 
-import six
-
 from cutplace import _compat
-
 
 #: Mapping for value of :option:`--log` to logging level.
 LOG_LEVEL_NAME_TO_LEVEL_MAP = {
@@ -38,7 +28,7 @@ LOG_LEVEL_NAME_TO_LEVEL_MAP = {
     "info": logging.INFO,
     "warning": logging.WARNING,
     "error": logging.ERROR,
-    "critical": logging.CRITICAL
+    "critical": logging.CRITICAL,
 }
 
 
@@ -49,14 +39,7 @@ def mkdirs(folder):
     """
     assert folder is not None
 
-    if six.PY2:
-        try:
-            os.makedirs(folder)
-        except OSError as error:
-            if error.errno != errno.EEXIST:
-                raise
-    else:
-        os.makedirs(folder, exist_ok=True)
+    os.makedirs(folder, exist_ok=True)
 
 
 def validated_python_name(name, value):
@@ -69,24 +52,35 @@ def validated_python_name(name, value):
     assert name
     assert value is not None
 
-    readable = io.StringIO(value.strip())
-    toky = tokenize.generate_tokens(readable.readline)
+    toky = generated_tokens(value.strip())
     next_token = next(toky)
     next_type = next_token[0]
     result = next_token[1]
     if tokenize.ISEOF(next_type):
         raise NameError("%s must not be empty but was: %r" % (name, value))
     if next_type != token.NAME:
-        raise NameError("%s must contain only ASCII letters, digits and underscore (_) but is: %r"
-                        % (name, value))
+        raise NameError("%s must contain only ASCII letters, digits and underscore (_) but is: %r" % (name, value))
     second_token = next(toky)
     second_token_type = second_token[0]
+    if second_token_type == token.NEWLINE and second_token[1] == "":
+        # HACK: In Python 3.x a newline seems to be added either by generate_tokens() or readline().
+        second_token = next(toky)
+        second_token_type = second_token[0]
     if not tokenize.ISEOF(second_token_type):
         raise NameError("%s must be a single word, but after %r there also is %r" % (name, result, second_token[1]))
     return result
 
 
-def human_readable_list(items, final_separator='or'):
+def generated_tokens(text):
+    toky = list(tokenize.generate_tokens(_compat.token_io_readline(text)))
+    if len(toky) >= 2 and is_newline_token(toky[-2]) and is_eof_token(toky[-1]):
+        # HACK: Remove newline that generated_tokens() adds starting with Python 3.x but not before.
+        del toky[-2]
+    for result in toky:
+        yield result
+
+
+def human_readable_list(items, final_separator="or"):
     """
     All values in ``items`` in a human readable form. This is meant to be
     used in error messages, where dumping ``"%r"`` to the user does not cut
@@ -96,16 +90,16 @@ def human_readable_list(items, final_separator='or'):
     assert final_separator is not None
     item_count = len(items)
     if item_count == 0:
-        result = ''
+        result = ""
     elif item_count == 1:
         result = _compat.text_repr(items[0])
     else:
-        result = ''
+        result = ""
         for item_index in range(item_count):
             if item_index == item_count - 1:
-                result += ' ' + final_separator + ' '
+                result += " " + final_separator + " "
             elif item_index > 0:
-                result += ', '
+                result += ", "
             result += _compat.text_repr(items[item_index])
         assert result
     assert result is not None
@@ -117,7 +111,7 @@ def tokenize_without_space(text):
     ``text`` split into token with any white space tokens removed.
     """
     assert text is not None
-    for toky in tokenize.generate_tokens(_compat.token_io_readline(text)):
+    for toky in generated_tokens(text):
         toky_type = toky[0]
         toky_text = toky[1]
         if ((toky_type != token.INDENT) and toky_text.strip()) or (toky_type == token.ENDMARKER):
@@ -133,6 +127,11 @@ def token_text(toky):
     else:
         result = toky_text
     return result
+
+
+def is_newline_token(some_token):
+    assert some_token is not None
+    return some_token[0] == token.NEWLINE and some_token[1] == ""
 
 
 def is_eof_token(some_token):
@@ -151,7 +150,7 @@ def is_comma_token(some_token):
     return (some_token[0] == token.OP) and (some_token[1] == ",")
 
 
-def with_suffix(path, suffix=''):
+def with_suffix(path, suffix=""):
     """
     Same as ``path`` but with suffix changed to ``suffix``.
 
@@ -174,6 +173,6 @@ def with_suffix(path, suffix=''):
 
 def length_of_int(int_value):
     assert int_value is not None
-    assert isinstance(int_value, six.integer_types), 'value=%r' % int_value
+    assert isinstance(int_value, int), "value=%r" % int_value
 
-    return len(six.text_type(int_value))
+    return len(str(int_value))

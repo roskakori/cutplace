@@ -1,7 +1,7 @@
 """
 Validated input and output of tabular data in various formats.
 """
-# Copyright (C) 2009-2015 Thomas Aglassinger
+# Copyright (C) 2009-2021 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
@@ -15,23 +15,12 @@ Validated input and output of tabular data in various formats.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import itertools
 
-import six
-
-from cutplace import data
-from cutplace import errors
-from cutplace import interface
-from cutplace import rowio
-from cutplace import _compat
+from cutplace import _compat, data, errors, interface, rowio
 
 # Valid choices for ``on_error`` parameter.
-_VALID_ON_ERROR_CHOICES = ('continue', 'raise', 'yield')
+_VALID_ON_ERROR_CHOICES = ("continue", "raise", "yield")
 
 
 def _create_field_map(field_names, field_values):
@@ -56,15 +45,17 @@ class BaseValidator(object):
     It also provides a context manager and can consequently be used with the
     ``with`` statement.
     """
+
     def __init__(self, cid_or_path):
         assert cid_or_path is not None
 
-        if isinstance(cid_or_path, six.string_types):
+        if isinstance(cid_or_path, str):
             self._cid = interface.Cid(cid_or_path)
         else:
             self._cid = cid_or_path
-            assert self._cid.data_format.is_valid, \
-                'DataFormat.validate() must be called before using a CID for validation'
+            assert (
+                self._cid.data_format.is_valid
+            ), "DataFormat.validate() must be called before using a CID for validation"
         self._expected_item_count = len(self._cid.field_formats)
         self._location = None
         self._is_closed = False
@@ -119,28 +110,31 @@ class BaseValidator(object):
         actual_item_count = len(row)
         if actual_item_count < self._expected_item_count:
             raise errors.DataError(
-                'row must contain %d fields but only has %d: %s'
-                % (self._expected_item_count, actual_item_count, row),
-                self.location)
+                "row must contain %d fields but only has %d: %s" % (self._expected_item_count, actual_item_count, row),
+                self.location,
+            )
         if actual_item_count > self._expected_item_count:
             raise errors.DataError(
-                'row must contain %d fields but has %d, additional values are: %s'
-                % (self._expected_item_count, actual_item_count, row[self._expected_item_count:]),
-                self.location)
+                "row must contain %d fields but has %d, additional values are: %s"
+                % (self._expected_item_count, actual_item_count, row[self._expected_item_count :]),
+                self.location,
+            )
 
         # Validate each field according to its format.
         for field_index, field_value in enumerate(row):
             self.location.set_cell(field_index)
             field_to_validate = self.cid.field_formats[field_index]
             try:
-                if not isinstance(field_value, six.text_type):
+                if not isinstance(field_value, str):
                     raise errors.FieldValueError(
-                        'type must be %s instead of %s: %s'
-                        % (six.text_type.__name__, type(field_value).__name__, _compat.text_repr(field_value)))
+                        "type must be %s instead of %s: %s"
+                        % (str.__name__, type(field_value).__name__, _compat.text_repr(field_value))
+                    )
                 field_to_validate.validated(field_value)
             except errors.FieldValueError as error:
                 error.prepend_message(
-                    'cannot accept field %s' % _compat.text_repr(field_to_validate.field_name), self.location)
+                    "cannot accept field %s" % _compat.text_repr(field_to_validate.field_name), self.location
+                )
                 raise
 
         # Validate the whole row according to row checks.
@@ -168,7 +162,7 @@ class BaseValidator(object):
 
 
 class Reader(BaseValidator):
-    def __init__(self, cid_or_path, source_data_stream_or_path, on_error='raise', validate_until=None):
+    def __init__(self, cid_or_path, source_data_stream_or_path, on_error="raise", validate_until=None):
         """
         An iterator that produces possibly validated rows from
         ``source_data_stream_or_path`` conforming to ``cid_or_path``.
@@ -188,18 +182,18 @@ class Reader(BaseValidator):
         """
         assert cid_or_path is not None
         assert source_data_stream_or_path is not None
-        assert on_error in _VALID_ON_ERROR_CHOICES, 'on_error=%r' % on_error
+        assert on_error in _VALID_ON_ERROR_CHOICES, "on_error=%r" % on_error
         assert (validate_until is None) or (validate_until >= 0)
 
-        super(Reader, self).__init__(cid_or_path)
+        super().__init__(cid_or_path)
         # TODO: Consolidate obtaining source path with other code segments that do similar things.
-        if isinstance(source_data_stream_or_path, six.string_types):
+        if isinstance(source_data_stream_or_path, str):
             source_path = source_data_stream_or_path
         else:
             try:
                 source_path = source_data_stream_or_path.name
             except AttributeError:
-                source_path = '<io>'
+                source_path = "<io>"
         self._location = errors.Location(source_path, has_cell=True)
         self._source_data_stream_or_path = source_data_stream_or_path
         self._on_error = on_error
@@ -220,12 +214,15 @@ class Reader(BaseValidator):
             return rowio.delimited_rows(self._source_data_stream_or_path, data_format)
         elif format == data.FORMAT_FIXED:
             return rowio.fixed_rows(
-                self._source_data_stream_or_path, data_format.encoding, interface.field_names_and_lengths(self.cid),
-                data_format.line_delimiter)
+                self._source_data_stream_or_path,
+                data_format.encoding,
+                interface.field_names_and_lengths(self.cid),
+                data_format.line_delimiter,
+            )
         elif format == data.FORMAT_ODS:
             return rowio.ods_rows(self._source_data_stream_or_path, data_format.sheet)
         else:
-            assert False, 'format=%r' % format
+            assert False, "format=%r" % format
 
     def rows(self):
         """
@@ -246,7 +243,7 @@ class Reader(BaseValidator):
         header_row_count = self._cid.data_format.header
         for row_count, row in enumerate(self._raw_rows(), 1):
             try:
-                is_after_header_row = (row_count > header_row_count)
+                is_after_header_row = row_count > header_row_count
                 is_before_validate_until = (self._validate_until is None) or (row_count <= self._validate_until)
                 if is_after_header_row:
                     if is_before_validate_until:
@@ -254,13 +251,13 @@ class Reader(BaseValidator):
                     self.accepted_rows_count += 1
                     yield row
             except errors.DataError as error:
-                if self.on_error == 'raise':
+                if self.on_error == "raise":
                     raise
                 self.rejected_rows_count += 1
-                if self.on_error == 'yield':
+                if self.on_error == "yield":
                     yield error
                 else:
-                    assert self.on_error == 'continue'
+                    assert self.on_error == "continue"
             self._location.advance_line()
 
     def validate_rows(self):
@@ -283,7 +280,7 @@ class Writer(BaseValidator):
         assert cid_or_path is not None
         assert target is not None
 
-        super(Writer, self).__init__(cid_or_path)
+        super().__init__(cid_or_path)
 
         data_format = cid_or_path.data_format
         assert self.cid.data_format.is_valid
@@ -295,7 +292,7 @@ class Writer(BaseValidator):
             self._field_names_and_lengths = interface.field_names_and_lengths(self.cid)
             self._delegated_writer = rowio.FixedRowWriter(target, data_format, self._field_names_and_lengths)
         else:
-            raise NotImplementedError('data_format=%r' % data_format.format)
+            raise NotImplementedError("data_format=%r" % data_format.format)
 
     @property
     def location(self):
@@ -316,7 +313,7 @@ class Writer(BaseValidator):
             field_value_length = len(field_value)
             _, fixed_field_length = self._field_names_and_lengths[field_index]
             if field_value_length < fixed_field_length:
-                field_value += ' ' * (fixed_field_length - field_value_length)
+                field_value += " " * (fixed_field_length - field_value_length)
             result.append(field_value)
         return result
 
@@ -340,14 +337,14 @@ class Writer(BaseValidator):
 
     def close(self):
         try:
-            super(Writer, self).close()
+            super().close()
         finally:
             if self._delegated_writer is not None:
                 self._delegated_writer.close()
                 self._delegated_writer = None
 
 
-def rows(cid_or_path, data_stream_or_path, on_error='raise', validate_until=None):
+def rows(cid_or_path, data_stream_or_path, on_error="raise", validate_until=None):
     """
     Rows read from ``data`` and validated against ``cid_or_path``.
 
@@ -364,7 +361,7 @@ def rows(cid_or_path, data_stream_or_path, on_error='raise', validate_until=None
     """
     assert cid_or_path is not None
     assert data_stream_or_path is not None
-    assert on_error in _VALID_ON_ERROR_CHOICES, 'on_error=%r' % on_error
+    assert on_error in _VALID_ON_ERROR_CHOICES, "on_error=%r" % on_error
     assert (validate_until is None) or (validate_until >= 0)
 
     with Reader(cid_or_path, data_stream_or_path, on_error, validate_until) as reader:
