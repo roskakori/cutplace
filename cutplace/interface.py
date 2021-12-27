@@ -140,7 +140,7 @@ class Cid(object):
     def _create_name_to_class_map(base_class):
         assert base_class is not None
         result = {}
-        # Note: we use a ``set`` of sub classes to ignore duplicates.
+        # NOTE: we use a ``set`` of subclasses to ignore duplicates.
         for class_to_process in set(base_class.__subclasses__()):
             qualified_class_name = class_to_process.__name__
             plain_class_name = qualified_class_name.split(".")[-1]

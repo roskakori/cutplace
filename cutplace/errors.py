@@ -257,7 +257,7 @@ class CutplaceError(Exception):
         """
         assert message
         assert (see_also_location and see_also_message) or not see_also_location
-        super().__init__(self, message)
+        super().__init__(message)
         self._location = copy.copy(location)
         self._see_also_message = see_also_message
         self._see_also_location = copy.copy(see_also_location)

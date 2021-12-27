@@ -185,7 +185,7 @@ class Reader(BaseValidator):
         assert on_error in _VALID_ON_ERROR_CHOICES, "on_error=%r" % on_error
         assert (validate_until is None) or (validate_until >= 0)
 
-        super(Reader, self).__init__(cid_or_path)
+        super().__init__(cid_or_path)
         # TODO: Consolidate obtaining source path with other code segments that do similar things.
         if isinstance(source_data_stream_or_path, str):
             source_path = source_data_stream_or_path
@@ -280,7 +280,7 @@ class Writer(BaseValidator):
         assert cid_or_path is not None
         assert target is not None
 
-        super(Writer, self).__init__(cid_or_path)
+        super().__init__(cid_or_path)
 
         data_format = cid_or_path.data_format
         assert self.cid.data_format.is_valid
@@ -337,7 +337,7 @@ class Writer(BaseValidator):
 
     def close(self):
         try:
-            super(Writer, self).close()
+            super().close()
         finally:
             if self._delegated_writer is not None:
                 self._delegated_writer.close()

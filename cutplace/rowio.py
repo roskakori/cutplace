@@ -538,7 +538,7 @@ class DelimitedRowWriter(AbstractRowWriter):
         assert data_format.format == data.FORMAT_DELIMITED
         assert data_format.is_valid
 
-        super(DelimitedRowWriter, self).__init__(target, data_format)
+        super().__init__(target, data_format)
         keywords = _as_delimited_keywords(data_format)
         self._delimited_writer = _compat.csv_writer(self._target_stream, **keywords)
 
@@ -562,7 +562,7 @@ class FixedRowWriter(AbstractRowWriter):
             assert field_length is not None
             assert field_length >= 1, "field_length=%r" % field_length
 
-        super(FixedRowWriter, self).__init__(target, data_format)
+        super().__init__(target, data_format)
         self._field_names_and_lengths = field_names_and_lengths
         self._expected_row_item_count = len(self._field_names_and_lengths)
         if self.data_format.line_delimiter == "any":

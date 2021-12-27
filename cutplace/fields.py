@@ -22,6 +22,7 @@ import re
 import string
 import sys
 import time
+from typing import Any, Optional
 
 from cutplace import _compat, _tools, data, errors, ranges
 
@@ -46,7 +47,9 @@ class AbstractFieldFormat(object):
          :py:meth:`~cutplace.fields.AbstractFieldFormat.validated_value()`.
     """
 
-    def __init__(self, field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value=None):
+    def __init__(
+        self, field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value: Optional[Any] = None
+    ):
         assert field_name is not None
         assert field_name, "field_name must not be empty"
         assert is_allowed_to_be_empty in (False, True), "is_allowed_to_be_empty=%r" % is_allowed_to_be_empty
@@ -272,9 +275,7 @@ class ChoiceFieldFormat(AbstractFieldFormat):
     """
 
     def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format):
-        super(ChoiceFieldFormat, self).__init__(
-            field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value=""
-        )
+        super().__init__(field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value="")
         self.choices = []
 
         # Split rule into tokens, ignoring white space.
@@ -330,9 +331,7 @@ class ConstantFieldFormat(AbstractFieldFormat):
     """
 
     def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format):
-        super(ConstantFieldFormat, self).__init__(
-            field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value=""
-        )
+        super().__init__(field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value="")
 
         # Extract constant from rule tokens.
         tokens = _tools.tokenize_without_space(rule)
@@ -381,7 +380,7 @@ class DecimalFieldFormat(AbstractFieldFormat):
     """
 
     def __init__(self, field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value=None):
-        super(DecimalFieldFormat, self).__init__(field_name, is_allowed_to_be_empty, "", "", data_format, empty_value)
+        super().__init__(field_name, is_allowed_to_be_empty, "", "", data_format, empty_value)
         assert rule is not None, 'to specify "no rule" use "" instead of None'
         self.decimal_separator = data_format.decimal_separator
         self.thousands_separator = data_format.thousands_separator
@@ -438,9 +437,7 @@ class IntegerFieldFormat(AbstractFieldFormat):
     """
 
     def __init__(self, field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value=None):
-        super(IntegerFieldFormat, self).__init__(
-            field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value
-        )
+        super().__init__(field_name, is_allowed_to_be_empty, length_text, rule, data_format, empty_value)
 
         is_fixed_format = data_format.format == data.FORMAT_FIXED
         has_length = (length_text is not None) and (length_text.strip() != "")
@@ -553,9 +550,7 @@ class DateTimeFieldFormat(AbstractFieldFormat):
     _NO_EXCEL_TIME_LENGTH = len(_NO_EXCEL_TIME)
 
     def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value=None):
-        super(DateTimeFieldFormat, self).__init__(
-            field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value
-        )
+        super().__init__(field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value)
         self.human_readable_format = rule
 
         self.strptime_format = rule
@@ -605,9 +600,7 @@ class RegExFieldFormat(AbstractFieldFormat):
     """
 
     def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format):
-        super(RegExFieldFormat, self).__init__(
-            field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value=""
-        )
+        super().__init__(field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value="")
         self.regex = re.compile(rule, re.IGNORECASE | re.MULTILINE)
 
     def validated_value(self, value):
@@ -626,9 +619,7 @@ class PatternFieldFormat(AbstractFieldFormat):
     """
 
     def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value=""):
-        super(PatternFieldFormat, self).__init__(
-            field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value
-        )
+        super().__init__(field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value)
         self.pattern = fnmatch.translate(rule)
         self.regex = re.compile(self.pattern, re.IGNORECASE | re.MULTILINE)
 
@@ -649,9 +640,7 @@ class TextFieldFormat(AbstractFieldFormat):
     """
 
     def __init__(self, field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value=""):
-        super(TextFieldFormat, self).__init__(
-            field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value
-        )
+        super().__init__(field_name, is_allowed_to_be_empty, length, rule, data_format, empty_value)
 
     def validated_value(self, value):
         assert value
