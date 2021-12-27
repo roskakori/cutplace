@@ -165,6 +165,7 @@ def _as_delimited_keywords(delimited_data_format):
         "doublequote": doublequote,
         "escapechar": escapechar,
         "quotechar": delimited_data_format.quote_character,
+        "quoting": delimited_data_format.quoting,
         "skipinitialspace": delimited_data_format.skip_initial_space,
         "strict": True,
     }

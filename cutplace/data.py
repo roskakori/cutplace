@@ -16,15 +16,16 @@ Data formats that describe the general structure of the data.
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import codecs
+import csv
 import string
 import token
 import tokenize
 
 from cutplace import _compat, _tools, errors, ranges
 
-#: Value for property ``line_delimiter`` to indicate any possible delimiter.
 from cutplace._tools import generated_tokens
 
+#: Value for property ``line_delimiter`` to indicate any possible delimiter.
 ANY = "any"
 #: Value for property ``line_delimiter`` to indicate carriage return (Mac OS Classic).
 CR = "cr"
@@ -73,12 +74,21 @@ KEY_SHEET = "sheet"
 KEY_SKIP_INITIAL_SPACE = "skip_initial_space"
 KEY_DECIMAL_SEPARATOR = "decimal_separator"
 KEY_THOUSANDS_SEPARATOR = "thousands_separator"
+KEY_QUOTING = "quoting"
 
 _VALID_QUOTE_CHARACTERS = ['"', "'"]
 _VALID_ESCAPE_CHARACTERS = ['"', "\\"]
 _VALID_DECIMAL_SEPARATORS = [".", ","]
 _VALID_THOUSANDS_SEPARATORS = [",", ".", ""]
 _VALID_FORMATS = [FORMAT_DELIMITED, FORMAT_EXCEL, FORMAT_FIXED, FORMAT_ODS]
+_VALID_QUOTING = ['all', 'minimal', 'nonnumeric', 'none']
+
+READABLE_TO_CSV_QUOTING_FORMAT = {
+    "all": csv.QUOTE_ALL,
+    "minimal": csv.QUOTE_MINIMAL,
+    "nonnumeric": csv.QUOTE_NONNUMERIC,
+    "none": csv.QUOTE_NONE,
+}
 
 
 class DataFormat(object):
@@ -108,6 +118,7 @@ class DataFormat(object):
         self._is_valid = False
         self._allowed_characters = None
         self._encoding = "cp1252"
+        self._quoting = csv.QUOTE_MINIMAL
         if self.format == FORMAT_DELIMITED:
             self._escape_character = '"'
             self._item_delimiter = ","
@@ -133,6 +144,14 @@ class DataFormat(object):
     @property
     def format(self):
         return self._format
+
+    @property
+    def quoting(self):
+        return self._quoting
+
+    @quoting.setter
+    def quoting(self, value):
+        self._quoting = value
 
     @property
     def encoding(self):
@@ -361,6 +380,9 @@ class DataFormat(object):
             self.thousands_separator = DataFormat._validated_choice(
                 KEY_THOUSANDS_SEPARATOR, value, _VALID_THOUSANDS_SEPARATORS, location
             )
+        elif name == KEY_QUOTING:
+            result = DataFormat._validated_choice(KEY_QUOTING, value, _VALID_QUOTING, location, ignore_case=True)
+            self.quoting = READABLE_TO_CSV_QUOTING_FORMAT[result]
         else:
             assert False, "name=%r" % name
 
