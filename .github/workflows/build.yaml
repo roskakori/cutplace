@@ -49,7 +49,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pre-commit
-          key: pre-commit-${{ runner.os }}-${{ python-version }}-${{ hashFiles('.pre-commit-config.yaml') }}
+          key: pre-commit-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('.pre-commit-config.yaml') }}
       - name: Install pre-commit
         if: steps.cached-pre-commit.outputs.cache-hit != 'true'
         run: |
