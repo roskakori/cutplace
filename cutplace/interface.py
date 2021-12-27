@@ -22,6 +22,7 @@ import inspect
 import io
 import logging
 import os.path
+from pathlib import Path
 
 from cutplace import _compat, _tools, checks, data, errors, fields, rowio
 
@@ -129,12 +130,22 @@ class Cid(object):
     def _class_info(some_class):
         assert some_class is not None
         qualified_name = some_class.__module__ + "." + some_class.__name__
-        try:
-            source_path = inspect.getsourcefile(some_class)
-        except TypeError:
-            source_path = "(internal)"
+        source_path = Cid._class_source_path(some_class)
         result = qualified_name + ' (see: "' + source_path + '")'
         return result
+
+    @staticmethod
+    def _class_source_path(some_class):
+        try:
+            result = inspect.getsourcefile(some_class)
+        except TypeError:
+            result = "(internal)"
+        return result
+
+    @staticmethod
+    def _is_ci_pytest_class(some_class):
+        path_parts = Path(Cid._class_source_path(some_class)).parts
+        return len(path_parts) >= 4 and path_parts[-4] == "cutplace" and path_parts[-2:] == ("bin", "pytest")
 
     @staticmethod
     def _create_name_to_class_map(base_class):
@@ -150,7 +161,11 @@ class Cid(object):
                 class_to_process_info = Cid._class_info(class_to_process)
                 if clashing_class_info == class_to_process_info:
                     # HACK: Ignore duplicate classes. Such classes can occur after `import_plugins`
-                    # has been called more than once.
+                    #  has been called more than once.
+                    class_to_process = None
+                elif Cid._is_ci_pytest_class(class_to_process) or Cid._is_ci_pytest_class(clashing_class):
+                    # HACK: Ignore duplicates during CI. There must be a better way to do this using
+                    #  the pyproject.toml and build.yaml...
                     class_to_process = None
                 else:
                     raise errors.CutplaceError(
