@@ -5,7 +5,7 @@ Revision history
 This chapter describes improvements compared to earlier versions of cutplace.
 
 
-Version 0.9.0, 2021-12-26
+Version 0.9.0, 2021-12-27
 =========================
 
 * Removed support for Python 2.
