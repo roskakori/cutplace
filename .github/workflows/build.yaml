@@ -42,6 +42,7 @@ jobs:
         if: ${{ matrix.python-version }} == $MAIN_PYTHON_VERSION
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           poetry run coveralls
       - name: Load cached pre-commit
