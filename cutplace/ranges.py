@@ -26,8 +26,8 @@ from cutplace import _compat, _tools, errors
 #: '...' as single character.
 ELLIPSIS = "\u2026"
 
-MAX_INTEGER = 2 ** 31 - 1
-MIN_INTEGER = -(2 ** 31)
+MAX_INTEGER = 2**31 - 1
+MIN_INTEGER = -(2**31)
 
 DEFAULT_INTEGER_RANGE_TEXT = "%d...%d" % (MIN_INTEGER, MAX_INTEGER)
 

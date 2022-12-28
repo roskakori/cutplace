@@ -159,14 +159,14 @@ class RangeTest(unittest.TestCase):
         lower_range = ranges.Range("1...")
         lower_range.validate("x", 1)
         lower_range.validate("x", 2)
-        lower_range.validate("x", 2 ** 32)
+        lower_range.validate("x", 2**32)
         self.assertRaises(errors.RangeValueError, lower_range.validate, "x", 0)
 
     def test_can_validate_with_upper_limit_only(self):
         upper_range = ranges.Range("...1")
         upper_range.validate("x", 1)
         upper_range.validate("x", -2)
-        upper_range.validate("x", -(2 ** 32) - 1)
+        upper_range.validate("x", -(2**32) - 1)
         self.assertRaises(errors.RangeValueError, upper_range.validate, "x", 2)
 
     def test_can_validate_with_multi_range(self):
@@ -276,12 +276,12 @@ class DecimalRangeTest(unittest.TestCase):
         lower_range = ranges.DecimalRange("1.1...")
         lower_range.validate("x", "1.1")
         lower_range.validate("x", 2)
-        lower_range.validate("x", 2 ** 32)
+        lower_range.validate("x", 2**32)
 
         upper_range = ranges.DecimalRange("...1.1")
         upper_range.validate("x", "1.1")
         upper_range.validate("x", -2)
-        upper_range.validate("x", -(2 ** 32) - 1)
+        upper_range.validate("x", -(2**32) - 1)
 
         multi_range = ranges.DecimalRange("1.1...4.9, 7.1...9")
         multi_range.validate("x", "1.1")

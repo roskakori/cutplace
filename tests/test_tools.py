@@ -77,7 +77,7 @@ class ToolsTest(unittest.TestCase):
         self.assertEqual(1, _tools.length_of_int(0))
         self.assertEqual(1, _tools.length_of_int(9))
         self.assertEqual(2, _tools.length_of_int(-1))
-        self.assertEqual(155, _tools.length_of_int(2 ** 512))
+        self.assertEqual(155, _tools.length_of_int(2**512))
 
 
 if __name__ == "__main__":  # pragma: no cover
