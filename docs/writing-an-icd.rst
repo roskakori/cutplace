@@ -143,6 +143,8 @@ Quote character
     The character used to surround items with that contain delimiters or spawn
     multiple lines, for example double quote (") or single quote (').
 
+    Valid characters are (sorted ASCII-betically): ``!"#$%&'*+-/:;=?\^_`~``
+
 .. index:: pair: data format property; quoting
 
 Quoting
@@ -432,7 +434,7 @@ Decimal
 
 The Decimal type describes a field that can contain decimal numbers
 including a fractional part. Similar to Integer, the rule allows to
-specify a range and implicitely a precision.
+specify a range and implicitly a precision.
 
 Examples for Decimal fields
 
