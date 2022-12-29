@@ -4,6 +4,12 @@ Revision history
 
 This chapter describes improvements compared to earlier versions of cutplace.
 
+Version 0.9.1, 2022-12-29
+=========================
+
+* Dropped support for Python 3.6.
+* Updated dependencies.
+* Cleaned up CI build and pre-commit hooks to work with current versions.
 
 Version 0.9.0, 2021-12-27
 =========================
