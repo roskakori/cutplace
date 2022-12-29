@@ -20,6 +20,7 @@ import os
 import unittest
 
 from cutplace import _tools, data, errors, interface, rowio
+from cutplace.data import KEY_QUOTING, QUOTING_ALL, DataFormat
 from tests import dev_test
 
 _EURO_SIGN = "\u20ac"
@@ -291,14 +292,25 @@ class AutoRowsTest(_BaseRowsTest):
 class DelimitedRowWriterTest(unittest.TestCase):
     def test_can_write_delimited_data_to_string_io(self):
         delimited_data_format = data.DataFormat(data.FORMAT_DELIMITED)
+        data_written = self._written_delimited_string(delimited_data_format)
+        self.assertEqual("%r" % data_written, "%r" % "a,b,\u20ac\n\n1,2,end\n")
+
+    @staticmethod
+    def _written_delimited_string(delimited_data_format: DataFormat) -> str:
         delimited_data_format.validate()
         with io.StringIO() as target:
             with rowio.DelimitedRowWriter(target, delimited_data_format) as delimited_writer:
                 delimited_writer.write_row(["a", "b", _EURO_SIGN])
                 delimited_writer.write_row([])
                 delimited_writer.write_row([1, 2, "end"])
-            data_written = dev_test.unified_newlines(target.getvalue())
-        self.assertEqual("%r" % data_written, "%r" % "a,b,\u20ac\n\n1,2,end\n")
+            result = dev_test.unified_newlines(target.getvalue())
+        return result
+
+    def test_can_write_delimited_data_with_quoting_all_to_string_io(self):
+        delimited_data_format = data.DataFormat(data.FORMAT_DELIMITED)
+        delimited_data_format.set_property(KEY_QUOTING, QUOTING_ALL)
+        data_written = self._written_delimited_string(delimited_data_format)
+        self.assertEqual("%r" % data_written, "%r" % '"a","b","\u20ac"\n\n"1","2","end"\n')
 
     def test_can_write_delimited_data_to_path(self):
         delimited_data_format = data.DataFormat(data.FORMAT_DELIMITED)

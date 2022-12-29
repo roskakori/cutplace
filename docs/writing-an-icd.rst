@@ -89,6 +89,7 @@ D   Encoding             UTF-8
 D   Line delimiter       CRLF
 D   Item delimiter       ,
 D   Quote character      "
+D   Quoting              Minimal
 D   Escape character     "
 D   Decimal separator    .
 D   Thousands separator  ,
@@ -139,10 +140,22 @@ Item delimiter
 .. index:: pair: data format property; quote character
 
 Quote character
-    The character used to surround items with that contain delimiters or while
-    space, for example double quote (") or single quote (').
+    The character used to surround items with that contain delimiters or spawn
+    multiple lines, for example double quote (") or single quote (').
 
-    TODO: How to specify "no quoting"?
+.. index:: pair: data format property; quoting
+
+Quoting
+    This specifies when written items are put between quotes. Possible values
+    are:
+
+    * all - All items are put between quotes.
+
+    * minimal - Only items are put between quotes if they include the
+      delimiter, the quote character or spawn multiple lines.
+
+    Quoting has no effect when reading data because quotes are resolved when
+    they occur.
 
 .. index:: pair: data format property; escape character
 

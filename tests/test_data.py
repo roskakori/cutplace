@@ -20,6 +20,7 @@ import logging
 import unittest
 
 from cutplace import data, errors
+from cutplace.data import QUOTING_MINIMAL
 from tests import dev_test
 
 
@@ -61,6 +62,7 @@ class DataFormatTest(unittest.TestCase):
         delimited_format.set_property(data.KEY_LINE_DELIMITER, data.CRLF)
         delimited_format.set_property(data.KEY_QUOTE_CHARACTER, '"')
         delimited_format.set_property(data.KEY_THOUSANDS_SEPARATOR, ".")
+        delimited_format.set_property(data.KEY_QUOTING, QUOTING_MINIMAL)
         delimited_format.validate()
 
     def test_can_set_fixed_properties(self):
@@ -215,6 +217,10 @@ class DataFormatTest(unittest.TestCase):
         self.assertRaises(
             errors.InterfaceError, delimited_format.set_property, data.KEY_QUOTE_CHARACTER, "broken-quote-character"
         )
+
+    def test_fails_on_unknown_quoting(self):
+        delimited_format = data.DataFormat(data.FORMAT_DELIMITED)
+        self.assertRaises(errors.InterfaceError, delimited_format.set_property, data.KEY_QUOTING, "unknown-quoting")
 
     def test_can_set_thousands_separator(self):
         delimited_format = data.DataFormat(data.FORMAT_DELIMITED)

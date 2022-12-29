@@ -7,6 +7,9 @@ This chapter describes improvements compared to earlier versions of cutplace.
 Version 0.9.1, 2022-12-29
 =========================
 
+* Added option :ref:`quoting` to specify when quotes should be written
+  (`#117 <https://github.com/roskakori/cutplace/issues/117>`_, contributed by
+  quapka).
 * Dropped support for Python 3.6.
 * Updated dependencies.
 * Cleaned up CI build and pre-commit hooks to work with current versions.
