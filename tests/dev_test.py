@@ -18,6 +18,7 @@ Development tool and utility functions for testing and test data generation.
 import fnmatch
 import logging
 import os
+import pathlib
 import random
 from datetime import datetime, timedelta
 
@@ -977,20 +978,13 @@ def random_name(randomizer, is_male=True):
 def _path_to_project_folder(folder):
     assert folder is not None
 
-    result = os.getcwd()
+    result = pathlib.Path(__file__).parent.parent
     cutplace_init_path = os.path.join("cutplace", "__init__.py")
     if not os.path.exists(os.path.join(result, cutplace_init_path)):
-        project_folder_found = False
-        previous_result = None
-        while not project_folder_found and (result != previous_result):
-            previous_result = result
-            result = os.path.dirname(result)
-            project_folder_found = os.path.exists(os.path.join(result, cutplace_init_path))
-        if not project_folder_found:
-            raise IOError(
-                "cannot find project folder: test must run from project folder; "
-                + "currently attempting to find project folder in: %r" % os.getcwd()
-            )
+        raise IOError(
+            "cannot find project folder: test must run from project folder; "
+            + "currently attempting to find project folder in: %r" % os.getcwd()
+        )
     if folder is not None:
         result = os.path.join(result, folder)
     return result
