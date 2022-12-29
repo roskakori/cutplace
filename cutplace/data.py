@@ -75,19 +75,20 @@ KEY_DECIMAL_SEPARATOR = "decimal_separator"
 KEY_THOUSANDS_SEPARATOR = "thousands_separator"
 KEY_QUOTING = "quoting"
 
+QUOTING_ALL = "all"
+QUOTING_MINIMAL = "minimal"
+
+QUOTING_TO_CSV_QUOTE_MAP = {
+    QUOTING_ALL: csv.QUOTE_ALL,
+    QUOTING_MINIMAL: csv.QUOTE_MINIMAL,
+}
+
 _VALID_QUOTE_CHARACTERS = ['"', "'"]
 _VALID_ESCAPE_CHARACTERS = ['"', "\\"]
 _VALID_DECIMAL_SEPARATORS = [".", ","]
 _VALID_THOUSANDS_SEPARATORS = [",", ".", ""]
 _VALID_FORMATS = [FORMAT_DELIMITED, FORMAT_EXCEL, FORMAT_FIXED, FORMAT_ODS]
-_VALID_QUOTING = ["all", "minimal", "nonnumeric", "none"]
-
-READABLE_TO_CSV_QUOTING_FORMAT = {
-    "all": csv.QUOTE_ALL,
-    "minimal": csv.QUOTE_MINIMAL,
-    "nonnumeric": csv.QUOTE_NONNUMERIC,
-    "none": csv.QUOTE_NONE,
-}
+_VALID_QUOTING = sorted(QUOTING_TO_CSV_QUOTE_MAP.keys())
 
 
 class DataFormat(object):
@@ -117,11 +118,11 @@ class DataFormat(object):
         self._is_valid = False
         self._allowed_characters = None
         self._encoding = "cp1252"
-        self._quoting = csv.QUOTE_MINIMAL
         if self.format == FORMAT_DELIMITED:
             self._escape_character = '"'
             self._item_delimiter = ","
             self._quote_character = '"'
+            self._quoting = csv.QUOTE_MINIMAL
             self._skip_initial_space = False
         if self.format in (FORMAT_DELIMITED, FORMAT_FIXED):
             self._decimal_separator = "."
@@ -133,11 +134,9 @@ class DataFormat(object):
             # Valid values for property 'line delimiter', which is only available for delimited and fixed data
             # with no line delimiter only allowed for fixed data.
             self._VALID_LINE_DELIMITER_TEXTS = sorted(
-                [
-                    line_delimiter_text
-                    for line_delimiter, line_delimiter_text in LINE_DELIMITER_TO_TEXT_MAP.items()
-                    if (line_delimiter is not None) or (self.format == FORMAT_FIXED)
-                ]
+                line_delimiter_text
+                for line_delimiter, line_delimiter_text in LINE_DELIMITER_TO_TEXT_MAP.items()
+                if (line_delimiter is not None) or (self.format == FORMAT_FIXED)
             )
 
     @property
@@ -292,7 +291,7 @@ class DataFormat(object):
     def set_property(self, name, value, location=None):
         r"""
         Set data format property ``name`` to ``value`` possibly translating ``value`` from
-        a human readable representation to an internal one.
+        a human-readable representation to an internal one.
 
         :param str name: any of the ``KEY_*`` constants
         :param value: the value to set the property to as it would show up in a CID. \
@@ -371,6 +370,9 @@ class DataFormat(object):
             self.quote_character = DataFormat._validated_choice(
                 KEY_QUOTE_CHARACTER, value, _VALID_QUOTE_CHARACTERS, location
             )
+        elif name == KEY_QUOTING:
+            quoting = DataFormat._validated_choice(KEY_QUOTING, value, _VALID_QUOTING, location, ignore_case=True)
+            self.quoting = QUOTING_TO_CSV_QUOTE_MAP[quoting]
         elif name == KEY_SHEET:
             self.sheet = DataFormat._validated_int_at_least_0(KEY_SHEET, value, location)
         elif name == KEY_SKIP_INITIAL_SPACE:
@@ -379,9 +381,6 @@ class DataFormat(object):
             self.thousands_separator = DataFormat._validated_choice(
                 KEY_THOUSANDS_SEPARATOR, value, _VALID_THOUSANDS_SEPARATORS, location
             )
-        elif name == KEY_QUOTING:
-            result = DataFormat._validated_choice(KEY_QUOTING, value, _VALID_QUOTING, location, ignore_case=True)
-            self.quoting = READABLE_TO_CSV_QUOTING_FORMAT[result]
         else:
             assert False, "name=%r" % name
 
