@@ -22,7 +22,6 @@ import token
 import tokenize
 
 from cutplace import _compat, _tools, errors, ranges
-
 from cutplace._tools import generated_tokens
 
 #: Value for property ``line_delimiter`` to indicate any possible delimiter.
@@ -81,7 +80,7 @@ _VALID_ESCAPE_CHARACTERS = ['"', "\\"]
 _VALID_DECIMAL_SEPARATORS = [".", ","]
 _VALID_THOUSANDS_SEPARATORS = [",", ".", ""]
 _VALID_FORMATS = [FORMAT_DELIMITED, FORMAT_EXCEL, FORMAT_FIXED, FORMAT_ODS]
-_VALID_QUOTING = ['all', 'minimal', 'nonnumeric', 'none']
+_VALID_QUOTING = ["all", "minimal", "nonnumeric", "none"]
 
 READABLE_TO_CSV_QUOTING_FORMAT = {
     "all": csv.QUOTE_ALL,
