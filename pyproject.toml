@@ -28,7 +28,7 @@ testpaths = [
 
 [tool.poetry]
 name = "cutplace"
-version = "0.9.1"
+version = "0.9.2"
 description = "validate data stored in CSV, PRN, ODS or Excel files"
 readme = "README.rst"
 authors = ["Thomas Aglassinger <roskakori@users.sourceforge.net>"]
@@ -66,14 +66,14 @@ xlrd = "^1.2"
 XlsxWriter = "^3"
 
 [tool.poetry.dev-dependencies]
-wheel = "^0.38.1"
-coverage = "^6.1.1"  # coveralls requires <7 for now
+wheel = "^0.41"
+coverage = "^6"  # coveralls requires <7 for now
 Sphinx = "^4.3.2"
 pytest = "^7.2.0"
 coveralls = "^3.3.1"
 pep8-naming = "^0.13.3"
 pytest-cov = "^4.0.0"
-pre-commit = "^2.16.0"
+pre-commit = "^3"
 pur = "^7.0.0"
 
 [tool.poetry.scripts]
