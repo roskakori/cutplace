@@ -2,7 +2,6 @@
 line-length = 120
 include = '\.pyi?$'
 target-version = [
-    "py37",
     "py38",
     "py39",
     "py310",
@@ -49,7 +48,6 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -63,7 +61,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = ">=3.8, <4"
 xlrd = "^1.2"
 XlsxWriter = "^3"
 
