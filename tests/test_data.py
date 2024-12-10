@@ -287,7 +287,10 @@ class DataFormatTest(unittest.TestCase):
         self._test_fails_on_broken_validated_character("", "*: value for data format property 'x' must be specified")
 
     def test_fails_on_validated_character_with_white_space_only(self):
-        self._test_fails_on_broken_validated_character("\t", "*: value for data format property 'x' must be specified")
+        self._test_fails_on_broken_validated_character(
+            "\t",
+            "*: value for data format property 'x' must a number, a single character or a symbolic name but is: '\\t'",
+        )
 
     def test_fails_on_validated_character_with_float(self):
         self._test_fails_on_broken_validated_character(
@@ -312,7 +315,7 @@ class DataFormatTest(unittest.TestCase):
 
     def test_fails_on_validated_character_with_unterminated_string(self):
         self._test_fails_on_broken_validated_character(
-            '"\\', "*: value for data format property 'x' must be a single character but is: '\"\\\\'"
+            '"\\', "*: value for data format property 'x' must be a valid Python token: '\"\\\\'*"
         )
 
     def test_fails_on_validated_character_with_multiple_characters_as_string(self):

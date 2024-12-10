@@ -83,7 +83,7 @@ def generated_tokens(text):
 
 def human_readable_list(items, final_separator="or"):
     """
-    All values in ``items`` in a human readable form. This is meant to be
+    All values in ``items`` in a human-readable form. This is meant to be
     used in error messages, where dumping ``"%r"`` to the user does not cut
     it.
     """
