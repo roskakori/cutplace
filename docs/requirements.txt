@@ -1,5 +1,5 @@
 # Dependencies for "Read the Docs" build.
 # See <https://docs.readthedocs.io/en/stable/guides/reproducible-builds.html>.
-sphinx==7.2.2
-sphinx_rtd_theme==1.3.0
-readthedocs-sphinx-search==0.3.1
+sphinx==8.1.3
+sphinx_rtd_theme==3.0.2
+readthedocs-sphinx-search==0.3.2

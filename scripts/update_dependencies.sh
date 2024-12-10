@@ -4,7 +4,7 @@ set -e
 echo "🧱 Updating project"
 poetry update
 echo "🛠️ Updating pre-commit"
-pre-commit autoupdate
+poetry run pre-commit autoupdate
 echo "📖 Updating documentation"
-pur -r docs/requirements.txt
+poetry run pur -r docs/requirements.txt
 echo "🎉 Successfully updated dependencies"
