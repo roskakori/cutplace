@@ -1,6 +1,7 @@
 """
 Tests for :py:mod:`ranges`.
 """
+
 import decimal
 
 # Copyright (C) 2009-2021 Thomas Aglassinger
@@ -24,7 +25,6 @@ from tests import dev_test
 
 
 class RangeTest(unittest.TestCase):
-
     """
     Test cases for :py:class:`cutplace.ranges.Range`.
     """

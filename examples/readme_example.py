@@ -1,6 +1,7 @@
 """
 Example for validated reading as used in the README.
 """
+
 import cutplace.errors
 
 if __name__ == "__main__":

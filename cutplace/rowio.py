@@ -2,6 +2,7 @@
 Input and output of data rows in various formats validating only the basic
 format but not any :py:mod:`cutplace.fields` or :py:mod:`cutplace.checks`.
 """
+
 # Copyright (C) 2009-2021 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it

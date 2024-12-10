@@ -3,6 +3,7 @@ Ranges check if certain values are within it. This is used in several places of 
 particular to specify the length limits for field values and the characters allowed for a data
 format.
 """
+
 import decimal
 
 # Copyright (C) 2009-2021 Thomas Aglassinger

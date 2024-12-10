@@ -1,6 +1,7 @@
 """
 Tests for data formats.
 """
+
 # Copyright (C) 2009-2021 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -25,7 +26,6 @@ from tests import dev_test
 
 
 class DataFormatTest(unittest.TestCase):
-
     """
     Tests for data formats.
     """

@@ -1,6 +1,7 @@
 """
 Tests for the :py:mod:`cutplace.rowio` module.
 """
+
 # Copyright (C) 2009-2021 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
