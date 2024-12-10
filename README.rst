@@ -10,10 +10,6 @@
     :target: https://travis-ci.org/roskakori/cutplace
     :alt: Build Status
 
-.. image:: https://coveralls.io/repos/roskakori/cutplace/badge.png?branch=master
-    :target: https://coveralls.io/r/roskakori/cutplace?branch=master
-    :alt: Test coverage
-
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/psf/black
     :alt: Black

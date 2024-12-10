@@ -25,7 +25,6 @@ from tests import dev_test
 
 
 class CidTest(unittest.TestCase):
-
     """
     Tests for cid module
     """

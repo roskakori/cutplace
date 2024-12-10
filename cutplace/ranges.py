@@ -3,6 +3,7 @@ Ranges check if certain values are within it. This is used in several places of 
 particular to specify the length limits for field values and the characters allowed for a data
 format.
 """
+
 import decimal
 
 # Copyright (C) 2009-2021 Thomas Aglassinger
@@ -174,6 +175,11 @@ def _decimal_as_text(decimal_value, precision=DEFAULT_PRECISION):
     return "%.*f" % (precision, decimal_value)
 
 
+def _unified_ellipsis(range_rescription: str) -> str:
+    # HACK: Use space around `ELLIPSIS` to avoid characters after it being treated as part of a `token.NAME`.
+    return range_rescription.replace("...", ELLIPSIS).replace(ELLIPSIS, f" {ELLIPSIS} ")
+
+
 class Range(object):
     """
     A range that can be used to validate that a value is within it.
@@ -181,7 +187,7 @@ class Range(object):
 
     def __init__(self, description, default=None):
         """
-        Setup a range as specified by ``description``.
+        Set up a range as specified by ``description``.
 
         :param str description: a range description of the form \
           ``lower...upper`` or ``limit``. In case it is empty (``''``), any \
@@ -206,7 +212,7 @@ class Range(object):
             self._lower_limit = None
             self._upper_limit = None
         else:
-            self._description = description.replace("...", ELLIPSIS)
+            self._description = _unified_ellipsis(description)
             self._items = []
 
             name_for_code = "range"
@@ -222,7 +228,9 @@ class Range(object):
                 while not _tools.is_eof_token(next_token) and not _tools.is_comma_token(next_token):
                     next_type = next_token[0]
                     next_value = next_token[1]
-                    if next_type in (token.NAME, token.NUMBER, token.STRING):
+                    if next_value in (ELLIPSIS, ":"):
+                        ellipsis_found = True
+                    elif next_type in (token.NAME, token.NUMBER, token.STRING):
                         if next_type == token.NAME:
                             # Symbolic names, e.g. ``tab``.
                             value_as_int = code_for_symbolic_token(name_for_code, next_value, location)
@@ -268,8 +276,6 @@ class Range(object):
                         )
                     elif (next_type == token.OP) and (next_value == "-"):
                         after_hyphen = True
-                    elif next_value in (ELLIPSIS, ":"):
-                        ellipsis_found = True
                     else:
                         raise errors.InterfaceError(
                             "range must be specified using integer numbers, text, "
@@ -543,7 +549,7 @@ class DecimalRange(Range):
             self._lower_limit = None
             self._upper_limit = None
         else:
-            self._description = description.replace("...", ELLIPSIS)
+            self._description = _unified_ellipsis(description)
             self._items = []
             tokens = _tools.tokenize_without_space(self._description)
             end_reached = False

@@ -1,6 +1,7 @@
 """
 Tests for data formats.
 """
+
 # Copyright (C) 2009-2021 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -25,7 +26,6 @@ from tests import dev_test
 
 
 class DataFormatTest(unittest.TestCase):
-
     """
     Tests for data formats.
     """
@@ -277,17 +277,39 @@ class DataFormatTest(unittest.TestCase):
         self.assertEqual("\t", data.DataFormat._validated_character("x", '"\\t"', self._location))
         self.assertEqual("\t", data.DataFormat._validated_character("x", '"\\u0009"', self._location))
 
-    def _test_fails_on_broken_validated_character(self, value, anticipated_error_message_pattern):
+    def _test_fails_on_broken_validated_character(self, value, anticipated_error_message_patterns):
+        actual_anticipated_error_message_patterns = (
+            [anticipated_error_message_patterns]
+            if isinstance(anticipated_error_message_patterns, str)
+            else anticipated_error_message_patterns
+        )
         try:
             data.DataFormat._validated_character("x", value, self._location)
         except errors.InterfaceError as error:
-            assert fnmatch.fnmatchcase(str(error), anticipated_error_message_pattern)
+            actual_error_message = str(error)
+            has_match = any(
+                fnmatch.fnmatchcase(actual_error_message, pattern)
+                for pattern in actual_anticipated_error_message_patterns
+            )
+            assert has_match, (
+                f"error message must match one of: {actual_anticipated_error_message_patterns} "
+                f"but is: {actual_error_message!r}"
+            )
 
     def test_fails_on_validated_character_with_empty_text(self):
         self._test_fails_on_broken_validated_character("", "*: value for data format property 'x' must be specified")
 
     def test_fails_on_validated_character_with_white_space_only(self):
-        self._test_fails_on_broken_validated_character("\t", "*: value for data format property 'x' must be specified")
+        self._test_fails_on_broken_validated_character(
+            "\t",
+            [
+                (
+                    "*: value for data format property 'x' must a number, a single character or a symbolic name "
+                    "but is: '\\t'"
+                ),
+                "*: value for data format property 'x' must be specified",
+            ],
+        )
 
     def test_fails_on_validated_character_with_float(self):
         self._test_fails_on_broken_validated_character(
@@ -312,7 +334,11 @@ class DataFormatTest(unittest.TestCase):
 
     def test_fails_on_validated_character_with_unterminated_string(self):
         self._test_fails_on_broken_validated_character(
-            '"\\', "*: value for data format property 'x' must be a single character but is: '\"\\\\'"
+            '"\\',
+            [
+                "*: value for data format property 'x' must be a valid Python token: '\"\\\\'*",
+                "*: value for data format property 'x' must be a single character*",
+            ],
         )
 
     def test_fails_on_validated_character_with_multiple_characters_as_string(self):

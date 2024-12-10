@@ -1,6 +1,7 @@
 """
 Standard checks that can cover a whole row or data set.
 """
+
 # Copyright (C) 2009-2021 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it

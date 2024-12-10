@@ -1,6 +1,7 @@
 """
 Validated input and output of tabular data in various formats.
 """
+
 # Copyright (C) 2009-2021 Thomas Aglassinger
 #
 # This program is free software: you can redistribute it and/or modify it
