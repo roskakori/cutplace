@@ -86,6 +86,7 @@ cutplace = "cutplace.applications:main_for_script"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^4.0.1"
+setuptools = "^75.6.0"
 
 [tool.isort]
 profile = "black"
