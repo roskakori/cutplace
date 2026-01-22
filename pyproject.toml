@@ -68,7 +68,7 @@ xlrd = "^1.2"
 XlsxWriter = "^3"
 
 [tool.poetry.dev-dependencies]
-wheel = "^0.45"
+wheel = "^0.46"
 coverage = "^7"
 Sphinx = "^7"
 pytest = "^8"
