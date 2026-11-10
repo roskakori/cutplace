@@ -197,6 +197,36 @@ class ReaderTest(unittest.TestCase):
                         "* (R3C1): cannot accept field 'digit': value must be an integer number: 'a'",
                     )
 
+    def test_validate_until_counts_data_rows_not_header(self):
+        cid_text = "\n".join(
+            [
+                "d,format,delimited",
+                "d,header,1",
+                "f,digit,,,,Integer",
+            ]
+        )
+        cid = interface.create_cid_from_string(cid_text)
+        # The header plus two data rows, the second data row is broken.
+        data_with_row_2_broken = "digit\n1\na\n"
+        # validate_until=2 must validate two data rows and find the broken one.
+        with io.StringIO(data_with_row_2_broken) as partially_broken_data:
+            with validio.Reader(cid, partially_broken_data, validate_until=2) as reader:
+                try:
+                    list(reader.rows())
+                    self.fail()
+                except errors.FieldValueError as anticipated_error:
+                    dev_test.assert_fnmatches(
+                        self,
+                        str(anticipated_error),
+                        "* (R3C1): cannot accept field 'digit': value must be an integer number: 'a'",
+                    )
+        # validate_until=1 must only validate the first data row.
+        # (The header row itself is never yielded.)
+        with io.StringIO(data_with_row_2_broken) as partially_broken_data:
+            with validio.Reader(cid, partially_broken_data, validate_until=1) as reader:
+                rows = list(reader.rows())
+        self.assertEqual([["1"], ["a"]], rows)
+
 
 class WriterTest(unittest.TestCase):
     def setUp(self):

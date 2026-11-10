@@ -245,7 +245,8 @@ class Reader(BaseValidator):
         for row_count, row in enumerate(self._raw_rows(), 1):
             try:
                 is_after_header_row = row_count > header_row_count
-                is_before_validate_until = (self._validate_until is None) or (row_count <= self._validate_until)
+                data_row_count = row_count - header_row_count
+                is_before_validate_until = (self._validate_until is None) or (data_row_count <= self._validate_until)
                 if is_after_header_row:
                     if is_before_validate_until:
                         self.validate_row(row)
